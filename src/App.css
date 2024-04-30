@@ -2,10 +2,17 @@
   text-align: center;
 }
 
+html{
+    overflow: hidden;
+}
+
 #paper{
     /* border: none; */
     /* border: 0px; */
     /* border-color: rgba(0,0,0,0); */
+    /* height: 100vh; */
+
+
     background-color: BlanchedAlmond;
     cursor: none;
 }
