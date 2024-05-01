@@ -3,10 +3,12 @@ import {useRef, useState} from 'react';
 import * as actions from './actions.jsx'
 import {mirror} from './globals.js'
 
+
+// TODO: touch screen touching (not dragging) doesn't work
+// TODO: Dragging bounds should make a selection
+
 // Disable the default right click menu
-window.oncontextmenu = function () {
-    return false;
-}
+window.oncontextmenu = () => false
 
 // The default options
 const options = {
@@ -22,11 +24,13 @@ const options = {
     selectionBorderColor: 'black',
     selectionOpacity: .5,
     selectionColor: '#3367D1',
-    partials: false,
+    partials: true,
     dotOffsetx: 0,
     dotOffsety: 0,
     dotRadius: 2,
     dotColor: 'black',
+    eraserColor: 'red',
+    eraserWidth: 2,
 }
 
 // The default keybindings
@@ -47,9 +51,13 @@ var keybindings = {
     'c': actions.continueLine,
     'b': actions.bound,
     'B': actions.clearBounds,
-    'Escape': actions.cancelCurrent,
+    'Escape': (props) => { actions.cancelCurrent(props); actions.clearBounds(props) },
     'p': actions.togglePartials,
     'm': actions.toggleMirror,
+
+    'ctrl+c': actions.copy,
+    'ctrl+v': actions.paste,
+    'ctrl+x': actions.cut,
 
     'd': actions.debug,
 }
@@ -78,9 +86,12 @@ export default function App() {
     const [pattern, setPattern] = useState(null);
     const [mirrorState, setMirrorState] = useState(mirror.NONE);
     const [dragging, setDragging] = useState(false);
+    const [eraser, setEraser] = useState(null);
+    const [clipboard, setClipboard] = useState(null);
 
     const halfx = Math.round((window.visualViewport.width  / 2) / spacingx) * spacingx
     const halfy = Math.round((window.visualViewport.height / 2) / spacingy) * spacingy
+    const boundRect = boundsGroup.current?.getBoundingClientRect()
 
     const actionProps = {
         spacingx, setSpacingx,
@@ -98,7 +109,40 @@ export default function App() {
         pattern, setPattern,
         mirrorState, setMirrorState,
         partials, setPartials,
+        eraser, setEraser,
+        clipboard, setClipboard,
+        getSelected,
         halfx, halfy,
+    }
+
+
+    function getSelected(group=true){
+        if (bounds < 2)
+            return []
+        else {
+            const selected = lines.filter(i => {
+                if ((
+                        i.props.x1 >= boundRect.left &&
+                        i.props.x1 <= boundRect.right &&
+                        i.props.y1 >= boundRect.top &&
+                        i.props.y1 <= boundRect.bottom
+                    ) && (partials || (
+                        i.props.x2 >= boundRect.left &&
+                        i.props.x2 <= boundRect.right &&
+                        i.props.y2 >= boundRect.top &&
+                        i.props.y2 <= boundRect.bottom
+                    ))
+                )
+                    return i
+                else
+                    return undefined
+            })
+
+            if (group)
+                return <g>{selected}</g>
+            else
+                return selected
+        }
     }
 
     function handleMouseMoved(e){
@@ -140,19 +184,28 @@ export default function App() {
     }
 
     function handleKeyDown(e){
-        // console.log(e.key);
-        if (keybindings[e.key]){
-            keybindings[e.key](actionProps)
-        }
+        Object.entries(keybindings).forEach(([shortcut, handler]) => {
+            const code = shortcut.split('+')
+            if (
+                e.ctrlKey  === code.includes('ctrl') &&
+                e.metaKey  === code.includes('meta') &&
+                e.altKey   === code.includes('alt') &&
+                e.shiftKey === code.includes('shift') &&
+                code.includes(e.key)
+            )
+                handler(actionProps)
+        })
     }
 
     function handleScroll(e){
-        console.log(e);
+        // console.log(e);
     }
 
     function handleTouchMove(e){
-        const x = e.touches[0].pageX;
-        const y = e.touches[0].pageY;
+        const touch = (e.touches[0] || e.changedTouches[0])
+        console.log(e);
+        const x = touch.pageX;
+        const y = touch.pageY;
         setCursorPos([
             (Math.round(x / spacingx) * spacingx) + 1,
             (Math.round(y / spacingy) * spacingy) + 1,
@@ -162,15 +215,18 @@ export default function App() {
 
     function handleTouchStart(e){
         if (curLine === null){
+            const touch = (e.touches[0] || e.changedTouches[0])
+            console.log(e);
             setCurLine({
-                x1: (Math.round(e.touches[0].pageX / spacingx) * spacingx) + 1,
-                y1: (Math.round(e.touches[0].pageY / spacingy) * spacingy) + 1,
+                x1: (Math.round(touch.pageX / spacingx) * spacingx) + 1,
+                y1: (Math.round(touch.pageY / spacingy) * spacingy) + 1,
             })
         } else {
             setLines([...lines, <line {...curLine} x2={cursorPos[0]} y2={cursorPos[1]} stroke={stroke}/>])
             setCurLine(null)
         }
     }
+
 
     let mirrorLines = []
     if (mirrorState === mirror.VERT || mirrorState === mirror.BOTH){
@@ -180,12 +236,9 @@ export default function App() {
         mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
     }
 
-    console.log(mirrorLines);
-    console.log(mirrorState);
-    const boundRect = boundsGroup.current?.getBoundingClientRect()
-
     return (
         <div className="App">
+            {/* <samp><kbd>Shift</kbd></samp> */}
             <svg id='paper'
                 width="100%"
                 height="101vh"
@@ -193,11 +246,14 @@ export default function App() {
                 onKeyDown={handleKeyDown}
                 tabIndex={0}
                 onMouseDown={handleMouseClick}
-                onScroll={handleScroll}
                 onTouchMove={handleTouchMove}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchStart}
                 onMouseUp={handleMouseUp}
+                onWheel={handleScroll}
+                onCopy={() => actions.copy(actionProps)}
+                onPaste={() => actions.paste(actionProps)}
+                onCut={() => actions.cut(actionProps)}
             >
                 {/* Draw the dots */}
                 <defs>
@@ -234,10 +290,10 @@ export default function App() {
 
                 {/* Draw the bound rect */}
                 <rect
-                    width={boundRect.width}
-                    height={boundRect.height}
-                    x={boundRect.x}
-                    y={boundRect.y}
+                    width={boundRect?.width}
+                    height={boundRect?.height}
+                    x={boundRect?.x}
+                    y={boundRect?.y}
                     stroke={options.selectionBorderColor}
                     fillOpacity={options.selectionOpacity}
                     fill={options.selectionColor}
@@ -246,6 +302,26 @@ export default function App() {
 
                 {/* Draw the mirror lines */}
                 {mirrorLines}
+
+                {/* Draw the eraser placeholder */}
+                {eraser && [
+                    <line
+                        x1={eraser[0] - spacingx / 3}
+                        y1={eraser[1] - spacingy / 3}
+                        x2={eraser[0] + spacingx / 3}
+                        y2={eraser[1] + spacingy / 3}
+                        stroke={options.eraserColor}
+                        strokeWidth={options.eraserWidth}
+                    />,
+                    <line
+                        x1={eraser[0] + spacingx / 3}
+                        y1={eraser[1] - spacingy / 3}
+                        x2={eraser[0] - spacingx / 3}
+                        y2={eraser[1] + spacingy / 3}
+                        stroke={options.eraserColor}
+                        strokeWidth={options.eraserWidth}
+                    />
+                ]}
             </svg>
         </div>
   )
