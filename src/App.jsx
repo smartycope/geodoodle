@@ -20,7 +20,7 @@ const options = {
     stroke: "black",
     strokeWidth: 1,
     boundColor: "black",
-    mirrorColor: 'black',
+    mirrorColor: 'green',
     selectionBorderColor: 'black',
     selectionOpacity: .5,
     selectionColor: '#3367D1',
@@ -80,7 +80,7 @@ export default function App() {
     const [strokeWidth, setStrokeWidth] = useState(options.strokeWidth);
     const [partials, setPartials] = useState(options.partials);
 
-    const [lines, setLines] = useState([<line x1={20} y1={20} x2={40} y2={40} stroke={stroke} strokeWidth={strokeWidth}/>]);
+    const [lines, setLines] = useState([]);
     const [curLine, setCurLine] = useState(null);
     const [bounds, setBounds] = useState([]);
     const [pattern, setPattern] = useState(null);
@@ -89,8 +89,8 @@ export default function App() {
     const [eraser, setEraser] = useState(null);
     const [clipboard, setClipboard] = useState(null);
 
-    const halfx = Math.round((window.visualViewport.width  / 2) / spacingx) * spacingx
-    const halfy = Math.round((window.visualViewport.height / 2) / spacingy) * spacingy
+    const halfx = Math.round((window.visualViewport.width  / 2) / spacingx) * spacingx + 1
+    const halfy = Math.round((window.visualViewport.height / 2) / spacingy) * spacingy + 1
     const boundRect = boundsGroup.current?.getBoundingClientRect()
 
     const actionProps = {
@@ -112,9 +112,13 @@ export default function App() {
         eraser, setEraser,
         clipboard, setClipboard,
         getSelected,
+        addLine,
         halfx, halfy,
     }
 
+    function addLine(props){
+        setLines([...lines, <line {...props} stroke={stroke} strokeWidth={strokeWidth} key={JSON.stringify(props)}/>])
+    }
 
     function getSelected(group=true){
         if (bounds < 2)
@@ -164,7 +168,8 @@ export default function App() {
                     y1: (Math.round(e.clientY / spacingy) * spacingy) + 1,
                 })
             } else {
-                setLines([...lines, <line {...curLine} x2={cursorPos[0]} y2={cursorPos[1]} stroke={stroke}/>])
+                // setLines([...lines, <line {...curLine} x2={cursorPos[0]} y2={cursorPos[1]} stroke={stroke}/>])
+                addLine({...curLine, x2: cursorPos[0], y2: cursorPos[1]})
                 setCurLine(null)
             }
         }
@@ -222,7 +227,8 @@ export default function App() {
                 y1: (Math.round(touch.pageY / spacingy) * spacingy) + 1,
             })
         } else {
-            setLines([...lines, <line {...curLine} x2={cursorPos[0]} y2={cursorPos[1]} stroke={stroke}/>])
+            // setLines([...lines, <line {...curLine} x2={cursorPos[0]} y2={cursorPos[1]} stroke={stroke}/>])
+            addLine({...curLine, x2: cursorPos[0], y2: cursorPos[1]})
             setCurLine(null)
         }
     }
@@ -233,7 +239,7 @@ export default function App() {
         mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
     }
     if (mirrorState === mirror.HORZ || mirrorState === mirror.BOTH){
-        mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
+        mirrorLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor}/>)
     }
 
     return (

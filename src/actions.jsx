@@ -48,19 +48,20 @@ const deleteLine = ({bounds, setBounds, cursorPos, curLine, setCurLine, eraser, 
 }
 const clear      = ({setLines, setBounds}) => { setLines([]); setBounds([]); }
 const clearBounds = ({setBounds}) => setBounds([])
-const line       = ({curLine, setCurLine, cursorPos, lines, setLines, stroke}) => {
+const line       = ({curLine, setCurLine, cursorPos, addLine}) => {
     if (curLine === null){
         setCurLine({
             x1: cursorPos[0],
             y1: cursorPos[1],
         })
     } else {
-        setLines([...lines, <line {...curLine} x2={cursorPos[0]} y2={cursorPos[1]} stroke={stroke}/>])
+        // setLines([...lines, <line {...curLine} x2={cursorPos[0]} y2={cursorPos[1]} stroke={stroke}/>])
+        addLine({...curLine, x2: cursorPos[0], y2: cursorPos[1]})
         setCurLine(null)
     }
 }
-const continueLine = ({curLine, setCurLine, cursorPos, lines, setLines, stroke}) => {
-    line({curLine, setCurLine, cursorPos, lines, setLines, stroke})
+const continueLine = ({curLine, setCurLine, cursorPos, lines, setLines, stroke, addLine}) => {
+    line({curLine, setCurLine, cursorPos, lines, setLines, stroke, addLine})
     setCurLine({
         x1: cursorPos[0],
         y1: cursorPos[1],
