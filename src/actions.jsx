@@ -1,14 +1,25 @@
 import {mirror} from './globals.js'
 
 // Actions which can be set to various keyboard shortcuts
-const left       = ({setCursorPos, cursorPos, spacingx}) => setCursorPos([cursorPos[0] - spacingx, cursorPos[1]])
-const right      = ({setCursorPos, cursorPos, spacingx}) => setCursorPos([cursorPos[0] + spacingx, cursorPos[1]])
-const up         = ({setCursorPos, cursorPos, spacingy}) => setCursorPos([cursorPos[0], cursorPos[1] - spacingy])
-const down       = ({setCursorPos, cursorPos, spacingy}) => setCursorPos([cursorPos[0], cursorPos[1] + spacingy])
-const deleteAll  = ({lines, setLines, cursorPos, curLine, setCurLine, bounds, setBounds}) => {
+const left = ({setCursorPos, cursorPos, spacingx}) => setCursorPos([cursorPos[0] - spacingx, cursorPos[1]])
+const right = ({setCursorPos, cursorPos, spacingx}) => setCursorPos([cursorPos[0] + spacingx, cursorPos[1]])
+const up = ({setCursorPos, cursorPos, spacingy}) => setCursorPos([cursorPos[0], cursorPos[1] - spacingy])
+const down = ({setCursorPos, cursorPos, spacingy}) => setCursorPos([cursorPos[0], cursorPos[1] + spacingy])
+const clear = ({setLines, setBounds}) => { setLines([]); setBounds([]); }
+const clearBounds = ({setBounds}) => setBounds([])
+const togglePartials = ({partials, setPartials}) => setPartials(!partials)
+const copy = ({setClipboard, getSelected}) => setClipboard(getSelected(false))
+const paste = ({lines, setLines, clipboard}) => setLines([...lines, ...clipboard])
+const cut = ({setClipboard, getSelected, lines, setLines}) => {
+    setClipboard(getSelected(false))
+    deleteSelected({lines, setLines, getSelected})
+}
+const deleteAll = ({lines, setLines, cursorPos, curLine, setCurLine, bounds, setBounds, selection, setSelection}) => {
     if (!bound({bounds, setBounds, cursorPos}, false)){
         if (curLine){
             setCurLine(null)
+        } else if (selection) {
+            setSelection(null)
         } else {
             setLines(lines.filter(i => {
                 if ((i.props.x1 === cursorPos[0] && i.props.y1 === cursorPos[1]) ||
@@ -46,9 +57,7 @@ const deleteLine = ({bounds, setBounds, cursorPos, curLine, setCurLine, eraser, 
         }
     }
 }
-const clear      = ({setLines, setBounds}) => { setLines([]); setBounds([]); }
-const clearBounds = ({setBounds}) => setBounds([])
-const line       = ({curLine, setCurLine, cursorPos, addLine}) => {
+const line = ({curLine, setCurLine, cursorPos, addLine}) => {
     if (curLine === null){
         setCurLine({
             x1: cursorPos[0],
@@ -68,7 +77,7 @@ const continueLine = ({curLine, setCurLine, cursorPos, lines, setLines, stroke, 
     })
 }
 // Returns true if it deleted one instead of adding one
-const bound      = ({bounds, setBounds, cursorPos}, add=true) => {
+const bound = ({bounds, setBounds, cursorPos, translationx, translationy, offsetx, offsety}, add=true) => {
     let copy = JSON.parse(JSON.stringify(bounds))
     let mutated = false
     // First check to see if we need to remove it
@@ -79,14 +88,12 @@ const bound      = ({bounds, setBounds, cursorPos}, add=true) => {
         }
     }
     if (!mutated && add){
-        setBounds([...bounds, cursorPos])
+        setBounds([...bounds, [cursorPos[0] - translationx + offsetx, cursorPos[1] - translationy + offsety]])
     } else {
         setBounds(copy)
     }
     return mutated
 }
-const cancelCurrent = ({setCurLine}) => setCurLine(null)
-const togglePartials = ({partials, setPartials}) => setPartials(!partials)
 const toggleMirror = ({mirrorState, setMirrorState}) => {
     console.log('here');
     // eslint-disable-next-line default-case
@@ -101,12 +108,13 @@ const deleteSelected = ({setLines, lines, getSelected}) => {
     const selection = getSelected(false)
     setLines(lines.filter(i => selection.includes(i) ? undefined : i))
 }
-const copy = ({setClipboard, getSelected}) => setClipboard(getSelected(false))
-const paste = ({lines, setLines, clipboard}) => setLines([...lines, ...clipboard])
-const cut = ({setClipboard, getSelected, lines, setLines}) => {
-    console.log('cut!')
-    setClipboard(getSelected(false))
-    deleteSelected({lines, setLines, getSelected})
+const nevermind = ({setBounds, curLine, setCurLine, clipboard, setClipboard, bounds}) => {
+    if (clipboard)
+        setClipboard(null)
+    else if (curLine)
+        setCurLine(null)
+    else if (bounds.length)
+        clearBounds({setBounds})
 }
 
 
@@ -128,9 +136,9 @@ export {
     clear,
     clearBounds,
     debug,
-    cancelCurrent,
     togglePartials,
     toggleMirror,
     deleteSelected,
     cut, copy, paste,
+    nevermind,
 }
