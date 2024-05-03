@@ -1,8 +1,8 @@
 import './App.css';
-import {useRef, useState} from 'react';
+import {useReducer, useRef, useState} from 'react';
 import * as actions from './actions.jsx'
 import {mirror} from './globals.js'
-
+import reducer from './actions.jsx';
 
 // TODO: touch screen touching (not dragging) doesn't work
 // TODO: can't add bounds until after a line has been made
@@ -37,72 +37,44 @@ const options = {
     scrollSensitivity: .3,
 }
 
-// The default keybindings
-// This should be the names of the JS key strings, all lower case
-// Modifiers are shift, ctrl, meta, and alt. Order doesn't matter, no whitespace allowed
-var keybindings = {
-    "arrowleft": actions.left,
-    "arrowright": actions.right,
-    "arrowup": actions.up,
-    "arrowdown": actions.down,
-    "j": actions.left,
-    ";": actions.right,
-    "k": actions.up,
-    "l": actions.down,
 
-    'delete': actions.deleteAll,
-    'backspace': actions.deleteLine,
-    'ctrl+q': actions.clear,
-    ' ': actions.line,
-    'c': actions.continueLine,
-    'b': actions.bound,
-    'shift+b': actions.clearBounds,
-    'escape': actions.nevermind,
-    'p': actions.togglePartials,
-    'm': actions.toggleMirror,
 
-    'ctrl+c': actions.copy,
-    'ctrl+v': actions.paste,
-    'ctrl+x': actions.cut,
-
-    'd': actions.debug,
-}
 
 
 export default function App() {
     const boundsGroup = useRef()
     const paper = useRef()
 
-    const [spacingx, setSpacingx] = useState(options.spacingx)
-    const [spacingy, setSpacingy] = useState(options.spacingy)
-    const [cursorRadius, setCursorRadius] = useState(options.spacingx / 3)
-    const [boundRadius, setBoundRadius] = useState(options.spacingx / 1.5);
-    // The position of the system mouse
-    const [mousePos, setMousePos] = useState([0, 0])
-    // The position of the circle we're drawing to act as a cursor in our application
-    const [cursorPos, setCursorPos] = useState([0, 0])
-    const [stroke, setStroke] = useState(options.stroke);
-    const [strokeWidth, setStrokeWidth] = useState(options.strokeWidth);
-    const [partials, setPartials] = useState(options.partials);
+    const [state, dispatch] = useReducer(reducer, {
+        spacingx: options.spacingx,
+        spacingy: options.spacingy,
+        cursorRadius: options.spacingx / 3,
+        boundRadius: options.spacingx / 1.5,
+        // The position of the circle we're drawing to act as a cursor in our application
+        cursorPos: [0, 0],
+        stroke: options.stroke,
+        strokeWidth: options.strokeWidth,
+        partials: options.partials,
 
-    const [lines, setLines] = useState([]);
-    const [curLine, setCurLine] = useState(null);
-    const [bounds, setBounds] = useState([]);
-    const [pattern, setPattern] = useState(null);
-    const [mirrorState, setMirrorState] = useState(mirror.NONE);
-    const [dragging, setDragging] = useState(false);
-    const [eraser, setEraser] = useState(null);
-    const [clipboard, setClipboard] = useState(null);
+        lines: [],
+        curLine: null,
+        bounds: [],
+        pattern: null,
+        mirrorState: mirror.NONE,
+        dragging: false,
+        eraser: null,
+        clipboard: null,
 
-    // const [transformation, setTransformation] = useState([1, 0, 0, 1, 0, 0]);
-    const [translationx, setTranslationx] = useState(0);
-    const [translationy, setTranslationy] = useState(0);
-    const [scalex, setScalex] = useState(options.spacingx);
-    const [scaley, setScaley] = useState(options.spacingy);
-    const [rotatex, setRotatex] = useState(0);
-    const [rotatey, setRotatey] = useState(0);
-    const [shearx, setShearx] = useState(0);
-    const [sheary, setSheary] = useState(0);
+        // const [transformation, setTransformation] = useState([1, 0, 0, 1, 0, 0]);
+        translationx: 0,
+        translationy: 0,
+        scalex: options.spacingx,
+        scaley: options.spacingy,
+        rotatex: 0,
+        rotatey: 0,
+        shearx: 0,
+        sheary: 0,
+    })
 
     const halfx = Math.round((window.visualViewport.width  / 2) / spacingx) * spacingx
     const halfy = Math.round((window.visualViewport.height / 2) / spacingy) * spacingy
@@ -111,44 +83,7 @@ export default function App() {
     const offsety = translationy % spacingy
     const selectionOverlap = (boundRadius/2)
 
-    const actionProps = {
-        spacingx, setSpacingx,
-        spacingy, setSpacingy,
-        cursorRadius, setCursorRadius,
-        mousePos, setMousePos,
-        cursorPos, setCursorPos,
-        stroke, setStroke,
-        strokeWidth, setStrokeWidth,
-        lines, setLines,
-        curLine, setCurLine,
-        bounds, setBounds,
-        pattern, setPattern,
-        mirrorState, setMirrorState,
-        partials, setPartials,
-        eraser, setEraser,
-        clipboard, setClipboard,
-        getSelected,
-        halfx, halfy,
-        offsetx, offsety,
-        translationx, setTranslationx,
-        translationy, setTranslationy,
-        scalex, setScalex,
-        scaley, setScaley,
-        rotatex, setRotatex,
-        rotatey, setRotatey,
-        shearx, setShearx,
-        sheary, setSheary,
-        addLine,
-    }
 
-    function addLine(props){
-        props.x1 -= translationx - offsetx
-        props.x2 -= translationx - offsetx
-        props.y1 -= translationy - offsety
-        props.y2 -= translationy - offsety
-
-        setLines([...lines, <line {...props} stroke={stroke} strokeWidth={strokeWidth} key={JSON.stringify(props)}/>])
-    }
 
     function getSelected(group=true){
         if (bounds < 2)
