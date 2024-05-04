@@ -1,5 +1,21 @@
 import React from "react"
 
+const hashPoint = ([x, y]) => `${x}${y}`
+export function pointIn(points, point){
+    return points.map(hashPoint).includes(hashPoint(point))
+}
+export function removePoint(points, point){
+    return points.filter(i => hashPoint(i) !== hashPoint(point))
+}
+
+const hashLine = line => JSON.stringify(line.props)
+export function lineIn(lines, line){
+    return lines.map(hashLine).includes(hashLine(line))
+}
+export function removeLine(lines, line){
+    return lines.filter(i => hashLine(i) !== hashLine(line))
+}
+
 export function getSelected(state){
     const {translationx, translationy, partials, lines, bounds} = state
     const {boundRect, selectionOverlap} = calc(state)
@@ -18,10 +34,10 @@ export function getSelected(state){
             // Remove the translation (so it's absolutely positioned with respect to the cursor)
             // Then remove the overlap (since the boundRect intentionally doens't align with the dots)
             {...i.props}
-            x1={i.props.x1 - boundRect.left + translationx - selectionOverlap + 1}
-            x2={i.props.x2 - boundRect.left + translationx - selectionOverlap + 1}
-            y1={i.props.y1 - boundRect.top + translationy - selectionOverlap + 1}
-            y2={i.props.y2 - boundRect.top + translationy - selectionOverlap + 1}
+            x1={i.props.x1 - boundRect.left + translationx + 1}
+            x2={i.props.x2 - boundRect.left + translationx + 1}
+            y1={i.props.y1 - boundRect.top + translationy + 1}
+            y2={i.props.y2 - boundRect.top + translationy + 1}
         />)
 }
 

@@ -19,25 +19,31 @@ window.oncontextmenu = () => false
 export default function App() {
     const boundsGroup = useRef()
     const paper = useRef()
+    const [dragging, setDragging] = useState(false)
 
     const [state, dispatch] = useReducer(reducer, {
         spacingx: options.spacingx,
         spacingy: options.spacingy,
         cursorRadius: options.spacingx / 3,
         boundRadius: options.spacingx / 1.5,
-        // The position of the circle we're drawing to act as a cursor in our application
+        // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
         cursorPos: [0, 0],
         stroke: options.stroke,
         strokeWidth: options.strokeWidth,
+        // A bool
         partials: options.partials,
 
+        // A list of <line> objects
         lines: [],
+        // {x1: float, y1: float} or null
         curLine: null,
+        // A list of [x, y]
         bounds: [],
-        pattern: null,
+        // pattern: null,
         mirrorState: mirror.NONE,
-        dragging: false,
+        // [x, y] or null
         eraser: null,
+        // A list of <line> objects, or null
         clipboard: null,
 
         // const [transformation, setTransformation] = useState([1, 0, 0, 1, 0, 0]);
@@ -66,9 +72,8 @@ export default function App() {
         lines,
         curLine,
         bounds,
-        pattern,
+        // pattern,
         mirrorState,
-        dragging,
         eraser,
         clipboard,
         translationx,
@@ -101,38 +106,69 @@ export default function App() {
         mirrorLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor}/>)
     }
 
+    function onMouseMove(e){
+        setDragging(e.buttons !== 0 ? true : dragging)
+        dispatch({
+            action: 'cursor moved',
+            x: e.clientX,
+            y: e.clientY,
+        })
+    }
+
+    function onMouseDown(e){
+        // eslint-disable-next-line default-case
+        switch (e.button){
+            // Left click
+            case 0: dispatch({action: 'add line'}); break;
+            // Middle click
+            case 1: dispatch({action: 'delete'}); break;
+            // Right click
+            case 2: dispatch({action: 'continue line'}); break;
+        }
+    }
+
+    function onMouseUp(e){
+        if (dragging)
+            dispatch({action: 'add line'})
+        setDragging(false)
+    }
+
+    function onTouchMove(e){
+        // Do this here, and not in onTouchStart, because when a touch tap happens, it triggers both
+        // onMouseDown *and* onTouchStart. This ensures it only creates a line if it's moving
+        if (curLine === null)
+            dispatch({action: 'add line'})
+        setDragging(true)
+
+        dispatch({
+            action: 'cursor moved',
+            x: (e.touches[0] || e.changedTouches[0]).pageX,
+            y: (e.touches[0] || e.changedTouches[0]).pageY,
+
+        })
+    }
+
+    function onTouchEnd(e){
+        if (dragging)
+            dispatch({action: 'add line'})
+        setDragging(false)
+    }
+
     return (
         <div className="App">
             {/* <samp><kbd>Shift</kbd></samp> */}
             <svg id='paper'
                 width="100%"
                 height="101vh"
-                onMouseMove={e => dispatch({
-                    action: 'mouse movement',
-                    x: e.clientX,
-                    y: e.clientY,
-                    buttons: e.buttons,
-                })}
-                onKeyDown={e => dispatch({
-                    action: 'key press',
-                    event: e,
-                })}
+                onMouseMove={onMouseMove}
+                onKeyDown={e => dispatch({action: 'key press', event: e})}
                 tabIndex={0}
-                onMouseDown={e => dispatch({action: 'mouse click'})}
-                onTouchMove={e => dispatch({
-                    action: 'touch move',
-                    x: (e.touches[0] || e.changedTouches[0]).pageX,
-                    y: (e.touches[0] || e.changedTouches[0]).pageY,
-
-                })}
+                onMouseDown={onMouseDown}
+                onTouchMove={onTouchMove}
                 // TODO:
-                // onTouchStart={handleTouchStart}
-                // onTouchEnd={handleTouchStart}
-                onMouseUp={e => dispatch({
-                    action: 'mouse up',
-                    x: e.clientX,
-                    y: e.clientY,
-                })}
+                // onTouchStart={onTouchStart}
+                onTouchEnd={onTouchEnd}
+                onMouseUp={onMouseUp}
                 onWheel={e => dispatch({
                     action: 'translate',
                     x: e.deltaX,
@@ -195,6 +231,7 @@ export default function App() {
                             rx={partials ? 4 : 0}
                             stroke={options.boundColor}
                             fillOpacity={0}
+                            key={`bound-${bound[0]}-${bound[1]}`}
                         />
                     )}
                 </g>
