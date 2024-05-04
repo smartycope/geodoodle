@@ -11,6 +11,7 @@ import options from './options';
 // TODO: Dragging bounds should make a selection
 // TODO: delete selected doesn't work now
 // TODO: eraser stopped working
+// TODO: ctrl+c will trigger if ctrl+shift+c is pressed
 
 // Disable the default right click menu
 window.oncontextmenu = () => false
@@ -58,7 +59,6 @@ export default function App() {
         spacingy,
         cursorRadius,
         boundRadius,
-        mousePos,
         cursorPos,
         stroke,
         strokeWidth,
@@ -89,10 +89,10 @@ export default function App() {
         offsetx,
         offsety,
         selectionOverlap,
+        boundRect,
     } = calc(state)
 
-    const boundRect = boundsGroup.current?.getBoundingClientRect()
-
+    // Add the mirror lines
     let mirrorLines = []
     if (mirrorState === mirror.VERT || mirrorState === mirror.BOTH){
         mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
@@ -200,16 +200,16 @@ export default function App() {
                 </g>
 
                 {/* Draw the bound rect */}
-                <rect
-                    width={boundRect?.width}
-                    height={boundRect?.height}
-                    x={boundRect?.x}
-                    y={boundRect?.y}
+                {boundRect && <rect
+                    width={boundRect?.right - boundRect?.left}
+                    height={boundRect?.bottom - boundRect?.top}
+                    x={boundRect?.left}
+                    y={boundRect?.top}
                     stroke={options.selectionBorderColor}
                     fillOpacity={options.selectionOpacity}
                     fill={options.selectionColor}
                     rx={partials ? 4 : 0}
-                />
+                />}
 
                 {/* Draw the mirror lines */}
                 {mirrorLines}

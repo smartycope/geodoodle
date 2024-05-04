@@ -17,9 +17,9 @@ var keybindings = {
     'delete': "delete",
     'backspace': "delete line",
     'ctrl+q': "clear",
-    ' ': "line",
+    ' ': "add line",
     'c': "continue line",
-    'b': "bound",
+    'b': "add bound",
     'shift+b': "clear bounds",
     'escape': "nevermind",
     'p': "toggle partials",
@@ -36,7 +36,6 @@ export default function reducer(state, data){
         spacingy,
         cursorRadius,
         boundRadius,
-        mousePos,
         cursorPos,
         stroke,
         strokeWidth,
@@ -69,9 +68,9 @@ export default function reducer(state, data){
         selectionOverlap,
     } = calc(state)
 
-    if (!(['mouse movement', 'touch move'].includes(data.action))){
-        console.log(data);
-        console.log(state);
+    if (!(['mouse movement', 'touch move', 'translate'].includes(data.action))){
+        console.debug(data);
+        console.debug(state);
     }
 
     // TODO:
@@ -90,7 +89,6 @@ export default function reducer(state, data){
         // }
     // }
 
-    // eslint-disable-next-line default-case
     switch (data.action){
         case 'mouse movement':
             return {...state,
@@ -115,7 +113,7 @@ export default function reducer(state, data){
             // eslint-disable-next-line default-case
             switch (data.button){
                 // Left click
-                case 0: return reducer(state, {action: 'line'})
+                case 0: return reducer(state, {action: 'add line'})
                 // Middle click
                 case 1: return reducer(state, {action: 'delete all'})
                 // Right click
@@ -124,6 +122,7 @@ export default function reducer(state, data){
             return state // This shouldn't be possible, but whatever
 
         case 'key press':
+            var take = null
             Object.entries(keybindings).forEach(([shortcut, action]) => {
                 const code = shortcut.split('+')
                 if (
@@ -133,9 +132,9 @@ export default function reducer(state, data){
                     data.event.shiftKey === code.includes('shift') &&
                     code.includes(data.event.key.toLowerCase())
                 )
-                    return reducer(state, {action: action})
+                    take = action
             })
-            return state
+            return take ? reducer(state, {action: take}) : state
 
         case 'translate':
             return {...state,
@@ -159,16 +158,16 @@ export default function reducer(state, data){
         case 'clear':           return {...state, lines: [], bounds: []}
         case 'clear bounds':    return {...state, bounds: []}
         case 'toggle partials': return {...state, partials: !partials}
-        case 'copy':            return {...state, clipboard: getSelected(state, false)}
+        case 'copy':            return {...state, clipboard: getSelected(state)}
         case 'paste':           return {...state, lines: [...lines, ...clipboard]}
         case 'cut': {
-            const selected = getSelected(state, false)
+            const selected = getSelected(state)
             return {...reducer(state, {action: 'delete selected'}),
                 clipboard: selected,
             }
         }
         case 'delete selected': {
-            const selected = getSelected(state, false)
+            const selected = getSelected(state)
             return {...state, lines: lines.filter(i => selected.includes(i) ? undefined : i)}
         }
         case 'delete line':
@@ -237,7 +236,7 @@ export default function reducer(state, data){
             }
 
         case 'continue line':
-            return {...reducer(state, {action: 'line'}),
+            return {...reducer(state, {action: 'add line'}),
                 curLine: {
                     x1: cursorPos[0],
                     y1: cursorPos[1],
