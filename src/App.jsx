@@ -1,8 +1,10 @@
 import './App.css';
 import {useReducer, useRef, useState} from 'react';
-import * as actions from './actions.jsx'
-import {mirror} from './globals.js'
-import reducer from './actions.jsx';
+import * as actions from './reducer.jsx'
+import {mirror} from './globals'
+import reducer from './reducer';
+import {calc} from './utils';
+import options from './options';
 
 // TODO: touch screen touching (not dragging) doesn't work
 // TODO: can't add bounds until after a line has been made
@@ -12,34 +14,6 @@ import reducer from './actions.jsx';
 
 // Disable the default right click menu
 window.oncontextmenu = () => false
-
-
-// The default options
-const options = {
-    cursorColor: "black",
-    spacingx: 20,
-    spacingy: 20,
-    stroke: "black",
-    strokeWidth: 1,
-    boundColor: "black",
-    mirrorColor: 'green',
-    selectionBorderColor: 'black',
-    selectionOpacity: .5,
-    selectionColor: '#3367D1',
-    partials: true,
-    dotOffsetx: 0,
-    dotOffsety: 0,
-    dotRadius: 2,
-    dotColor: 'black',
-    eraserColor: 'red',
-    eraserWidth: 2,
-    invertedScroll: true,
-    scrollSensitivity: .3,
-}
-
-
-
-
 
 export default function App() {
     const boundsGroup = useRef()
@@ -74,130 +48,50 @@ export default function App() {
         rotatey: 0,
         shearx: 0,
         sheary: 0,
+
+        invertedScroll: options.invertedScroll,
+        scrollSensitivity: options.scrollSensitivity,
     })
 
-    const halfx = Math.round((window.visualViewport.width  / 2) / spacingx) * spacingx
-    const halfy = Math.round((window.visualViewport.height / 2) / spacingy) * spacingy
+    const {
+        spacingx,
+        spacingy,
+        cursorRadius,
+        boundRadius,
+        mousePos,
+        cursorPos,
+        stroke,
+        strokeWidth,
+        partials,
+        lines,
+        curLine,
+        bounds,
+        pattern,
+        mirrorState,
+        dragging,
+        eraser,
+        clipboard,
+        translationx,
+        translationy,
+        scalex,
+        scaley,
+        rotatex,
+        rotatey,
+        shearx,
+        sheary,
+        invertedScroll,
+        scrollSensitivity,
+    } = state
+
+    const {
+        halfx,
+        halfy,
+        offsetx,
+        offsety,
+        selectionOverlap,
+    } = calc(state)
+
     const boundRect = boundsGroup.current?.getBoundingClientRect()
-    const offsetx = translationx % spacingx
-    const offsety = translationy % spacingy
-    const selectionOverlap = (boundRadius/2)
-
-
-
-    function getSelected(group=true){
-        if (bounds < 2)
-            return []
-        else {
-            const selected = lines.filter(i => (
-                    i.props.x1 + translationx >= boundRect.left &&
-                    i.props.x1 + translationx <= boundRect.right &&
-                    i.props.y1 + translationy >= boundRect.top &&
-                    i.props.y1 + translationy <= boundRect.bottom
-                ) && (partials || (
-                    i.props.x2 + translationx >= boundRect.left &&
-                    i.props.x2 + translationx <= boundRect.right &&
-                    i.props.y2 + translationy >= boundRect.top &&
-                    i.props.y2 + translationy <= boundRect.bottom
-                ))).map(i => <line
-                    // Remove the translation (so it's absolutely positioned with respect to the cursor)
-                    // Then remove the overlap (since the boundRect intentionally doens't align with the dots)
-                    {...i.props}
-                    x1={i.props.x1 - boundRect.left + translationx - selectionOverlap + 1}
-                    x2={i.props.x2 - boundRect.left + translationx - selectionOverlap + 1}
-                    y1={i.props.y1 - boundRect.top + translationy - selectionOverlap + 1}
-                    y2={i.props.y2 - boundRect.top + translationy - selectionOverlap + 1}
-                />)
-
-            return group ? <g>{selected}</g> : selected
-        }
-    }
-
-    function handleMouseMoved(e){
-        if (e.buttons !== 0)
-            setDragging(true)
-
-        setCursorPos([
-            (Math.round(e.clientX / spacingx) * spacingx) + 1,
-            (Math.round(e.clientY / spacingy) * spacingy) + 1,
-        ])
-        setMousePos(e.clientX, e.clientY)
-    }
-
-    function handleMouseUp(e){
-        if (dragging){
-            if (curLine === null){
-                setCurLine({
-                    x1: (Math.round(e.clientX / spacingx) * spacingx) + 1,
-                    y1: (Math.round(e.clientY / spacingy) * spacingy) + 1,
-                })
-            } else {
-                // setLines([...lines, <line {...curLine} x2={cursorPos[0]} y2={cursorPos[1]} stroke={stroke}/>])
-                addLine({...curLine, x2: cursorPos[0], y2: cursorPos[1]})
-                setCurLine(null)
-            }
-        }
-        setDragging(false)
-    }
-
-    function handleMouseClick(e){
-        // eslint-disable-next-line default-case
-        switch (e.button){
-            // Left click
-            case 0: actions.line(actionProps);         break;
-            // Middle click
-            case 1: actions.deleteAll(actionProps);    break;
-            // Right click
-            case 2: actions.continueLine(actionProps); break;
-        }
-    }
-
-    function handleKeyDown(e){
-        Object.entries(keybindings).forEach(([shortcut, handler]) => {
-            const code = shortcut.split('+')
-            if (
-                e.ctrlKey  === code.includes('ctrl') &&
-                e.metaKey  === code.includes('meta') &&
-                e.altKey   === code.includes('alt') &&
-                e.shiftKey === code.includes('shift') &&
-                code.includes(e.key.toLowerCase())
-            )
-                handler(actionProps)
-        })
-    }
-
-    function handleScroll(e){
-        setTranslationx(translationx + e.deltaX * (options.invertedScroll ? -1 : 1) * options.scrollSensitivity)
-        setTranslationy(translationy + e.deltaY * (options.invertedScroll ? -1 : 1) * options.scrollSensitivity)
-    }
-
-    function handleTouchMove(e){
-        const touch = (e.touches[0] || e.changedTouches[0])
-        console.log(e);
-        const x = touch.pageX;
-        const y = touch.pageY;
-        setCursorPos([
-            (Math.round(x / spacingx) * spacingx) + 1,
-            (Math.round(y / spacingy) * spacingy) + 1,
-        ])
-        setMousePos(x, y)
-    }
-
-    function handleTouchStart(e){
-        if (curLine === null){
-            const touch = (e.touches[0] || e.changedTouches[0])
-            console.log(e);
-            setCurLine({
-                x1: (Math.round(touch.pageX / spacingx) * spacingx) + 1,
-                y1: (Math.round(touch.pageY / spacingy) * spacingy) + 1,
-            })
-        } else {
-            // setLines([...lines, <line {...curLine} x2={cursorPos[0]} y2={cursorPos[1]} stroke={stroke}/>])
-            addLine({...curLine, x2: cursorPos[0], y2: cursorPos[1]})
-            setCurLine(null)
-        }
-    }
-
 
     let mirrorLines = []
     if (mirrorState === mirror.VERT || mirrorState === mirror.BOTH){
@@ -213,18 +107,40 @@ export default function App() {
             <svg id='paper'
                 width="100%"
                 height="101vh"
-                onMouseMove={handleMouseMoved}
-                onKeyDown={handleKeyDown}
+                onMouseMove={e => dispatch({
+                    action: 'mouse movement',
+                    x: e.clientX,
+                    y: e.clientY,
+                    buttons: e.buttons,
+                })}
+                onKeyDown={e => dispatch({
+                    action: 'key press',
+                    event: e,
+                })}
                 tabIndex={0}
-                onMouseDown={handleMouseClick}
-                onTouchMove={handleTouchMove}
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchStart}
-                onMouseUp={handleMouseUp}
-                onWheel={handleScroll}
-                onCopy={() => actions.copy(actionProps)}
-                onPaste={() => actions.paste(actionProps)}
-                onCut={() => actions.cut(actionProps)}
+                onMouseDown={e => dispatch({action: 'mouse click'})}
+                onTouchMove={e => dispatch({
+                    action: 'touch move',
+                    x: (e.touches[0] || e.changedTouches[0]).pageX,
+                    y: (e.touches[0] || e.changedTouches[0]).pageY,
+
+                })}
+                // TODO:
+                // onTouchStart={handleTouchStart}
+                // onTouchEnd={handleTouchStart}
+                onMouseUp={e => dispatch({
+                    action: 'mouse up',
+                    x: e.clientX,
+                    y: e.clientY,
+                })}
+                onWheel={e => dispatch({
+                    action: 'translate',
+                    x: e.deltaX,
+                    y: e.deltaY,
+                })}
+                onCopy={e => dispatch({action: 'copy'})}
+                onPaste={e => dispatch({action: 'paste'})}
+                onCut={e => dispatch({action: 'cut'})}
                 ref={paper}
             >
                 {/* Draw the dots */}
@@ -322,5 +238,5 @@ export default function App() {
                 <g transform={`translate(${cursorPos[0] + offsetx - 1} ${cursorPos[1] + offsety - 1})`}> {clipboard} </g>
             </svg>
         </div>
-  )
+    )
 }
