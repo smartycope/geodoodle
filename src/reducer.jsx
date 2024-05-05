@@ -6,7 +6,6 @@ export default function reducer(state, data){
     const {
         // spacingx,
         // spacingy,
-        boundRadius,
         cursorPos,
         stroke,
         strokeWidth,
@@ -37,14 +36,16 @@ export default function reducer(state, data){
         halfy,
         offsetx,
         offsety,
-        selectionOverlap,
         boundRect,
         relCursorPos,
+        scaledTranslationx,
+        scaledTranslationy,
     } = calc(state)
 
     if (debug && !(['cursor moved', 'translate', 'scale'].includes(data.action))){
         console.debug(data);
         console.debug(state);
+        console.log(state.clipboard)
     }
 
     switch (data.action){
@@ -145,11 +146,11 @@ export default function reducer(state, data){
              else
                 return {...state,
                     lines: eraser ? (lines.filter(i => !((
-                            pointEq(state, [i.props.x1, i.props.y1], relCursorPos) ||
-                            pointEq(state, [i.props.x2, i.props.y2], relCursorPos)
+                            pointEq(state, [i.props.x1, i.props.y1], relCursorPos, true) ||
+                            pointEq(state, [i.props.x2, i.props.y2], relCursorPos, true)
                         ) && (
-                            pointEq(state, [i.props.x1, i.props.y1], eraser) ||
-                            pointEq(state, [i.props.x2, i.props.y2], eraser)
+                            pointEq(state, [i.props.x1, i.props.y1], eraser, true) ||
+                            pointEq(state, [i.props.x2, i.props.y2], eraser, true)
                         )
                     ))) : lines,
                     eraser: eraser ? null : relCursorPos
@@ -164,8 +165,8 @@ export default function reducer(state, data){
                 return {...state, clipboard: null}
              else {
                 return {...state, lines: (lines.filter(i =>
-                    !((pointEq(state, [i.props.x1, i.props.y1], relCursorPos) ||
-                      (pointEq(state, [i.props.x2, i.props.y2], relCursorPos)))
+                    !((pointEq(state, [i.props.x1, i.props.y1], relCursorPos, true) ||
+                      (pointEq(state, [i.props.x2, i.props.y2], relCursorPos, true)))
                     )
                 ))}
             }
@@ -238,7 +239,10 @@ export default function reducer(state, data){
             if (pointIn(bounds, cursorPos))
                 return {...state, bounds: removePoint(bounds, cursorPos)}
             else
-                return {...state, bounds: [...bounds, relCursorPos]}
+                return {...state, bounds: [...bounds, [
+                    (cursorPos[0] - translationx) / scalex,
+                    (cursorPos[1] - translationy) / scaley,
+                ]]}
 
         case 'toggle mirror':
             // eslint-disable-next-line default-case
@@ -250,6 +254,7 @@ export default function reducer(state, data){
             } return state // This shouldn't be possible, but whatever
 
         default:
+            console.log(pointEq(state, [238, 100], [234, 103]));
             console.warn(`Unknown action: ${data.action}`)
             return state
     }

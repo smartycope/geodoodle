@@ -1,6 +1,6 @@
 import React from "react"
 
-const hashPoint = ([x, y]) => `${x}${y}`
+export const hashPoint = ([x, y]) => `${x}${y}`
 export function pointIn(points, point){
     return points.map(hashPoint).includes(hashPoint(point))
 }
@@ -8,13 +8,17 @@ export function removePoint(points, point){
     return points.filter(i => hashPoint(i) !== hashPoint(point))
 }
 
-export function pointEq({scalex, scaley}, pointa, pointb){
+export function pointEq({scalex, scaley}, pointa, pointb, rescalea=false){
+    if (rescalea){
+        pointa[0] = pointa[0] * scalex
+        pointa[1] = pointa[1] * scaley
+    }
     return Math.abs(pointa[0] - pointb[0]) < scalex / 3 &&
            Math.abs(pointa[1] - pointb[1]) < scaley / 3
 
 }
 
-const hashLine = line => JSON.stringify(line.props)
+export const hashLine = line => JSON.stringify(line.props)
 export function lineIn(lines, line){
     return lines.map(hashLine).includes(hashLine(line))
 }
@@ -23,27 +27,26 @@ export function removeLine(lines, line){
 }
 
 export function getSelected(state){
-    const {translationx, translationy, partials, lines, bounds} = state
-    const {boundRect, selectionOverlap} = calc(state)
+    const {translationx, translationy, partials, lines, bounds, scalex, scaley} = state
+    const {boundRect} = calc(state)
 
     return bounds.length < 2 ? [] : lines.filter(i => (
-            i.props.x1 + translationx >= boundRect.left &&
-            i.props.x1 + translationx <= boundRect.right &&
-            i.props.y1 + translationy >= boundRect.top &&
-            i.props.y1 + translationy <= boundRect.bottom
+            i.props.x1 * scalex + translationx >= boundRect.left &&
+            i.props.x1 * scalex + translationx <= boundRect.right &&
+            i.props.y1 * scaley + translationy >= boundRect.top &&
+            i.props.y1 * scaley + translationy <= boundRect.bottom
         ) && (partials || (
-            i.props.x2 + translationx >= boundRect.left &&
-            i.props.x2 + translationx <= boundRect.right &&
-            i.props.y2 + translationy >= boundRect.top &&
-            i.props.y2 + translationy <= boundRect.bottom
+            i.props.x2 * scalex + translationx >= boundRect.left &&
+            i.props.x2 * scalex + translationx <= boundRect.right &&
+            i.props.y2 * scaley + translationy >= boundRect.top &&
+            i.props.y2 * scaley + translationy <= boundRect.bottom
         ))).map(i => <line
             // Remove the translation (so it's absolutely positioned with respect to the cursor)
-            // Then remove the overlap (since the boundRect intentionally doens't align with the dots)
             {...i.props}
-            x1={i.props.x1 - boundRect.left + translationx + 1}
-            x2={i.props.x2 - boundRect.left + translationx + 1}
-            y1={i.props.y1 - boundRect.top + translationy + 1}
-            y2={i.props.y2 - boundRect.top + translationy + 1}
+            x1={i.props.x1 - (boundRect.left + translationx + 1) / scalex}
+            x2={i.props.x2 - (boundRect.left + translationx + 1) / scalex}
+            y1={i.props.y1 - (boundRect.top + translationy + 1) / scaley}
+            y2={i.props.y2 - (boundRect.top + translationy + 1) / scaley}
         />)
 }
 
@@ -70,25 +73,39 @@ export function addLine(state, props, to=undefined){
         />]
 }
 
-export function calc({scalex, scaley, translationx, translationy, boundRadius, bounds, cursorPos}){
+export function calc({scalex, scaley, translationx, translationy, bounds, cursorPos}){
     const offsetx = translationx % scalex
     const offsety = translationy % scaley
+
+    const scaledTranslationx = translationx / scalex
+    const scaledTranslationy = translationy / scaley
     return {
+        // Numbers
+        // Coord: absolute, not scaled
         halfx: Math.round((window.visualViewport.width  / 2) / scalex) * scalex + offsetx + 1,
         halfy: Math.round((window.visualViewport.height / 2) / scaley) * scaley + offsety + 1,
+        // Numbers
+        // Coord: N/A
         offsetx: offsetx,
         offsety: offsety,
-        selectionOverlap: (boundRadius/2),
+        // {left, right, top, bottom} of lists of [x, y], or null
+        // Coord: relative, scaled
         boundRect: bounds.length ? {
-            left:   Math.min(...bounds.map(i => i[0] + translationx)),
-            right:  Math.max(...bounds.map(i => i[0] + translationx)),
-            top:    Math.min(...bounds.map(i => i[1] + translationy)),
-            bottom: Math.max(...bounds.map(i => i[1] + translationy)),
+            left:   Math.min(...bounds.map(i => i[0] + scaledTranslationx)),
+            right:  Math.max(...bounds.map(i => i[0] + scaledTranslationx)),
+            top:    Math.min(...bounds.map(i => i[1] + scaledTranslationy)),
+            bottom: Math.max(...bounds.map(i => i[1] + scaledTranslationy)),
         } : null,
+        // A list of [x, y]
+        // Coord: relative, scaled
         relCursorPos: [
-            cursorPos[0] - translationx,
-            cursorPos[1] - translationy,
+            (cursorPos[0] - translationx) / scalex,
+            (cursorPos[1] - translationy) / scaley,
         ],
+        // Numbers
+        // Coord: relative, scaled
+        scaledTranslationx: scaledTranslationx,
+        scaledTranslationy: scaledTranslationy,
     }
 }
 

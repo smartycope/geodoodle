@@ -28,7 +28,11 @@ import { keybindings } from './options.jsx'
 //         `
 // TODO: a rotation "mirror" state
 // TODO: shift is dismissing bounds
-// TODO: deleting lines stopped working (working on pointEq(), caused by various off-by-one errors due to introducing scaling)
+
+// Coordinate systems:
+// absolute: relative to the viewport, origin is top left, not translated
+// relative: translated, origin is the (0, 0) of the svg element
+// scaled:   each dot is 1 more unit over than the previous, multiply by scale* to get the "drawable" value
 
 // Disable the default right click menu
 window.oncontextmenu = () => false
@@ -40,28 +44,33 @@ export default function App() {
     const [boundDragging, setBoundDragging] = useState(false)
 
     const [state, dispatch] = useReducer(reducer, {
-        // spacingx: options.spacingx,
-        // spacingy: options.spacingy,
-        boundRadius: options.scalex / 1.5,
-        // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
-        cursorPos: [0, 0],
         stroke: options.stroke,
         strokeWidth: options.strokeWidth,
 
+        // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
+        // Coord: absolute, not scaled
+        cursorPos: [0, 0],
         // A list of <line> objects
+        // Coord: relative, scaled
         lines: [],
         // {x1: float, y1: float} or null
+        // Coord: absolute?, not scaled
         curLine: null,
         // A list of [x, y]
+        // Coord: relative, scaled
         bounds: [],
-        // pattern: null,
-        mirrorState: mirror.NONE,
         // [x, y] or null
+        // Coord: ??
         eraser: null,
         // A list of <line> objects, or null
+        // Coord: absolute, scaled?
         clipboard: null,
 
-        // const [transformation, setTransformation] = useState([1, 0, 0, 1, 0, 0]);
+        // pattern: null,
+
+        mirrorState: mirror.NONE,
+
+        // Coord: not scaled
         translationx: 0,
         translationy: 0,
         scalex: options.scalex,
@@ -71,8 +80,8 @@ export default function App() {
         shearx: 0,
         sheary: 0,
 
+        // Options
         removeSelectionAfterDelete: options.removeSelectionAfterDelete,
-        // A bool
         partials: options.partials,
         invertedScroll: options.invertedScroll,
         scrollSensitivity: options.scrollSensitivity,
@@ -80,9 +89,6 @@ export default function App() {
     })
 
     const {
-        // spacingx,
-        // spacingy,
-        boundRadius,
         cursorPos,
         stroke,
         strokeWidth,
@@ -110,11 +116,13 @@ export default function App() {
     const {
         halfx,
         halfy,
-        offsetx,
-        offsety,
-        selectionOverlap,
         boundRect,
+        relCursorPos,
+        scaledTranslationx,
+        scaledTranslationy,
     } = calc(state)
+
+    const boundRadius = scalex / 1.5
 
     function onMouseMove(e){
         setDragging(e.buttons !== 0 ? true : dragging)
@@ -244,10 +252,10 @@ export default function App() {
     }
 
     const draggingBoundRect = {
-        left:   Math.min(boundRect?.left, cursorPos[0]),
-        right:  Math.max(boundRect?.right, cursorPos[0]),
-        top:    Math.min(boundRect?.top, cursorPos[1]),
-        bottom: Math.max(boundRect?.bottom, cursorPos[1]),
+        left:   Math.min(boundRect?.left,   cursorPos[0] / scalex),
+        right:  Math.max(boundRect?.right,  cursorPos[0] / scalex),
+        top:    Math.min(boundRect?.top,    cursorPos[1] / scaley),
+        bottom: Math.max(boundRect?.bottom, cursorPos[1] / scaley),
     }
 
     return (
@@ -308,7 +316,7 @@ export default function App() {
                 {/* <g id='lines' transform={`translate(${translationx} ${translationy})`}> {lines} </g> */}
 
                 {/* Draw the current line */}
-                {curLine && <g >{curLines}</g>}
+                {curLine && <g>{curLines}</g>}
 
                 {/* Draw the bounds */}
                 <g id='bounds' ref={boundsGroup}>
@@ -316,8 +324,8 @@ export default function App() {
                         <rect
                             width={boundRadius}
                             height={boundRadius}
-                            x={bound[0] - selectionOverlap + translationx}
-                            y={bound[1] - selectionOverlap + translationy}
+                            x={(bound[0] * scalex) - (boundRadius / 2) + translationx}
+                            y={(bound[1] * scaley) - (boundRadius / 2) + translationy}
                             rx={partials ? 4 : 0}
                             stroke={options.boundColor}
                             fillOpacity={0}
@@ -328,20 +336,21 @@ export default function App() {
 
                 {/* Draw the selection rect */}
                 {boundRect && <rect
-                    width={boundRect?.right - boundRect?.left}
-                    height={boundRect?.bottom - boundRect?.top}
-                    x={boundRect?.left}
-                    y={boundRect?.top}
+                    width={(boundRect?.right - boundRect?.left) * scalex}
+                    height={(boundRect?.bottom - boundRect?.top) * scaley}
+                    x={(boundRect?.left) * scalex}
+                    y={(boundRect?.top) * scaley}
                     stroke={options.selectionBorderColor}
                     fillOpacity={options.selectionOpacity}
                     fill={options.selectionColor}
                     rx={partials ? 4 : 0}
                 />}
+                {/* Draw the dragging selection rect */}
                 {boundDragging && bounds.length === 1 && <rect
-                    width={draggingBoundRect?.right - draggingBoundRect?.left}
-                    height={draggingBoundRect?.bottom - draggingBoundRect?.top}
-                    x={draggingBoundRect?.left}
-                    y={draggingBoundRect?.top}
+                    width={(draggingBoundRect?.right - draggingBoundRect?.left) * scalex}
+                    height={(draggingBoundRect?.bottom - draggingBoundRect?.top) * scaley}
+                    x={(draggingBoundRect?.left) * scalex}
+                    y={(draggingBoundRect?.top) * scaley}
                     stroke={options.selectionBorderColor}
                     fillOpacity={options.selectionOpacity}
                     fill={options.selectionColor}
@@ -372,7 +381,7 @@ export default function App() {
                 ]}
 
                 {/* Draw the current clipboard */}
-                <g transform={`translate(${cursorPos[0] - 1} ${cursorPos[1] - 1})`}> {clipboard} </g>
+                <g transform={`scale(${scalex} ${scaley}) translate(${cursorPos[0] - 1} ${cursorPos[1] - 1})`}> {clipboard} </g>
             </svg>
         </div>
     )
