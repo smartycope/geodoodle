@@ -1,6 +1,5 @@
 import './App.css';
 import {useEffect, useReducer, useRef, useState} from 'react';
-import * as actions from './reducer.jsx'
 import {mirror} from './globals'
 import reducer from './reducer';
 import {calc, eventMatchesKeycode, invertObject, pointIn} from './utils';
@@ -60,10 +59,10 @@ export default function App() {
         // Coord: relative, scaled
         bounds: [],
         // [x, y] or null
-        // Coord: ??
+        // Coord: relative, scaled
         eraser: null,
         // A list of <line> objects, or null
-        // Coord: absolute, scaled?
+        // Coord: absolute, scaled
         clipboard: null,
 
         // pattern: null,
@@ -125,7 +124,9 @@ export default function App() {
     const boundRadius = scalex / 1.5
 
     function onMouseMove(e){
-        setDragging(e.buttons !== 0 ? true : dragging)
+        if (e.buttons !== 0)
+            setDragging(true)
+        setBoundDragging(true)
         dispatch({
             action: 'cursor moved',
             x: e.clientX,
@@ -195,25 +196,6 @@ export default function App() {
             })
     }
 
-    function onKeyDown(e){
-        console.log('key down: ', e.key);
-        if (eventMatchesKeycode(e, invertObject(keybindings)["add bound"]))
-            setBoundDragging(true)
-        if (!boundDragging)
-            dispatch({action: 'key press', event: e})
-    }
-
-    function onKeyUp(e){
-        // For the bounds dragging
-        setBoundDragging(false)
-        if (eventMatchesKeycode(e, invertObject(keybindings)["add bound"]) &&
-            boundDragging &&
-            !pointIn(bounds, cursorPos
-        ))
-            dispatch({action: 'add bound'})
-
-    }
-
     useEffect(() => {
         // See https://stackoverflow.com/questions/63663025/react-onwheel-handler-cant-preventdefault-because-its-a-passive-event-listenev
         // for why we have to do it this way (because of the zoom browser shortcut)
@@ -232,31 +214,25 @@ export default function App() {
         y2: cursorPos[1],
         stroke: stroke,
     }
-    let curLines = [<line {...curLineProps} key='mirror1' />]
+    let curLines = [<line {...curLineProps} key='mirror0' />]
     if (mirrorState === mirror.VERT || mirrorState === mirror.BOTH){
         mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
-        curLines.push(<line {...curLineProps}
-            transform={`matrix(-1, 0, 0, 1, ${halfx*2}, 0)`}
-            key='mirror2'
-        />)
+        curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, 1, ${halfx*2}, 0)`} key='mirror1' />)
     }
     if (mirrorState === mirror.HORZ || mirrorState === mirror.BOTH){
         mirrorLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor}/>)
-        curLines.push(<line {...curLineProps}
-            transform={`matrix(1, 0, 0, -1, 0, ${halfy*2})`}
-            key='mirror2'
-        />)
+        curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${halfy*2})`} key='mirror2' />)
     }
     if (mirrorState === mirror.BOTH){
-        curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, -1, ${halfx*2}, ${halfy*2})`} key='mirror4'/>)
+        curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, -1, ${halfx*2}, ${halfy*2})`} key='mirror3'/>)
     }
 
-    const draggingBoundRect = {
+    const drawBoundRect = boundDragging && bounds.length === 1 ? {
         left:   Math.min(boundRect?.left,   cursorPos[0] / scalex),
         right:  Math.max(boundRect?.right,  cursorPos[0] / scalex),
         top:    Math.min(boundRect?.top,    cursorPos[1] / scaley),
         bottom: Math.max(boundRect?.bottom, cursorPos[1] / scaley),
-    }
+    } : boundRect
 
     return (
         <div className="App">
@@ -265,8 +241,7 @@ export default function App() {
                 width="100%"
                 height="101vh"
                 onMouseMove={onMouseMove}
-                onKeyDown={onKeyDown}
-                onKeyUp={onKeyUp}
+                onKeyDown={e => dispatch({action: 'key press', event: e})}
                 tabIndex={0}
                 onMouseDown={onMouseDown}
                 onTouchMove={onTouchMove}
@@ -336,21 +311,12 @@ export default function App() {
 
                 {/* Draw the selection rect */}
                 {boundRect && <rect
-                    width={(boundRect?.right - boundRect?.left) * scalex}
-                    height={(boundRect?.bottom - boundRect?.top) * scaley}
-                    x={(boundRect?.left) * scalex}
-                    y={(boundRect?.top) * scaley}
-                    stroke={options.selectionBorderColor}
-                    fillOpacity={options.selectionOpacity}
-                    fill={options.selectionColor}
-                    rx={partials ? 4 : 0}
-                />}
-                {/* Draw the dragging selection rect */}
-                {boundDragging && bounds.length === 1 && <rect
-                    width={(draggingBoundRect?.right - draggingBoundRect?.left) * scalex}
-                    height={(draggingBoundRect?.bottom - draggingBoundRect?.top) * scaley}
-                    x={(draggingBoundRect?.left) * scalex}
-                    y={(draggingBoundRect?.top) * scaley}
+                    // We need to re-add the translation here because we're subtracting it out
+                    // Or maybe not??
+                    width={(drawBoundRect?.right - drawBoundRect?.left) * scalex}
+                    height={(drawBoundRect?.bottom - drawBoundRect?.top) * scaley}
+                    x={drawBoundRect?.left * scalex + translationx}
+                    y={drawBoundRect?.top * scaley + translationy}
                     stroke={options.selectionBorderColor}
                     fillOpacity={options.selectionOpacity}
                     fill={options.selectionColor}
@@ -363,25 +329,27 @@ export default function App() {
                 {/* Draw the eraser placeholder */}
                 {eraser && [
                     <line
-                        x1={eraser[0] - scalex / 3 + translationx}
-                        y1={eraser[1] - scaley / 3 + translationy}
-                        x2={eraser[0] + scalex / 3 + translationx}
-                        y2={eraser[1] + scaley / 3 + translationy}
+                        x1={(eraser[0] * scalex) - scalex / 3 + translationx}
+                        y1={(eraser[1] * scaley) - scaley / 3 + translationy}
+                        x2={(eraser[0] * scalex) + scalex / 3 + translationx}
+                        y2={(eraser[1] * scaley) + scaley / 3 + translationy}
                         stroke={options.eraserColor}
                         strokeWidth={options.eraserWidth}
                     />,
                     <line
-                        x1={eraser[0] + scalex / 3 + translationx}
-                        y1={eraser[1] - scaley / 3 + translationy}
-                        x2={eraser[0] - scalex / 3 + translationx}
-                        y2={eraser[1] + scaley / 3 + translationy}
+                        x1={(eraser[0] * scalex) + scalex / 3 + translationx}
+                        y1={(eraser[1] * scaley) - scaley / 3 + translationy}
+                        x2={(eraser[0] * scalex) - scalex / 3 + translationx}
+                        y2={(eraser[1] * scaley) + scaley / 3 + translationy}
                         stroke={options.eraserColor}
                         strokeWidth={options.eraserWidth}
                     />
                 ]}
 
                 {/* Draw the current clipboard */}
-                <g transform={`scale(${scalex} ${scaley}) translate(${cursorPos[0] - 1} ${cursorPos[1] - 1})`}> {clipboard} </g>
+                <g transform={`translate(${cursorPos[0]} ${cursorPos[1]}) scale(${scalex} ${scaley})`}>
+                    {clipboard}
+                </g>
             </svg>
         </div>
     )

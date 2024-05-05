@@ -25,10 +25,10 @@ const defaultOptions = {
 
 // The default keybindings
 // This should be the names of the JS key strings, all lower case
-// Modifiers are shift, ctrl, meta, and alt. Order doesn't matter, no whitespace allowed
+// Modifiers are shift, ctrl, meta, and alt
+// Order doesn't matter
 // Multiple keycodes are assignable to the same action
 // If a single keycode is assigned to multiple actions, the last one is used
-// "add bound" can (and must) only have a single keycode assigned to it
 export const keybindings = {
     "arrowleft": "left",
     "arrowright": "right",
