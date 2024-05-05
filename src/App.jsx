@@ -28,6 +28,7 @@ import { keybindings } from './options.jsx'
 //         `
 // TODO: a rotation "mirror" state
 // TODO: shift is dismissing bounds
+// TODO: deleting lines stopped working (working on pointEq(), caused by various off-by-one errors due to introducing scaling)
 
 // Disable the default right click menu
 window.oncontextmenu = () => false
@@ -41,8 +42,7 @@ export default function App() {
     const [state, dispatch] = useReducer(reducer, {
         // spacingx: options.spacingx,
         // spacingy: options.spacingy,
-        cursorRadius: options.spacingx / 3,
-        boundRadius: options.spacingx / 1.5,
+        boundRadius: options.scalex / 1.5,
         // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
         cursorPos: [0, 0],
         stroke: options.stroke,
@@ -64,8 +64,8 @@ export default function App() {
         // const [transformation, setTransformation] = useState([1, 0, 0, 1, 0, 0]);
         translationx: 0,
         translationy: 0,
-        scalex: options.spacingx,
-        scaley: options.spacingy,
+        scalex: options.scalex,
+        scaley: options.scaley,
         rotatex: 0,
         rotatey: 0,
         shearx: 0,
@@ -82,7 +82,6 @@ export default function App() {
     const {
         // spacingx,
         // spacingy,
-        cursorRadius,
         boundRadius,
         cursorPos,
         stroke,
@@ -292,20 +291,21 @@ export default function App() {
 
                 {/* Draw the debug info */}
                 {debug && <circle cx={translationx} cy={translationy} r='8' fill='blue'/>}
-                {debug && <text x="80%" y='20'>{`Translation: ${translationx}, ${translationy}`}</text>}
+                {debug && <text x="80%" y='20'>{`Translation: ${Math.round(translationx)}, ${Math.round(translationy)}`}</text>}
+                {debug && <text x="80%" y='40'>{`Scale: ${Math.round(scalex)}, ${Math.round(scaley)}`}</text>}
 
                 {/* Draw the cursor */}
                 <circle
                     cx={cursorPos[0]}
                     cy={cursorPos[1]}
-                    r={cursorRadius}
+                    r={scalex / 3}
                     stroke={options.cursorColor}
                     fillOpacity={0}
                 />
 
                 {/* Draw the lines */}
-                {/* <g id='lines' transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}> {lines} </g> */}
-                <g id='lines' transform={`translate(${translationx} ${translationy})`}> {lines} </g>
+                <g id='lines' transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}> {lines} </g>
+                {/* <g id='lines' transform={`translate(${translationx} ${translationy})`}> {lines} </g> */}
 
                 {/* Draw the current line */}
                 {curLine && <g >{curLines}</g>}

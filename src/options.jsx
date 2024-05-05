@@ -1,7 +1,7 @@
 const defaultOptions = {
     cursorColor: "black",
-    spacingx: 20,
-    spacingy: 20,
+    scalex: 20,
+    scaley: 20,
     stroke: "black",
     strokeWidth: 1,
     boundColor: "black",
@@ -49,6 +49,8 @@ export const keybindings = {
     'escape': "nevermind",
     'p': "toggle partials",
     'm': "toggle mirror",
+    'home': 'go home',
+    'h': 'go home',
 
     'ctrl+c': "copy",
     'ctrl+v': "paste",

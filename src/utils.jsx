@@ -8,6 +8,12 @@ export function removePoint(points, point){
     return points.filter(i => hashPoint(i) !== hashPoint(point))
 }
 
+export function pointEq({scalex, scaley}, pointa, pointb){
+    return Math.abs(pointa[0] - pointb[0]) < scalex / 3 &&
+           Math.abs(pointa[1] - pointb[1]) < scaley / 3
+
+}
+
 const hashLine = line => JSON.stringify(line.props)
 export function lineIn(lines, line){
     return lines.map(hashLine).includes(hashLine(line))
@@ -44,24 +50,22 @@ export function getSelected(state){
 // Returns the new lines
 // *All* permenant lines are made using this funciton, except paste (todo)
 export function addLine(state, props, to=undefined){
-    const {translationx, translationy, stroke, strokeWidth, lines} = state
-    const {offsetx, offsety} = calc(state)
+    const {translationx, translationy, stroke, strokeWidth, lines, scalex, scaley} = state
 
     // If it doesn't have any length, don't make a new line, just skip it
     if (props.x1 === props.x2 && props.y1 === props.y2)
         return lines
 
-    props.x1 -= translationx
-    props.x2 -= translationx
-    props.y1 -= translationy
-    props.y2 -= translationy
-
+    props.x1 = (props.x1 - translationx) / scalex
+    props.x2 = (props.x2 - translationx) / scalex
+    props.y1 = (props.y1 - translationy) / scaley
+    props.y2 = (props.y2 - translationy) / scaley
 
     return [...(to !== undefined ? to : lines),
         <line {...props}
             // transform={`translate(${-translationx - offsetx} ${-translationy - offsety})`}
             stroke={stroke}
-            strokeWidth={strokeWidth}
+            strokeWidth={strokeWidth / scalex}
             key={JSON.stringify(props)}
         />]
 }
