@@ -1,17 +1,32 @@
 import './App.css';
-import {useReducer, useRef, useState} from 'react';
+import {useEffect, useReducer, useRef, useState} from 'react';
 import * as actions from './reducer.jsx'
 import {mirror} from './globals'
 import reducer from './reducer';
-import {calc} from './utils';
+import {calc, eventMatchesKeycode, invertObject, pointIn} from './utils';
 import options from './options';
+import { keybindings } from './options.jsx'
 
-// TODO: touch screen touching (not dragging) doesn't work
 // TODO: can't add bounds until after a line has been made
-// TODO: Dragging bounds should make a selection
-// TODO: delete selected doesn't work now
-// TODO: eraser stopped working
 // TODO: ctrl+c will trigger if ctrl+shift+c is pressed
+// TODO: another mirror state that is just "mirror, with the origin being wherever I click":
+// curLines.push(<line {...curLineProps} transform={`
+//             translate(${(curLine?.x1 + offsetx)} 0)
+//             matrix(-1, 0, 0, 1, 0, 0)
+//             translate(${-(curLine?.x1 + offsetx)} 0)
+//             `
+//         } key='mirror2'/>)
+// TODO: this is also cool:
+// curLines.push(<line {...curLineProps} transform={`
+//             rotate(90, ${halfx}, ${halfy})
+//             `
+// TODO: also just repeat the same thing in 4 corners:
+// curLines.push(<line {...curLineProps} transform={`
+//             translate(${(curLine?.x1 + offsetx)} 0)
+//             matrix(1, 0, 0, 1, 10, 10)
+//             translate(${halfx - (curLine?.x1 + offsetx)} 0)
+//         `
+// TODO: a rotation "mirror" state
 
 // Disable the default right click menu
 window.oncontextmenu = () => false
@@ -20,6 +35,7 @@ export default function App() {
     const boundsGroup = useRef()
     const paper = useRef()
     const [dragging, setDragging] = useState(false)
+    const [boundDragging, setBoundDragging] = useState(false)
 
     const [state, dispatch] = useReducer(reducer, {
         spacingx: options.spacingx,
@@ -30,8 +46,6 @@ export default function App() {
         cursorPos: [0, 0],
         stroke: options.stroke,
         strokeWidth: options.strokeWidth,
-        // A bool
-        partials: options.partials,
 
         // A list of <line> objects
         lines: [],
@@ -56,8 +70,12 @@ export default function App() {
         shearx: 0,
         sheary: 0,
 
+        removeSelectionAfterDelete: options.removeSelectionAfterDelete,
+        // A bool
+        partials: options.partials,
         invertedScroll: options.invertedScroll,
         scrollSensitivity: options.scrollSensitivity,
+        debug: options.debug,
     })
 
     const {
@@ -86,6 +104,7 @@ export default function App() {
         sheary,
         invertedScroll,
         scrollSensitivity,
+        debug,
     } = state
 
     const {
@@ -96,15 +115,6 @@ export default function App() {
         selectionOverlap,
         boundRect,
     } = calc(state)
-
-    // Add the mirror lines
-    let mirrorLines = []
-    if (mirrorState === mirror.VERT || mirrorState === mirror.BOTH){
-        mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
-    }
-    if (mirrorState === mirror.HORZ || mirrorState === mirror.BOTH){
-        mirrorLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor}/>)
-    }
 
     function onMouseMove(e){
         setDragging(e.buttons !== 0 ? true : dragging)
@@ -154,6 +164,92 @@ export default function App() {
         setDragging(false)
     }
 
+    function onScroll(e){
+        if (e.shiftKey)
+            dispatch({
+                action: 'translate',
+                x: e.deltaY,
+                y: e.deltaX,
+            })
+        else if (e.ctrlKey){
+            // Disable the broswer zoom shortcut
+            e.preventDefault()
+            dispatch({
+                action: 'scale',
+                amt: e.deltaY,
+            })
+        }
+        else
+            dispatch({
+                action: 'translate',
+                x: e.deltaX,
+                y: e.deltaY,
+            })
+    }
+
+    function onKeyDown(e){
+        console.log('key down: ', e.key);
+        if (eventMatchesKeycode(e, invertObject(keybindings)["add bound"]))
+            setBoundDragging(true)
+        if (!boundDragging)
+            dispatch({action: 'key press', event: e})
+    }
+
+    function onKeyUp(e){
+        // For the bounds dragging
+        setBoundDragging(false)
+        if (eventMatchesKeycode(e, invertObject(keybindings)["add bound"]) &&
+            boundDragging &&
+            !pointIn(bounds, cursorPos
+        ))
+            dispatch({action: 'add bound'})
+
+    }
+
+    useEffect(() => {
+        // See https://stackoverflow.com/questions/63663025/react-onwheel-handler-cant-preventdefault-because-its-a-passive-event-listenev
+        // for why we have to do it this way (because of the zoom browser shortcut)
+        paper.current.addEventListener('wheel', onScroll, { passive: false })
+        return () => {
+            paper.current.removeEventListener('wheel', onScroll)
+        }
+    }, [])
+
+    // Add the mirror lines
+    let mirrorLines = []
+    const curLineProps = {
+        x1: curLine?.x1 + offsetx,
+        y1: curLine?.y1 + offsety,
+        x2: cursorPos[0] + offsetx,
+        y2: cursorPos[1] + offsety,
+        stroke: stroke,
+    }
+    let curLines = [<line {...curLineProps} key='mirror1' />]
+    if (mirrorState === mirror.VERT || mirrorState === mirror.BOTH){
+        mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
+        curLines.push(<line {...curLineProps}
+            transform={`matrix(-1, 0, 0, 1, ${halfx*2}, 0)`}
+            key='mirror2'
+        />)
+    }
+    if (mirrorState === mirror.HORZ || mirrorState === mirror.BOTH){
+        mirrorLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor}/>)
+        curLines.push(<line {...curLineProps}
+            transform={`matrix(1, 0, 0, -1, 0, ${halfy*2})`}
+            key='mirror2'
+        />)
+    }
+    if (mirrorState === mirror.BOTH){
+        curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, -1, ${halfx*2}, ${halfy*2})`} key='mirror4'/>)
+    }
+
+    const draggingBoundRect = {
+        left:   Math.min(boundRect?.left, cursorPos[0]),
+        right:  Math.max(boundRect?.right, cursorPos[0]),
+        top:    Math.min(boundRect?.top, cursorPos[1]),
+        bottom: Math.max(boundRect?.bottom, cursorPos[1]),
+    }
+
     return (
         <div className="App">
             {/* <samp><kbd>Shift</kbd></samp> */}
@@ -161,22 +257,17 @@ export default function App() {
                 width="100%"
                 height="101vh"
                 onMouseMove={onMouseMove}
-                onKeyDown={e => dispatch({action: 'key press', event: e})}
+                onKeyDown={onKeyDown}
+                onKeyUp={onKeyUp}
                 tabIndex={0}
                 onMouseDown={onMouseDown}
                 onTouchMove={onTouchMove}
-                // TODO:
-                // onTouchStart={onTouchStart}
                 onTouchEnd={onTouchEnd}
                 onMouseUp={onMouseUp}
-                onWheel={e => dispatch({
-                    action: 'translate',
-                    x: e.deltaX,
-                    y: e.deltaY,
-                })}
-                onCopy={e => dispatch({action: 'copy'})}
-                onPaste={e => dispatch({action: 'paste'})}
-                onCut={e => dispatch({action: 'cut'})}
+                // These are implemented with keyboard shortcuts, so they can be changed
+                // onCopy={e => dispatch({action: 'copy'})}
+                // onPaste={e => dispatch({action: 'paste'})}
+                // onCut={e => dispatch({action: 'cut'})}
                 ref={paper}
             >
                 {/* Draw the dots */}
@@ -198,6 +289,10 @@ export default function App() {
                 </pattern>
                 <rect fill="url(#dot)" stroke="black" width="100%" height="100%" />
 
+                {/* Draw the debug info */}
+                {debug && <circle cx={translationx} cy={translationy} r='8' fill='blue'/>}
+                {debug && <text x="80%" y='20'>{`Translation: ${translationx}, ${translationy}`}</text>}
+
                 {/* Draw the cursor */}
                 <circle
                     cx={cursorPos[0] + offsetx}
@@ -208,17 +303,10 @@ export default function App() {
                 />
 
                 {/* Draw the lines */}
-                {/* {lines.map(line => {line.props.key = `${line.props.x1}-${line.props.x2}-${line.props.y1}-${line.props.y2}`; return line})} */}
                 <g id='lines' transform={`translate(${translationx} ${translationy})`}> {lines} </g>
 
                 {/* Draw the current line */}
-                {curLine && <line
-                    x1={curLine.x1 + offsetx}
-                    y1={curLine.y1 + offsety}
-                    x2={cursorPos[0] + offsetx}
-                    y2={cursorPos[1] + offsety}
-                    stroke={stroke}
-                />}
+                {curLine && <g >{curLines}</g>}
 
                 {/* Draw the bounds */}
                 <g id='bounds' ref={boundsGroup}>
@@ -236,12 +324,22 @@ export default function App() {
                     )}
                 </g>
 
-                {/* Draw the bound rect */}
+                {/* Draw the selection rect */}
                 {boundRect && <rect
                     width={boundRect?.right - boundRect?.left}
                     height={boundRect?.bottom - boundRect?.top}
                     x={boundRect?.left}
                     y={boundRect?.top}
+                    stroke={options.selectionBorderColor}
+                    fillOpacity={options.selectionOpacity}
+                    fill={options.selectionColor}
+                    rx={partials ? 4 : 0}
+                />}
+                {boundDragging && bounds.length === 1 && <rect
+                    width={draggingBoundRect?.right - draggingBoundRect?.left}
+                    height={draggingBoundRect?.bottom - draggingBoundRect?.top}
+                    x={draggingBoundRect?.left}
+                    y={draggingBoundRect?.top}
                     stroke={options.selectionBorderColor}
                     fillOpacity={options.selectionOpacity}
                     fill={options.selectionColor}

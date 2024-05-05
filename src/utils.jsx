@@ -42,9 +42,13 @@ export function getSelected(state){
 }
 
 // Returns the new lines
-export function addLine(state, props){
+export function addLine(state, props, to=undefined){
     const {translationx, translationy, stroke, strokeWidth, lines} = state
     const {offsetx, offsety} = calc(state)
+
+    // If it doesn't have any length, don't make a new line, just skip it
+    if (props.x1 === props.x2 && props.y1 === props.y2)
+        return lines
 
     props.x1 -= translationx - offsetx
     props.x2 -= translationx - offsetx
@@ -52,21 +56,51 @@ export function addLine(state, props){
     props.y2 -= translationy - offsety
 
 
-    return [...lines, <line {...props} stroke={stroke} strokeWidth={strokeWidth} key={JSON.stringify(props)}/>]
+    return [...(to !== undefined ? to : lines),
+        <line {...props}
+            // transform={`translate(${-translationx - offsetx} ${-translationy - offsety})`}
+            stroke={stroke}
+            strokeWidth={strokeWidth}
+            key={JSON.stringify(props)}
+        />]
 }
 
-export function calc({spacingx, spacingy, translationx, translationy, boundRadius, bounds}){
+export function calc({spacingx, spacingy, translationx, translationy, boundRadius, bounds, cursorPos}){
+    const offsetx = translationx % spacingx
+    const offsety = translationy % spacingy
     return {
-        halfx: Math.round((window.visualViewport.width  / 2) / spacingx) * spacingx,
-        halfy: Math.round((window.visualViewport.height / 2) / spacingy) * spacingy,
-        offsetx: translationx % spacingx,
-        offsety: translationy % spacingy,
+        halfx: Math.round((window.visualViewport.width  / 2) / spacingx) * spacingx + offsetx + 1,
+        halfy: Math.round((window.visualViewport.height / 2) / spacingy) * spacingy + offsety + 1,
+        offsetx: offsetx,
+        offsety: offsety,
         selectionOverlap: (boundRadius/2),
         boundRect: bounds.length ? {
             left:   Math.min(...bounds.map(i => i[0] + translationx)),
             right:  Math.max(...bounds.map(i => i[0] + translationx)),
             top:    Math.min(...bounds.map(i => i[1] + translationy)),
             bottom: Math.max(...bounds.map(i => i[1] + translationy)),
-        } : null
+        } : null,
+        relCursorPos: [
+            cursorPos[0] - translationx + offsetx,
+            cursorPos[1] - translationy + offsety,
+        ],
     }
+}
+
+export function eventMatchesKeycode(event, code){
+    code = code.split('+')
+    return (
+        event.ctrlKey  === code.includes('ctrl') &&
+        event.metaKey  === code.includes('meta') &&
+        event.altKey   === code.includes('alt') &&
+        event.shiftKey === code.includes('shift') &&
+        code.includes(event.key.toLowerCase())
+    )
+}
+
+export function invertObject(obj){
+    return Object.entries(obj).reduce((acc, [key, value]) => {
+        acc[value] = key;
+        return acc;
+    }, {})
 }

@@ -1,36 +1,6 @@
 import {mirror} from './globals.js'
-import { lineIn, removeLine, pointIn, removePoint, addLine, calc, getSelected } from './utils'
-
-// The default keybindings
-// This should be the names of the JS key strings, all lower case
-// Modifiers are shift, ctrl, meta, and alt. Order doesn't matter, no whitespace allowed
-var keybindings = {
-    "arrowleft": "left",
-    "arrowright": "right",
-    "arrowup": "up",
-    "arrowdown": "down",
-    "j": "left",
-    ";": "right",
-    "k": "up",
-    "l": "down",
-
-    'delete': "delete",
-    'backspace': "delete line",
-    'ctrl+q': "clear",
-    ' ': "add line",
-    'c': "continue line",
-    'b': "add bound",
-    'shift+b': "clear bounds",
-    'escape': "nevermind",
-    'p': "toggle partials",
-    'm': "toggle mirror",
-
-    'ctrl+c': "copy",
-    'ctrl+v': "paste",
-    'ctrl+x': "cut",
-
-    'd': 'debug'
-}
+import { lineIn, removeLine, pointIn, removePoint, addLine, calc, getSelected, eventMatchesKeycode } from './utils'
+import { keybindings } from './options.jsx'
 
 export default function reducer(state, data){
     const {
@@ -59,6 +29,8 @@ export default function reducer(state, data){
         sheary,
         invertedScroll,
         scrollSensitivity,
+        removeSelectionAfterDelete,
+        debug,
     } = state
 
     const {
@@ -68,6 +40,7 @@ export default function reducer(state, data){
         offsety,
         selectionOverlap,
         boundRect,
+        relCursorPos,
     } = calc(state)
 
     if (!(['cursor moved', 'translate'].includes(data.action))){
@@ -88,15 +61,10 @@ export default function reducer(state, data){
         case 'key press':
             var take = null
             Object.entries(keybindings).forEach(([shortcut, action]) => {
-                const code = shortcut.split('+')
-                if (
-                    data.event.ctrlKey  === code.includes('ctrl') &&
-                    data.event.metaKey  === code.includes('meta') &&
-                    data.event.altKey   === code.includes('alt') &&
-                    data.event.shiftKey === code.includes('shift') &&
-                    code.includes(data.event.key.toLowerCase())
-                )
+                if (eventMatchesKeycode(data.event, shortcut)){
                     take = action
+                    if (action === 'cut') console.log('cutting!');
+                }
             })
             return take ? reducer(state, {action: take}) : state
 
@@ -104,6 +72,14 @@ export default function reducer(state, data){
             return {...state,
                 translationx: translationx + data.x * (invertedScroll ? -1 : 1) * scrollSensitivity,
                 translationy: translationy + data.y * (invertedScroll ? -1 : 1) * scrollSensitivity,
+            }
+
+        case 'scale':
+            console.log('scaling by', data.amt );
+            const max = Math.min(window.visualViewport.width, window.visualViewport.height) / 4
+            return {...state,
+                scalex: Math.min(max, Math.max(4, scalex + data.amt * (invertedScroll ? -1 : 1) * (scrollSensitivity / 4))),
+                scaley: Math.min(max, Math.max(4, scaley + data.amt * (invertedScroll ? -1 : 1) * (scrollSensitivity / 4))),
             }
 
         // Actions which can be set to various keyboard shortcuts
@@ -115,9 +91,27 @@ export default function reducer(state, data){
         case 'clear bounds':    return {...state, bounds: []}
         case 'toggle partials': return {...state, partials: !partials}
         case 'copy':            return {...state, clipboard: getSelected(state), curLine: null}
-        case 'paste':           return {...state, lines: [...lines, ...clipboard]}
+        case 'paste':
+            if (clipboard)
+                return {...state,
+                    lines: [...lines, ...clipboard.map(i =>
+                        <line {...i.props}
+                            x1={i.props.x1 + cursorPos[0] + offsetx - 1}
+                            x2={i.props.x2 + cursorPos[0] + offsetx - 1}
+                            y1={i.props.y1 + cursorPos[1] + offsety - 1}
+                            y2={i.props.y2 + cursorPos[1] + offsety - 1}
+                            transform={`translate(${-translationx} ${-translationy})`}
+                            key={`${i.props.x1 + cursorPos[0] + offsetx - 1}
+                                  ${i.props.x2 + cursorPos[0] + offsetx - 1}
+                                  ${i.props.y1 + cursorPos[1] + offsety - 1}
+                                  ${i.props.y2 + cursorPos[1] + offsety - 1}`}
+                        />
+                    )]
+                }
+            return state
         case 'cut': {
             const selected = getSelected(state)
+            console.log(selected);
             return {...reducer(state, {action: 'delete selected'}),
                 clipboard: selected,
                 curLine: null
@@ -135,36 +129,26 @@ export default function reducer(state, data){
                     i.props.x2 + translationx <= boundRect.right &&
                     i.props.y2 + translationy >= boundRect.top &&
                     i.props.y2 + translationy <= boundRect.bottom
-                )))
+                ))),
+                bounds: removeSelectionAfterDelete ? [] : bounds,
             }
         case 'delete line':
-            let _curLine = curLine
-            let _eraser = eraser
-            let _lines = lines
-            if (pointIn(bounds, cursorPos))
-                return {...state, bounds: removePoint(bounds, cursorPos)}
-             else if (curLine)
-                _curLine = null
-             else {
-                if (eraser){
-                    _lines = (lines.filter(i => !(
-                                (i.props.x1 === cursorPos[0] && i.props.y1 === cursorPos[1]) ||
-                                (i.props.x2 === cursorPos[0] && i.props.y2 === cursorPos[1])
-                            ) && (
-                                (i.props.x1 === eraser[0] && i.props.y1 === eraser[1]) ||
-                                (i.props.x2 === eraser[0] && i.props.y2 === eraser[1])
-                            )
-                        ))
-                    _eraser = null
-                } else {
-                    _eraser = cursorPos
+            if (pointIn(bounds, relCursorPos))
+                return {...state, bounds: removePoint(bounds, relCursorPos)}
+            else if (curLine)
+                return {...state, curLine: null}
+             else
+                return {...state,
+                    lines: eraser ? (lines.filter(i => !((
+                            (i.props.x1 === relCursorPos[0] && i.props.y1 === relCursorPos[1]) ||
+                            (i.props.x2 === relCursorPos[0] && i.props.y2 === relCursorPos[1])
+                        ) && (
+                            (i.props.x1 === eraser[0] && i.props.y1 === eraser[1]) ||
+                            (i.props.x2 === eraser[0] && i.props.y2 === eraser[1])
+                        )
+                    ))) : lines,
+                    eraser: eraser ? null : relCursorPos
                 }
-            }
-            return {...state,
-                eraser: _eraser,
-                lines: _lines,
-                curLine: _curLine,
-            }
 
         case 'delete':
             if (pointIn(bounds, cursorPos))
@@ -175,8 +159,8 @@ export default function reducer(state, data){
                 return {...state, clipboard: null}
              else {
                 return {...state, lines: (lines.filter(i =>
-                    !((i.props.x1 === cursorPos[0] && i.props.y1 === cursorPos[1]) ||
-                        (i.props.x2 === cursorPos[0] && i.props.y2 === cursorPos[1]))
+                    !((i.props.x1 === relCursorPos[0] && i.props.y1 === relCursorPos[1]) ||
+                        (i.props.x2 === relCursorPos[0] && i.props.y2 === relCursorPos[1]))
                     ))
                 }
             }
@@ -193,44 +177,62 @@ export default function reducer(state, data){
 
         case 'add line':
             if (clipboard)
-                return {...state,
-                    lines: [...lines, ...clipboard.map(i =>
-                        <line {...i.props}
-                            x1={i.props.x1 + cursorPos[0] + offsetx - 1}
-                            x2={i.props.x2 + cursorPos[0] + offsetx - 1}
-                            y1={i.props.y1 + cursorPos[1] + offsety - 1}
-                            y2={i.props.y2 + cursorPos[1] + offsety - 1}
-                            transform={`translate(${-translationx} ${-translationy})`}
-                            // TODO: add key prop here
-                        />
-                    )]
-                }
+                return {...reducer(state, {action: 'paste'}), clipboard: data.continue ? clipboard : null}
+            else {
+                if (curLine){
+                    var newLines = addLine(state, {
+                        ...curLine,
+                        x2: cursorPos[0],
+                        y2: cursorPos[1],
+                    })
+                    if (mirrorState === mirror.VERT || mirrorState === mirror.BOTH)
+                        // matrix(-1, 0, 0, 1, halfx*2, 0)
+                        newLines = addLine(state, {
+                            x1: curLine.x1 * -1 + halfx*2,
+                            y1: curLine.y1,
+                            x2: cursorPos[0] * -1 + halfx*2,
+                            y2: cursorPos[1],
+                        }, newLines)
+                    if (mirrorState === mirror.HORZ || mirrorState === mirror.BOTH)
+                        // matrix(1, 0, 0, -1, 0, halfy*2)
+                        newLines = addLine(state, {
+                            x1: curLine.x1,
+                            y1: curLine.y1 * -1 + halfy*2,
+                            x2: cursorPos[0],
+                            y2: cursorPos[1] * -1 + halfy*2,
+                        }, newLines)
+                    if (mirrorState === mirror.BOTH)
+                        // matrix(-1, 0, 0, -1, halfx*2, halfy*2)
+                        newLines = addLine(state, {
+                            x1: curLine.x1 * -1 + halfx*2,
+                            y1: curLine.y1 * -1 + halfy*2,
+                            x2: cursorPos[0] * -1 + halfx*2,
+                            y2: cursorPos[1] * -1 + halfy*2,
+                        }, newLines)
+                    }
 
-            return {...state,
-                curLine: curLine === null ? {
-                    x1: cursorPos[0],
-                    y1: cursorPos[1],
-                } : null,
-                lines: curLine === null ? lines : addLine(state, {...curLine, x2: cursorPos[0], y2: cursorPos[1]})
+                return {...state,
+                    curLine: curLine === null ? {
+                        x1: cursorPos[0],
+                        y1: cursorPos[1],
+                    } : null,
+                    lines: curLine === null ? lines : newLines
+                }
             }
 
         case 'continue line':
-            return {...reducer(state, {action: 'add line'}),
-                curLine: {
+            return {...reducer(state, {action: 'add line', continue: true}),
+                curLine: clipboard ? curLine : {
                     x1: cursorPos[0],
                     y1: cursorPos[1],
                 }
             }
 
         case 'add bound':
-            const adjCursorPos = [
-                cursorPos[0] - translationx + offsetx,
-                cursorPos[1] - translationy + offsety
-            ]
             if (pointIn(bounds, cursorPos))
                 return {...state, bounds: removePoint(bounds, cursorPos)}
             else
-                return {...state, bounds: [...bounds, adjCursorPos]}
+                return {...state, bounds: [...bounds, relCursorPos]}
 
         case 'toggle mirror':
             // eslint-disable-next-line default-case
