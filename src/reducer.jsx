@@ -4,8 +4,8 @@ import { keybindings } from './options.jsx'
 
 export default function reducer(state, data){
     const {
-        spacingx,
-        spacingy,
+        // spacingx,
+        // spacingy,
         cursorRadius,
         boundRadius,
         cursorPos,
@@ -49,12 +49,13 @@ export default function reducer(state, data){
     }
 
     switch (data.action){
-        // case 'mouse movement':
         case 'cursor moved':
             return {...state,
                 cursorPos: [
-                    (Math.round(data.x / spacingx) * spacingx) + 1,
-                    (Math.round(data.y / spacingy) * spacingy) + 1,
+                    // The extra - offsetx is just to align the cursor with the mouse a little more accurately,
+                    // so it doesn't move too much when guessing where the mouse is when translating
+                    (Math.round((data.x - offsetx) / scalex) * scalex) + offsetx + 1,
+                    (Math.round(data.y / scaley) * scaley) + offsety + 1,
                 ]
             }
 
@@ -69,10 +70,11 @@ export default function reducer(state, data){
             return take ? reducer(state, {action: take}) : state
 
         case 'translate':
-            return {...state,
+            return reducer({...state,
                 translationx: translationx + data.x * (invertedScroll ? -1 : 1) * scrollSensitivity,
                 translationy: translationy + data.y * (invertedScroll ? -1 : 1) * scrollSensitivity,
-            }
+            // The -8 is a fudge factor to get a better guess at where the mouse is
+            }, {action: 'cursor moved', x: cursorPos[0], y: cursorPos[1] - 8})
 
         case 'scale':
             console.log('scaling by', data.amt );
@@ -83,28 +85,29 @@ export default function reducer(state, data){
             }
 
         // Actions which can be set to various keyboard shortcuts
-        case 'left':            return {...state, cursorPos: [cursorPos[0] - spacingx, cursorPos[1]]}
-        case 'right':           return {...state, cursorPos: [cursorPos[0] + spacingx, cursorPos[1]]}
-        case 'up':              return {...state, cursorPos: [cursorPos[0], cursorPos[1] - spacingy]}
-        case 'down':            return {...state, cursorPos: [cursorPos[0], cursorPos[1] + spacingy]}
+        case 'left':            return {...state, cursorPos: [cursorPos[0] - scalex, cursorPos[1]]}
+        case 'right':           return {...state, cursorPos: [cursorPos[0] + scalex, cursorPos[1]]}
+        case 'up':              return {...state, cursorPos: [cursorPos[0], cursorPos[1] - scaley]}
+        case 'down':            return {...state, cursorPos: [cursorPos[0], cursorPos[1] + scaley]}
         case 'clear':           return {...state, lines: [], bounds: []}
         case 'clear bounds':    return {...state, bounds: []}
         case 'toggle partials': return {...state, partials: !partials}
         case 'copy':            return {...state, clipboard: getSelected(state), curLine: null}
         case 'paste':
             if (clipboard)
+                // TODO: Make this use addLine instead
                 return {...state,
                     lines: [...lines, ...clipboard.map(i =>
                         <line {...i.props}
-                            x1={i.props.x1 + cursorPos[0] + offsetx - 1}
-                            x2={i.props.x2 + cursorPos[0] + offsetx - 1}
-                            y1={i.props.y1 + cursorPos[1] + offsety - 1}
-                            y2={i.props.y2 + cursorPos[1] + offsety - 1}
+                            x1={i.props.x1 + cursorPos[0] /*+ offsetx*/ - 1}
+                            x2={i.props.x2 + cursorPos[0] /*+ offsetx*/ - 1}
+                            y1={i.props.y1 + cursorPos[1] /*+ offsety*/ - 1}
+                            y2={i.props.y2 + cursorPos[1] /*+ offsety*/ - 1}
                             transform={`translate(${-translationx} ${-translationy})`}
-                            key={`${i.props.x1 + cursorPos[0] + offsetx - 1}
-                                  ${i.props.x2 + cursorPos[0] + offsetx - 1}
-                                  ${i.props.y1 + cursorPos[1] + offsety - 1}
-                                  ${i.props.y2 + cursorPos[1] + offsety - 1}`}
+                            key={`${i.props.x1 + cursorPos[0] /*+ offsetx*/ - 1}
+                                  ${i.props.x2 + cursorPos[0] /*+ offsetx*/ - 1}
+                                  ${i.props.y1 + cursorPos[1] /*+ offsety*/ - 1}
+                                  ${i.props.y2 + cursorPos[1] /*+ offsety*/ - 1}`}
                         />
                     )]
                 }

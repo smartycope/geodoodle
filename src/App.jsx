@@ -27,6 +27,7 @@ import { keybindings } from './options.jsx'
 //             translate(${halfx - (curLine?.x1 + offsetx)} 0)
 //         `
 // TODO: a rotation "mirror" state
+// TODO: shift is dismissing bounds
 
 // Disable the default right click menu
 window.oncontextmenu = () => false
@@ -38,8 +39,8 @@ export default function App() {
     const [boundDragging, setBoundDragging] = useState(false)
 
     const [state, dispatch] = useReducer(reducer, {
-        spacingx: options.spacingx,
-        spacingy: options.spacingy,
+        // spacingx: options.spacingx,
+        // spacingy: options.spacingy,
         cursorRadius: options.spacingx / 3,
         boundRadius: options.spacingx / 1.5,
         // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
@@ -79,8 +80,8 @@ export default function App() {
     })
 
     const {
-        spacingx,
-        spacingy,
+        // spacingx,
+        // spacingy,
         cursorRadius,
         boundRadius,
         cursorPos,
@@ -218,10 +219,10 @@ export default function App() {
     // Add the mirror lines
     let mirrorLines = []
     const curLineProps = {
-        x1: curLine?.x1 + offsetx,
-        y1: curLine?.y1 + offsety,
-        x2: cursorPos[0] + offsetx,
-        y2: cursorPos[1] + offsety,
+        x1: curLine?.x1,
+        y1: curLine?.y1,
+        x2: cursorPos[0],
+        y2: cursorPos[1],
         stroke: stroke,
     }
     let curLines = [<line {...curLineProps} key='mirror1' />]
@@ -295,14 +296,15 @@ export default function App() {
 
                 {/* Draw the cursor */}
                 <circle
-                    cx={cursorPos[0] + offsetx}
-                    cy={cursorPos[1] + offsety}
+                    cx={cursorPos[0]}
+                    cy={cursorPos[1]}
                     r={cursorRadius}
                     stroke={options.cursorColor}
                     fillOpacity={0}
                 />
 
                 {/* Draw the lines */}
+                {/* <g id='lines' transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}> {lines} </g> */}
                 <g id='lines' transform={`translate(${translationx} ${translationy})`}> {lines} </g>
 
                 {/* Draw the current line */}
@@ -352,25 +354,25 @@ export default function App() {
                 {/* Draw the eraser placeholder */}
                 {eraser && [
                     <line
-                        x1={eraser[0] - spacingx / 3 + translationx}
-                        y1={eraser[1] - spacingy / 3 + translationy}
-                        x2={eraser[0] + spacingx / 3 + translationx}
-                        y2={eraser[1] + spacingy / 3 + translationy}
+                        x1={eraser[0] - scalex / 3 + translationx}
+                        y1={eraser[1] - scaley / 3 + translationy}
+                        x2={eraser[0] + scalex / 3 + translationx}
+                        y2={eraser[1] + scaley / 3 + translationy}
                         stroke={options.eraserColor}
                         strokeWidth={options.eraserWidth}
                     />,
                     <line
-                        x1={eraser[0] + spacingx / 3 + translationx}
-                        y1={eraser[1] - spacingy / 3 + translationy}
-                        x2={eraser[0] - spacingx / 3 + translationx}
-                        y2={eraser[1] + spacingy / 3 + translationy}
+                        x1={eraser[0] + scalex / 3 + translationx}
+                        y1={eraser[1] - scaley / 3 + translationy}
+                        x2={eraser[0] - scalex / 3 + translationx}
+                        y2={eraser[1] + scaley / 3 + translationy}
                         stroke={options.eraserColor}
                         strokeWidth={options.eraserWidth}
                     />
                 ]}
 
                 {/* Draw the current clipboard */}
-                <g transform={`translate(${cursorPos[0] + offsetx - 1} ${cursorPos[1] + offsety - 1})`}> {clipboard} </g>
+                <g transform={`translate(${cursorPos[0] - 1} ${cursorPos[1] - 1})`}> {clipboard} </g>
             </svg>
         </div>
     )

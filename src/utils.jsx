@@ -42,6 +42,7 @@ export function getSelected(state){
 }
 
 // Returns the new lines
+// *All* permenant lines are made using this funciton, except paste (todo)
 export function addLine(state, props, to=undefined){
     const {translationx, translationy, stroke, strokeWidth, lines} = state
     const {offsetx, offsety} = calc(state)
@@ -50,10 +51,10 @@ export function addLine(state, props, to=undefined){
     if (props.x1 === props.x2 && props.y1 === props.y2)
         return lines
 
-    props.x1 -= translationx - offsetx
-    props.x2 -= translationx - offsetx
-    props.y1 -= translationy - offsety
-    props.y2 -= translationy - offsety
+    props.x1 -= translationx
+    props.x2 -= translationx
+    props.y1 -= translationy
+    props.y2 -= translationy
 
 
     return [...(to !== undefined ? to : lines),
@@ -65,12 +66,12 @@ export function addLine(state, props, to=undefined){
         />]
 }
 
-export function calc({spacingx, spacingy, translationx, translationy, boundRadius, bounds, cursorPos}){
-    const offsetx = translationx % spacingx
-    const offsety = translationy % spacingy
+export function calc({scalex, scaley, translationx, translationy, boundRadius, bounds, cursorPos}){
+    const offsetx = translationx % scalex
+    const offsety = translationy % scaley
     return {
-        halfx: Math.round((window.visualViewport.width  / 2) / spacingx) * spacingx + offsetx + 1,
-        halfy: Math.round((window.visualViewport.height / 2) / spacingy) * spacingy + offsety + 1,
+        halfx: Math.round((window.visualViewport.width  / 2) / scalex) * scalex + offsetx + 1,
+        halfy: Math.round((window.visualViewport.height / 2) / scaley) * scaley + offsety + 1,
         offsetx: offsetx,
         offsety: offsety,
         selectionOverlap: (boundRadius/2),
@@ -81,8 +82,8 @@ export function calc({spacingx, spacingy, translationx, translationy, boundRadiu
             bottom: Math.max(...bounds.map(i => i[1] + translationy)),
         } : null,
         relCursorPos: [
-            cursorPos[0] - translationx + offsetx,
-            cursorPos[1] - translationy + offsety,
+            cursorPos[0] - translationx,
+            cursorPos[1] - translationy,
         ],
     }
 }
