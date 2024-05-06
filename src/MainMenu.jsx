@@ -51,13 +51,13 @@ export default function MainMenu({dispatch, state}){
             </button>
 
         </div>}
-
+        {/* TODO: */}
         {/* The menus */}
         {controlsVisible && <ControlsMenu dispatch={dispatch} state={state}/>}
-        {colorVisible && <div>color menu!</div>}
-        {repeatVisible && <div>repeat menu!</div>}
-        {fileVisible && <div>file menu!</div>}
-        {settingsVisible && <div>settings menu!</div>}
-        {helpVisible && <div>help menu!</div>}
+        {colorVisible && <div>The color menu isn't implemented yet</div>}
+        {repeatVisible && <div>The repeat menu isn't implemented yet</div>}
+        {fileVisible && <div>The file menu isn't implemented yet</div>}
+        {settingsVisible && <div>The settings menu isn't implemented yet</div>}
+        {helpVisible && <div>The help menu isn't implemented yet</div>}
     </>
 }
