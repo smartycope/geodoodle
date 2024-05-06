@@ -1,4 +1,4 @@
-import {mirror} from './globals.js'
+import {MIRROR_AXIS} from './globals.js'
 import { lineIn, removeLine, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq } from './utils'
 import defaultOptions, { keybindings } from './options.jsx'
 
@@ -28,6 +28,7 @@ export default function reducer(state, data){
         invertedScroll,
         scrollSensitivity,
         removeSelectionAfterDelete,
+        mode,
         debug,
     } = state
 
@@ -181,7 +182,7 @@ export default function reducer(state, data){
                         x2: cursorPos[0],
                         y2: cursorPos[1],
                     }))
-                    if (mirrorState === mirror.VERT || mirrorState === mirror.BOTH)
+                    if (mirrorState === MIRROR_AXIS.VERT || mirrorState === MIRROR_AXIS.BOTH)
                         // matrix(-1, 0, 0, 1, halfx*2, 0)
                         newLines.push(createLine(state, {
                             x1: curLine.x1 * -1 + halfx*2,
@@ -189,7 +190,7 @@ export default function reducer(state, data){
                             x2: cursorPos[0] * -1 + halfx*2,
                             y2: cursorPos[1],
                         }))
-                    if (mirrorState === mirror.HORZ || mirrorState === mirror.BOTH)
+                    if (mirrorState === MIRROR_AXIS.HORZ || mirrorState === MIRROR_AXIS.BOTH)
                         // matrix(1, 0, 0, -1, 0, halfy*2)
                         newLines.push(createLine(state, {
                             x1: curLine.x1,
@@ -197,7 +198,7 @@ export default function reducer(state, data){
                             x2: cursorPos[0],
                             y2: cursorPos[1] * -1 + halfy*2,
                         }))
-                    if (mirrorState === mirror.BOTH)
+                    if (mirrorState === MIRROR_AXIS.BOTH)
                         // matrix(-1, 0, 0, -1, halfx*2, halfy*2)
                         newLines.push(createLine(state, {
                             x1: curLine.x1 * -1 + halfx*2,
@@ -233,12 +234,12 @@ export default function reducer(state, data){
         case 'toggle mirror':
             // eslint-disable-next-line default-case
             switch (mirrorState){
-                case mirror.NONE: return {...state, mirrorState: mirror.VERT}
-                case mirror.VERT: return {...state, mirrorState: mirror.HORZ}
-                case mirror.HORZ: return {...state, mirrorState: mirror.BOTH}
-                case mirror.BOTH: return {...state, mirrorState: mirror.NONE}
+                case MIRROR_AXIS.NONE: return {...state, mirrorState: MIRROR_AXIS.VERT}
+                case MIRROR_AXIS.VERT: return {...state, mirrorState: MIRROR_AXIS.HORZ}
+                case MIRROR_AXIS.HORZ: return {...state, mirrorState: MIRROR_AXIS.BOTH}
+                case MIRROR_AXIS.BOTH: return {...state, mirrorState: MIRROR_AXIS.NONE}
             } return state // This shouldn't be possible, but whatever
-
+        case 'set mode': return {...state, mode: data.mode}
         default:
             console.warn(`Unknown action: ${data.action}`)
             return state

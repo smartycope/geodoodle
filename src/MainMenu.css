@@ -1,0 +1,83 @@
+.menu-toggle-button{
+    background-color: rgba(20, 20, 20, 0);
+    color: white;
+    border: none;
+    cursor: pointer;
+    /* align-self: flex-start; */
+    /* justify-self: center; */
+
+    /* align-items: center; */
+    /* display: flex; */
+    /* justify-content: space-between; */
+
+    /* padding-left: 5px;; */
+    padding: 4px;
+    padding-left: 10px;
+    padding-right: 10px;
+    width: 100%;
+    text-align: left;
+    align-content: flex-start;
+    > svg{
+        margin-right: 5px;
+    }
+}
+
+#menu-selector{
+    top: 70px;
+    right: 10px;
+    position: absolute;
+    border-radius: 8px;
+    background-color: rgba(20, 20, 20, .65);
+    /* align-items: center; */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    /* justify-content: center; */
+}
+
+#menu-button{
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+    top: 20px;
+    right: 20px;
+    /* margin: 1%; */
+    padding: 1%;
+    cursor: pointer;
+}
+
+#menu-icon{
+    /* width: 40px; */
+    scale: 2;
+    /* height: 20px; */
+    opacity: .2;
+}
+
+label{
+    color: white;
+    margin-left: 5px;
+    font-size: small;
+}
+
+button:hover{
+    background-color: gray;
+    border-radius: 8px;
+}
+
+button{
+    background-color: rgb(40,40,40);
+    color: white;
+    border-radius: 8px;
+    border: none;
+    margin-left: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+select{
+    background-color: rgb(40,40,40);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}

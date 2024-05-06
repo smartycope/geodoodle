@@ -1,10 +1,11 @@
 import './App.css';
 import {useEffect, useReducer, useRef, useState} from 'react';
-import {mirror} from './globals'
+import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, MODE} from './globals'
 import reducer from './reducer';
 import {calc, eventMatchesKeycode, invertObject, pointIn} from './utils';
 import options from './options';
-import { keybindings } from './options.jsx'
+import { keybindings } from './options'
+import MainMenu from './MainMenu';
 
 // TODO: can't add bounds until after a line has been made
 // TODO: ctrl+c will trigger if ctrl+shift+c is pressed
@@ -26,7 +27,15 @@ import { keybindings } from './options.jsx'
 //             translate(${halfx - (curLine?.x1 + offsetx)} 0)
 //         `
 // TODO: a rotation "mirror" state
-// TODO: shift is dismissing bounds
+// TODO: no-partials doens't include lines on the edge
+
+// TODO: Epics:
+// Repeating
+// undo/redo
+// menus (current)
+// stroke & color
+// File saving
+// Gestures
 
 // Coordinate systems:
 // absolute: relative to the viewport, origin is top left, not translated
@@ -67,7 +76,10 @@ export default function App() {
 
         // pattern: null,
 
-        mirrorState: mirror.NONE,
+        mirrorAxis: MIRROR_AXIS.NONE,
+        mirrorType: MIRROR_TYPE.PAGE,
+        mirrorMethod: MIRROR_METHOD.FLIP,
+        mode: MODE.LINE,
 
         // Coord: not scaled
         translationx: 0,
@@ -215,15 +227,15 @@ export default function App() {
         stroke: stroke,
     }
     let curLines = [<line {...curLineProps} key='mirror0' />]
-    if (mirrorState === mirror.VERT || mirrorState === mirror.BOTH){
+    if (mirrorState === MIRROR_AXIS.VERT || mirrorState === MIRROR_AXIS.BOTH){
         mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
         curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, 1, ${halfx*2}, 0)`} key='mirror1' />)
     }
-    if (mirrorState === mirror.HORZ || mirrorState === mirror.BOTH){
+    if (mirrorState === MIRROR_AXIS.HORZ || mirrorState === MIRROR_AXIS.BOTH){
         mirrorLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor}/>)
         curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${halfy*2})`} key='mirror2' />)
     }
-    if (mirrorState === mirror.BOTH){
+    if (mirrorState === MIRROR_AXIS.BOTH){
         curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, -1, ${halfx*2}, ${halfy*2})`} key='mirror3'/>)
     }
 
@@ -236,6 +248,7 @@ export default function App() {
 
     return (
         <div className="App">
+            <MainMenu dispatch={dispatch} state={state}/>
             {/* <samp><kbd>Shift</kbd></samp> */}
             <svg id='paper'
                 width="100%"
