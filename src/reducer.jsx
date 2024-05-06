@@ -167,8 +167,8 @@ export default function reducer(state, data){
                 return {...state, curLine: null}
             else if (clipboard)
                 return {...state, clipboard: null}
-            else if (bounds.length >= 2)
-                return reducer(state, {action: 'delete selected'})
+            // else if (bounds.length >= 2)
+            //     return reducer(state, {action: 'delete selected'})
             else {
                 return {...state, lines: (lines.filter(i =>
                     !((pointEq(state, [i.props.x1, i.props.y1], relCursorPos, .3) ||
@@ -188,7 +188,7 @@ export default function reducer(state, data){
             return state
 
         case 'add line':
-            if (clipboard)
+            if (clipboard && !mobile)
                 return {...reducer(state, {action: 'paste'}), clipboard: data.continue ? clipboard : null}
             else {
                 var newLines = []

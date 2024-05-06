@@ -6,6 +6,8 @@ import {calc, eventMatchesKeycode, invertObject, mobileAndTabletCheck, pointIn} 
 import options from './options';
 import { keybindings } from './options'
 import MainMenu from './MainMenu';
+import ZingTouch from 'zingtouch';
+
 
 // TODO: 180 degree mirror rotation specifically isn't working (all the others work)
 // TODO: mirrorAxis2 is unimplemented
@@ -167,8 +169,8 @@ export default function App() {
     function onTouchEnd(e){
         console.log('touch end')
         e.preventDefault()
-        // if (dragging)
-        dispatch({action: 'add line'})
+        if (!clipboard)
+            dispatch({action: 'add line'})
         // setDragging(false)
     }
 
@@ -181,7 +183,8 @@ export default function App() {
             x: touch.pageX,
             y: touch.pageY,
         })
-        dispatch({action: 'add line'})
+        if (!clipboard)
+            dispatch({action: 'add line'})
     }
 
     function onScroll(e){
@@ -221,6 +224,16 @@ export default function App() {
             paper.current.removeEventListener('touchstart', onTouchStart)
             paper.current.removeEventListener('touchmove', onTouchMove)
         }
+    }, [])
+
+    useEffect(() =>{
+        const zt = new ZingTouch.Region(paper.current);
+
+        zt.bind(paper.current).pinch(e => {
+            console.log(e);
+        }, false).expand(e => {
+            console.log(e);
+        })
     }, [])
 
     // Add the mirror lines

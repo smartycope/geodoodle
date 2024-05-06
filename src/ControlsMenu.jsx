@@ -199,7 +199,7 @@ export default function ControlsMenu({dispatch, state}){
                 <PiSelectionPlusDuotone />
             </button>}
             {state.bounds.length > 1 && <>
-                <button title="Clear selection" onClick={() => dispatch({action: 'clear bounds'})}>
+                <button title="Clear selection" onClick={() => dispatch({action: 'nevermind'})}>
                     <PiSelectionSlashDuotone />
                 </button>
                 <span className="checkbox">

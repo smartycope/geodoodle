@@ -40,6 +40,7 @@
 @media screen and (max-width: 768px) {
     #controls-menu{
         width: 348px;
+        left: 10%;
     }
 }
 

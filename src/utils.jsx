@@ -35,17 +35,16 @@ export function getSelected(state, remove=false){
     const {boundRect} = calc(state)
 
     // boundRect is relative and scaled
-    // TODO: the .5 fudge factor doesn't seem to work
     const filterFunc = i => (
-            i.props.x1 >= boundRect.left   - .5 &&
-            i.props.x1 <= boundRect.right  + .5 &&
-            i.props.y1 >= boundRect.top    - .5 &&
-            i.props.y1 <= boundRect.bottom + .5
+            i.props.x1 >= boundRect.left   &&
+            i.props.x1 <= boundRect.right  &&
+            i.props.y1 >= boundRect.top    &&
+            i.props.y1 <= boundRect.bottom
         ) && (partials || (
-            i.props.x2 >= boundRect.left   - .5 &&
-            i.props.x2 <= boundRect.right  + .5 &&
-            i.props.y2 >= boundRect.top    - .5 &&
-            i.props.y2 <= boundRect.bottom + .5
+            i.props.x2 > boundRect.left   &&
+            i.props.x2 < boundRect.right  &&
+            i.props.y2 > boundRect.top    &&
+            i.props.y2 < boundRect.bottom
         )
     )
 
