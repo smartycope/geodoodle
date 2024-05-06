@@ -7,18 +7,8 @@ import options from './options';
 import { keybindings } from './options'
 import MainMenu from './MainMenu';
 
-// TODO: can't add bounds until after a line has been made
-// TODO: no-partials doens't include lines on the edge
-// TODO: Have the controls toolbar remember where it was last
 // TODO: 180 degree mirror rotation specifically isn't working (all the others work)
 // TODO: mirrorAxis2 is unimplemented
-
-// TODO: Epics:
-// Repeating
-// menus
-// stroke & color
-// File saving
-// Gestures
 
 // Coordinate systems:
 // absolute: relative to the viewport, origin is top left, not translated
@@ -160,25 +150,34 @@ export default function App() {
 
     function onTouchMove(e){
         console.log('touch moved')
-        // Do this here, and not in onTouchStart, because when a touch tap happens, it triggers both
-        // onMouseDown *and* onTouchStart. This ensures it only creates a line if it's moving
-        if (curLine === null)
-            dispatch({action: 'add line'})
-        setDragging(true)
+        e.preventDefault()
+        const touch = (e.touches[0] || e.changedTouches[0])
 
         dispatch({
             action: 'cursor moved',
-            x: (e.touches[0] || e.changedTouches[0]).pageX,
-            y: (e.touches[0] || e.changedTouches[0]).pageY,
-
+            x: touch.pageX,
+            y: touch.pageY,
         })
     }
 
     function onTouchEnd(e){
         console.log('touch end')
-        if (dragging)
-            dispatch({action: 'add line'})
-        setDragging(false)
+        e.preventDefault()
+        // if (dragging)
+        dispatch({action: 'add line'})
+        // setDragging(false)
+    }
+
+    function onTouchStart(e){
+        console.log('touch start')
+        e.preventDefault()
+        const touch = (e.touches[0] || e.changedTouches[0])
+        dispatch({
+            action: 'cursor moved',
+            x: touch.pageX,
+            y: touch.pageY,
+        })
+        dispatch({action: 'add line'})
     }
 
     function onScroll(e){
@@ -209,8 +208,14 @@ export default function App() {
         // See https://stackoverflow.com/questions/63663025/react-onwheel-handler-cant-preventdefault-because-its-a-passive-event-listenev
         // for why we have to do it this way (because of the zoom browser shortcut)
         paper.current.addEventListener('wheel', onScroll, { passive: false })
+        paper.current.addEventListener('touchend', onTouchEnd, { passive: false })
+        paper.current.addEventListener('touchstart', onTouchStart, { passive: false })
+        paper.current.addEventListener('touchmove', onTouchMove, { passive: false })
         return () => {
             paper.current.removeEventListener('wheel', onScroll)
+            paper.current.removeEventListener('touchend', onTouchEnd)
+            paper.current.removeEventListener('touchstart', onTouchStart)
+            paper.current.removeEventListener('touchmove', onTouchMove)
         }
     }, [])
 
@@ -283,8 +288,9 @@ export default function App() {
                 onKeyDown={e => dispatch({action: 'key press', event: e})}
                 tabIndex={0}
                 onMouseDown={onMouseDown}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
+                // onTouchMove={onTouchMove}
+                // onTouchEnd={onTouchEnd}
+                // onTouchEnd={onTouchStart}
                 onMouseUp={onMouseUp}
                 // These are implemented with keyboard shortcuts, so they can be changed
                 // onCopy={e => dispatch({action: 'copy'})}
