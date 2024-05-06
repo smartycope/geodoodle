@@ -31,22 +31,22 @@ export default function MainMenu({dispatch, state}){
 
         {/* The drop-down menu of toggle buttons */}
         {visible && <div id='menu-selector'>
-            <button onClick={() => {setControlsVisible(!controlsVisible); setVisible(false)}} class="menu-toggle-button">
+            <button onClick={() => {setControlsVisible(!controlsVisible); setVisible(false)}} className="menu-toggle-button">
                 <FaSliders /> Controls
             </button>
-            <button onClick={() => {setColorVisible(!colorVisible); setVisible(false)}} class="menu-toggle-button">
+            <button onClick={() => {setColorVisible(!colorVisible); setVisible(false)}} className="menu-toggle-button">
                 <MdColorLens /> Colors
             </button>
-            <button onClick={() => {setRepeatVisible(!repeatVisible); setVisible(false)}} class="menu-toggle-button">
+            <button onClick={() => {setRepeatVisible(!repeatVisible); setVisible(false)}} className="menu-toggle-button">
                 <MdDashboard /> Repeat
             </button>
-            <button onClick={() => {setFileVisible(!fileVisible); setVisible(false)}} class="menu-toggle-button">
+            <button onClick={() => {setFileVisible(!fileVisible); setVisible(false)}} className="menu-toggle-button">
                 <FaSave /> File
             </button>
-            <button onClick={() => {setSettingsVisible(!settingsVisible); setVisible(false)}} class="menu-toggle-button">
+            <button onClick={() => {setSettingsVisible(!settingsVisible); setVisible(false)}} className="menu-toggle-button">
                 <IoMdSettings /> Settings
             </button>
-            <button onClick={() => {setHelpVisible(!helpVisible); setVisible(false)}} class="menu-toggle-button">
+            <button onClick={() => {setHelpVisible(!helpVisible); setVisible(false)}} className="menu-toggle-button">
                 <MdHelp /> Help
             </button>
 

@@ -9,9 +9,9 @@
     background-color: rgba(20,20,20,.65);
     border-radius: 10px;
     margin: 10px;
-    padding: 5px;
+    padding: 10px;
     padding-left: 10px;
-    padding-right: 10px;
+    padding-right: 5px;
     position: absolute;
     /* align-items: flex-end; */
     align-items: center;
@@ -31,7 +31,7 @@
     width: 18px;
 }
 
-#home-button{
+/* #home-button{
     margin-left: 10px;
     background-color: rgb(60,60,60);
     border: none;
@@ -40,7 +40,7 @@
     background-color: gray;
     border-radius: 8px;
     border: none;
-}
+} */
 
 .button-group{
     display: flex;
@@ -51,4 +51,15 @@
     > *{
         margin: 2px;
     }
+}
+
+#mirror-buttons{
+    > button > svg{
+        margin-right: 5px;
+    }
+}
+
+#grip{
+    scale: 1.5;
+    padding-left: 8px;
 }

@@ -1,4 +1,4 @@
-import {MIRROR_AXIS} from './globals.js'
+import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE} from './globals.js'
 import { lineIn, removeLine, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq } from './utils'
 import defaultOptions, { keybindings, reversibleActions } from './options.jsx'
 
@@ -18,7 +18,11 @@ export default function reducer(state, data){
         curLine,
         bounds,
         // pattern,
-        mirrorState,
+        mirroring,
+        mirrorAxis,
+        mirrorAxis2,
+        mirrorType,
+        mirrorMethod,
         eraser,
         clipboard,
         translationx,
@@ -99,6 +103,8 @@ export default function reducer(state, data){
             // }, {action: 'cursor moved', x: cursorPos[0], y: cursorPos[1] - 8})
 
         // Actions which can be set to various keyboard shortcuts
+        case 'increase scale':  return {...state, scalex: scalex*2, scaley: scaley*2}
+        case 'decrease scale':  return {...state, scalex: scalex/2, scaley: scaley/2}
         case 'go home':         return {...state, translationx: 0, translationy: 0, scalex: defaultOptions.scalex, scaley: defaultOptions.scaley}
         case 'left':            return {...state, cursorPos: [cursorPos[0] - scalex, cursorPos[1]]}
         case 'right':           return {...state, cursorPos: [cursorPos[0] + scalex, cursorPos[1]]}
@@ -185,37 +191,94 @@ export default function reducer(state, data){
                 return {...reducer(state, {action: 'paste'}), clipboard: data.continue ? clipboard : null}
             else {
                 var newLines = []
-                // Add mirrored lines
                 if (curLine != null){
+                    const originx = mirrorType === MIRROR_TYPE.PAGE ? halfx : curLine.x1
+                    const originy = mirrorType === MIRROR_TYPE.PAGE ? halfy : curLine.y1
+                    const pi = Math.PI
+
+                    // First off, add the base line
                     newLines.push(createLine(state, {
                         ...curLine,
                         x2: cursorPos[0],
                         y2: cursorPos[1],
                     }))
-                    if (mirrorState === MIRROR_AXIS.VERT || mirrorState === MIRROR_AXIS.BOTH)
-                        // matrix(-1, 0, 0, 1, halfx*2, 0)
-                        newLines.push(createLine(state, {
-                            x1: curLine.x1 * -1 + halfx*2,
-                            y1: curLine.y1,
-                            x2: cursorPos[0] * -1 + halfx*2,
-                            y2: cursorPos[1],
-                        }))
-                    if (mirrorState === MIRROR_AXIS.HORZ || mirrorState === MIRROR_AXIS.BOTH)
-                        // matrix(1, 0, 0, -1, 0, halfy*2)
-                        newLines.push(createLine(state, {
-                            x1: curLine.x1,
-                            y1: curLine.y1 * -1 + halfy*2,
-                            x2: cursorPos[0],
-                            y2: cursorPos[1] * -1 + halfy*2,
-                        }))
-                    if (mirrorState === MIRROR_AXIS.BOTH)
-                        // matrix(-1, 0, 0, -1, halfx*2, halfy*2)
-                        newLines.push(createLine(state, {
-                            x1: curLine.x1 * -1 + halfx*2,
-                            y1: curLine.y1 * -1 + halfy*2,
-                            x2: cursorPos[0] * -1 + halfx*2,
-                            y2: cursorPos[1] * -1 + halfy*2,
-                        }))
+
+                    // Now add mirrored lines. These are all just manual matrix multiplication of the specified transformations
+                    if (mirroring && (mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360))
+                        if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
+                            // matrix(-1, 0, 0, 1, originx*2, 0)
+                            newLines.push(createLine(state, {
+                                x1: curLine.x1 * -1 + originx*2,
+                                y1: curLine.y1,
+                                x2: cursorPos[0] * -1 + originx*2,
+                                y2: cursorPos[1],
+                            }))
+                        if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
+                            // rotate(90, originx, originy)
+                            newLines.push(createLine(state, {
+                                x1: (curLine.x1 * Math.cos(pi/2)) +
+                                    (curLine.y1 * -Math.sin(pi/2)) +
+                                    originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
+                                y1: (curLine.x1 * Math.sin(pi/2)) +
+                                    (curLine.y1 * -Math.cos(pi/2)) +
+                                    originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2),
+                                x2: (cursorPos[0] * Math.cos(pi/2)) +
+                                    (cursorPos[1] * -Math.sin(pi/2)) +
+                                    originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
+                                y2: (cursorPos[0] * Math.sin(pi/2)) +
+                                    (cursorPos[1] * -Math.cos(pi/2)) +
+                                    originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2),
+                            }))
+                    if (mirroring && (mirrorAxis === MIRROR_AXIS.HORZ_180 || mirrorAxis === MIRROR_AXIS.BOTH_360))
+                        if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
+                            // matrix(1, 0, 0, -1, 0, originy*2)
+                            newLines.push(createLine(state, {
+                                x1: curLine.x1,
+                                y1: curLine.y1 * -1 + originy*2,
+                                x2: cursorPos[0],
+                                y2: cursorPos[1] * -1 + originy*2,
+                            }))
+                        if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
+                            // rotate(180, originx, originy)
+                            newLines.push(createLine(state, {
+                                x1: (curLine.x1 * Math.cos(pi)) +
+                                    (curLine.y1 * -Math.sin(pi)) +
+                                    originx*(1-Math.cos(pi)) + originy*Math.sin(pi),
+                                y1: (curLine.x1 * Math.sin(pi)) +
+                                    (curLine.y1 * -Math.cos(pi)) +
+                                    originy*(1-Math.cos(pi)) - originx*Math.sin(pi),
+                                x2: (cursorPos[0] * Math.cos(pi)) +
+                                    (cursorPos[1] * -Math.sin(pi)) +
+                                    originx*(1-Math.cos(pi)) + originy*Math.sin(pi),
+                                y2: (cursorPos[0] * Math.sin(pi)) +
+                                    (cursorPos[1] * -Math.cos(pi)) +
+                                    originy*(1-Math.cos(pi)) - originx*Math.sin(pi),
+                            }))
+                    if (mirroring && mirrorAxis === MIRROR_AXIS.BOTH_360)
+                        if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
+                            // matrix(-1, 0, 0, -1, originx*2, originy*2)
+                            newLines.push(createLine(state, {
+                                x1: curLine.x1 * -1 + originx*2,
+                                y1: curLine.y1 * -1 + originy*2,
+                                x2: cursorPos[0] * -1 + originx*2,
+                                y2: cursorPos[1] * -1 + originy*2,
+                            }))
+                        if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
+                            // rotate(270, originx, originy)
+                            newLines.push(createLine(state, {
+                                x1: (curLine.x1 * Math.cos(3*pi/2)) +
+                                    (curLine.y1 * -Math.sin(3*pi/2)) +
+                                    originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
+                                y1: (curLine.x1 * Math.sin(3*pi/2)) +
+                                    (curLine.y1 * -Math.cos(3*pi/2)) +
+                                    originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2),
+                                x2: (cursorPos[0] * Math.cos(3*pi/2)) +
+                                    (cursorPos[1] * -Math.sin(3*pi/2)) +
+                                    originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
+                                y2: (cursorPos[0] * Math.sin(3*pi/2)) +
+                                    (cursorPos[1] * -Math.cos(3*pi/2)) +
+                                    originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2),
+                            }))
                     }
 
                 return {...state,
@@ -253,14 +316,36 @@ export default function reducer(state, data){
             undoStack.push(nextState)
             return nextState
 
-        case 'toggle mirror':
+        case 'toggle mirroring': return {...state, mirroring: !mirroring}
+        case 'toggle mirror axis 1':
             // eslint-disable-next-line default-case
-            switch (mirrorState){
-                case MIRROR_AXIS.NONE: return {...state, mirrorState: MIRROR_AXIS.VERT}
-                case MIRROR_AXIS.VERT: return {...state, mirrorState: MIRROR_AXIS.HORZ}
-                case MIRROR_AXIS.HORZ: return {...state, mirrorState: MIRROR_AXIS.BOTH}
-                case MIRROR_AXIS.BOTH: return {...state, mirrorState: MIRROR_AXIS.NONE}
+            switch (mirrorAxis){
+                case MIRROR_AXIS.VERT_90:  return {...state, mirrorAxis: MIRROR_AXIS.HORZ_180}
+                case MIRROR_AXIS.HORZ_180: return {...state, mirrorAxis: MIRROR_AXIS.BOTH_360}
+                case MIRROR_AXIS.BOTH_360: return {...state, mirrorAxis: MIRROR_AXIS.VERT_90}
             } return state // This shouldn't be possible, but whatever
+
+        case 'toggle mirror axis 2':
+            // eslint-disable-next-line default-case
+            switch (mirrorAxis2){
+                case MIRROR_AXIS.VERT_90:  return {...state, mirrorAxis2: MIRROR_AXIS.HORZ_180}
+                case MIRROR_AXIS.HORZ_180: return {...state, mirrorAxis2: MIRROR_AXIS.BOTH_360}
+                case MIRROR_AXIS.BOTH_360: return {...state, mirrorAxis2: MIRROR_AXIS.VERT_90}
+            } return state // This shouldn't be possible, but whatever
+
+        case 'toggle mirror type':
+            return {...state,
+                mirrorType: mirrorType === MIRROR_TYPE.CURSOR ? MIRROR_TYPE.PAGE : MIRROR_TYPE.CURSOR
+            }
+
+        case 'toggle mirror method':
+            // eslint-disable-next-line default-case
+            switch (mirrorMethod){
+                case MIRROR_METHOD.FLIP:   return {...state, mirrorMethod: MIRROR_METHOD.BOTH}
+                case MIRROR_METHOD.ROTATE: return {...state, mirrorMethod: MIRROR_METHOD.FLIP}
+                case MIRROR_METHOD.BOTH:   return {...state, mirrorMethod: MIRROR_METHOD.ROTATE}
+            } return state // This shouldn't be possible, but whatever
+
         case 'set mode': return {...state, mode: data.mode}
         default:
             console.warn(`Unknown action: ${data.action}`)

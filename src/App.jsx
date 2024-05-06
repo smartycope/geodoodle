@@ -8,32 +8,14 @@ import { keybindings } from './options'
 import MainMenu from './MainMenu';
 
 // TODO: can't add bounds until after a line has been made
-// TODO: ctrl+c will trigger if ctrl+shift+c is pressed
-// TODO: another mirror state that is just "mirror, with the origin being wherever I click":
-// curLines.push(<line {...curLineProps} transform={`
-//             translate(${(curLine?.x1 + offsetx)} 0)
-//             matrix(-1, 0, 0, 1, 0, 0)
-//             translate(${-(curLine?.x1 + offsetx)} 0)
-//             `
-//         } key='mirror2'/>)
-// TODO: this is also cool:
-// curLines.push(<line {...curLineProps} transform={`
-//             rotate(90, ${halfx}, ${halfy})
-//             `
-// TODO: also just repeat the same thing in 4 corners:
-// curLines.push(<line {...curLineProps} transform={`
-//             translate(${(curLine?.x1 + offsetx)} 0)
-//             matrix(1, 0, 0, 1, 10, 10)
-//             translate(${halfx - (curLine?.x1 + offsetx)} 0)
-//         `
-// TODO: a rotation "mirror" state
 // TODO: no-partials doens't include lines on the edge
-// TODO: redo doesn't seem to work
+// TODO: Have the controls toolbar remember where it was last
+// TODO: 180 degree mirror rotation specifically isn't working (all the others work)
+// TODO: mirrorAxis2 is unimplemented
 
 // TODO: Epics:
 // Repeating
-// undo/redo
-// menus (current)
+// menus
 // stroke & color
 // File saving
 // Gestures
@@ -51,6 +33,8 @@ export default function App() {
     const paper = useRef()
     const [dragging, setDragging] = useState(false)
     const [boundDragging, setBoundDragging] = useState(false)
+
+    const mobile = window.innerWidth <= 768;
 
     const [state, dispatch] = useReducer(reducer, {
         stroke: options.stroke,
@@ -77,10 +61,13 @@ export default function App() {
 
         // pattern: null,
 
-        mirrorAxis: MIRROR_AXIS.NONE,
+        mirroring: false,
+        mirrorAxis: MIRROR_AXIS.VERT_90,
+        // The second one is only used when mirrorMethod == BOTH, and it used for the Rotation one
+        mirrorAxis2: MIRROR_AXIS.VERT_90,
         mirrorType: MIRROR_TYPE.PAGE,
         mirrorMethod: MIRROR_METHOD.FLIP,
-        mode: MODE.LINE,
+        mode: MODE.DRAW,
 
         // Coord: not scaled
         translationx: 0,
@@ -109,7 +96,10 @@ export default function App() {
         curLine,
         bounds,
         // pattern,
-        mirrorState,
+        mirroring,
+        mirrorAxis,
+        mirrorType,
+        mirrorMethod,
         eraser,
         clipboard,
         translationx,
@@ -137,6 +127,7 @@ export default function App() {
     const boundRadius = scalex / 1.5
 
     function onMouseMove(e){
+        console.log('mouse moved')
         if (e.buttons !== 0)
             setDragging(true)
         setBoundDragging(true)
@@ -148,6 +139,7 @@ export default function App() {
     }
 
     function onMouseDown(e){
+        console.log('mouse down')
         // eslint-disable-next-line default-case
         switch (e.button){
             // Left click
@@ -160,12 +152,14 @@ export default function App() {
     }
 
     function onMouseUp(e){
+        console.log('mouse up')
         if (dragging)
             dispatch({action: 'add line'})
         setDragging(false)
     }
 
     function onTouchMove(e){
+        console.log('touch moved')
         // Do this here, and not in onTouchStart, because when a touch tap happens, it triggers both
         // onMouseDown *and* onTouchStart. This ensures it only creates a line if it's moving
         if (curLine === null)
@@ -181,12 +175,14 @@ export default function App() {
     }
 
     function onTouchEnd(e){
+        console.log('touch end')
         if (dragging)
             dispatch({action: 'add line'})
         setDragging(false)
     }
 
     function onScroll(e){
+        console.log('scrolled')
         if (e.shiftKey)
             dispatch({
                 action: 'translate',
@@ -228,17 +224,46 @@ export default function App() {
         stroke: stroke,
     }
     let curLines = [<line {...curLineProps} key='mirror0' />]
-    if (mirrorState === MIRROR_AXIS.VERT || mirrorState === MIRROR_AXIS.BOTH){
+    const originx = mirrorType === MIRROR_TYPE.PAGE ? halfx : curLine?.x1
+    const originy = mirrorType === MIRROR_TYPE.PAGE ? halfy : curLine?.y1
+
+    if (mirroring && (mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360)){
         mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
-        curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, 1, ${halfx*2}, 0)`} key='mirror1' />)
+        if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
+            curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, 1, ${originx*2}, 0)`} key='mirror1' />)
+        if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
+            curLines.push(<line {...curLineProps} transform={`rotate(90, ${originx}, ${originy})`} key='mirror1' />)
     }
-    if (mirrorState === MIRROR_AXIS.HORZ || mirrorState === MIRROR_AXIS.BOTH){
+    if (mirroring && (mirrorAxis === MIRROR_AXIS.HORZ_180 || mirrorAxis === MIRROR_AXIS.BOTH_360)){
         mirrorLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor}/>)
-        curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${halfy*2})`} key='mirror2' />)
+        if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
+            curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${originy*2})`} key='mirror2' />)
+        if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
+            curLines.push(<line {...curLineProps} transform={`rotate(180, ${originx}, ${originy})`} key='mirror1' />)
     }
-    if (mirrorState === MIRROR_AXIS.BOTH){
-        curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, -1, ${halfx*2}, ${halfy*2})`} key='mirror3'/>)
+    if (mirroring && mirrorAxis === MIRROR_AXIS.BOTH_360){
+        if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
+            curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, -1, ${originx*2}, ${originy*2})`} key='mirror3'/>)
+        if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
+            curLines.push(<line {...curLineProps} transform={`rotate(270, ${originx}, ${originy})`} key='mirror1' />)
+        // if (mirrorMethod === MIRROR_METHOD.BOTH){
+        //     // curLines.push(<line {...curLineProps} transform={`matrix(0, 1, -1, 0, ${originx*2}, ${originy*2})`} key='mirror3'/>)
+        //     curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${originy*2}) rotate(270, ${originx} ${originy})`} key='mirror2' />)
+        //     curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${originy*2}) rotate(90, ${originx} ${originy})`} key='mirror2' />)
+        // }
+
     }
+
+    if (mirroring &&
+        mirrorMethod === MIRROR_METHOD.ROTATE &&
+        mirrorType === MIRROR_TYPE.PAGE &&
+        mirrorAxis !== MIRROR_AXIS.BOTH_360
+    ) mirrorLines = []
+
+    if (mirroring &&
+        (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH) &&
+        mirrorType === MIRROR_TYPE.PAGE
+    ) mirrorLines.push(<circle cx={halfx} cy={halfy} r={scalex/3} fill={options.mirrorColor} opacity={.8} strokeOpacity="0"/>)
 
     const drawBoundRect = boundDragging && bounds.length === 1 ? {
         left:   Math.min(boundRect?.left,   cursorPos[0] / scalex),
@@ -302,7 +327,6 @@ export default function App() {
 
                 {/* Draw the lines */}
                 <g id='lines' transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}> {lines} </g>
-                {/* <g id='lines' transform={`translate(${translationx} ${translationy})`}> {lines} </g> */}
 
                 {/* Draw the current line */}
                 {curLine && <g>{curLines}</g>}
@@ -338,7 +362,7 @@ export default function App() {
                 />}
 
                 {/* Draw the mirror lines */}
-                {mirrorLines}
+                {mirrorType === MIRROR_TYPE.PAGE && mirrorLines}
 
                 {/* Draw the eraser placeholder */}
                 {eraser && [

@@ -1,15 +1,15 @@
 export const MODE = {
-    LINE: 0,
-    SELECTION: 1,
+    DRAW: 0,
+    SELECT: 1,
     DELETE: 2,
     REPEAT: 3,
+    NAVIGATE: 4,
 }
 
 export const MIRROR_AXIS = {
-    NONE: 0,
-    VERT: 1,
-    HORZ: 2,
-    BOTH: 3,
+    VERT_90: 0,
+    HORZ_180: 1,
+    BOTH_360: 2,
 }
 
 export const MIRROR_TYPE = {
@@ -20,4 +20,5 @@ export const MIRROR_TYPE = {
 export const MIRROR_METHOD = {
     FLIP: 0,
     ROTATE: 1,
+    BOTH: 2,
 }

@@ -40,6 +40,9 @@ export const keybindings = {
     "k": "up",
     "l": "down",
 
+    'ctrl+arrowup': "increase scale",
+    'ctrl+arrowdown': "decrease scale",
+
     'delete': "delete",
     'backspace': "delete line",
     'ctrl+q': "clear",
@@ -49,7 +52,7 @@ export const keybindings = {
     'shift+b': "clear bounds",
     'escape': "nevermind",
     'p': "toggle partials",
-    'm': "toggle mirror",
+    'm': "toggle mirror axis",
     'home': 'go home',
     'h': 'go home',
 
