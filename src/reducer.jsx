@@ -1,6 +1,10 @@
 import {MIRROR_AXIS} from './globals.js'
 import { lineIn, removeLine, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq } from './utils'
-import defaultOptions, { keybindings } from './options.jsx'
+import defaultOptions, { keybindings, reversibleActions } from './options.jsx'
+
+var undoStack = []
+var redoStack = []
+
 
 export default function reducer(state, data){
     const {
@@ -46,6 +50,12 @@ export default function reducer(state, data){
     if (debug && !(['cursor moved', 'translate', 'scale'].includes(data.action))){
         console.debug(data);
         console.debug(state);
+    }
+
+    if (reversibleActions.includes(data.action)){
+        if (undoStack.push(state) > defaultOptions.maxUndoAmt){
+            undoStack.shift()
+        }
     }
 
     switch (data.action){
@@ -230,6 +240,18 @@ export default function reducer(state, data){
                 ? removePoint(bounds, relCursorPos)
                 : [...bounds, relCursorPos],
             }
+
+        case 'undo':
+            const prevState = undoStack.pop()
+            redoStack.push(prevState)
+            return prevState
+
+        case 'redo':
+            const nextState = redoStack.pop()
+            if (nextState === undefined)
+                return state
+            undoStack.push(nextState)
+            return nextState
 
         case 'toggle mirror':
             // eslint-disable-next-line default-case

@@ -20,6 +20,7 @@ const defaultOptions = {
     scrollSensitivity: .3,
     // If we remove all the bounds after cut or delete selection
     removeSelectionAfterDelete: false,
+    maxUndoAmt: 20,
     debug: true,
 }
 
@@ -55,8 +56,25 @@ export const keybindings = {
     'ctrl+c': "copy",
     'ctrl+v': "paste",
     'ctrl+x': "cut",
+    'ctrl+z': 'undo',
+    'ctrl+y': 'redo',
+    'ctrl+shift+z': 'redo',
 
     'd': 'debug'
 }
 
 export default defaultOptions
+
+// Only these can be undone, all other actions are ignored by undo/redo
+export const reversibleActions = [
+    'go home',
+    'clear',
+    'clear bounds',
+    'paste',
+    'delete selected',
+    'delete line',
+    'delete',
+    'add line',
+    'continue line',
+    'add bound',
+]

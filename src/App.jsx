@@ -28,6 +28,7 @@ import MainMenu from './MainMenu';
 //         `
 // TODO: a rotation "mirror" state
 // TODO: no-partials doens't include lines on the edge
+// TODO: redo doesn't seem to work
 
 // TODO: Epics:
 // Repeating

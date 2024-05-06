@@ -9,6 +9,8 @@ import { MIRROR_AXIS } from "./globals";
 import { FaMinus } from "react-icons/fa6";
 import { FaPlus } from "react-icons/fa6";
 import { PiLineVerticalBold } from "react-icons/pi";
+import { MdUndo } from "react-icons/md";
+import { MdRedo } from "react-icons/md";
 import { BsSlash } from "react-icons/bs";
 
 let offsetX, offsetY;
@@ -58,13 +60,13 @@ export default function ControlsMenu({dispatch, state}){
 
     }, [])
 
-    let mirrorIcon
+    let mirror
     // eslint-disable-next-line default-case
-    switch(state.mirrorState){
-        case MIRROR_AXIS.VERT: mirrorIcon = <><PiLineVerticalBold /> Vertical</>; break
-        case MIRROR_AXIS.HORZ: mirrorIcon = <><FaMinus /> Horizontal</>; break
-        case MIRROR_AXIS.BOTH: mirrorIcon = <><FaPlus /> Crossed</>; break
-        case MIRROR_AXIS.NONE: mirrorIcon = <><MdCropPortrait /> Mirror</>; break
+    switch(state.mirrorAxis){
+        case MIRROR_AXIS.VERT: mirror = <><PiLineVerticalBold /> Vertical</>; break
+        case MIRROR_AXIS.HORZ: mirror = <><FaMinus /> Horizontal</>; break
+        case MIRROR_AXIS.BOTH: mirror = <><FaPlus /> Crossed</>; break
+        case MIRROR_AXIS.NONE: mirror = <><MdCropPortrait /> Mirror</>; break
     }
 
     return <div id="controls-menu">
@@ -85,7 +87,7 @@ export default function ControlsMenu({dispatch, state}){
         </span>
 
         <button onClick={() => dispatch({action: "toggle mirror"})} title='Toggle mirror'>
-            {mirrorIcon}
+            {mirror}
         </button>
 
         <label htmlFor="partial-picker" title="Include lines that only have one end in the selected area">
@@ -99,15 +101,24 @@ export default function ControlsMenu({dispatch, state}){
             title="Include lines that only have one end in the selected area"
         ></input>
 
-        <span id='clipboard-buttons'>
-            <button id='home-button' onClick={() => dispatch({action: "copy"})} title="Copy">
+        <span className='button-group'>
+            <button onClick={() => dispatch({action: "copy"})} title="Copy">
                 <MdContentCopy />
             </button>
-            <button id='home-button' onClick={() => dispatch({action: "cut"})} title="Cut">
+            <button onClick={() => dispatch({action: "cut"})} title="Cut">
                 <MdOutlineContentCut />
             </button>
-            <button id='home-button' onClick={() => dispatch({action: "paste"})} title="Paste">
+            <button onClick={() => dispatch({action: "paste"})} title="Paste">
                 <MdContentPaste />
+            </button>
+        </span>
+
+        <span className="button-group">
+            <button onClick={() => dispatch({action: "undo"})} title="Undo">
+                <MdUndo />
+            </button>
+            <button onClick={() => dispatch({action: "redo"})} title="Redo">
+                <MdRedo />
             </button>
         </span>
 
