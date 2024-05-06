@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/geodoodle/static/css/main.325ac31c.css",
+    "main.js": "/geodoodle/static/js/main.53f20c52.js",
+    "static/js/453.477dbbf1.chunk.js": "/geodoodle/static/js/453.477dbbf1.chunk.js",
+    "index.html": "/geodoodle/index.html",
+    "main.325ac31c.css.map": "/geodoodle/static/css/main.325ac31c.css.map",
+    "main.53f20c52.js.map": "/geodoodle/static/js/main.53f20c52.js.map",
+    "453.477dbbf1.chunk.js.map": "/geodoodle/static/js/453.477dbbf1.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.325ac31c.css",
+    "static/js/main.53f20c52.js"
+  ]
+}
