@@ -10,6 +10,7 @@ export default function reducer(state, data){
     const {
         // spacingx,
         // spacingy,
+        mobile,
         cursorPos,
         stroke,
         strokeWidth,

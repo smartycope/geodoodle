@@ -11,20 +11,36 @@
     margin: 10px;
     padding: 10px;
     padding-left: 10px;
-    padding-right: 5px;
+    padding-right: 25px;
     position: absolute;
     /* align-items: flex-end; */
     align-items: center;
+    flex-flow: wrap;
+    align-content: space-between;
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
+    /* width: min-content; */
     cursor: grab;
     z-index: 1;
+    .br {
+        width: 100%;
+        /* width: calc(max-content + 50px); */
+        /* flex-grow: 100%; */
+        /* display: flex; */
+    }
 
 
     /* > select{ */
         /* padding-left: 20px; */
         /* margin-right: 30px; */
     /* } */
+}
+
+@media screen and (max-width: 768px) {
+    #controls-menu{
+        width: 348px;
+    }
 }
 
 #home-icon{
@@ -53,13 +69,42 @@
     }
 }
 
+.selection-group{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-content: space-between;
+    /* width: max-content; */
+    /* width: 100%; */
+    justify-content: space-between;
+    /* margin-left: 10px; */
+    > *{
+        margin: 2px;
+    }
+}
+
 #mirror-buttons{
     > button > svg{
         margin-right: 5px;
     }
 }
 
+.checkbox{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    label{
+        margin-right: 1px;
+    }
+}
+
 #grip{
     scale: 1.5;
-    padding-left: 8px;
+    transform: scaleY(1.5);
+    /* padding-left: 8px; */
+    position: absolute;
+    right: 5px;
+    height: max-content;
+    display: flex;
+    flex-direction: column;
 }

@@ -23,7 +23,10 @@ import { FaChevronRight } from "react-icons/fa";
 import { TbArrowsUpRight } from "react-icons/tb";
 import { TbArrowsVertical } from "react-icons/tb";
 import { TbArrowsMaximize } from "react-icons/tb";
+import { PiSelectionDuotone } from "react-icons/pi";
 import { TbArrowsRandom } from "react-icons/tb";
+import { PiSelectionPlusDuotone } from "react-icons/pi";
+import { PiSelectionSlashDuotone } from "react-icons/pi";
 
 let offsetX, offsetY;
 let isDragging = false;
@@ -50,6 +53,7 @@ export default function ControlsMenu({dispatch, state}){
             offsetY = y - draggableElement.getBoundingClientRect().top;
             draggableElement.style.cursor = "grabbing"
             event.stopPropagation()
+            // event.preventDefault()
         }
 
         // Function to handle mouse move event
@@ -68,6 +72,7 @@ export default function ControlsMenu({dispatch, state}){
             draggableElement.style.left = `${x - offsetX}px`;
             draggableElement.style.top  = `${y - offsetY}px`;
             event.stopPropagation()
+            // event.preventDefault()
         }
 
         // Function to handle mouse up event
@@ -75,6 +80,7 @@ export default function ControlsMenu({dispatch, state}){
             isDragging = false;
             draggableElement.style.cursor = "grab"
             event.stopPropagation()
+            // event.preventDefault()
         }
 
         // Add event listeners for mouse events
@@ -89,9 +95,9 @@ export default function ControlsMenu({dispatch, state}){
             draggableElement.removeEventListener('mousedown', handleMouseDown)
             document.removeEventListener('mousemove', handleMouseMove)
             document.removeEventListener('mouseup', handleMouseUp)
-            draggableElement.removeEventListener('touchstart', handleMouseDown)
-            document.removeEventListener('touchmove', handleMouseMove)
-            document.removeEventListener('touchend', handleMouseUp)
+            draggableElement.removeEventListener('touchstart', handleMouseDown, {passive: false})
+            document.removeEventListener('touchmove', handleMouseMove, {passive: false})
+            document.removeEventListener('touchend', handleMouseUp, {passive: false})
         }
     }, [])
 
@@ -139,30 +145,32 @@ export default function ControlsMenu({dispatch, state}){
     }
 
     return <div id="controls-menu">
-        <span id='mode-picker'>
-            <label htmlFor="mode-selector">Mode: </label>
-            <select id='mode-selector'
-                name="node-picker"
-                required
-                onChange={e => dispatch({action: 'set mode', mode: Number(e.target.value)})}
-                defaultChecked='line'
-            >
-                {/* The values correspond to their enum values  */}
-                <option value="0">Draw</option>
-                <option value="1">Select</option>
-                <option value="2">Delete</option>
-                <option value="3">Repeat</option>
-                {/* <option value="4">Navigate</option> */}
-            </select>
+        {/* <span id='button-group'>
+            <span id='mode-picker'>
+                <label htmlFor="mode-selector">Mode: </label>
+                <select id='mode-selector'
+                    name="node-picker"
+                    required
+                    onChange={e => dispatch({action: 'set mode', mode: Number(e.target.value)})}
+                    defaultChecked='line'
+                >
+                    {/* The values correspond to their enum values
+                    <option value="0">Draw</option>
+                    <option value="1">Select</option>
+                    <option value="2">Delete</option>
+                    <option value="3">Repeat</option>
+                    {/* <option value="4">Navigate</option>
+                </select>
+            </span> */}
+        <span className="checkbox">
+            <label htmlFor="mirror-picker">Mirroring: </label>
+            <input
+                type="checkbox"
+                name="mirror-picker"
+                onChange={() => dispatch({action: "toggle mirroring"})}
+                checked={state.mirroring}
+            ></input>
         </span>
-
-        <label htmlFor="mirror-picker">Mirroring: </label>
-        <input
-            type="checkbox"
-            name="mirror-picker"
-            onChange={() => dispatch({action: "toggle mirroring"})}
-            checked={state.mirroring}
-        ></input>
 
         {state.mirroring && <span id="mirror-buttons" className="button-group">
             <button onClick={() => dispatch({action: "toggle mirror type"})} title='Toggle mirror type'>
@@ -180,22 +188,43 @@ export default function ControlsMenu({dispatch, state}){
                 </button>
             }
         </span>}
+        {/* </span> */}
 
-        <label htmlFor="partial-picker" title="Include lines that only have one end in the selected area">
-            Include Partials:
-        </label>
-        <input
-            type="checkbox"
-            name="partial-picker"
-            onChange={() => dispatch({action: "toggle partials"})}
-            checked={state.partials}
-            title="Include lines that only have one end in the selected area"
-        ></input>
+        {window.innerWidth <= 768 && <div className="br"/>}
+        {/* <hr/> */}
 
+        {/* Selection buttons */}
+        <span className='selection-group' style={{width: state.bounds.length > 1 ? '100%' : 'auto'}}>
+            {state.mobile && <button title="Add selection bound" onClick={() => dispatch({action: 'add bound'})}>
+                <PiSelectionPlusDuotone />
+            </button>}
+            {state.bounds.length > 1 && <>
+                <button title="Clear selection" onClick={() => dispatch({action: 'clear bounds'})}>
+                    <PiSelectionSlashDuotone />
+                </button>
+                <span className="checkbox">
+                    <label htmlFor="partial-picker" title="Include lines that only have one end in the selected area">
+                        Partials:
+                    </label>
+                    <input
+                        type="checkbox"
+                        name="partial-picker"
+                        onChange={() => dispatch({action: "toggle partials"})}
+                        checked={state.partials}
+                        title="Include lines that only have one end in the selected area"
+                    ></input>
+                </span>
+            </>}
+        </span>
+
+        {(window.innerWidth <= 768 && state.bounds.length > 1) && <div className="br"/>}
+
+        {/* Clear all button */}
         <button onClick={() => window.confirm("Are you sure you want to delete everything?") ? dispatch({action: "clear"}) : undefined} title="Clear all">
             <GiNuclear />
         </button>
 
+        {/* Clipboard buttons */}
         <span className='button-group'>
             <button onClick={() => dispatch({action: "copy"})} title="Copy">
                 <MdContentCopy />
@@ -208,6 +237,7 @@ export default function ControlsMenu({dispatch, state}){
             </button>
         </span>
 
+        {/* Undo/Redo buttons */}
         <span className="button-group">
             <button onClick={() => dispatch({action: "undo"})} title="Undo">
                 <MdUndo />
@@ -217,9 +247,12 @@ export default function ControlsMenu({dispatch, state}){
             </button>
         </span>
 
+        {/* Home button */}
         <button id='home-button' onClick={() => dispatch({action: "go home"})} title="Reset position and scale">
             <MdHome />
         </button>
+
+        {/* Grip */}
         <FaGripLinesVertical id="grip" color='darkgray'/>
     </div>
 }

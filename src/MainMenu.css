@@ -74,6 +74,7 @@ button{
     cursor: pointer;
     display: flex;
     align-items: center;
+    padding: 10px;
 }
 select{
     background-color: rgb(40,40,40);

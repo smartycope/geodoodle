@@ -2,7 +2,7 @@ import './App.css';
 import {useEffect, useReducer, useRef, useState} from 'react';
 import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, MODE} from './globals'
 import reducer from './reducer';
-import {calc, eventMatchesKeycode, invertObject, pointIn} from './utils';
+import {calc, eventMatchesKeycode, invertObject, mobileAndTabletCheck, pointIn} from './utils';
 import options from './options';
 import { keybindings } from './options'
 import MainMenu from './MainMenu';
@@ -17,6 +17,9 @@ import MainMenu from './MainMenu';
 
 // Disable the default right click menu
 window.oncontextmenu = () => false
+// window.addEventListener('touchstart', e => e.preventDefault(), {passive: false})
+// window.addEventListener('touchmove', e => e.preventDefault(), {passive: false})
+// window.addEventListener('touchend', e => e.preventDefault(), {passive: false})
 
 export default function App() {
     const boundsGroup = useRef()
@@ -24,9 +27,9 @@ export default function App() {
     const [dragging, setDragging] = useState(false)
     const [boundDragging, setBoundDragging] = useState(false)
 
-    const mobile = window.innerWidth <= 768;
-
     const [state, dispatch] = useReducer(reducer, {
+        // mobile: window.innerWidth <= 768,
+        mobile: mobileAndTabletCheck(),
         stroke: options.stroke,
         strokeWidth: options.strokeWidth,
 
@@ -78,6 +81,7 @@ export default function App() {
     })
 
     const {
+        mobile,
         cursorPos,
         stroke,
         strokeWidth,
