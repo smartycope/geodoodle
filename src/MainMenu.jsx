@@ -12,6 +12,7 @@ import { FaBars } from "react-icons/fa6";
 import { MdHelpOutline } from "react-icons/md";
 import { MdHelp } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
+import {HelpMenu} from "./HelpMenu"
 
 export default function MainMenu({dispatch, state}){
     const [visible, setVisible] = useState(false);
@@ -58,6 +59,6 @@ export default function MainMenu({dispatch, state}){
         {repeatVisible && <div>The repeat menu isn't implemented yet</div>}
         {fileVisible && <div>The file menu isn't implemented yet</div>}
         {settingsVisible && <div>The settings menu isn't implemented yet</div>}
-        {helpVisible && <div>The help menu isn't implemented yet</div>}
+        {helpVisible && <HelpMenu dispatch={dispatch} state={state} setControlsVisible={setControlsVisible} close={() => setHelpVisible(false)}/>}
     </>
 }

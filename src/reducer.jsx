@@ -4,7 +4,7 @@ import defaultOptions, { keybindings, reversibleActions } from './options.jsx'
 
 var undoStack = []
 var redoStack = []
-
+var preTourState = null
 
 export default function reducer(state, data){
     const {
@@ -348,7 +348,56 @@ export default function reducer(state, data){
             } return state // This shouldn't be possible, but whatever
 
         case 'set mode': return {...state, mode: data.mode}
+        case 'start tour':
+            preTourState = state
+            return {...reducer(state, {action: 'go home'}),
+                mirroring: true,
+                bounds: [
+                    [20.05, 27.05],
+                    [18.05, 23.05],
+                ],
+                curLine: null,
+                mobile: true,
+                lines: [
+                    <line {...{
+                        "x1": 19.05,
+                        "y1": 27.05,
+                        "x2": 20.05,
+                        "y2": 25.05,
+                        "stroke": "black",
+                        "strokeWidth": 0.05
+                    }}/>,
+                    <line {...{
+                        "x1": 20.05,
+                        "y1": 25.05,
+                        "x2": 19.05,
+                        "y2": 23.05,
+                        "stroke": "black",
+                        "strokeWidth": 0.05
+                    }}/>,
+                    <line {...{
+                        "x1": 19.05,
+                        "y1": 23.05,
+                        "x2": 18.05,
+                        "y2": 25.05,
+                        "stroke": "black",
+                        "strokeWidth": 0.05
+                    }}/>,
+                    <line {...{
+                        "x1": 18.05,
+                        "y1": 25.05,
+                        "x2": 19.05,
+                        "y2": 27.05,
+                        "stroke": "black",
+                        "strokeWidth": 0.05
+                    }}/>,
+                ]
+            }
+        case 'end tour':
+            return preTourState
         default:
+            console.log(bounds);
+            console.log(lines);
             console.warn(`Unknown action: ${data.action}`)
             return state
     }

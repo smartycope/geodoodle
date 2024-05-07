@@ -2,15 +2,16 @@ import './App.css';
 import {useEffect, useReducer, useRef, useState} from 'react';
 import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, MODE} from './globals'
 import reducer from './reducer';
-import {calc, eventMatchesKeycode, invertObject, mobileAndTabletCheck, pointIn} from './utils';
+import {calc, distCenter, eventMatchesKeycode, invertObject, mobileAndTabletCheck, pointIn} from './utils';
 import options from './options';
 import { keybindings } from './options'
 import MainMenu from './MainMenu';
-import ZingTouch from 'zingtouch';
+// import ZingTouch from 'zingtouch';
 
 
 // TODO: 180 degree mirror rotation specifically isn't working (all the others work)
 // TODO: mirrorAxis2 is unimplemented
+
 
 // Coordinate systems:
 // absolute: relative to the viewport, origin is top left, not translated
@@ -22,12 +23,16 @@ window.oncontextmenu = () => false
 // window.addEventListener('touchstart', e => e.preventDefault(), {passive: false})
 // window.addEventListener('touchmove', e => e.preventDefault(), {passive: false})
 // window.addEventListener('touchend', e => e.preventDefault(), {passive: false})
+// var gestureTouches = null
 
 export default function App() {
     const boundsGroup = useRef()
     const paper = useRef()
+
     const [dragging, setDragging] = useState(false)
     const [boundDragging, setBoundDragging] = useState(false)
+    const [gestureTouches, setGestureTouches] = useState([{pageX:0, pageY:0}, {pageX:0, pageY:0}])
+    // console.log('gestureTouches:', gestureTouches)
 
     const [state, dispatch] = useReducer(reducer, {
         // mobile: window.innerWidth <= 768,
@@ -123,7 +128,7 @@ export default function App() {
     const boundRadius = scalex / 1.5
 
     function onMouseMove(e){
-        console.log('mouse moved')
+        // console.log('mouse moved')
         if (e.buttons !== 0)
             setDragging(true)
         setBoundDragging(true)
@@ -135,7 +140,7 @@ export default function App() {
     }
 
     function onMouseDown(e){
-        console.log('mouse down')
+        // console.log('mouse down')
         // eslint-disable-next-line default-case
         switch (e.button){
             // Left click
@@ -148,34 +153,67 @@ export default function App() {
     }
 
     function onMouseUp(e){
-        console.log('mouse up')
+        // console.log('mouse up')
         if (dragging)
             dispatch({action: 'add line'})
         setDragging(false)
     }
 
     function onTouchMove(e){
-        console.log('touch moved')
         e.preventDefault()
-        const touch = (e.touches[0] || e.changedTouches[0])
+        if (e.touches.length === 2){
+            setGestureTouches(e.changedTouches)
+            // if (gestureTouches === null){
+            //     console.log('a')
+                // gestureTouches = null
+            // } else {
+                console.log(e)
+                const {distance: newDist, centerx:newCenterx, centery:newCentery} = distCenter(
+                    e.changedTouches[0].pageX, e.changedTouches[0].pageY,
+                    e.changedTouches[1].pageX, e.changedTouches[1].pageY,
+                )
 
-        dispatch({
-            action: 'cursor moved',
-            x: touch.pageX,
-            y: touch.pageY,
-        })
+                const {distance: prevDist, centerx:prevCenterx, centery:prevCentery} = distCenter(
+                    gestureTouches[0].pageX, gestureTouches[0].pageY,
+                    gestureTouches[1].pageX, gestureTouches[1].pageY,
+                )
+                // console.log(`translating by (${prevCenterx - newCenterx}, ${prevCentery-newCentery})`)
+                console.log('scaling by', prevDist - newDist)
+                dispatch({action: 'nevermind'})
+                dispatch({action: 'translate', x: (prevCenterx - newCenterx) / 200, y: (prevCentery - newCentery) / 200})
+
+                // dispatch({action: 'scale', amt: prevDist - newDist * options.scrollSensitivity})
+            // }
+        } else if (e.touches.length === 1){
+            const touch = (e.touches[0] || e.changedTouches[0])
+            dispatch({
+                action: 'cursor moved',
+                x: touch.pageX,
+                y: touch.pageY,
+            })
+        }
     }
 
     function onTouchEnd(e){
-        console.log('touch end')
+        // console.log('touch end')
         e.preventDefault()
         if (!clipboard)
             dispatch({action: 'add line'})
+
+        // if (gestureTouches !== null){
+        //     const gestureIDs = Array.from(gestureTouches).map(i => i.identifier)
+        //     for (const i of e.touches){
+                // if (gestureIDs.includes(i.identifier)){
+                    // setGestureTouches(null)
+                    // gestureTouches = null
+                // }
+        //     }
+        // }
         // setDragging(false)
     }
 
     function onTouchStart(e){
-        console.log('touch start')
+        // console.log('touch start')
         e.preventDefault()
         const touch = (e.touches[0] || e.changedTouches[0])
         dispatch({
@@ -188,7 +226,7 @@ export default function App() {
     }
 
     function onScroll(e){
-        console.log('scrolled')
+        // console.log('scrolled')
         if (e.shiftKey)
             dispatch({
                 action: 'translate',
@@ -226,15 +264,16 @@ export default function App() {
         }
     }, [])
 
-    useEffect(() =>{
-        const zt = new ZingTouch.Region(paper.current);
+    // useEffect(() =>{
+    //     const zt = new ZingTouch.Region(paper.current);
 
-        zt.bind(paper.current).pinch(e => {
-            console.log(e);
-        }, false).expand(e => {
-            console.log(e);
-        })
-    }, [])
+    //     zt.bind(paper.current).pinch(e => {
+    //         console.log('pinch', e.detail.distance);
+    //     }, false)
+    //     zt.bind(paper.current).expand(e => {
+    //         console.log('expand', e.detail.distance);
+    //     }, false)
+    // }, [])
 
     // Add the mirror lines
     let mirrorLines = []
@@ -294,6 +333,37 @@ export default function App() {
         bottom: Math.max(boundRect?.bottom, cursorPos[1] / scaley),
     } : boundRect
 
+    // Construct the cursor
+    let cursor = [<circle
+        cx={cursorPos[0]}
+        cy={cursorPos[1]}
+        r={scalex / 3}
+        stroke={options.cursorColor}
+        fill={options.mirrorColor}
+        // Make it filled if we're cursor rotating
+        fillOpacity={Number(
+            mirroring &&
+            mirrorType === MIRROR_TYPE.CURSOR &&
+            [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
+        }
+    />]
+    if (mirroring && mirrorType === MIRROR_TYPE.CURSOR){
+        if ([MIRROR_METHOD.FLIP, MIRROR_METHOD.BOTH].includes(mirrorMethod)){
+            if ([MIRROR_AXIS.HORZ_180, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
+                cursor.push(<line
+                    x1={cursorPos[0] + scalex/3} y1={cursorPos[1]}
+                    x2={cursorPos[0] - scalex/3} y2={cursorPos[1]}
+                    stroke={options.mirrorColor}
+                />)
+            if ([MIRROR_AXIS.VERT_90, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
+                cursor.push(<line
+                    x1={cursorPos[0]} y1={cursorPos[1] + scalex/3}
+                    x2={cursorPos[0]} y2={cursorPos[1] - scalex/3}
+                    stroke={options.mirrorColor}
+                />)
+        }
+    }
+
     return (
         <div className="App">
             <MainMenu dispatch={dispatch} state={state}/>
@@ -339,14 +409,8 @@ export default function App() {
                 {debug && <text x="80%" y='20'>{`Translation: ${Math.round(translationx)}, ${Math.round(translationy)}`}</text>}
                 {debug && <text x="80%" y='40'>{`Scale: ${Math.round(scalex)}, ${Math.round(scaley)}`}</text>}
 
-                {/* Draw the cursor */}
-                <circle
-                    cx={cursorPos[0]}
-                    cy={cursorPos[1]}
-                    r={scalex / 3}
-                    stroke={options.cursorColor}
-                    fillOpacity={0}
-                />
+                {/* Drawk the cursor */}
+                <g>{cursor}</g>
 
                 {/* Draw the lines */}
                 <g id='lines' transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}> {lines} </g>

@@ -167,23 +167,24 @@ export default function ControlsMenu({dispatch, state}){
             <input
                 type="checkbox"
                 name="mirror-picker"
+                id="mirror-toggler"
                 onChange={() => dispatch({action: "toggle mirroring"})}
                 checked={state.mirroring}
             ></input>
         </span>
 
         {state.mirroring && <span id="mirror-buttons" className="button-group">
-            <button onClick={() => dispatch({action: "toggle mirror type"})} title='Toggle mirror type'>
+            <button onClick={() => dispatch({action: "toggle mirror type"})} title='Toggle mirror type' id='mirror-type'>
                 {mirrorType}
             </button>
-            <button onClick={() => dispatch({action: "toggle mirror method"})} title='Toggle mirror method'>
+            <button onClick={() => dispatch({action: "toggle mirror method"})} title='Toggle mirror method' id='mirror-method'>
                 {mirrorMethod}
             </button>
-            <button onClick={() => dispatch({action: "toggle mirror axis 1"})} title='Toggle mirror axis/angle'>
+            <button onClick={() => dispatch({action: "toggle mirror axis 1"})} title='Toggle mirror axis/angle' id='mirror-axis-1'>
                 {mirrorAxis}
             </button>
             {state.mirrorMethod === MIRROR_METHOD.BOTH &&
-                <button onClick={() => dispatch({action: "toggle mirror axis 2"})} title='Toggle mirror rotation axis/angle'>
+                <button onClick={() => dispatch({action: "toggle mirror axis 2"})} title='Toggle mirror rotation axis/angle' id='mirror-axis-2'>
                     {mirrorAxis2}
                 </button>
             }
@@ -195,14 +196,14 @@ export default function ControlsMenu({dispatch, state}){
 
         {/* Selection buttons */}
         <span className='selection-group' style={{width: state.bounds.length > 1 ? '100%' : 'auto'}}>
-            {state.mobile && <button title="Add selection bound" onClick={() => dispatch({action: 'add bound'})}>
+            {state.mobile && <button title="Add selection bound" onClick={() => dispatch({action: 'add bound'})} id='add-bound'>
                 <PiSelectionPlusDuotone />
             </button>}
             {state.bounds.length > 1 && <>
-                <button title="Clear selection" onClick={() => dispatch({action: 'nevermind'})}>
+                <button title="Clear selection" onClick={() => dispatch({action: 'nevermind'})} id="clear-selection">
                     <PiSelectionSlashDuotone />
                 </button>
-                <span className="checkbox">
+                <span className="checkbox" id='partial-picker'>
                     <label htmlFor="partial-picker" title="Include lines that only have one end in the selected area">
                         Partials:
                     </label>
@@ -220,12 +221,16 @@ export default function ControlsMenu({dispatch, state}){
         {(window.innerWidth <= 768 && state.bounds.length > 1) && <div className="br"/>}
 
         {/* Clear all button */}
-        <button onClick={() => window.confirm("Are you sure you want to delete everything?") ? dispatch({action: "clear"}) : undefined} title="Clear all">
+        <button
+            onClick={() => window.confirm("Are you sure you want to delete everything?") ? dispatch({action: "clear"}) : undefined}
+            title="Clear all"
+            id='clear-all'
+        >
             <GiNuclear />
         </button>
 
         {/* Clipboard buttons */}
-        <span className='button-group'>
+        <span className='button-group' id='copy-buttons'>
             <button onClick={() => dispatch({action: "copy"})} title="Copy">
                 <MdContentCopy />
             </button>
@@ -238,7 +243,7 @@ export default function ControlsMenu({dispatch, state}){
         </span>
 
         {/* Undo/Redo buttons */}
-        <span className="button-group">
+        <span className="button-group" id='undo-buttons'>
             <button onClick={() => dispatch({action: "undo"})} title="Undo">
                 <MdUndo />
             </button>
