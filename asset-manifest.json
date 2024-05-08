@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/geodoodle/static/css/main.d70961b6.css",
-    "main.js": "/geodoodle/static/js/main.a0481aee.js",
+    "main.js": "/geodoodle/static/js/main.ccc06ace.js",
     "static/js/453.477dbbf1.chunk.js": "/geodoodle/static/js/453.477dbbf1.chunk.js",
     "index.html": "/geodoodle/index.html",
     "main.d70961b6.css.map": "/geodoodle/static/css/main.d70961b6.css.map",
-    "main.a0481aee.js.map": "/geodoodle/static/js/main.a0481aee.js.map",
+    "main.ccc06ace.js.map": "/geodoodle/static/js/main.ccc06ace.js.map",
     "453.477dbbf1.chunk.js.map": "/geodoodle/static/js/453.477dbbf1.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.d70961b6.css",
-    "static/js/main.a0481aee.js"
+    "static/js/main.ccc06ace.js"
   ]
 }
