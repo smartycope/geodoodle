@@ -126,7 +126,9 @@ export function calc({scalex, scaley, translationx, translationy, bounds, cursor
 
 // NOTE: this doesn't handle modifier key events properly (if they're not pressed with something else)
 export function eventMatchesKeycode(event, code){
-    code = code.replace(/\s+/, '').split('+')
+    // We need to acknoledge space!
+    // code = code.replace(/\s+/, '').split('+')
+    code = code.split('+')
     return (
         event.ctrlKey  === code.includes('ctrl') &&
         event.metaKey  === code.includes('meta') &&
@@ -158,3 +160,18 @@ export function distCenter(x1, y1, x2, y2){
         centery: (y1 + y2) / 2
     }
 }
+
+const body = document.body;
+export function toggleDarkMode() {
+    body.classList.toggle("dark-mode");
+    // body.classList
+}
+
+export const multMat = (A, B) =>
+  A.map((row, i) =>
+    B[0].map((_, j) =>
+      row.reduce((acc, _, n) =>
+        acc + A[i][n] * B[n][j], 0
+      )
+    )
+  )

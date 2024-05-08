@@ -1,5 +1,5 @@
 import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE} from './globals.js'
-import { lineIn, removeLine, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq } from './utils'
+import { lineIn, removeLine, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq, toggleDarkMode } from './utils'
 import defaultOptions, { keybindings, reversibleActions } from './options.jsx'
 
 var undoStack = []
@@ -204,83 +204,182 @@ export default function reducer(state, data){
                         y2: cursorPos[1],
                     }))
 
-                    // Now add mirrored lines. These are all just manual matrix multiplication of the specified transformations
-                    if (mirroring && (mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360))
-                        if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
-                            // matrix(-1, 0, 0, 1, originx*2, 0)
-                            newLines.push(createLine(state, {
-                                x1: curLine.x1 * -1 + originx*2,
-                                y1: curLine.y1,
-                                x2: cursorPos[0] * -1 + originx*2,
-                                y2: cursorPos[1],
-                            }))
-                        if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
-                            // rotate(90, originx, originy)
-                            newLines.push(createLine(state, {
-                                x1: (curLine.x1 * Math.cos(pi/2)) +
-                                    (curLine.y1 * -Math.sin(pi/2)) +
-                                    originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
-                                y1: (curLine.x1 * Math.sin(pi/2)) +
-                                    (curLine.y1 * -Math.cos(pi/2)) +
-                                    originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2),
-                                x2: (cursorPos[0] * Math.cos(pi/2)) +
-                                    (cursorPos[1] * -Math.sin(pi/2)) +
-                                    originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
-                                y2: (cursorPos[0] * Math.sin(pi/2)) +
-                                    (cursorPos[1] * -Math.cos(pi/2)) +
-                                    originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2),
-                            }))
-                    if (mirroring && (mirrorAxis === MIRROR_AXIS.HORZ_180 || mirrorAxis === MIRROR_AXIS.BOTH_360))
-                        if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
-                            // matrix(1, 0, 0, -1, 0, originy*2)
-                            newLines.push(createLine(state, {
-                                x1: curLine.x1,
-                                y1: curLine.y1 * -1 + originy*2,
-                                x2: cursorPos[0],
-                                y2: cursorPos[1] * -1 + originy*2,
-                            }))
-                        if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
-                            // rotate(180, originx, originy)
-                            newLines.push(createLine(state, {
-                                x1: (curLine.x1 * Math.cos(pi)) +
-                                    (curLine.y1 * -Math.sin(pi)) +
-                                    originx*(1-Math.cos(pi)) + originy*Math.sin(pi),
-                                y1: (curLine.x1 * Math.sin(pi)) +
-                                    (curLine.y1 * -Math.cos(pi)) +
-                                    originy*(1-Math.cos(pi)) - originx*Math.sin(pi),
-                                x2: (cursorPos[0] * Math.cos(pi)) +
-                                    (cursorPos[1] * -Math.sin(pi)) +
-                                    originx*(1-Math.cos(pi)) + originy*Math.sin(pi),
-                                y2: (cursorPos[0] * Math.sin(pi)) +
-                                    (cursorPos[1] * -Math.cos(pi)) +
-                                    originy*(1-Math.cos(pi)) - originx*Math.sin(pi),
-                            }))
-                    if (mirroring && mirrorAxis === MIRROR_AXIS.BOTH_360)
-                        if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
-                            // matrix(-1, 0, 0, -1, originx*2, originy*2)
-                            newLines.push(createLine(state, {
-                                x1: curLine.x1 * -1 + originx*2,
-                                y1: curLine.y1 * -1 + originy*2,
-                                x2: cursorPos[0] * -1 + originx*2,
-                                y2: cursorPos[1] * -1 + originy*2,
-                            }))
-                        if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
-                            // rotate(270, originx, originy)
-                            newLines.push(createLine(state, {
-                                x1: (curLine.x1 * Math.cos(3*pi/2)) +
-                                    (curLine.y1 * -Math.sin(3*pi/2)) +
-                                    originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
-                                y1: (curLine.x1 * Math.sin(3*pi/2)) +
-                                    (curLine.y1 * -Math.cos(3*pi/2)) +
-                                    originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2),
-                                x2: (cursorPos[0] * Math.cos(3*pi/2)) +
-                                    (cursorPos[1] * -Math.sin(3*pi/2)) +
-                                    originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
-                                y2: (cursorPos[0] * Math.sin(3*pi/2)) +
-                                    (cursorPos[1] * -Math.cos(3*pi/2)) +
-                                    originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2),
-                            }))
+                    // These if statements mirror (pun intended) the ones in App.jsx to create the mirrored curLines.
+                    // This is intentional. The operations are manual implementations of the matrix transformations there
+                    if (mirroring){
+                        // Now add mirrored lines. These are all just manual matrix multiplication of the specified transformations
+                        if (mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360){
+                            if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
+                                // matrix(-1, 0, 0, 1, originx*2, 0)
+                                newLines.push(createLine(state, {
+                                    x1: curLine.x1 * -1 + originx*2,
+                                    y1: curLine.y1,
+                                    x2: cursorPos[0] * -1 + originx*2,
+                                    y2: cursorPos[1],
+                                }))
+
+                            if (mirrorMethod === MIRROR_METHOD.ROTATE)
+                                // rotate(90, originx, originy)
+                                newLines.push(createLine(state, {
+                                    x1: (curLine.x1 * Math.cos(pi/2)) +
+                                        (curLine.y1 * -Math.sin(pi/2)) +
+                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
+                                    y1: (curLine.x1 * Math.sin(pi/2)) +
+                                        (curLine.y1 * -Math.cos(pi/2)) +
+                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2),
+                                    x2: (cursorPos[0] * Math.cos(pi/2)) +
+                                        (cursorPos[1] * -Math.sin(pi/2)) +
+                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
+                                    y2: (cursorPos[0] * Math.sin(pi/2)) +
+                                        (cursorPos[1] * -Math.cos(pi/2)) +
+                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2),
+                                }))
+                        }
+
+                        if (mirrorAxis === MIRROR_AXIS.HORZ_180 || mirrorAxis === MIRROR_AXIS.BOTH_360){
+                            if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
+                                // matrix(1, 0, 0, -1, 0, originy*2)
+                                newLines.push(createLine(state, {
+                                    x1: curLine.x1,
+                                    y1: curLine.y1 * -1 + originy*2,
+                                    x2: cursorPos[0],
+                                    y2: cursorPos[1] * -1 + originy*2,
+                                }))
+
+                            if (mirrorMethod === MIRROR_METHOD.ROTATE)
+                                // rotate(180, originx, originy)
+                                newLines.push(createLine(state, {
+                                    x1: curLine.x1 * -1 + originx*2,
+                                    y1: curLine.y1 * -1 + originy*2,
+                                    x2: cursorPos[0] * -1 + originx*2,
+                                    y2: cursorPos[1] * -1 + originy*2,
+                                }))
+                        }
+
+                        if (mirrorAxis === MIRROR_AXIS.BOTH_360){
+                            if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
+                                // matrix(-1, 0, 0, -1, originx*2, originy*2)
+                                newLines.push(createLine(state, {
+                                    x1: curLine.x1 * -1 + originx*2,
+                                    y1: curLine.y1 * -1 + originy*2,
+                                    x2: cursorPos[0] * -1 + originx*2,
+                                    y2: cursorPos[1] * -1 + originy*2,
+                                }))
+                            if (mirrorMethod === MIRROR_METHOD.ROTATE)
+                                // rotate(270, originx, originy)
+                                newLines.push(createLine(state, {
+                                    x1: (curLine.x1 * Math.cos(3*pi/2)) +
+                                        (curLine.y1 * -Math.sin(3*pi/2)) +
+                                        originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
+                                    y1: (curLine.x1 * Math.sin(3*pi/2)) +
+                                        (curLine.y1 * -Math.cos(3*pi/2)) +
+                                        originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2),
+                                    x2: (cursorPos[0] * Math.cos(3*pi/2)) +
+                                        (cursorPos[1] * -Math.sin(3*pi/2)) +
+                                        originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
+                                    y2: (cursorPos[0] * Math.sin(3*pi/2)) +
+                                        (cursorPos[1] * -Math.cos(3*pi/2)) +
+                                        originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2),
+                                }))
+                        }
+
+                        // Handling the mirrorMethod == BOTH situation seperately: these are directy copies of the
+                        // rotation lines above
+                        if (mirrorMethod === MIRROR_METHOD.BOTH){
+                            if (mirrorAxis2 === MIRROR_AXIS.VERT_90 || mirrorAxis2 === MIRROR_AXIS.BOTH_360){
+                                // rotate(90, originx, originy)
+                                newLines.push(createLine(state, {
+                                    x1: (curLine.x1 * Math.cos(pi/2)) +
+                                        (curLine.y1 * -Math.sin(pi/2)) +
+                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
+                                    y1: (curLine.x1 * Math.sin(pi/2)) +
+                                        (curLine.y1 * -Math.cos(pi/2)) +
+                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2),
+                                    x2: (cursorPos[0] * Math.cos(pi/2)) +
+                                        (cursorPos[1] * -Math.sin(pi/2)) +
+                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
+                                    y2: (cursorPos[0] * Math.sin(pi/2)) +
+                                        (cursorPos[1] * -Math.cos(pi/2)) +
+                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2),
+                                }))
+                                // matrix(1, 0, 0, -1, 0, originy*2) rotate(90, originx originy)
+                                newLines.push(createLine(state, {
+                                    x1: (curLine.x1 * Math.cos(pi/2)) +
+                                        (curLine.y1 * -Math.sin(pi/2)) +
+                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
+                                    y1: ((curLine.x1 * Math.sin(pi/2)) +
+                                        (curLine.y1 * -Math.cos(pi/2)) +
+                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2)) * -1 + originy*2,
+                                    x2: (cursorPos[0] * Math.cos(pi/2)) +
+                                        (cursorPos[1] * -Math.sin(pi/2)) +
+                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
+                                    y2: ((cursorPos[0] * Math.sin(pi/2)) +
+                                        (cursorPos[1] * -Math.cos(pi/2)) +
+                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2))  * -1 + originy*2,
+                                }))
+                            }
+                            if (mirrorAxis2 === MIRROR_AXIS.HORZ_180 || mirrorAxis2 === MIRROR_AXIS.BOTH_360){
+                                // Optimization: 180 degree rotation == flipping both vertically & horizontally: that line already exists
+                                if (mirrorAxis !== MIRROR_AXIS.BOTH_360)
+                                    // rotate(180, originx, originy)
+                                    newLines.push(createLine(state, {
+                                        x1: curLine.x1 * -1 + originx*2,
+                                        y1: curLine.y1 * -1 + originy*2,
+                                        x2: cursorPos[0] * -1 + originx*2,
+                                        y2: cursorPos[1] * -1 + originy*2,
+                                    }))
+                                // matrix(1, 0, 0, -1, 0, originy*2) rotate(270, originx originy)
+                                newLines.push(createLine(state, {
+                                    x1: (curLine.x1 * Math.cos(3*pi/2)) +
+                                        (curLine.y1 * -Math.sin(3*pi/2)) +
+                                        originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
+                                    y1: ((curLine.x1 * Math.sin(3*pi/2)) +
+                                        (curLine.y1 * -Math.cos(3*pi/2)) +
+                                        originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2)) * -1 + originy*2,
+                                    x2: (cursorPos[0] * Math.cos(3*pi/2)) +
+                                        (cursorPos[1] * -Math.sin(3*pi/2)) +
+                                        originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
+                                    y2: ((cursorPos[0] * Math.sin(3*pi/2)) +
+                                        (cursorPos[1] * -Math.cos(3*pi/2)) +
+                                        originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2))  * -1 + originy*2,
+                                }))
+                            }
+                            if (mirrorAxis2 === MIRROR_AXIS.BOTH_360)
+                                // rotate(270, originx, originy)
+                                newLines.push(createLine(state, {
+                                    x1: (curLine.x1 * Math.cos(3*pi/2)) +
+                                        (curLine.y1 * -Math.sin(3*pi/2)) +
+                                        originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
+                                    y1: (curLine.x1 * Math.sin(3*pi/2)) +
+                                        (curLine.y1 * -Math.cos(3*pi/2)) +
+                                        originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2),
+                                    x2: (cursorPos[0] * Math.cos(3*pi/2)) +
+                                        (cursorPos[1] * -Math.sin(3*pi/2)) +
+                                        originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
+                                    y2: (cursorPos[0] * Math.sin(3*pi/2)) +
+                                        (cursorPos[1] * -Math.cos(3*pi/2)) +
+                                        originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2),
+                                }))
+
+                            if (mirrorAxis2 === MIRROR_AXIS.HORZ_180 && mirrorAxis === MIRROR_AXIS.BOTH_360)
+                                // matrix(1, 0, 0, -1, 0, originy*2) rotate(90, originx originy)
+                                newLines.push(createLine(state, {
+                                    x1: (curLine.x1 * Math.cos(pi/2)) +
+                                        (curLine.y1 * -Math.sin(pi/2)) +
+                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
+                                    y1: ((curLine.x1 * Math.sin(pi/2)) +
+                                        (curLine.y1 * -Math.cos(pi/2)) +
+                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2)) * -1 + originy*2,
+                                    x2: (cursorPos[0] * Math.cos(pi/2)) +
+                                        (cursorPos[1] * -Math.sin(pi/2)) +
+                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
+                                    y2: ((cursorPos[0] * Math.sin(pi/2)) +
+                                        (cursorPos[1] * -Math.cos(pi/2)) +
+                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2))  * -1 + originy*2,
+                                }))
+                        }
                     }
+                }
 
                 return {...state,
                     curLine: curLine === null ? {
@@ -342,12 +441,16 @@ export default function reducer(state, data){
         case 'toggle mirror method':
             // eslint-disable-next-line default-case
             switch (mirrorMethod){
-                case MIRROR_METHOD.FLIP:   return {...state, mirrorMethod: MIRROR_METHOD.BOTH}
-                case MIRROR_METHOD.ROTATE: return {...state, mirrorMethod: MIRROR_METHOD.FLIP}
-                case MIRROR_METHOD.BOTH:   return {...state, mirrorMethod: MIRROR_METHOD.ROTATE}
+                case MIRROR_METHOD.FLIP:   return {...state, mirrorMethod: MIRROR_METHOD.ROTATE}
+                case MIRROR_METHOD.ROTATE: return {...state, mirrorMethod: MIRROR_METHOD.BOTH}
+                case MIRROR_METHOD.BOTH:   return {...state, mirrorMethod: MIRROR_METHOD.FLIP}
             } return state // This shouldn't be possible, but whatever
 
         case 'set mode': return {...state, mode: data.mode}
+        case "toggle dark mode":
+            console.log("toggling dark mode");
+            toggleDarkMode()
+            return state
         case 'start tour':
             preTourState = state
             return {...reducer(state, {action: 'go home'}),

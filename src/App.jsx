@@ -99,6 +99,7 @@ export default function App() {
         // pattern,
         mirroring,
         mirrorAxis,
+        mirrorAxis2,
         mirrorType,
         mirrorMethod,
         eraser,
@@ -264,17 +265,6 @@ export default function App() {
         }
     }, [])
 
-    // useEffect(() =>{
-    //     const zt = new ZingTouch.Region(paper.current);
-
-    //     zt.bind(paper.current).pinch(e => {
-    //         console.log('pinch', e.detail.distance);
-    //     }, false)
-    //     zt.bind(paper.current).expand(e => {
-    //         console.log('expand', e.detail.distance);
-    //     }, false)
-    // }, [])
-
     // Add the mirror lines
     let mirrorLines = []
     const curLineProps = {
@@ -288,41 +278,52 @@ export default function App() {
     const originx = mirrorType === MIRROR_TYPE.PAGE ? halfx : curLine?.x1
     const originy = mirrorType === MIRROR_TYPE.PAGE ? halfy : curLine?.y1
 
-    if (mirroring && (mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360)){
-        mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
-        if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
-            curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, 1, ${originx*2}, 0)`} key='mirror1' />)
-        if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
-            curLines.push(<line {...curLineProps} transform={`rotate(90, ${originx}, ${originy})`} key='mirror1' />)
+    if (mirroring){
+        if (((mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360))){
+            mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
+            if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
+                curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, 1, ${originx*2}, 0)`} key='mirror1' />)
+            if (mirrorMethod === MIRROR_METHOD.ROTATE)
+                curLines.push(<line {...curLineProps} transform={`rotate(90, ${originx}, ${originy})`} key='mirror2' />)
+        }
+        if (((mirrorAxis === MIRROR_AXIS.HORZ_180 || mirrorAxis === MIRROR_AXIS.BOTH_360))){
+            mirrorLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor}/>)
+            if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
+                curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${originy*2})`} key='mirror3' />)
+            if (mirrorMethod === MIRROR_METHOD.ROTATE)
+                curLines.push(<line {...curLineProps} transform={`rotate(180, ${originx}, ${originy})`} key='mirror4' />)
+        }
+        if ((mirrorAxis === MIRROR_AXIS.BOTH_360)){
+            if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
+                curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, -1, ${originx*2}, ${originy*2})`} key='mirror5'/>)
+            if (mirrorMethod === MIRROR_METHOD.ROTATE)
+                curLines.push(<line {...curLineProps} transform={`rotate(270, ${originx}, ${originy})`} key='mirror6' />)
+        }
+        if (mirrorMethod === MIRROR_METHOD.BOTH){
+            if (mirrorAxis2 === MIRROR_AXIS.VERT_90 || mirrorAxis2 === MIRROR_AXIS.BOTH_360){
+                curLines.push(<line {...curLineProps} transform={`rotate(90, ${originx}, ${originy})`} key='mirror2' />)
+                curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${originy*2}) rotate(90, ${originx} ${originy})`} key='mirror8' />)
+            }
+            if (mirrorAxis2 === MIRROR_AXIS.HORZ_180 || mirrorAxis2 === MIRROR_AXIS.BOTH_360){
+                // Optimization: 180 degree rotation == flipping both vertically & horizontally: that line already exists
+                if (mirrorAxis !== MIRROR_AXIS.BOTH_360)
+                    curLines.push(<line {...curLineProps} transform={`rotate(180, ${originx}, ${originy})`} key='mirror4' />)
+                curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${originy*2}) rotate(270, ${originx} ${originy})`} key='mirror7' />)
+            }
+            if (mirrorAxis2 === MIRROR_AXIS.BOTH_360)
+                curLines.push(<line {...curLineProps} transform={`rotate(270, ${originx}, ${originy})`} key='mirror6' />)
+            // This is only sort of part of the pattern: In this particular circumstance, I want it to have both.
+            if (mirrorAxis2 === MIRROR_AXIS.HORZ_180 && mirrorAxis === MIRROR_AXIS.BOTH_360)
+                curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${originy*2}) rotate(90, ${originx} ${originy})`} key='mirror8' />)
+        }
     }
-    if (mirroring && (mirrorAxis === MIRROR_AXIS.HORZ_180 || mirrorAxis === MIRROR_AXIS.BOTH_360)){
-        mirrorLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor}/>)
-        if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
-            curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${originy*2})`} key='mirror2' />)
-        if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
-            curLines.push(<line {...curLineProps} transform={`rotate(180, ${originx}, ${originy})`} key='mirror1' />)
-    }
-    if (mirroring && mirrorAxis === MIRROR_AXIS.BOTH_360){
-        if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
-            curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, -1, ${originx*2}, ${originy*2})`} key='mirror3'/>)
-        if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
-            curLines.push(<line {...curLineProps} transform={`rotate(270, ${originx}, ${originy})`} key='mirror1' />)
-        // if (mirrorMethod === MIRROR_METHOD.BOTH){
-        //     // curLines.push(<line {...curLineProps} transform={`matrix(0, 1, -1, 0, ${originx*2}, ${originy*2})`} key='mirror3'/>)
-        //     curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${originy*2}) rotate(270, ${originx} ${originy})`} key='mirror2' />)
-        //     curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${originy*2}) rotate(90, ${originx} ${originy})`} key='mirror2' />)
-        // }
 
-    }
-
-    if (mirroring &&
-        mirrorMethod === MIRROR_METHOD.ROTATE &&
+    if (mirrorMethod === MIRROR_METHOD.ROTATE &&
         mirrorType === MIRROR_TYPE.PAGE &&
         mirrorAxis !== MIRROR_AXIS.BOTH_360
     ) mirrorLines = []
 
-    if (mirroring &&
-        (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH) &&
+    if ((mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH) &&
         mirrorType === MIRROR_TYPE.PAGE
     ) mirrorLines.push(<circle cx={halfx} cy={halfy} r={scalex/3} fill={options.mirrorColor} opacity={.8} strokeOpacity="0"/>)
 
