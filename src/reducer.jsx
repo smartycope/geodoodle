@@ -1,5 +1,5 @@
 import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE} from './globals.js'
-import { lineIn, removeLine, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq, toggleDarkMode } from './utils'
+import { toRadians, lineIn, removeLine, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq, toggleDarkMode } from './utils'
 import defaultOptions, { keybindings, reversibleActions } from './options.jsx'
 
 var undoStack = []
@@ -26,6 +26,8 @@ export default function reducer(state, data){
         mirrorMethod,
         eraser,
         clipboard,
+        clipboardRotation,
+        clipboardMirrorAxis,
         translationx,
         translationy,
         scalex,
@@ -116,19 +118,57 @@ export default function reducer(state, data){
         case 'toggle partials': return {...state, partials: !partials}
         case 'copy':            return {...state, clipboard: getSelected(state), curLine: null}
         case 'paste':
-            if (clipboard)
+            if (clipboard){
+                console.warn('TODO: Clipboard rotation');
+                function transform({x1, y1, x2, y2}){
+                    const rad = toRadians(clipboardRotation)
+                    let _x1 = x1 + relCursorPos[0]
+                    // _x1 = (x1 * Math.cos(rad)) +
+                    //       (y1 * -Math.sin(rad)) +
+                    //       relCursorPos[0]*(1-Math.cos(rad)) + relCursorPos[1]*Math.sin(rad)
+                        //   relCursorPos[0]
+                    let _y1 = y1 + relCursorPos[1]
+                    // _y1 = (x1 * Math.sin(rad)) +
+                    //       (y1 * -Math.cos(rad)) +
+                    //       relCursorPos[1]*(1-Math.cos(rad)) - relCursorPos[0]*Math.sin(rad)
+                         //  relCursorPos[1]
+                    let _x2 = x2 + relCursorPos[0]
+                    // _x2 = (x2 * Math.cos(rad)) +
+                    //       (y2 * -Math.sin(rad)) +
+                    //       relCursorPos[0]*(1-Math.cos(rad)) + relCursorPos[1]*Math.sin(rad)
+                         //  relCursorPos[0]
+                    let _y2 = y2 + relCursorPos[1]
+                    // _y2 = (x2 * Math.sin(rad)) +
+                    //       (y2 * -Math.cos(rad)) +
+                    //       relCursorPos[1]*(1-Math.cos(rad)) - relCursorPos[0]*Math.sin(rad)
+                         //  relCursorPos[1]
+                    if (clipboardMirrorAxis === MIRROR_AXIS.VERT_90 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360){
+                        // matrix(-1, 0, 0, 1, cursorPos[0]*2, 0)
+                        _x1 = _x1 * -1 + relCursorPos[0]*2
+                        _x2 = _x2 * -1 + relCursorPos[0]*2
+                    }
+                    if (clipboardMirrorAxis === MIRROR_AXIS.HORZ_180 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360){
+                        // matrix(1, 0, 0, -1, 0, cursorPos[1]*2)
+                        _y1 = _y1 * -1 + relCursorPos[1]*2
+                        _y2 = _y2 * -1 + relCursorPos[1]*2
+                    }
+                    return {x1: _x1, y1: _y1, x2: _x2, y2: _y2}
+                }
+
                 return {...state,
                     lines: [...lines, ...clipboard.reduce((acc, line) => {
                         acc.push(createLine(state, {
                             ...line.props,
-                            x1: line.props.x1 + relCursorPos[0],
-                            x2: line.props.x2 + relCursorPos[0],
-                            y1: line.props.y1 + relCursorPos[1],
-                            y2: line.props.y2 + relCursorPos[1],
-                        }, true, false))
+                            ...transform(line.props),
+                            // x1: x1(line.props.x1 + relCursorPos[0]),
+                            // x2: x2(line.props.x2 + relCursorPos[0]),
+                            // y1: y1(line.props.y1 + relCursorPos[1]),
+                            // y2: y2(line.props.y2 + relCursorPos[1]),
+                        }, true, false, true))
                         return acc
                     }, [])]
                 }
+            }
             return state
         case 'cut': {
             const selected = getSelected(state)
@@ -166,7 +206,7 @@ export default function reducer(state, data){
              else if (curLine)
                 return {...state, curLine: null}
             else if (clipboard)
-                return {...state, clipboard: null}
+                return {...state, clipboard: null, clipboardMirrorAxis: null, clipboardRotation: 0}
             // else if (bounds.length >= 2)
             //     return reducer(state, {action: 'delete selected'})
             else {
@@ -179,7 +219,7 @@ export default function reducer(state, data){
 
         case 'nevermind':
             if (clipboard)
-                return {...state, clipboard: null}
+                return {...state, clipboard: null, clipboardMirrorAxis: null, clipboardRotation: 0}
             else if (curLine)
                 return {...state, curLine: null}
             else if (bounds.length)
@@ -189,7 +229,11 @@ export default function reducer(state, data){
 
         case 'add line':
             if (clipboard && !mobile)
-                return {...reducer(state, {action: 'paste'}), clipboard: data.continue ? clipboard : null}
+                return {...reducer(state, {action: 'paste'}),
+                    clipboard:           data.continue ? clipboard           : null,
+                    clipboardMirrorAxis: data.continue ? clipboardMirrorAxis : null,
+                    clipboardRotation:   data.continue ? clipboardRotation   : 0,
+                }
             else {
                 var newLines = []
                 if (curLine != null){
@@ -207,7 +251,6 @@ export default function reducer(state, data){
                     // These if statements mirror (pun intended) the ones in App.jsx to create the mirrored curLines.
                     // This is intentional. The operations are manual implementations of the matrix transformations there
                     if (mirroring){
-                        // Now add mirrored lines. These are all just manual matrix multiplication of the specified transformations
                         if (mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360){
                             if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
                                 // matrix(-1, 0, 0, 1, originx*2, 0)
@@ -416,6 +459,25 @@ export default function reducer(state, data){
             undoStack.push(nextState)
             return nextState
 
+        case 'set manual':
+            delete data.action
+            console.log(data);
+            return {...state, ...data}
+
+        case 'set color':
+            console.log(data.color);
+            return {...state, stroke: data.color}
+
+        case 'increment clipboard rotation': return {...state, clipboardRotation: (clipboardRotation + 90) % 360}
+        case 'increment clipboard mirror axis':
+            // eslint-disable-next-line default-case
+            switch (clipboardMirrorAxis){
+                case null:                 return {...state, clipboardMirrorAxis: MIRROR_AXIS.VERT_90};
+                case MIRROR_AXIS.VERT_90:  return {...state, clipboardMirrorAxis: MIRROR_AXIS.BOTH_360};
+                case MIRROR_AXIS.BOTH_360: return {...state, clipboardMirrorAxis: MIRROR_AXIS.HORZ_180};
+                case MIRROR_AXIS.HORZ_180: return {...state, clipboardMirrorAxis: null};
+            } return state // Unreachable
+
         case 'toggle mirroring': return {...state, mirroring: !mirroring}
         case 'toggle mirror axis 1':
             // eslint-disable-next-line default-case
@@ -499,8 +561,8 @@ export default function reducer(state, data){
         case 'end tour':
             return preTourState
         default:
-            console.log(bounds);
-            console.log(lines);
+            // console.log(bounds);
+            // console.log(lines);
             console.warn(`Unknown action: ${data.action}`)
             return state
     }

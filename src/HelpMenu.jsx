@@ -76,7 +76,7 @@ export function HelpMenu({state, dispatch, setControlsVisible, close}){
             <ul>
                 <li>Selection: &#9989;</li>
                 <li>Controls Menu: &#9989;</li>
-                <li>Mirroring: In progress</li>
+                <li>Mirroring: &#9989;</li>
                 <li>Mobile Compatibility: In progress</li>
                 <li>Repeating: &#10060;</li>
                 <li>Alternate Dot Patterns: &#10060;</li>

@@ -64,7 +64,7 @@ export function getSelected(state, remove=false){
 }
 
 // *All* permenant lines are made using this funciton
-export function createLine(state, props, translate=true, scale=true){
+export function createLine(state, props, translate=true, scale=true, exact=false){
     const {translationx, translationy, stroke, strokeWidth, lines, scalex, scaley} = state
 
     // TODO: figure how to avoid this
@@ -81,10 +81,14 @@ export function createLine(state, props, translate=true, scale=true){
         y2: (props.y2 - (translationy * translate)) / (scale ? scaley : 1),
     }
 
+    const aes = {
+        stroke: stroke,
+        strokeWidth: strokeWidth / scalex,
+    }
+
     return <line {...adjProps}
-            stroke={stroke}
-            strokeWidth={strokeWidth / scalex}
-            key={JSON.stringify(props)}
+            {...(exact ? {} : aes)}
+            key={`${adjProps.x1}${adjProps.y1}${adjProps.x2}${adjProps.y2}`}
         />
 }
 
@@ -175,3 +179,8 @@ export const multMat = (A, B) =>
       )
     )
   )
+
+
+export function toRadians (angle) {
+    return angle * (Math.PI / 180);
+}

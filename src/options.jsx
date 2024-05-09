@@ -2,7 +2,7 @@ const defaultOptions = {
     cursorColor: "black",
     scalex: 20,
     scaley: 20,
-    stroke: "black",
+    stroke: "#000000",
     strokeWidth: 1,
     boundColor: "black",
     mirrorColor: 'green',
@@ -55,6 +55,8 @@ export const keybindings = {
     'm': "toggle mirror axis",
     'home': 'go home',
     'h': 'go home',
+    'x': 'increment clipboard rotation',
+    'z': 'increment clipboard mirror axis',
 
     'ctrl+c': "copy",
     'ctrl+v': "paste",

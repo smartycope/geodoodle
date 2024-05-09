@@ -13,6 +13,7 @@ import { MdHelpOutline } from "react-icons/md";
 import { MdHelp } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
 import {HelpMenu} from "./HelpMenu"
+import ColorMenu from "./ColorMenu";
 
 export default function MainMenu({dispatch, state}){
     const [visible, setVisible] = useState(false);
@@ -55,7 +56,7 @@ export default function MainMenu({dispatch, state}){
         {/* TODO: */}
         {/* The menus */}
         {controlsVisible && <ControlsMenu dispatch={dispatch} state={state}/>}
-        {colorVisible && <div>The color menu isn't implemented yet</div>}
+        {colorVisible && <ColorMenu dispatch={dispatch} state={state}/>}
         {repeatVisible && <div>The repeat menu isn't implemented yet</div>}
         {fileVisible && <div>The file menu isn't implemented yet</div>}
         {settingsVisible && <div>The settings menu isn't implemented yet</div>}

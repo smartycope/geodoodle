@@ -2,15 +2,9 @@ import './App.css';
 import {useEffect, useReducer, useRef, useState} from 'react';
 import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, MODE} from './globals'
 import reducer from './reducer';
-import {calc, distCenter, eventMatchesKeycode, invertObject, mobileAndTabletCheck, pointIn} from './utils';
+import {calc, distCenter, mobileAndTabletCheck} from './utils';
 import options from './options';
-import { keybindings } from './options'
 import MainMenu from './MainMenu';
-// import ZingTouch from 'zingtouch';
-
-
-// TODO: 180 degree mirror rotation specifically isn't working (all the others work)
-// TODO: mirrorAxis2 is unimplemented
 
 
 // Coordinate systems:
@@ -20,10 +14,6 @@ import MainMenu from './MainMenu';
 
 // Disable the default right click menu
 window.oncontextmenu = () => false
-// window.addEventListener('touchstart', e => e.preventDefault(), {passive: false})
-// window.addEventListener('touchmove', e => e.preventDefault(), {passive: false})
-// window.addEventListener('touchend', e => e.preventDefault(), {passive: false})
-// var gestureTouches = null
 
 export default function App() {
     const boundsGroup = useRef()
@@ -37,6 +27,7 @@ export default function App() {
     const [state, dispatch] = useReducer(reducer, {
         // mobile: window.innerWidth <= 768,
         mobile: mobileAndTabletCheck(),
+        // A hex color string
         stroke: options.stroke,
         strokeWidth: options.strokeWidth,
 
@@ -58,6 +49,11 @@ export default function App() {
         // A list of <line> objects, or null
         // Coord: absolute, scaled
         clipboard: null,
+        // In degrees
+        clipboardRotation: 0,
+        // Of type MIRROR_AXIS or null
+        clipboardMirrorAxis: null,
+
 
         // pattern: null,
 
@@ -67,6 +63,7 @@ export default function App() {
         mirrorAxis2: MIRROR_AXIS.VERT_90,
         mirrorType: MIRROR_TYPE.PAGE,
         mirrorMethod: MIRROR_METHOD.FLIP,
+
         mode: MODE.DRAW,
 
         // Coord: not scaled
@@ -96,6 +93,8 @@ export default function App() {
         lines,
         curLine,
         bounds,
+        clipboardRotation,
+        clipboardMirrorAxis,
         // pattern,
         mirroring,
         mirrorAxis,
@@ -121,9 +120,6 @@ export default function App() {
         halfx,
         halfy,
         boundRect,
-        relCursorPos,
-        scaledTranslationx,
-        scaledTranslationy,
     } = calc(state)
 
     const boundRadius = scalex / 1.5
@@ -258,10 +254,10 @@ export default function App() {
         paper.current.addEventListener('touchstart', onTouchStart, { passive: false })
         paper.current.addEventListener('touchmove', onTouchMove, { passive: false })
         return () => {
-            paper.current.removeEventListener('wheel', onScroll)
-            paper.current.removeEventListener('touchend', onTouchEnd)
-            paper.current.removeEventListener('touchstart', onTouchStart)
-            paper.current.removeEventListener('touchmove', onTouchMove)
+            paper.current?.removeEventListener('wheel', onScroll)
+            paper.current?.removeEventListener('touchend', onTouchEnd)
+            paper.current?.removeEventListener('touchstart', onTouchStart)
+            paper.current?.removeEventListener('touchmove', onTouchMove)
         }
     }, [])
 
@@ -347,6 +343,7 @@ export default function App() {
             mirrorType === MIRROR_TYPE.CURSOR &&
             [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
         }
+        key={'cursor'}
     />]
     if (mirroring && mirrorType === MIRROR_TYPE.CURSOR){
         if ([MIRROR_METHOD.FLIP, MIRROR_METHOD.BOTH].includes(mirrorMethod)){
@@ -355,15 +352,24 @@ export default function App() {
                     x1={cursorPos[0] + scalex/3} y1={cursorPos[1]}
                     x2={cursorPos[0] - scalex/3} y2={cursorPos[1]}
                     stroke={options.mirrorColor}
+                    key='cursor-horz'
                 />)
             if ([MIRROR_AXIS.VERT_90, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
                 cursor.push(<line
                     x1={cursorPos[0]} y1={cursorPos[1] + scalex/3}
                     x2={cursorPos[0]} y2={cursorPos[1] - scalex/3}
                     stroke={options.mirrorColor}
+                    key="cursor-vert"
                 />)
         }
     }
+
+    let clipboardFlip = ''
+    // eslint-disable-next-line default-case
+    if (clipboardMirrorAxis === MIRROR_AXIS.VERT_90 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360)
+        clipboardFlip += `matrix(-1, 0, 0, 1, ${cursorPos[0]*2}, 0) `
+    if (clipboardMirrorAxis === MIRROR_AXIS.HORZ_180 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360)
+        clipboardFlip += `matrix(1, 0, 0, -1, 0, ${cursorPos[1]*2}) `
 
     return (
         <div className="App">
@@ -410,7 +416,7 @@ export default function App() {
                 {debug && <text x="80%" y='20'>{`Translation: ${Math.round(translationx)}, ${Math.round(translationy)}`}</text>}
                 {debug && <text x="80%" y='40'>{`Scale: ${Math.round(scalex)}, ${Math.round(scaley)}`}</text>}
 
-                {/* Drawk the cursor */}
+                {/* Drak the cursor */}
                 <g>{cursor}</g>
 
                 {/* Draw the lines */}
@@ -461,6 +467,7 @@ export default function App() {
                         y2={(eraser[1] * scaley) + scaley / 3 + translationy}
                         stroke={options.eraserColor}
                         strokeWidth={options.eraserWidth}
+                        key="eraser1"
                     />,
                     <line
                         x1={(eraser[0] * scalex) + scalex / 3 + translationx}
@@ -469,11 +476,17 @@ export default function App() {
                         y2={(eraser[1] * scaley) + scaley / 3 + translationy}
                         stroke={options.eraserColor}
                         strokeWidth={options.eraserWidth}
+                        key="eraser2"
                     />
                 ]}
 
                 {/* Draw the current clipboard */}
-                <g transform={`translate(${cursorPos[0]} ${cursorPos[1]}) scale(${scalex} ${scaley})`}>
+                <g transform={`
+                    ${clipboardFlip}
+                    rotate(${clipboardRotation}, ${cursorPos[0]}, ${cursorPos[1]})
+                    translate(${cursorPos[0]} ${cursorPos[1]})
+                    scale(${scalex} ${scaley})
+                `}>
                     {clipboard}
                 </g>
             </svg>

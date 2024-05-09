@@ -174,17 +174,17 @@ export default function ControlsMenu({dispatch, state}){
         </span>
 
         {state.mirroring && <span id="mirror-buttons" className="button-group">
-            <button inert onClick={() => dispatch({action: "toggle mirror type"})} title='Toggle mirror type' id='mirror-type'>
+            <button onClick={() => dispatch({action: "toggle mirror type"})} title='Toggle mirror type' id='mirror-type'>
                 {mirrorType}
             </button>
-            <button inert onClick={() => dispatch({action: "toggle mirror method"})} title='Toggle mirror method' id='mirror-method'>
+            <button onClick={() => dispatch({action: "toggle mirror method"})} title='Toggle mirror method' id='mirror-method'>
                 {mirrorMethod}
             </button>
-            <button inert onClick={() => dispatch({action: "toggle mirror axis 1"})} title='Toggle mirror axis/angle' id='mirror-axis-1'>
+            <button onClick={() => dispatch({action: "toggle mirror axis 1"})} title='Toggle mirror axis/angle' id='mirror-axis-1'>
                 {mirrorAxis}
             </button>
             {state.mirrorMethod === MIRROR_METHOD.BOTH &&
-                <button inert onClick={() => dispatch({action: "toggle mirror axis 2"})} title='Toggle mirror rotation axis/angle' id='mirror-axis-2'>
+                <button onClick={() => dispatch({action: "toggle mirror axis 2"})} title='Toggle mirror rotation axis/angle' id='mirror-axis-2'>
                     {mirrorAxis2}
                 </button>
             }
@@ -196,11 +196,11 @@ export default function ControlsMenu({dispatch, state}){
 
         {/* Selection buttons */}
         <span className='selection-group' style={{width: state.bounds.length > 1 ? '100%' : 'auto'}}>
-            {state.mobile && <button inert title="Add selection bound" onClick={() => dispatch({action: 'add bound'})} id='add-bound'>
+            {state.mobile && <button title="Add selection bound" onClick={() => dispatch({action: 'add bound'})} id='add-bound'>
                 <PiSelectionPlusDuotone />
             </button>}
             {state.bounds.length > 1 && <>
-                <button inert title="Clear selection" onClick={() => dispatch({action: 'nevermind'})} id="clear-selection">
+                <button title="Clear selection" onClick={() => dispatch({action: 'nevermind'})} id="clear-selection">
                     <PiSelectionSlashDuotone />
                 </button>
                 <span className="checkbox" id='partial-picker'>
@@ -221,7 +221,7 @@ export default function ControlsMenu({dispatch, state}){
         {(window.innerWidth <= 768 && state.bounds.length > 1) && <div className="br"/>}
 
         {/* Clear all button */}
-        <button inert
+        <button inert="true"
             onClick={() => window.confirm("Are you sure you want to delete everything?") ? dispatch({action: "clear"}) : undefined}
             title="Clear all"
             id='clear-all'
@@ -231,29 +231,29 @@ export default function ControlsMenu({dispatch, state}){
 
         {/* Clipboard buttons */}
         <span className='button-group' id='copy-buttons'>
-            <button inert onClick={() => dispatch({action: "copy"})} title="Copy">
+            <button onClick={() => dispatch({action: "copy"})} title="Copy">
                 <MdContentCopy />
             </button>
-            <button inert onClick={() => dispatch({action: "cut"})} title="Cut">
+            <button onClick={() => dispatch({action: "cut"})} title="Cut">
                 <MdOutlineContentCut />
             </button>
-            <button inert onClick={() => dispatch({action: "paste"})} title="Paste">
+            <button onClick={() => dispatch({action: "paste"})} title="Paste">
                 <MdContentPaste />
             </button>
         </span>
 
         {/* Undo/Redo buttons */}
         <span className="button-group" id='undo-buttons'>
-            <button inert onClick={() => dispatch({action: "undo"})} title="Undo">
+            <button onClick={() => dispatch({action: "undo"})} title="Undo">
                 <MdUndo />
             </button>
-            <button inert onClick={() => dispatch({action: "redo"})} title="Redo">
+            <button onClick={() => dispatch({action: "redo"})} title="Redo">
                 <MdRedo />
             </button>
         </span>
 
         {/* Home button */}
-        <button inert id='home-button' onClick={() => dispatch({action: "go home"})} title="Reset position and scale">
+        <button id='home-button' onClick={() => dispatch({action: "go home"})} title="Reset position and scale">
             <MdHome />
         </button>
 
