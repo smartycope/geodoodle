@@ -30,6 +30,11 @@ export default function App() {
         // A hex color string
         stroke: options.stroke,
         strokeWidth: options.strokeWidth,
+        // A list of hex color strings that gets shifted
+        commonColors: new Array(options.commonColorAmt).fill(options.stroke),
+        // "a series of comma and/or whitespace separated numbers"
+        // The numbers are scaled
+        dash: "0",
 
         // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
         // Coord: absolute, not scaled
@@ -88,6 +93,8 @@ export default function App() {
         mobile,
         cursorPos,
         stroke,
+        dash,
+        commonColors,
         strokeWidth,
         partials,
         lines,
@@ -269,6 +276,8 @@ export default function App() {
         x2: cursorPos[0],
         y2: cursorPos[1],
         stroke: stroke,
+        strokeWidth: strokeWidth,
+        strokeDasharray: dash,
     }
     let curLines = [<line {...curLineProps} key='mirror0' />]
     const originx = mirrorType === MIRROR_TYPE.PAGE ? halfx : curLine?.x1

@@ -6,6 +6,7 @@ import { MdOutlineContentCut } from "react-icons/md";
 import { MdContentPaste } from "react-icons/md";
 import { MdCropPortrait } from "react-icons/md";
 import { MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE } from "./globals";
+
 import { FaMinus } from "react-icons/fa6";
 import { FaPlus } from "react-icons/fa6";
 import { PiLineVerticalBold } from "react-icons/pi";

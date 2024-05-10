@@ -65,7 +65,7 @@ export function getSelected(state, remove=false){
 
 // *All* permenant lines are made using this funciton
 export function createLine(state, props, translate=true, scale=true, exact=false){
-    const {translationx, translationy, stroke, strokeWidth, lines, scalex, scaley} = state
+    const {translationx, translationy, stroke, strokeWidth, dash, lines, scalex, scaley} = state
 
     // TODO: figure how to avoid this
     // TODO: and also not create duplicate lines
@@ -84,6 +84,7 @@ export function createLine(state, props, translate=true, scale=true, exact=false
     const aes = {
         stroke: stroke,
         strokeWidth: strokeWidth / scalex,
+        strokeDasharray: dash.replace(/\s/, '').split(',').map(i => i/scalex).join(','),
     }
 
     return <line {...adjProps}

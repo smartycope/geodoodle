@@ -12,8 +12,10 @@ export default function reducer(state, data){
         // spacingy,
         mobile,
         cursorPos,
+        commonColors,
         stroke,
         strokeWidth,
+        dash,
         partials,
         lines,
         curLine,
@@ -86,7 +88,7 @@ export default function reducer(state, data){
                 if (eventMatchesKeycode(data.event, shortcut))
                     take = action
             })
-            return take ? reducer(state, {action: take}) : state
+            return take ? reducer(state, take) : state
 
         case 'translate':
             return reducer({...state,
@@ -119,35 +121,44 @@ export default function reducer(state, data){
         case 'copy':            return {...state, clipboard: getSelected(state), curLine: null}
         case 'paste':
             if (clipboard){
-                console.warn('TODO: Clipboard rotation');
                 function transform({x1, y1, x2, y2}){
                     const rad = toRadians(clipboardRotation)
-                    let _x1 = x1 + relCursorPos[0]
-                    // _x1 = (x1 * Math.cos(rad)) +
-                    //       (y1 * -Math.sin(rad)) +
-                    //       relCursorPos[0]*(1-Math.cos(rad)) + relCursorPos[1]*Math.sin(rad)
-                        //   relCursorPos[0]
-                    let _y1 = y1 + relCursorPos[1]
-                    // _y1 = (x1 * Math.sin(rad)) +
-                    //       (y1 * -Math.cos(rad)) +
-                    //       relCursorPos[1]*(1-Math.cos(rad)) - relCursorPos[0]*Math.sin(rad)
-                         //  relCursorPos[1]
-                    let _x2 = x2 + relCursorPos[0]
-                    // _x2 = (x2 * Math.cos(rad)) +
-                    //       (y2 * -Math.sin(rad)) +
-                    //       relCursorPos[0]*(1-Math.cos(rad)) + relCursorPos[1]*Math.sin(rad)
-                         //  relCursorPos[0]
-                    let _y2 = y2 + relCursorPos[1]
-                    // _y2 = (x2 * Math.sin(rad)) +
-                    //       (y2 * -Math.cos(rad)) +
-                    //       relCursorPos[1]*(1-Math.cos(rad)) - relCursorPos[0]*Math.sin(rad)
-                         //  relCursorPos[1]
-                    if (clipboardMirrorAxis === MIRROR_AXIS.VERT_90 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360){
+
+                    // We have to do this so in setting the rotation, they don't cascade on each other and set
+                    // values that are used in the next calculation
+                    const __x1 = x1 + relCursorPos[0]
+                    const __y1 = y1 + relCursorPos[1]
+                    const __x2 = x2 + relCursorPos[0]
+                    const __y2 = y2 + relCursorPos[1]
+
+                    // We have to do this, because parameters are const or something?
+                    let _x1 = __x1
+                    let _y1 = __y1
+                    let _x2 = __x2
+                    let _y2 = __y2
+
+                    if (clipboardRotation !== 180 && clipboardRotation !== 0){
+                        // rotate(rad, cursorPos[0], cursorPos[1])
+                        _x1 = (__x1 * Math.cos(rad)) +
+                            (__y1 * -Math.sin(rad)) +
+                            relCursorPos[0]*(1-Math.cos(rad)) + relCursorPos[1]*Math.sin(rad)
+                        _y1 = (__x1 * Math.sin(rad)) +
+                            (__y1 * -Math.cos(rad)) +
+                            relCursorPos[1]*(1-Math.cos(rad)) - relCursorPos[0]*Math.sin(rad)
+                        _x2 = (__x2 * Math.cos(rad)) +
+                            (__y2 * -Math.sin(rad)) +
+                            relCursorPos[0]*(1-Math.cos(rad)) + relCursorPos[1]*Math.sin(rad)
+                        _y2 = (__x2 * Math.sin(rad)) +
+                            (__y2 * -Math.cos(rad)) +
+                            relCursorPos[1]*(1-Math.cos(rad)) - relCursorPos[0]*Math.sin(rad)
+                    }
+
+                    if (clipboardMirrorAxis === MIRROR_AXIS.VERT_90 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360 || clipboardRotation === 180){
                         // matrix(-1, 0, 0, 1, cursorPos[0]*2, 0)
                         _x1 = _x1 * -1 + relCursorPos[0]*2
                         _x2 = _x2 * -1 + relCursorPos[0]*2
                     }
-                    if (clipboardMirrorAxis === MIRROR_AXIS.HORZ_180 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360){
+                    if (clipboardMirrorAxis === MIRROR_AXIS.HORZ_180 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360 || clipboardRotation === 180){
                         // matrix(1, 0, 0, -1, 0, cursorPos[1]*2)
                         _y1 = _y1 * -1 + relCursorPos[1]*2
                         _y2 = _y2 * -1 + relCursorPos[1]*2
@@ -160,11 +171,7 @@ export default function reducer(state, data){
                         acc.push(createLine(state, {
                             ...line.props,
                             ...transform(line.props),
-                            // x1: x1(line.props.x1 + relCursorPos[0]),
-                            // x2: x2(line.props.x2 + relCursorPos[0]),
-                            // y1: y1(line.props.y1 + relCursorPos[1]),
-                            // y2: y2(line.props.y2 + relCursorPos[1]),
-                        }, true, false, true))
+                        }, false, false, true))
                         return acc
                     }, [])]
                 }
@@ -460,13 +467,26 @@ export default function reducer(state, data){
             return nextState
 
         case 'set manual':
-            delete data.action
-            console.log(data);
-            return {...state, ...data}
+            // Don't know why I can't just delete action from DATA, but WHATEVER I guess
+            let newState = {...state, ...data}
+            delete newState.action
+            return newState
 
-        case 'set color':
-            console.log(data.color);
-            return {...state, stroke: data.color}
+        case 'add common color':
+            let copy = JSON.parse(JSON.stringify(commonColors))
+            copy.push(data.color)
+            copy.shift()
+            return {...state,
+                commonColors: copy
+            }
+
+        case `set to common color`:
+            if (data.index > commonColors.length)
+                return state
+            return {...state,
+                // Because they're displayed inverted
+                stroke: commonColors[commonColors.length - data.index]
+            }
 
         case 'increment clipboard rotation': return {...state, clipboardRotation: (clipboardRotation + 90) % 360}
         case 'increment clipboard mirror axis':
@@ -508,7 +528,6 @@ export default function reducer(state, data){
                 case MIRROR_METHOD.BOTH:   return {...state, mirrorMethod: MIRROR_METHOD.FLIP}
             } return state // This shouldn't be possible, but whatever
 
-        case 'set mode': return {...state, mode: data.mode}
         case "toggle dark mode":
             console.log("toggling dark mode");
             toggleDarkMode()

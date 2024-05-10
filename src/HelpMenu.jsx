@@ -77,10 +77,10 @@ export function HelpMenu({state, dispatch, setControlsVisible, close}){
                 <li>Selection: &#9989;</li>
                 <li>Controls Menu: &#9989;</li>
                 <li>Mirroring: &#9989;</li>
+                <li>Colors &amp; Stroke Patterns: &#9989;</li>
                 <li>Mobile Compatibility: In progress</li>
                 <li>Repeating: &#10060;</li>
                 <li>Alternate Dot Patterns: &#10060;</li>
-                <li>Colors &amp; Stroke Patterns: &#10060;</li>
                 <li>File Handling: &#10060;</li>
                 <li>Custom Keyboard Shortcuts: &#10060;</li>
                 <li>App: ❌</li>

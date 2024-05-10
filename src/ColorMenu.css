@@ -1,9 +1,10 @@
 #color-menu{
-    top: 0px;
+    /* top: 0px; */
     /* To center it */
     left: 30%;
+    bottom: 10px;
 
-    background-color: rgba(20,20,20,.65);
+    background-color: rgba(20,20,20,.8);
     border-radius: 10px;
     margin: 10px;
     padding: 10px;
@@ -21,6 +22,19 @@
     .br {
         width: 100%;
     }
+}
+
+#color-picker{
+    max-width: fit-content;
+    max-height: fit-content;
+    position: absolute;
+    min-width: 100px;
+}
+
+/* This doesn't work and I don't know why */
+#color-picker-button{
+    opacity: 1;
+    /* fill-opacity: .1; */
 }
 
 /* @media screen and (max-width: 768px) {
@@ -79,4 +93,21 @@
     height: max-content;
     display: flex;
     flex-direction: column;
+}
+
+input[type="number"]{
+    max-width: 40px;
+}
+
+input[type="text"]{
+    /* max-width: 40px; */
+    /* width: min-content; */
+
+}
+
+input{
+    padding: 8px;
+    color: white;
+    border-radius: 8px;
+    background-color: rgb(40,40,40);
 }
