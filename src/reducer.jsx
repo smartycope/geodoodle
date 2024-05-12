@@ -26,6 +26,7 @@ export default function reducer(state, data){
         mirrorAxis2,
         mirrorType,
         mirrorMethod,
+        repeating,
         eraser,
         clipboard,
         clipboardRotation,
@@ -92,21 +93,32 @@ export default function reducer(state, data){
 
         case 'translate':
             return reducer({...state,
-                translationx: translationx + data.x * (invertedScroll ? -1 : 1) * scrollSensitivity,
-                translationy: translationy + data.y * (invertedScroll ? -1 : 1) * scrollSensitivity,
+                translationx: translationx + data.x,
+                translationy: translationy + data.y,
                 curLine: null,
             // The -8 is a fudge factor to get a better guess at where the mouse is
-            }, {action: 'cursor moved', x: cursorPos[0], y: cursorPos[1] - 8})
+            }, {action: 'cursor moved', x: cursorPos[0], y: cursorPos[1]})
 
-        case 'scale':
+        case 'scale':{
             const max = Math.min(window.visualViewport.width, window.visualViewport.height) / 4
-            return reducer({...state,
-                scalex: Math.min(max, Math.max(4, scalex + data.amt * (invertedScroll ? -1 : 1) * (scrollSensitivity / 8))),
-                scaley: Math.min(max, Math.max(4, scaley + data.amt * (invertedScroll ? -1 : 1) * (scrollSensitivity / 8))),
-            // TODO: This doesn't work
-            }, {action: 'translate', x: translationx + cursorPos[0], y: translationy + cursorPos[1]})
-            // }, {action: 'cursor moved', x: cursorPos[0], y: cursorPos[1] - 8})
+            const cx = data.cx ?? cursorPos[0]
+            const cy = data.cy ?? cursorPos[1]
+            // console.log(data.amtx)
+            // console.log(cx, cy)
 
+            const x = Math.min(max, Math.max(4, scalex + data.amtx))
+            const y = Math.min(max, Math.max(4, scaley + data.amty))
+
+            // const newState = {...state,
+            // TODO: This still doesn't work
+            return {...state,
+                scalex: x,
+                scaley: y,
+                translationx: translationx,
+                translationy: translationy,
+                curLine: null,
+            }
+        }
         // Actions which can be set to various keyboard shortcuts
         case 'increase scale':  return {...state, scalex: scalex*2, scaley: scaley*2}
         case 'decrease scale':  return {...state, scalex: scalex/2, scaley: scaley/2}
@@ -466,12 +478,12 @@ export default function reducer(state, data){
             undoStack.push(nextState)
             return nextState
 
-        case 'set manual':
+        case 'set manual': {
             // Don't know why I can't just delete action from DATA, but WHATEVER I guess
             let newState = {...state, ...data}
             delete newState.action
             return newState
-
+        }
         case 'add common color':
             let copy = JSON.parse(JSON.stringify(commonColors))
             copy.push(data.color)

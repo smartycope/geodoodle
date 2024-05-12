@@ -15,13 +15,16 @@ import MainMenu from './MainMenu';
 // Disable the default right click menu
 window.oncontextmenu = () => false
 
+// var prevTouches = [null, null]
+var gestureTouches = [{pageX:0, pageY:0}, {pageX:0, pageY:0}]
+
 export default function App() {
     const boundsGroup = useRef()
     const paper = useRef()
 
     const [dragging, setDragging] = useState(false)
     const [boundDragging, setBoundDragging] = useState(false)
-    const [gestureTouches, setGestureTouches] = useState([{pageX:0, pageY:0}, {pageX:0, pageY:0}])
+    // const [gestureTouches, setGestureTouches] = useState([{pageX:0, pageY:0}, {pageX:0, pageY:0}])
     // console.log('gestureTouches:', gestureTouches)
 
     const [state, dispatch] = useReducer(reducer, {
@@ -61,6 +64,7 @@ export default function App() {
 
 
         // pattern: null,
+        repeating: false,
 
         mirroring: false,
         mirrorAxis: MIRROR_AXIS.VERT_90,
@@ -108,6 +112,7 @@ export default function App() {
         mirrorAxis2,
         mirrorType,
         mirrorMethod,
+        repeating,
         eraser,
         clipboard,
         translationx,
@@ -166,15 +171,16 @@ export default function App() {
     function onTouchMove(e){
         e.preventDefault()
         if (e.touches.length === 2){
-            setGestureTouches(e.changedTouches)
+
             // if (gestureTouches === null){
             //     console.log('a')
                 // gestureTouches = null
             // } else {
-                console.log(e)
+                // console.log(e)
+                // console.log(gestureTouches)
                 const {distance: newDist, centerx:newCenterx, centery:newCentery} = distCenter(
-                    e.changedTouches[0].pageX, e.changedTouches[0].pageY,
-                    e.changedTouches[1].pageX, e.changedTouches[1].pageY,
+                    e.touches[0].pageX, e.touches[0].pageY,
+                    e.touches[1].pageX, e.touches[1].pageY,
                 )
 
                 const {distance: prevDist, centerx:prevCenterx, centery:prevCentery} = distCenter(
@@ -182,12 +188,14 @@ export default function App() {
                     gestureTouches[1].pageX, gestureTouches[1].pageY,
                 )
                 // console.log(`translating by (${prevCenterx - newCenterx}, ${prevCentery-newCentery})`)
-                console.log('scaling by', prevDist - newDist)
+                // console.log('scaling by', ((prevDist - newDist) / 2))
+                // console.log('translating by', prevCentery - newCentery)
                 dispatch({action: 'nevermind'})
-                dispatch({action: 'translate', x: (prevCenterx - newCenterx) / 200, y: (prevCentery - newCentery) / 200})
-
-                // dispatch({action: 'scale', amt: prevDist - newDist * options.scrollSensitivity})
+                dispatch({action: 'translate', x: (prevCenterx - newCenterx) * scrollSensitivity, y: (prevCentery - newCentery) * scrollSensitivity})
+                // dispatch({action: 'scale', amt: scalex + ((prevCenterx - newCenterx) / 2)})
+                dispatch({action: 'scale', amtx: (prevDist - newDist), amty: (prevDist - newDist), cx: newCenterx, cy: newCentery})
             // }
+            gestureTouches = e.touches
         } else if (e.touches.length === 1){
             const touch = (e.touches[0] || e.changedTouches[0])
             dispatch({
@@ -234,22 +242,24 @@ export default function App() {
         if (e.shiftKey)
             dispatch({
                 action: 'translate',
-                x: e.deltaY,
-                y: e.deltaX,
+                x: e.deltaY * scrollSensitivity * (invertedScroll ? -1 : 1),
+                y: e.deltaX * scrollSensitivity * (invertedScroll ? -1 : 1),
             })
         else if (e.ctrlKey){
             // Disable the broswer zoom shortcut
             e.preventDefault()
-            dispatch({
-                action: 'scale',
-                amt: e.deltaY,
+            dispatch({action: 'scale',
+                amtx: (e.deltaY / 8) * scrollSensitivity * (invertedScroll ? -1 : 1),
+                amty: (e.deltaY / 8) * scrollSensitivity * (invertedScroll ? -1 : 1),
+                // cx: cursorPos[0], cy:
+                // cursorPos[1]
             })
         }
         else
             dispatch({
                 action: 'translate',
-                x: e.deltaX,
-                y: e.deltaY,
+                x: e.deltaX * scrollSensitivity * (invertedScroll ? -1 : 1),
+                y: e.deltaY * scrollSensitivity * (invertedScroll ? -1 : 1),
             })
     }
 
