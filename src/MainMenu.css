@@ -23,7 +23,7 @@
 }
 
 #menu-selector{
-    top: 70px;
+    top: 40px;
     right: 10px;
     position: absolute;
     border-radius: 8px;
@@ -34,6 +34,8 @@
     align-items: center;
     justify-content: space-between;
     /* justify-content: center; */
+
+    zoom: 1.5;
 }
 
 #menu-button{
@@ -49,7 +51,7 @@
 
 #menu-icon{
     /* width: 40px; */
-    scale: 2;
+    scale: 3;
     /* height: 20px; */
     opacity: .2;
 }

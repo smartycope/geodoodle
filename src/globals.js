@@ -22,3 +22,5 @@ export const MIRROR_METHOD = {
     ROTATE: 1,
     BOTH: 2,
 }
+
+export const localStorageName = 'GeoDoodleSaves'

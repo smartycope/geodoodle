@@ -1,6 +1,7 @@
-import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE} from './globals.js'
+import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageName} from './globals.js'
 import { toRadians, lineIn, removeLine, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq, toggleDarkMode } from './utils'
 import defaultOptions, { keybindings, reversibleActions } from './options.jsx'
+import {deserialize, getFileName, serialize} from './fileUtils.jsx';
 
 var undoStack = []
 var redoStack = []
@@ -69,7 +70,7 @@ export default function reducer(state, data){
     }
 
     switch (data.action){
-        case 'cursor moved':
+        case 'cursor moved': // args: x, y
             return {...state,
                 cursorPos: [
                     // The extra - offsetx is just to align the cursor with the mouse a little more accurately,
@@ -79,7 +80,7 @@ export default function reducer(state, data){
                 ]
             }
 
-        case 'key press':
+        case 'key press': // args: event
             // If it's just a modifier key, don't do anything (it'll falsely trigger things)
             if (['Shift', 'Meta', 'Control', 'Alt'].includes(data.event.key))
                 return state
@@ -91,19 +92,21 @@ export default function reducer(state, data){
             })
             return take ? reducer(state, take) : state
 
-        case 'translate':
-            return reducer({...state,
+        // Transformation Actions
+        case 'translate': { // args: x, y (delta values)
+            const newState = {...state,
                 translationx: translationx + data.x,
                 translationy: translationy + data.y,
                 curLine: null,
+            }
             // The -8 is a fudge factor to get a better guess at where the mouse is
-            }, {action: 'cursor moved', x: cursorPos[0], y: cursorPos[1]})
-
-        case 'scale':{
+            return reducer(newState, {action: 'cursor moved', x: cursorPos[0], y: cursorPos[1]})
+        }
+        case 'scale':{ // args: amtx, amty (delta values), cx, cy (center x/y)
             const max = Math.min(window.visualViewport.width, window.visualViewport.height) / 4
             const cx = data.cx ?? cursorPos[0]
             const cy = data.cy ?? cursorPos[1]
-            console.log(data.amtx, data.amty)
+            // console.log(data.amtx, data.amty)
             // console.log(cx, cy)
 
             const x = Math.min(max, Math.max(4, scalex + data.amtx))
@@ -118,83 +121,17 @@ export default function reducer(state, data){
                 curLine: null,
             }
         }
-        // Actions which can be set to various keyboard shortcuts
         case 'increase scale':  return {...state, scalex: scalex*2, scaley: scaley*2}
         case 'decrease scale':  return {...state, scalex: scalex/2, scaley: scaley/2}
         case 'go home':         return {...state, translationx: 0, translationy: 0, scalex: defaultOptions.scalex, scaley: defaultOptions.scaley}
+        // Direction actions
         case 'left':            return {...state, cursorPos: [cursorPos[0] - scalex, cursorPos[1]]}
         case 'right':           return {...state, cursorPos: [cursorPos[0] + scalex, cursorPos[1]]}
         case 'up':              return {...state, cursorPos: [cursorPos[0], cursorPos[1] - scaley]}
         case 'down':            return {...state, cursorPos: [cursorPos[0], cursorPos[1] + scaley]}
+        // Destruction Actions
         case 'clear':           return {...state, lines: [], bounds: []}
         case 'clear bounds':    return {...state, bounds: []}
-        case 'toggle partials': return {...state, partials: !partials}
-        case 'copy':            return {...state, clipboard: getSelected(state), curLine: null}
-        case 'paste':
-            if (clipboard){
-                function transform({x1, y1, x2, y2}){
-                    const rad = toRadians(clipboardRotation)
-
-                    // We have to do this so in setting the rotation, they don't cascade on each other and set
-                    // values that are used in the next calculation
-                    const __x1 = x1 + relCursorPos[0]
-                    const __y1 = y1 + relCursorPos[1]
-                    const __x2 = x2 + relCursorPos[0]
-                    const __y2 = y2 + relCursorPos[1]
-
-                    // We have to do this, because parameters are const or something?
-                    let _x1 = __x1
-                    let _y1 = __y1
-                    let _x2 = __x2
-                    let _y2 = __y2
-
-                    if (clipboardRotation !== 180 && clipboardRotation !== 0){
-                        // rotate(rad, cursorPos[0], cursorPos[1])
-                        _x1 = (__x1 * Math.cos(rad)) +
-                            (__y1 * -Math.sin(rad)) +
-                            relCursorPos[0]*(1-Math.cos(rad)) + relCursorPos[1]*Math.sin(rad)
-                        _y1 = (__x1 * Math.sin(rad)) +
-                            (__y1 * -Math.cos(rad)) +
-                            relCursorPos[1]*(1-Math.cos(rad)) - relCursorPos[0]*Math.sin(rad)
-                        _x2 = (__x2 * Math.cos(rad)) +
-                            (__y2 * -Math.sin(rad)) +
-                            relCursorPos[0]*(1-Math.cos(rad)) + relCursorPos[1]*Math.sin(rad)
-                        _y2 = (__x2 * Math.sin(rad)) +
-                            (__y2 * -Math.cos(rad)) +
-                            relCursorPos[1]*(1-Math.cos(rad)) - relCursorPos[0]*Math.sin(rad)
-                    }
-
-                    if (clipboardMirrorAxis === MIRROR_AXIS.VERT_90 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360 || clipboardRotation === 180){
-                        // matrix(-1, 0, 0, 1, cursorPos[0]*2, 0)
-                        _x1 = _x1 * -1 + relCursorPos[0]*2
-                        _x2 = _x2 * -1 + relCursorPos[0]*2
-                    }
-                    if (clipboardMirrorAxis === MIRROR_AXIS.HORZ_180 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360 || clipboardRotation === 180){
-                        // matrix(1, 0, 0, -1, 0, cursorPos[1]*2)
-                        _y1 = _y1 * -1 + relCursorPos[1]*2
-                        _y2 = _y2 * -1 + relCursorPos[1]*2
-                    }
-                    return {x1: _x1, y1: _y1, x2: _x2, y2: _y2}
-                }
-
-                return {...state,
-                    lines: [...lines, ...clipboard.reduce((acc, line) => {
-                        acc.push(createLine(state, {
-                            ...line.props,
-                            ...transform(line.props),
-                        }, false, false, true))
-                        return acc
-                    }, [])]
-                }
-            }
-            return state
-        case 'cut': {
-            const selected = getSelected(state)
-            return {...reducer(state, {action: 'delete selected'}),
-                clipboard: selected,
-                curLine: null
-            }
-        }
         case 'delete selected':
             return {...state,
                 lines: getSelected(state, true),
@@ -245,6 +182,7 @@ export default function reducer(state, data){
                 // return reducer(state, {action: 'clear bounds'})
             return state
 
+        // Creation actions
         case 'add line':
             if (clipboard && !mobile)
                 return {...reducer(state, {action: 'paste'}),
@@ -465,6 +403,7 @@ export default function reducer(state, data){
                 : [...bounds, relCursorPos],
             }
 
+        // Undo Actions
         case 'undo':
             const prevState = undoStack.pop()
             redoStack.push(prevState)
@@ -476,29 +415,73 @@ export default function reducer(state, data){
                 return state
             undoStack.push(nextState)
             return nextState
+        // Clipboard Actions
+        case 'copy':            return {...state, clipboard: getSelected(state), curLine: null}
+        case 'paste':
+            if (clipboard){
+                function transform({x1, y1, x2, y2}){
+                    const rad = toRadians(clipboardRotation)
 
-        case 'set manual': {
-            // Don't know why I can't just delete action from DATA, but WHATEVER I guess
-            let newState = {...state, ...data}
-            delete newState.action
-            return newState
+                    // We have to do this so in setting the rotation, they don't cascade on each other and set
+                    // values that are used in the next calculation
+                    const __x1 = x1 + relCursorPos[0]
+                    const __y1 = y1 + relCursorPos[1]
+                    const __x2 = x2 + relCursorPos[0]
+                    const __y2 = y2 + relCursorPos[1]
+
+                    // We have to do this, because parameters are const or something?
+                    let _x1 = __x1
+                    let _y1 = __y1
+                    let _x2 = __x2
+                    let _y2 = __y2
+
+                    if (clipboardRotation !== 180 && clipboardRotation !== 0){
+                        // rotate(rad, cursorPos[0], cursorPos[1])
+                        _x1 = (__x1 * Math.cos(rad)) +
+                            (__y1 * -Math.sin(rad)) +
+                            relCursorPos[0]*(1-Math.cos(rad)) + relCursorPos[1]*Math.sin(rad)
+                        _y1 = (__x1 * Math.sin(rad)) +
+                            (__y1 * -Math.cos(rad)) +
+                            relCursorPos[1]*(1-Math.cos(rad)) - relCursorPos[0]*Math.sin(rad)
+                        _x2 = (__x2 * Math.cos(rad)) +
+                            (__y2 * -Math.sin(rad)) +
+                            relCursorPos[0]*(1-Math.cos(rad)) + relCursorPos[1]*Math.sin(rad)
+                        _y2 = (__x2 * Math.sin(rad)) +
+                            (__y2 * -Math.cos(rad)) +
+                            relCursorPos[1]*(1-Math.cos(rad)) - relCursorPos[0]*Math.sin(rad)
+                    }
+
+                    if (clipboardMirrorAxis === MIRROR_AXIS.VERT_90 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360 || clipboardRotation === 180){
+                        // matrix(-1, 0, 0, 1, cursorPos[0]*2, 0)
+                        _x1 = _x1 * -1 + relCursorPos[0]*2
+                        _x2 = _x2 * -1 + relCursorPos[0]*2
+                    }
+                    if (clipboardMirrorAxis === MIRROR_AXIS.HORZ_180 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360 || clipboardRotation === 180){
+                        // matrix(1, 0, 0, -1, 0, cursorPos[1]*2)
+                        _y1 = _y1 * -1 + relCursorPos[1]*2
+                        _y2 = _y2 * -1 + relCursorPos[1]*2
+                    }
+                    return {x1: _x1, y1: _y1, x2: _x2, y2: _y2}
+                }
+
+                return {...state,
+                    lines: [...lines, ...clipboard.reduce((acc, line) => {
+                        acc.push(createLine(state, {
+                            ...line.props,
+                            ...transform(line.props),
+                        }, false, false, true))
+                        return acc
+                    }, [])]
+                }
+            }
+            return state
+        case 'cut': {
+            const selected = getSelected(state)
+            return {...reducer(state, {action: 'delete selected'}),
+                clipboard: selected,
+                curLine: null
+            }
         }
-        case 'add common color':
-            let copy = JSON.parse(JSON.stringify(commonColors))
-            copy.push(data.color)
-            copy.shift()
-            return {...state,
-                commonColors: copy
-            }
-
-        case `set to common color`:
-            if (data.index > commonColors.length)
-                return state
-            return {...state,
-                // Because they're displayed inverted
-                stroke: commonColors[commonColors.length - data.index]
-            }
-
         case 'increment clipboard rotation': return {...state, clipboardRotation: (clipboardRotation + 90) % 360}
         case 'increment clipboard mirror axis':
             // eslint-disable-next-line default-case
@@ -509,6 +492,24 @@ export default function reducer(state, data){
                 case MIRROR_AXIS.HORZ_180: return {...state, clipboardMirrorAxis: null};
             } return state // Unreachable
 
+        // Color & Stroke Actions
+        case 'add common color': // args: color (hex string)
+            let copy = JSON.parse(JSON.stringify(commonColors))
+            copy.push(data.color)
+            copy.shift()
+            return {...state,
+                commonColors: copy
+            }
+
+        case `set to common color`: // args: index
+            if (data.index > commonColors.length)
+                return state
+            return {...state,
+                // Because they're displayed inverted
+                stroke: commonColors[commonColors.length - data.index]
+            }
+
+        // Mirror actions
         case 'toggle mirroring': return {...state, mirroring: !mirroring}
         case 'toggle mirror axis 1':
             // eslint-disable-next-line default-case
@@ -539,10 +540,44 @@ export default function reducer(state, data){
                 case MIRROR_METHOD.BOTH:   return {...state, mirrorMethod: MIRROR_METHOD.FLIP}
             } return state // This shouldn't be possible, but whatever
 
+        // File Actions
+        case "download": // args: name (string)
+            // Create a Blob with the contents and set the MIME type
+            const blob = new Blob([serialize(state)], { type: 'image/svg+xml' });
+            // Create a link (anchor) element
+            const link = document.createElement('a');
+            // Set the download attribute and href with the Blob
+            link.download = data.name.trim()
+            link.href = URL.createObjectURL(blob);
+            // Append the link to the body and trigger a click event
+            document.body.appendChild(link);
+            link.click();
+            // Remove the link from the body
+            document.body.removeChild(link);
+            return state
+
+        case "upload":
+            // console.log('here with', data.str);
+            return {...state, ...deserialize(data.str)} // args: str (serialized data)
+
+        case "save local": // args: name (string)
+            // localStorage.setItem(data.name, serialize(state))
+            let obj = {}
+            obj[data.name.trim()] = serialize(state)
+            localStorage.setItem(localStorageName, JSON.stringify({...JSON.parse(localStorage.getItem(localStorageName)), ...obj}))
+            return state
+
+        case "load local": // args: name (string)
+            return {...state, ...deserialize(JSON.parse(localStorage.getItem(localStorageName))[data.name.trim()])}
+
+        // Misc Actions
+        // TODO: remove toggle partials
+        case 'toggle partials': return {...state, partials: !partials}
         case "toggle dark mode":
             console.log("toggling dark mode");
             toggleDarkMode()
             return state
+
         case 'start tour':
             preTourState = state
             return {...reducer(state, {action: 'go home'}),
@@ -590,9 +625,46 @@ export default function reducer(state, data){
             }
         case 'end tour':
             return preTourState
+
+        case 'set manual': {
+            // Don't know why I can't just delete action from DATA, but WHATEVER I guess
+            let newState = {...state, ...data}
+            delete newState.action
+            return newState
+        }
+        case "debug":
+            // console.log((<line x1="2" x2="3" y1="4" y2="5" stroke="black"></line>).);
+            // function saveSvg(svgEl, name) {
+            //     // svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+            //     var svgData = svgEl.outerHTML;
+            //     var pre = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\r\n<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">';
+            //     var post = '</svg>';
+            //     var svgBlob = new Blob([pre + svgData + post], {type:"image/svg+xml;charset=utf-8"});
+            //     var svgUrl = URL.createObjectURL(svgBlob);
+            //     var downloadLink = document.createElement("a");
+            //     downloadLink.href = svgUrl;
+            //     downloadLink.download = name;
+            //     document.body.appendChild(downloadLink);
+            //     downloadLink.click();
+            //     document.body.removeChild(downloadLink);
+            // }
+            // saveSvg(document.querySelector('#lines'), 'lines.svg')
+            // const ReactDOMServer = require('react-dom/server');
+            // const HtmlToReactParser = require('html-to-react').Parser;
+            // const htmlInput = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>' +
+            // '<!-- {"repeating":false,"translationx":0,"translationy":0,"scalex":20,"scaley":20,"rotatex":0,"rotatey":0,"shearx":0,"sheary":0} -->' +
+            // '<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">' +
+            // '<g id="lines" transform="translate(0 0) scale(20 20)" xmlns="http://www.w3.org/2000/svg"> <line x1="27.05" y1="11.05" x2="17.05" y2="21.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line><line x1="36.05" y1="14.05" x2="43.05" y2="21.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line><line x1="50.05" y1="25.05" x2="45.05" y2="31.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line><line x1="35.05" y1="41.05" x2="28.05" y2="41.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line><line x1="19.05" y1="41.05" x2="13.05" y2="40.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line><line x1="7.05" y1="35.05" x2="5.05" y2="30.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line><line x1="35.05" y1="12.05" x2="23.05" y2="24.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line><line x1="15.05" y1="10.05" x2="32.05" y2="23.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line> </g>' +
+            // '</svg>'
+
+            // // const htmlInput = '<div><h1>Title</h1><p>A paragraph</p></div>';
+            // // const htmlToReactParser = new HtmlToReactParser();
+            // // const reactElement = htmlToReactParser.parse(htmlInput)[0].props.children.props.children;
+            // // console.log(reactElement);
+
+            // console.log(/<!-- (.+) -->/.exec(htmlInput))
+            return state
         default:
-            // console.log(bounds);
-            // console.log(lines);
             console.warn(`Unknown action: ${data.action}`)
             return state
     }

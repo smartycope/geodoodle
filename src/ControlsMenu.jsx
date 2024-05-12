@@ -28,6 +28,8 @@ import { PiSelectionDuotone } from "react-icons/pi";
 import { TbArrowsRandom } from "react-icons/tb";
 import { PiSelectionPlusDuotone } from "react-icons/pi";
 import { PiSelectionSlashDuotone } from "react-icons/pi";
+import { MdDelete } from "react-icons/md";
+import { MdDeleteForever } from "react-icons/md";
 
 let offsetX, offsetY;
 let isDragging = false;
@@ -222,7 +224,7 @@ export default function ControlsMenu({dispatch, state}){
         {(window.innerWidth <= 768 && state.bounds.length > 1) && <div className="br"/>}
 
         {/* Clear all button */}
-        <button inert="true"
+        <button
             onClick={() => window.confirm("Are you sure you want to delete everything?") ? dispatch({action: "clear"}) : undefined}
             title="Clear all"
             id='clear-all'
@@ -242,6 +244,16 @@ export default function ControlsMenu({dispatch, state}){
                 <MdContentPaste />
             </button>
         </span>
+
+        {/* Delete buttons */}
+        {state.mobile && <span className="button-group">
+            <button onClick={() => dispatch({action: "delete"})} title="Delete all lines attached to a point">
+                <MdDelete />
+            </button>
+            <button onClick={() => dispatch({action: "delete line"})} title="Delete a specific line">
+                <MdDeleteForever />
+            </button>
+        </span>}
 
         {/* Undo/Redo buttons */}
         <span className="button-group" id='undo-buttons'>

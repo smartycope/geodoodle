@@ -95,3 +95,18 @@ export const reversibleActions = [
     'continue line',
     'add bound',
 ]
+
+// The parts of the state that get serialized
+export const saveable = [
+    // This is handeled seperately
+    // 'lines',
+    'repeating',
+    'translationx',
+    'translationy',
+    "scalex",
+    "scaley",
+    "rotatex",
+    "rotatey",
+    "shearx",
+    "sheary"
+]

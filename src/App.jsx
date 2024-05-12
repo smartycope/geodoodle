@@ -15,6 +15,8 @@ import MainMenu from './MainMenu';
 // Disable the default right click menu
 window.oncontextmenu = () => false
 
+// This has to be a global variable instead of a state, because we attach the touchMove listener function directly,
+// so we can have it not capture passively, so we can prevent default
 // null or a 2 item list of the previous touches
 var gestureTouches = null
 
@@ -24,8 +26,6 @@ export default function App() {
 
     const [dragging, setDragging] = useState(false)
     const [boundDragging, setBoundDragging] = useState(false)
-    // const [gestureTouches, setGestureTouches] = useState([{pageX:0, pageY:0}, {pageX:0, pageY:0}])
-    // console.log('gestureTouches:', gestureTouches)
 
     const [state, dispatch] = useReducer(reducer, {
         // mobile: window.innerWidth <= 768,
@@ -187,7 +187,7 @@ export default function App() {
                     y: -(prevCentery - newCentery),
                 })
                 // This line helps stablize translation
-                if (Math.abs((prevDist - newDist) * scrollSensitivity) > .7)
+                if (Math.abs((prevDist - newDist) * scrollSensitivity) > .5)
                     dispatch({action: 'scale',
                         amtx: -(prevDist - newDist) * scrollSensitivity,
                         amty: -(prevDist - newDist) * scrollSensitivity,
@@ -254,6 +254,14 @@ export default function App() {
             })
     }
 
+    // This keeps the focus always on the paper element
+    function onBlur() {
+        setTimeout(function() {
+            if (document.activeElement.nodeName !== 'INPUT')
+                paper.current.focus()
+        }, 100);
+    }
+
     useEffect(() => {
         // See https://stackoverflow.com/questions/63663025/react-onwheel-handler-cant-preventdefault-because-its-a-passive-event-listenev
         // for why we have to do it this way (because of the zoom browser shortcut)
@@ -261,11 +269,13 @@ export default function App() {
         paper.current.addEventListener('touchend', onTouchEnd, { passive: false })
         paper.current.addEventListener('touchstart', onTouchStart, { passive: false })
         paper.current.addEventListener('touchmove', onTouchMove, { passive: false })
+        // paper.current.addEventListener('keydown', onKeyDown, { passive: false })
         return () => {
             paper.current?.removeEventListener('wheel', onScroll)
             paper.current?.removeEventListener('touchend', onTouchEnd)
             paper.current?.removeEventListener('touchstart', onTouchStart)
             paper.current?.removeEventListener('touchmove', onTouchMove)
+            // paper.current?.removeEventListener('keydown', onKeyDown)
         }
     }, [])
 
@@ -396,6 +406,7 @@ export default function App() {
                 // onTouchEnd={onTouchEnd}
                 // onTouchEnd={onTouchStart}
                 onMouseUp={onMouseUp}
+                onBlur={onBlur}
                 // These are implemented with keyboard shortcuts, so they can be changed
                 // onCopy={e => dispatch({action: 'copy'})}
                 // onPaste={e => dispatch({action: 'paste'})}

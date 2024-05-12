@@ -48,8 +48,29 @@
 #tour-button{
     bottom: 10px;
     align-self: center;
+    position: absolute;
 }
 
 #expanding{
     height: 80%;
+}
+
+#close-button{
+    top: 10px;
+    right: 10px;
+    position: absolute;
+}
+
+#close-button{
+    bottom: 10px;
+    /* top: 300px; */
+    max-height: 50px;
+    right: 10px;
+    position: absolute;
+}
+
+ul{
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
 }

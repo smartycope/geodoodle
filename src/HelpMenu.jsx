@@ -2,6 +2,8 @@ import {useState} from 'react';
 import Tour from 'reactour'
 import "./HelpMenu.css"
 
+import { IoClose } from "react-icons/io5";
+
 const steps = [
     {content: 'Welcome to GeoDoodle! This is a guided tour cause I can do that now.'},
     {   selector: '#controls-menu',
@@ -68,29 +70,32 @@ export function HelpMenu({state, dispatch, setControlsVisible, close}){
 
     return <div>
         {!inTour && <div id='help-menu'>
-            Welcome to GeoDoodle! <br/>
+            <button id='close-button' onClick={close}><IoClose /></button>
+            <h3>Welcome to GeoDoodle!</h3> <br/>
             This is a drawing program that emulates doodling on graph paper<br/>
             All the lines are intended to line up with the dots
             You can click to draw lines, copy, paste, and mirror lines <br/>
-            The status of features is: <br/>
+            This is the roadmap of major features: <br/>
             <ul>
-                <li>Selection: &#9989;</li>
-                <li>Controls Menu: &#9989;</li>
-                <li>Mirroring: &#9989;</li>
-                <li>Colors &amp; Stroke Patterns: &#9989;</li>
-                <li>Mobile Compatibility: In progress</li>
-                <li>Repeating: &#10060;</li>
-                <li>Alternate Dot Patterns: &#10060;</li>
-                <li>File Handling: &#10060;</li>
-                <li>Custom Keyboard Shortcuts: &#10060;</li>
-                <li>App: ❌</li>
-                <li>Curved Lines: ❌</li>
+                <li>✅ Selection</li>
+                <li>✅ Controls Menu</li>
+                <li>✅ Mirroring</li>
+                <li>✅ Colors &amp; Stroke Patterns</li>
+                <li>✅ File Handling</li>
+                <li>☑️ Mobile Compatibility</li>
+                <li>❌ Repeating</li>
+                <li>❌ Settings</li>
+                <li>❌ Connect to Google Drive</li>
+                <li>❌ Alternate Dot Patterns</li>
+                <li>❌ Custom Keyboard Shortcuts</li>
+                <li>❌ App</li>
+                <li>❌ Curved Lines</li>
                 {/* <li>Lines from line intersections: ❌</li> */}
             </ul>
             {/* <div id='expanding'/> */}
             <span>
                 <button id='tour-button' onClick={startTour}>Start tour</button>
-                <button onClick={close}>Close</button>
+                {/* <button id='close-button' onClick={close}>Close</button> */}
             </span>
         </div>}
         <Tour
