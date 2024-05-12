@@ -1,0 +1,55 @@
+#help-menu{
+    position: absolute;
+    /* top: 50%;
+    left: 50%; */
+    width: 80%;
+    height: 80%;
+    /* margin-bottom: 10%;
+    margin-right: 10%; */
+    margin: 10%;
+    /* transform: translate(-50%, -50%); */
+    /* top: 0px; */
+    /* To center it */
+    /* left: 30%; */
+    /* transform: translateX(-50%); */
+    /* width: 90%; */
+    /* width: max-content; */
+    /* opacity: .1; */
+    background-color: rgba(20,20,20,.9);
+    border-radius: 10px;
+    color: white;
+    /* margin: 10px;
+    padding: 10px; */
+    /* padding-left: 10px;
+    padding-right: 25px; */
+    /* align-items: flex-end; */
+    /* align-items: center;
+    flex-flow: wrap;
+    align-content: space-between;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between; */
+    /* width: min-content; */
+    z-index: 1;
+    /* .br { */
+        /* width: 100%; */
+        /* width: calc(max-content + 50px); */
+        /* flex-grow: 100%; */
+        /* display: flex; */
+    /* } */
+
+
+    /* > select{ */
+        /* padding-left: 20px; */
+        /* margin-right: 30px; */
+    /* } */
+}
+
+#tour-button{
+    bottom: 10px;
+    align-self: center;
+}
+
+#expanding{
+    height: 80%;
+}

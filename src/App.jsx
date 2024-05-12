@@ -15,8 +15,8 @@ import MainMenu from './MainMenu';
 // Disable the default right click menu
 window.oncontextmenu = () => false
 
-// var prevTouches = [null, null]
-var gestureTouches = [{pageX:0, pageY:0}, {pageX:0, pageY:0}]
+// null or a 2 item list of the previous touches
+var gestureTouches = null
 
 export default function App() {
     const boundsGroup = useRef()
@@ -171,13 +171,7 @@ export default function App() {
     function onTouchMove(e){
         e.preventDefault()
         if (e.touches.length === 2){
-
-            // if (gestureTouches === null){
-            //     console.log('a')
-                // gestureTouches = null
-            // } else {
-                // console.log(e)
-                // console.log(gestureTouches)
+            if (gestureTouches !== null){
                 const {distance: newDist, centerx:newCenterx, centery:newCentery} = distCenter(
                     e.touches[0].pageX, e.touches[0].pageY,
                     e.touches[1].pageX, e.touches[1].pageY,
@@ -187,16 +181,24 @@ export default function App() {
                     gestureTouches[0].pageX, gestureTouches[0].pageY,
                     gestureTouches[1].pageX, gestureTouches[1].pageY,
                 )
-                // console.log(`translating by (${prevCenterx - newCenterx}, ${prevCentery-newCentery})`)
-                // console.log('scaling by', ((prevDist - newDist) / 2))
-                // console.log('translating by', prevCentery - newCentery)
                 dispatch({action: 'nevermind'})
-                dispatch({action: 'translate', x: (prevCenterx - newCenterx) * scrollSensitivity, y: (prevCentery - newCentery) * scrollSensitivity})
-                // dispatch({action: 'scale', amt: scalex + ((prevCenterx - newCenterx) / 2)})
-                dispatch({action: 'scale', amtx: (prevDist - newDist), amty: (prevDist - newDist), cx: newCenterx, cy: newCentery})
-            // }
+                dispatch({action: 'translate',
+                    x: -(prevCenterx - newCenterx),
+                    y: -(prevCentery - newCentery),
+                })
+                // This line helps stablize translation
+                if (Math.abs((prevDist - newDist) * scrollSensitivity) > .7)
+                    dispatch({action: 'scale',
+                        amtx: -(prevDist - newDist) * scrollSensitivity,
+                        amty: -(prevDist - newDist) * scrollSensitivity,
+                        cx: newCenterx,
+                        cy: newCentery
+                    })
+            } else {
+                dispatch({action: 'nevermind'})
+            }
             gestureTouches = e.touches
-        } else if (e.touches.length === 1){
+        } else if (e.touches.length === 1 && gestureTouches === null){
             const touch = (e.touches[0] || e.changedTouches[0])
             dispatch({
                 action: 'cursor moved',
@@ -207,21 +209,10 @@ export default function App() {
     }
 
     function onTouchEnd(e){
-        // console.log('touch end')
         e.preventDefault()
         if (!clipboard)
             dispatch({action: 'add line'})
-
-        // if (gestureTouches !== null){
-        //     const gestureIDs = Array.from(gestureTouches).map(i => i.identifier)
-        //     for (const i of e.touches){
-                // if (gestureIDs.includes(i.identifier)){
-                    // setGestureTouches(null)
-                    // gestureTouches = null
-                // }
-        //     }
-        // }
-        // setDragging(false)
+        gestureTouches = null
     }
 
     function onTouchStart(e){

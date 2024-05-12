@@ -103,13 +103,12 @@ export default function reducer(state, data){
             const max = Math.min(window.visualViewport.width, window.visualViewport.height) / 4
             const cx = data.cx ?? cursorPos[0]
             const cy = data.cy ?? cursorPos[1]
-            // console.log(data.amtx)
+            console.log(data.amtx, data.amty)
             // console.log(cx, cy)
 
             const x = Math.min(max, Math.max(4, scalex + data.amtx))
             const y = Math.min(max, Math.max(4, scaley + data.amty))
 
-            // const newState = {...state,
             // TODO: This still doesn't work
             return {...state,
                 scalex: x,
