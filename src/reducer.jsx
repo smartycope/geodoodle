@@ -100,7 +100,8 @@ export default function reducer(state, data){
                 curLine: null,
             }
             // The -8 is a fudge factor to get a better guess at where the mouse is
-            return reducer(newState, {action: 'cursor moved', x: cursorPos[0], y: cursorPos[1]})
+            // return reducer(newState, {action: 'cursor moved', x: cursorPos[0] + data.x, y: cursorPos[1] - data.y})
+            return newState
         }
         case 'scale':{ // args: amtx, amty (delta values), cx, cy (center x/y)
             const max = Math.min(window.visualViewport.width, window.visualViewport.height) / 4
@@ -406,8 +407,11 @@ export default function reducer(state, data){
         // Undo Actions
         case 'undo':
             const prevState = undoStack.pop()
-            redoStack.push(prevState)
-            return prevState
+            if (prevState === undefined){
+                redoStack.push(prevState)
+                return prevState
+            } else
+                return state
 
         case 'redo':
             const nextState = redoStack.pop()
@@ -587,15 +591,26 @@ export default function reducer(state, data){
                     [18.05, 23.05],
                 ],
                 curLine: null,
+                dash: "20, 10",
                 mobile: true,
+                commonColors: ['#000000', '#000000', '#ffddab', '#ff784b', '#1a31ff'],
                 lines: [
+                    <line id="dashed-line" {...{
+                        "x1": 19.05 + 4,
+                        "y1": 27.05 + 4,
+                        "x2": 20.05 + 6,
+                        "y2": 25.05 + 10,
+                        "stroke": "black",
+                        "strokeWidth": 0.05,
+                        "strokeDasharray": '1, .5'
+                    }}/>,
                     <line {...{
                         "x1": 19.05,
                         "y1": 27.05,
                         "x2": 20.05,
                         "y2": 25.05,
                         "stroke": "black",
-                        "strokeWidth": 0.05
+                        "strokeWidth": 0.05,
                     }}/>,
                     <line {...{
                         "x1": 20.05,

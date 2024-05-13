@@ -85,6 +85,8 @@ export function createLine(state, props, translate=true, scale=true, exact=false
         stroke: stroke,
         strokeWidth: strokeWidth / scalex,
         strokeDasharray: dash.replace(/\s/, '').split(',').map(i => i/scalex).join(','),
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
     }
 
     return <line {...adjProps}

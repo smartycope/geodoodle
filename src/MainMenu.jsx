@@ -61,6 +61,10 @@ export default function MainMenu({dispatch, state}){
         {repeatVisible && <div>The repeat menu isn't implemented yet</div>}
         {fileVisible && <FileMenu dispatch={dispatch} state={state} close={() => setFileVisible(false)}/>}
         {settingsVisible && <div>The settings menu isn't implemented yet</div>}
-        {helpVisible && <HelpMenu dispatch={dispatch} state={state} setControlsVisible={setControlsVisible} close={() => setHelpVisible(false)}/>}
+        {helpVisible && <HelpMenu dispatch={dispatch} state={state}
+            setControlsVisible={setControlsVisible}
+            setColorVisible={setColorVisible}
+            close={() => setHelpVisible(false)}
+        />}
     </>
 }

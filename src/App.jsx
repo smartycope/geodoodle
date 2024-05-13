@@ -2,9 +2,10 @@ import './App.css';
 import {useEffect, useReducer, useRef, useState} from 'react';
 import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, MODE} from './globals'
 import reducer from './reducer';
-import {calc, distCenter, mobileAndTabletCheck} from './utils';
+import {calc, distCenter, getSelected, mobileAndTabletCheck} from './utils';
 import options from './options';
 import MainMenu from './MainMenu';
+import {getTrellis} from './repeatEngine';
 
 
 // Coordinate systems:
@@ -62,8 +63,6 @@ export default function App() {
         // Of type MIRROR_AXIS or null
         clipboardMirrorAxis: null,
 
-
-        // pattern: null,
         repeating: false,
 
         mirroring: false,
@@ -90,7 +89,7 @@ export default function App() {
         partials: options.partials,
         invertedScroll: options.invertedScroll,
         scrollSensitivity: options.scrollSensitivity,
-        debug: options.debug,
+        debug: false,
     })
 
     const {
@@ -106,7 +105,6 @@ export default function App() {
         bounds,
         clipboardRotation,
         clipboardMirrorAxis,
-        // pattern,
         mirroring,
         mirrorAxis,
         mirrorAxis2,
@@ -391,6 +389,7 @@ export default function App() {
     if (clipboardMirrorAxis === MIRROR_AXIS.HORZ_180 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360)
         clipboardFlip += `matrix(1, 0, 0, -1, 0, ${cursorPos[1]*2}) `
 
+
     return (
         <div className="App">
             <MainMenu dispatch={dispatch} state={state}/>
@@ -437,7 +436,10 @@ export default function App() {
                 {debug && <text x="80%" y='20'>{`Translation: ${Math.round(translationx)}, ${Math.round(translationy)}`}</text>}
                 {debug && <text x="80%" y='40'>{`Scale: ${Math.round(scalex)}, ${Math.round(scaley)}`}</text>}
 
-                {/* Drak the cursor */}
+                {/* Draw the trellis */}
+                {repeating && getTrellis(state)}
+
+                {/* Draw the cursor */}
                 <g>{cursor}</g>
 
                 {/* Draw the lines */}

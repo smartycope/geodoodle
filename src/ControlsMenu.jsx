@@ -247,10 +247,10 @@ export default function ControlsMenu({dispatch, state}){
 
         {/* Delete buttons */}
         {state.mobile && <span className="button-group">
-            <button onClick={() => dispatch({action: "delete"})} title="Delete all lines attached to a point">
+            <button id="delete-lines" onClick={() => dispatch({action: "delete"})} title="Delete all lines attached to a point">
                 <MdDelete />
             </button>
-            <button onClick={() => dispatch({action: "delete line"})} title="Delete a specific line">
+            <button id="delete-line" onClick={() => dispatch({action: "delete line"})} title="Delete a specific line">
                 <MdDeleteForever />
             </button>
         </span>}

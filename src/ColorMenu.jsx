@@ -122,7 +122,8 @@ export default function ColorMenu({dispatch, state}){
             >
                 {palletteVisible ? "Set" : "Pick Color"}
             </button>
-            <span className='button-group'>
+            {/* Recently used buttons */}
+            <span className='button-group' id="recent-color-buttons">
                 {JSON.parse(JSON.stringify(state.commonColors)).reverse().map((commonColor, i) =>
                     <button
                         onClick={() => dispatch({action: 'set manual', stroke: commonColor})}
@@ -131,22 +132,29 @@ export default function ColorMenu({dispatch, state}){
                     >{i+1}</button>
                 )}
             </span>
-            <label htmlFor="stroke-input">Stroke: </label>
-            <input
-                id="stroke-input"
-                type="number"
-                value={state.strokeWidth}
-                onChange={(val) => dispatch({action: 'set manual', strokeWidth: val.target.value})}
-            ></input>
 
-            <label htmlFor="dash-input">Dash Code: </label>
-            <input
-                id="dash-input"
-                type="text"
-                value={state.dash}
-                style={{width: state.dash.length * 5 + 10}}
-                onChange={(val) => dispatch({action: 'set manual', dash: val.target.value})}
-            ></input>
+            {/* Stroke input */}
+            <span id="stoke-input-area">
+                <label htmlFor="stroke-input">Stroke: </label>
+                <input
+                    id="stroke-input"
+                    type="number"
+                    value={state.strokeWidth}
+                    onChange={(val) => dispatch({action: 'set manual', strokeWidth: val.target.value})}
+                ></input>
+            </span>
+
+            {/* Dash code */}
+            <span id="dash-input-area">
+                <label htmlFor="dash-input">Dash Code: </label>
+                <input
+                    id="dash-input"
+                    type="text"
+                    value={state.dash}
+                    style={{width: state.dash.length * 5 + 10}}
+                    onChange={(val) => dispatch({action: 'set manual', dash: val.target.value})}
+                ></input>
+            </span>
             {/* Grip */}
             <FaGripLinesVertical id="grip" color='darkgray'/>
         </div>

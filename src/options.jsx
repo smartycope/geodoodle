@@ -23,7 +23,6 @@ const defaultOptions = {
     // If we remove all the bounds after cut or delete selection
     removeSelectionAfterDelete: false,
     maxUndoAmt: 20,
-    debug: true,
 }
 
 // The default keybindings
