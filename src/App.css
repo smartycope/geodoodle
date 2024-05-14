@@ -19,3 +19,12 @@ html{
     /* background-color: BlanchedAlmond; */
     cursor: none;
 }
+
+.checkbox{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    label{
+        margin-right: 1px;
+    }
+}

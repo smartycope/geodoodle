@@ -64,7 +64,7 @@ export default function reducer(state, data){
     }
 
     if (reversibleActions.includes(data.action)){
-        if (undoStack.push(state) > defaultOptions.maxUndoAmt){
+        if (undoStack.push(state) > state.maxUndoAmt){
             undoStack.shift()
         }
     }
@@ -407,7 +407,7 @@ export default function reducer(state, data){
         // Undo Actions
         case 'undo':
             const prevState = undoStack.pop()
-            if (prevState === undefined){
+            if (prevState !== undefined){
                 redoStack.push(prevState)
                 return prevState
             } else

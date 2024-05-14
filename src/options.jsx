@@ -20,6 +20,7 @@ const defaultOptions = {
     invertedScroll: true,
     scrollSensitivity: .3,
     hideHexColor: true,
+    enableGestureScale: false,
     // If we remove all the bounds after cut or delete selection
     removeSelectionAfterDelete: false,
     maxUndoAmt: 20,

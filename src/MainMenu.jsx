@@ -15,11 +15,15 @@ import { IoMdSettings } from "react-icons/io";
 import {HelpMenu} from "./HelpMenu"
 import ColorMenu from "./ColorMenu";
 import {FileMenu} from "./FileMenu";
+import {SettingsMenu} from "./SettingsMenu";
+import NavMenu from "./NavMenu";
+import { RiNavigationFill } from "react-icons/ri";
 
 export default function MainMenu({dispatch, state}){
     const [visible, setVisible] = useState(false);
     const [controlsVisible, setControlsVisible] = useState(false);
     const [colorVisible, setColorVisible] = useState(false)
+    const [navigationVisible, setNavigationVisible] = useState(false)
     const [repeatVisible, setRepeatVisible] = useState(false)
     const [fileVisible, setFileVisible] = useState(false)
     const [settingsVisible, setSettingsVisible] = useState(false)
@@ -40,6 +44,9 @@ export default function MainMenu({dispatch, state}){
             <button onClick={() => {setColorVisible(!colorVisible); setVisible(false); dispatch({action: 'nevermind'})}} className="menu-toggle-button">
                 <MdColorLens /> Colors
             </button>
+            <button onClick={() => {setNavigationVisible(!navigationVisible); setVisible(false); dispatch({action: 'nevermind'})}} className="menu-toggle-button">
+                <RiNavigationFill /> Navigation
+            </button>
             <button onClick={() => {setRepeatVisible(!repeatVisible); setVisible(false); dispatch({action: 'nevermind'})}} className="menu-toggle-button">
                 <MdDashboard /> Repeat
             </button>
@@ -58,9 +65,10 @@ export default function MainMenu({dispatch, state}){
         {/* The menus */}
         {controlsVisible && <ControlsMenu dispatch={dispatch} state={state}/>}
         {colorVisible && <ColorMenu dispatch={dispatch} state={state}/>}
+        {navigationVisible && <NavMenu dispatch={dispatch} state={state}/>}
         {repeatVisible && <div>The repeat menu isn't implemented yet</div>}
         {fileVisible && <FileMenu dispatch={dispatch} state={state} close={() => setFileVisible(false)}/>}
-        {settingsVisible && <div>The settings menu isn't implemented yet</div>}
+        {settingsVisible && <SettingsMenu dispatch={dispatch} state={state} close={() => setSettingsVisible(false)}/>}
         {helpVisible && <HelpMenu dispatch={dispatch} state={state}
             setControlsVisible={setControlsVisible}
             setColorVisible={setColorVisible}

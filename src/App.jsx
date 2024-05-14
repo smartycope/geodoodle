@@ -89,6 +89,9 @@ export default function App() {
         partials: options.partials,
         invertedScroll: options.invertedScroll,
         scrollSensitivity: options.scrollSensitivity,
+        hideHexColor: options.hideHexColor,
+        maxUndoAmt: options.maxUndoAmt,
+        enableGestureScale: options.enableGestureScale,
         debug: false,
     })
 
@@ -123,6 +126,7 @@ export default function App() {
         sheary,
         invertedScroll,
         scrollSensitivity,
+        enableGestureScale,
         debug,
     } = state
 
@@ -185,7 +189,7 @@ export default function App() {
                     y: -(prevCentery - newCentery),
                 })
                 // This line helps stablize translation
-                if (Math.abs((prevDist - newDist) * scrollSensitivity) > .5)
+                if (Math.abs((prevDist - newDist) * scrollSensitivity) > .5 && enableGestureScale)
                     dispatch({action: 'scale',
                         amtx: -(prevDist - newDist) * scrollSensitivity,
                         amty: -(prevDist - newDist) * scrollSensitivity,
@@ -255,7 +259,7 @@ export default function App() {
     // This keeps the focus always on the paper element
     function onBlur() {
         setTimeout(function() {
-            if (document.activeElement.nodeName !== 'INPUT')
+            if (document.activeElement.nodeName !== 'INPUT' || document.activeElement.type === 'checkbox')
                 paper.current.focus()
         }, 100);
     }

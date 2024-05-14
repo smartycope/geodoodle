@@ -30,6 +30,7 @@ import { PiSelectionPlusDuotone } from "react-icons/pi";
 import { PiSelectionSlashDuotone } from "react-icons/pi";
 import { MdDelete } from "react-icons/md";
 import { MdDeleteForever } from "react-icons/md";
+import { GoMirror } from "react-icons/go";
 
 let offsetX, offsetY;
 let isDragging = false;
@@ -141,7 +142,7 @@ export default function ControlsMenu({dispatch, state}){
         default: console.error(state.mirrorType, 'is not a valid mirror type');
     }
     switch(state.mirrorMethod){
-        case MIRROR_METHOD.FLIP:   mirrorMethod = <><RiFlipHorizontalLine /> Flip</>; break
+        case MIRROR_METHOD.FLIP:   mirrorMethod = <><GoMirror /> Flip</>; break
         case MIRROR_METHOD.ROTATE: mirrorMethod = <><RxRotateCounterClockwise /> Rotate</>; break
         case MIRROR_METHOD.BOTH:   mirrorMethod = <><TbArrowsRandom /> Both</>; break
         default: console.error(state.mirrorMethod, 'is not a valid mirror method');

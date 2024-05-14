@@ -91,15 +91,6 @@
     }
 }
 
-.checkbox{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    label{
-        margin-right: 1px;
-    }
-}
-
 #grip{
     scale: 1.5;
     transform: scaleY(1.5);

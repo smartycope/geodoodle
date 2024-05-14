@@ -109,7 +109,7 @@ export default function ColorMenu({dispatch, state}){
             {palletteVisible && <ColorPicker color={ColorService.convert('hex', state.stroke)} onChange={(clr) => {
                 dispatch({action: 'set manual', stroke: clr.hex});
                 // setColor(clr)
-            }} hideInput={['hsv', options.hideHexColor ? 'hex' : '']}/>}
+            }} hideInput={['hsv', state.hideHexColor ? 'hex' : '']}/>}
         </div>
         <div id="color-menu" ref={colorMenu}>
             <button id='color-picker-button'

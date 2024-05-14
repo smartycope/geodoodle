@@ -1,0 +1,64 @@
+#nav-menu{
+    /* top: 0px; */
+    /* To center it */
+    left: 30%;
+    bottom: 10px;
+
+    background-color: rgba(20,20,20,.8);
+    border-radius: 10px;
+    margin: 10px;
+    padding: 10px;
+    padding-left: 10px;
+    padding-right: 25px;
+    position: absolute;
+    align-items: center;
+    flex-flow: wrap;
+    align-content: space-between;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    cursor: grab;
+    z-index: 1;
+    color: white;
+    .br {
+        width: 100%;
+    }
+}
+
+.button-group{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-left: 10px;
+    > *{
+        margin: 2px;
+    }
+}
+
+#grip{
+    scale: 1.5;
+    transform: scaleY(1.5);
+    position: absolute;
+    right: 5px;
+    height: max-content;
+    display: flex;
+    flex-direction: column;
+}
+
+input[type="number"]{
+    max-width: 40px;
+}
+
+input[type="text"]{
+    /* max-width: 40px; */
+    /* width: min-content; */
+
+}
+
+input{
+    padding: 8px;
+    color: white;
+    border-radius: 8px;
+    background-color: rgb(40,40,40);
+}
