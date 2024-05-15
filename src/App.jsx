@@ -1,10 +1,10 @@
-import './App.css';
+import './styling/App.css';
 import {useEffect, useReducer, useRef, useState} from 'react';
 import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, MODE} from './globals'
 import reducer from './reducer';
-import {calc, distCenter, getSelected, mobileAndTabletCheck} from './utils';
+import {align, calc, distCenter, getSelected, mobileAndTabletCheck} from './utils';
 import options from './options';
-import MainMenu from './MainMenu';
+import MainMenu from './Menus/MainMenu';
 import {getTrellis} from './repeatEngine';
 
 
@@ -29,10 +29,10 @@ export default function App() {
     const [boundDragging, setBoundDragging] = useState(false)
 
     const [state, dispatch] = useReducer(reducer, {
-        // mobile: window.innerWidth <= 768,
         mobile: mobileAndTabletCheck(),
         // A hex color string
         stroke: options.stroke,
+        // Coord: Scalar, not scaled
         strokeWidth: options.strokeWidth,
         // A list of hex color strings that gets shifted
         commonColors: new Array(options.commonColorAmt).fill(options.stroke),
@@ -63,7 +63,30 @@ export default function App() {
         // Of type MIRROR_AXIS or null
         clipboardMirrorAxis: null,
 
-        repeating: false,
+        trellis: false,
+
+        // How many dots to overlap in the x direction
+        // Coord: scalar, scaled
+        trellisOverlapx: 0,
+        // How many dots to overlap in the y direction
+        // Coord: scalar, scaled
+        trellisOverlapy: 0,
+        // Every <trellisRowSkip> rows, we skip one
+        trellisRowSkip: 0,
+        // Every <trellisColSkip> columns, we skip one
+        trellisColSkip: 0,
+        // How we flip the rows
+        // Type: MIRROR_AXIS | null
+        trellisFlipRows: null,
+        // How we flip the columns
+        // Type: MIRROR_AXIS | null
+        trellisFlipCols: null,
+        // How we rotate the rows
+        // Type: MIRROR_AXIS | null
+        trellisRotateRows: null,
+        // How we rotate the columns
+        // Type: MIRROR_AXIS | null
+        trellisRotateCols: null,
 
         mirroring: false,
         mirrorAxis: MIRROR_AXIS.VERT_90,
@@ -93,6 +116,17 @@ export default function App() {
         maxUndoAmt: options.maxUndoAmt,
         enableGestureScale: options.enableGestureScale,
         debug: false,
+
+        openMenus: {
+            main: false,
+            controls: false,
+            color: false,
+            navigation: false,
+            repeat: false,
+            file: false,
+            settings: false,
+            help: false,
+        },
     })
 
     const {
@@ -113,7 +147,7 @@ export default function App() {
         mirrorAxis2,
         mirrorType,
         mirrorMethod,
-        repeating,
+        trellis,
         eraser,
         clipboard,
         translationx,
@@ -128,12 +162,16 @@ export default function App() {
         scrollSensitivity,
         enableGestureScale,
         debug,
+        openMenus,
     } = state
 
     const {
         halfx,
         halfy,
+        offsetx,
+        offsety,
         boundRect,
+        relCursorPos,
     } = calc(state)
 
     const boundRadius = scalex / 1.5
@@ -346,10 +384,10 @@ export default function App() {
     ) mirrorLines.push(<circle cx={halfx} cy={halfy} r={scalex/3} fill={options.mirrorColor} opacity={.8} strokeOpacity="0"/>)
 
     const drawBoundRect = boundDragging && bounds.length === 1 ? {
-        left:   Math.min(boundRect?.left,   cursorPos[0] / scalex),
-        right:  Math.max(boundRect?.right,  cursorPos[0] / scalex),
-        top:    Math.min(boundRect?.top,    cursorPos[1] / scaley),
-        bottom: Math.max(boundRect?.bottom, cursorPos[1] / scaley),
+        left:   Math.min(boundRect?.left,   relCursorPos[0]),
+        right:  Math.max(boundRect?.right,  relCursorPos[0]),
+        top:    Math.min(boundRect?.top,    relCursorPos[1]),
+        bottom: Math.max(boundRect?.bottom, relCursorPos[1]),
     } : boundRect
 
     // Construct the cursor
@@ -386,6 +424,8 @@ export default function App() {
         }
     }
 
+    const alignedTranslation = align(state, 0, 0)
+
     let clipboardFlip = ''
     // eslint-disable-next-line default-case
     if (clipboardMirrorAxis === MIRROR_AXIS.VERT_90 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360)
@@ -405,9 +445,6 @@ export default function App() {
                 onKeyDown={e => dispatch({action: 'key press', event: e})}
                 tabIndex={0}
                 onMouseDown={onMouseDown}
-                // onTouchMove={onTouchMove}
-                // onTouchEnd={onTouchEnd}
-                // onTouchEnd={onTouchStart}
                 onMouseUp={onMouseUp}
                 onBlur={onBlur}
                 // These are implemented with keyboard shortcuts, so they can be changed
@@ -441,13 +478,21 @@ export default function App() {
                 {debug && <text x="80%" y='40'>{`Scale: ${Math.round(scalex)}, ${Math.round(scaley)}`}</text>}
 
                 {/* Draw the trellis */}
-                {repeating && getTrellis(state)}
+                <g transform={`
+                    translate(${alignedTranslation[0]},
+                              ${alignedTranslation[1]})
+                    scale(${scalex} ${scaley})
+                `}>
+                    {((trellis || openMenus.repeat) && bounds.length > 1) && getTrellis(state)}
+                </g>
 
                 {/* Draw the cursor */}
                 <g>{cursor}</g>
 
                 {/* Draw the lines */}
-                <g id='lines' transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}> {lines} </g>
+                <g id='lines' transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}>
+                    {lines}
+                </g>
 
                 {/* Draw the current line */}
                 {curLine && <g>{curLines}</g>}
@@ -470,8 +515,6 @@ export default function App() {
 
                 {/* Draw the selection rect */}
                 {boundRect && <rect
-                    // We need to re-add the translation here because we're subtracting it out
-                    // Or maybe not??
                     width={(drawBoundRect?.right - drawBoundRect?.left) * scalex}
                     height={(drawBoundRect?.bottom - drawBoundRect?.top) * scaley}
                     x={drawBoundRect?.left * scalex + translationx}

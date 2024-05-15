@@ -1,37 +1,11 @@
 import {useState} from 'react';
-import "./SettingsMenu.css"
+import "../styling/SettingsMenu.css"
+import {Checkbox, Input} from "./MenuUtils"
 
 import { IoClose } from "react-icons/io5";
 
-function Checkbox({label, onChange, checked, title, id, inputId}){
-    return <span className="checkbox" id={id} title={title}>
-        <input
-            type="checkbox"
-            name={label}
-            id={inputId}
-            onChange={(e) => onChange(e.target.value === 'on')}
-            checked={checked}
-        ></input>
-        <label htmlFor={label}>{label}</label>
-    </span>
-}
 
-function Input({label, onChange, type, value, inputProps, title, id, inputId}){
-    return <span className="checkbox" id={id} title={title}>
-        <input
-            type={type}
-            name={label}
-            id={inputId}
-            value={value}
-            onChange={onChange}
-            {...inputProps}
-        ></input>
-        <label htmlFor={label}>{label}</label>
-    </span>
-}
-
-
-export function SettingsMenu({state, dispatch, close}){
+export function SettingsMenu({state, dispatch}){
     const {
         removeSelectionAfterDelete,
         invertedScroll,
@@ -42,9 +16,9 @@ export function SettingsMenu({state, dispatch, close}){
         debug,
     } = state
 
-    return <div id='settings-menu' onAbort={close}>
+    return <div id='settings-menu' onAbort={() => dispatch({action: "menu", close: "settings"})}>
         <h3>Settings</h3>
-        <button id='close-button' onClick={close}><IoClose /></button>
+        <button id='close-button' onClick={() => dispatch({action: "menu", close: "settings"})}><IoClose /></button>
         {/* removeSelectionAfterDelete */}
         <Checkbox label="Invert Scroll"
             title="Controls the scroll direction"

@@ -1,14 +1,14 @@
 import React, {useEffect, useRef, useState} from "react";
-import "./ColorMenu.css"
+import "../styling/ColorMenu.css"
 import { MdContentCopy } from "react-icons/md"
 import { MdHome } from "react-icons/md";
 import { MdOutlineContentCut } from "react-icons/md";
 import { MdContentPaste } from "react-icons/md";
 import { MdCropPortrait } from "react-icons/md";
-import { MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE } from "./globals";
+import { MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE } from "../globals";
 import { ColorPicker, useColor, ColorService } from "react-color-palette";
 import "react-color-palette/css";
-import options from "./options";
+import options from "../options";
 
 import { FaGripLinesVertical } from "react-icons/fa6";
 

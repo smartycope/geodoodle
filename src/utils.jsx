@@ -30,6 +30,16 @@ export function removeLine(lines, line){
     return lines.filter(i => hashLine(i) !== hashLine(line))
 }
 
+export function align(state, x, y){
+    const {scalex, scaley, translationx, translationy} = state
+    return [
+        (Math.round(x / scalex) * scalex) + translationx % scalex + 1,
+        (Math.round(y / scaley) * scaley) + translationy % scaley + 1,
+    ]
+}
+
+// Returns a list of <line> objects
+// Coord: absolute @ (0,0), scaled
 export function getSelected(state, remove=false){
     const {partials, lines, bounds} = state
     const {boundRect} = calc(state)
@@ -95,17 +105,21 @@ export function createLine(state, props, translate=true, scale=true, exact=false
         />
 }
 
-export function calc({scalex, scaley, translationx, translationy, bounds, cursorPos}){
+export function calc(state){
+    const {scalex, scaley, translationx, translationy, bounds, cursorPos} = state
     const offsetx = translationx % scalex
     const offsety = translationy % scaley
 
     const scaledTranslationx = translationx / scalex
     const scaledTranslationy = translationy / scaley
+
+    const alignedHalf = align(state, window.visualViewport.width  / 2, window.visualViewport.height / 2)
+
     return {
         // Numbers
         // Coord: absolute, not scaled
-        halfx: Math.round((window.visualViewport.width  / 2) / scalex) * scalex + offsetx + 1,
-        halfy: Math.round((window.visualViewport.height / 2) / scaley) * scaley + offsety + 1,
+        halfx: alignedHalf[0],
+        halfy: alignedHalf[1],
         // Numbers
         // Coord: N/A
         offsetx: offsetx,
@@ -175,14 +189,13 @@ export function toggleDarkMode() {
 }
 
 export const multMat = (A, B) =>
-  A.map((row, i) =>
-    B[0].map((_, j) =>
-      row.reduce((acc, _, n) =>
-        acc + A[i][n] * B[n][j], 0
-      )
+    A.map((row, i) =>
+        B[0].map((_, j) =>
+            row.reduce((acc, _, n) =>
+                acc + A[i][n] * B[n][j], 0
+            )
+        )
     )
-  )
-
 
 export function toRadians (angle) {
     return angle * (Math.PI / 180);

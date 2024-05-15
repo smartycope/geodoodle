@@ -1,11 +1,11 @@
 import {useState} from 'react';
 import Tour from 'reactour'
-import "./HelpMenu.css"
+import "../styling/HelpMenu.css"
 
 import { IoClose } from "react-icons/io5";
 
 
-export function HelpMenu({state, dispatch, setControlsVisible, setColorVisible, close}){
+export function HelpMenu({state, dispatch, setControlsVisible, setColorVisible}){
     const [inTour, setInTour] = useState(false);
 
     const steps = [
@@ -82,22 +82,20 @@ export function HelpMenu({state, dispatch, setControlsVisible, setColorVisible, 
     ]
 
     function startTour(){
-        setControlsVisible(true)
-        setColorVisible(true)
         setInTour(true)
         dispatch({action: 'start tour'})
     }
 
     function endTour(){
-        setControlsVisible(false)
-        setColorVisible(false)
         setInTour(false)
         dispatch({action: 'end tour'})
     }
 
     return <div>
         {!inTour && <div id='help-menu'>
-            <button id='close-button' onClick={close}><IoClose /></button>
+            <button id='close-button' onClick={() => dispatch({action: "menu", close: "help"})}>
+                <IoClose />
+            </button>
             <h3>Welcome to GeoDoodle!</h3> <br/>
             This is a drawing program that emulates doodling on graph paper<br/>
             All the lines are intended to line up with the dots <br/>
@@ -122,7 +120,8 @@ export function HelpMenu({state, dispatch, setControlsVisible, setColorVisible, 
             This is the (a) passion project of Copeland Carter. <br/>
             To see one of the other things he's really proud of,
             check out <a href='http://ezregex.org/'>EZRegex.org</a>! <br/>
-            This project is entirely open source, and the code is available on <a href='https://github.com/smartycope/geodoodle'>GitHub</a>
+            This project is entirely open source, and the code is available on
+            <a href='https://github.com/smartycope/geodoodle'>GitHub</a>
             <span>
                 <button id='tour-button' onClick={startTour}>Start full tour</button>
                 {/* <button id='close-button' onClick={close}>Close</button> */}

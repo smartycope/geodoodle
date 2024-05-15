@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
-import "./NavMenu.css"
-import options from "./options";
+import "../styling/NavMenu.css"
+import options from "../options";
 
 import { FaGripLinesVertical } from "react-icons/fa6";
 

@@ -1,6 +1,6 @@
 import {useState} from 'react';
-import "./FileMenu.css"
-import {localStorageName} from './globals.js'
+import "../styling/FileMenu.css"
+import {localStorageName} from '../globals.js'
 
 import { IoClose } from "react-icons/io5";
 import { IoMdDownload } from "react-icons/io";
@@ -8,7 +8,7 @@ import { MdUpload } from "react-icons/md";
 import { FaSave } from "react-icons/fa";
 import { IoIosDownload } from "react-icons/io";
 
-export function FileMenu({state, dispatch, close}){
+export function FileMenu({state, dispatch}){
     const [saveName, setSaveName] = useState('');
     const [loadName, setLoadName] = useState('');
     const [downloadName, setDownloadName] = useState('');
@@ -26,9 +26,9 @@ export function FileMenu({state, dispatch, close}){
 
     const saves = localStorage.getItem(localStorageName)
 
-    return <div id='file-menu' onAbort={close}>
+    return <div id='file-menu' onAbort={() => dispatch({action: "menu", close: "file"})}>
         <h3>Load & Save Files</h3>
-        <button id='close-button' onClick={close}><IoClose /></button>
+        <button id='close-button' onClick={() => dispatch({action: "menu", close: "file"})}><IoClose /></button>
         <span className='group'>
             <p>Name: </p>
             <input type="text" onChange={(e) => setDownloadName(e.target.value)}></input>
@@ -56,7 +56,10 @@ export function FileMenu({state, dispatch, close}){
             <button onClick={() => dispatch({action: 'load local', name: loadName})}><IoIosDownload /> Load</button>
         </span>
 
-        <footer className="footer">I'm reasonably sure that any method of loading files is technically hackable.<br/>Don't load or upload files from unknown sources</footer>
+        <footer className="footer">
+            I'm reasonably sure that any method of loading files is technically hackable.<br/>
+            Don't load or upload files from unknown sources
+        </footer>
         {/* <button onClick={() => dispatch({action: "load", })}><MdUpload />Upload</button> */}
     </div>
 }

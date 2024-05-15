@@ -1,13 +1,24 @@
-import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageName} from './globals.js'
-import { toRadians, lineIn, removeLine, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq, toggleDarkMode } from './utils'
-import defaultOptions, { keybindings, reversibleActions } from './options.jsx'
-import {deserialize, getFileName, serialize} from './fileUtils.jsx';
+import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageName} from './globals'
+import { toRadians, lineIn, removeLine, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq, toggleDarkMode, align } from './utils'
+import defaultOptions, { keybindings, reversibleActions } from './options'
+import {deserialize, getFileName, serialize} from './fileUtils';
 
 var undoStack = []
 var redoStack = []
 var preTourState = null
 
+// Can accept any of 3 parameters to dispatch:
+// {action: "...", foo: "bar"}
+// "..." -> {action: "..."}
+// {foo: "bar"} -> {action: "set manual", foo: "bar"}
 export default function reducer(state, data){
+    // Some convenience parameter handling
+    if (typeof data === String)
+        var data = {action: data}
+    if (data.action === undefined)
+        var data = {action: "set manual", ...data}
+
+
     const {
         // spacingx,
         // spacingy,
@@ -27,7 +38,7 @@ export default function reducer(state, data){
         mirrorAxis2,
         mirrorType,
         mirrorMethod,
-        repeating,
+        trellis,
         eraser,
         clipboard,
         clipboardRotation,
@@ -45,6 +56,7 @@ export default function reducer(state, data){
         removeSelectionAfterDelete,
         mode,
         debug,
+        openMenus,
     } = state
 
     const {
@@ -70,16 +82,7 @@ export default function reducer(state, data){
     }
 
     switch (data.action){
-        case 'cursor moved': // args: x, y
-            return {...state,
-                cursorPos: [
-                    // The extra - offsetx is just to align the cursor with the mouse a little more accurately,
-                    // so it doesn't move too much when guessing where the mouse is when translating
-                    (Math.round((data.x - offsetx) / scalex) * scalex) + offsetx + 1,
-                    (Math.round(data.y / scaley) * scaley) + offsety + 1,
-                ]
-            }
-
+        case 'cursor moved': return {...state, cursorPos: align(state, data.x, data.y)} // args: x, y
         case 'key press': // args: event
             // If it's just a modifier key, don't do anything (it'll falsely trigger things)
             if (['Shift', 'Meta', 'Control', 'Alt'].includes(data.event.key))
@@ -100,8 +103,9 @@ export default function reducer(state, data){
                 curLine: null,
             }
             // The -8 is a fudge factor to get a better guess at where the mouse is
+            return reducer(newState, {action: 'cursor moved', x: halfx, y: halfy})
             // return reducer(newState, {action: 'cursor moved', x: cursorPos[0] + data.x, y: cursorPos[1] - data.y})
-            return newState
+            // return newState
         }
         case 'scale':{ // args: amtx, amty (delta values), cx, cy (center x/y)
             const max = Math.min(window.visualViewport.width, window.visualViewport.height) / 4
@@ -409,6 +413,7 @@ export default function reducer(state, data){
             const prevState = undoStack.pop()
             if (prevState !== undefined){
                 redoStack.push(prevState)
+                // TODO: have this maintain the current state except for the undo keys
                 return prevState
             } else
                 return state
@@ -585,6 +590,16 @@ export default function reducer(state, data){
         case 'start tour':
             preTourState = state
             return {...reducer(state, {action: 'go home'}),
+                openMenus: {
+                    main: false,
+                    controls: true,
+                    color: true,
+                    navigation: true,
+                    repeat: true,
+                    file: false,
+                    settings: false,
+                    help: false,
+                },
                 mirroring: true,
                 bounds: [
                     [20.05, 27.05],
@@ -646,6 +661,16 @@ export default function reducer(state, data){
             let newState = {...state, ...data}
             delete newState.action
             return newState
+        }
+        case 'menu': { // args: any one of toggle, open, or close: the menu to do that to
+            let copy = JSON.parse(JSON.stringify(openMenus))
+            if (data.toggle !== undefined)
+                copy[data.toggle] = !copy[data.toggle]
+            if (data.open !== undefined)
+                copy[data.open] = true
+            if (data.close !== undefined)
+                copy[data.close] = false
+            return {...state, openMenus: {...copy}}
         }
         case "debug":
             // console.log((<line x1="2" x2="3" y1="4" y2="5" stroke="black"></line>).);
