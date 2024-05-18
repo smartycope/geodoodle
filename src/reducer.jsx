@@ -93,7 +93,7 @@ export default function reducer(state, data){
     }
 
     switch (data.action){
-        case 'cursor moved': return {...state, cursorPos: align(state, data.x, data.y)} // args: x, y
+        case 'cursor moved': return {...state, cursorPos: align(state, data.x, data.y), debug_rawCursorPos: [data.x, data.y]} // args: x, y
         case 'key press': // args: event
             // If it's just a modifier key, don't do anything (it'll falsely trigger things)
             if (['Shift', 'Meta', 'Control', 'Alt'].includes(data.event.key))
@@ -121,11 +121,10 @@ export default function reducer(state, data){
             return newState
         }
         case 'scale':{ // args: amtx, amty (delta values), cx, cy (center x/y)
+            // See also: nav menu scale number input
             const max = Math.min(window.visualViewport.width, window.visualViewport.height) / 4
             const cx = data.cx ?? cursorPos[0]
             const cy = data.cy ?? cursorPos[1]
-            // console.log(data.amtx, data.amty)
-            // console.log(cx, cy)
 
             const x = Math.min(max, Math.max(4, scalex + data.amtx))
             const y = Math.min(max, Math.max(4, scaley + data.amty))

@@ -34,8 +34,8 @@ export function removeLine(lines, line){
 export function align(state, x, y){
     const {scalex, scaley, translationx, translationy} = state
     return [
-        (Math.round(x / scalex) * scalex) + translationx % scalex + 1,
-        (Math.round(y / scaley) * scaley) + translationy % scaley + 1,
+        (Math.round((x - translationx) / scalex) * scalex) + translationx,
+        (Math.round((y - translationy) / scaley) * scaley) + translationy,
     ]
 }
 

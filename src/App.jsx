@@ -110,8 +110,10 @@ export default function App() {
         hideHexColor: options.hideHexColor,
         maxUndoAmt: options.maxUndoAmt,
         enableGestureScale: options.enableGestureScale,
+
         debug: false,
         deleteme: [],
+        debug_rawCursorPos: [0, 0],
 
         paperColor: options.paperColor,
         doubleTapTimeMS: options.doubleTapTimeMS,
@@ -162,6 +164,7 @@ export default function App() {
         scrollSensitivity,
         enableGestureScale,
         debug,
+        debug_rawCursorPos,
         openMenus,
         paperColor,
         doubleTapTimeMS,
@@ -464,38 +467,13 @@ export default function App() {
                 {debug && <circle cx={translationx} cy={translationy} r='8' fill='blue'/>}
                 {debug && <text x="80%" y='20'>{`Translation: ${Math.round(translationx)}, ${Math.round(translationy)}`}</text>}
                 {debug && <text x="80%" y='40'>{`Scale: ${Math.round(scalex)}, ${Math.round(scaley)}`}</text>}
-                {/* {debug && <circle cx={boundRect.left * scalex + translationx} cy={boundRect.top * scaley + translationy} r="5" fill="green" transform=''/>}
-                {debug && <line
-                    x1={10}
-                    y1={boundRect.top * scaley - translationy}
-                    x2={boundRect.left * scalex - translationx - 10}
-                    y2={boundRect.top * scaley - translationy}
-                    stroke="green"
-                    strokeWidth={3}
-                />}
-                {debug && <circle cx={boundRect.left * scalex} cy={boundRect.top * scaley} r="5" fill="blue" transform=''/>}
-                {debug && <line
-                    x1={10}
-                    y1={boundRect.top * scaley}
-                    x2={boundRect.left * scalex - 10}
-                    y2={boundRect.top * scaley}
-                    stroke="blue"
-                    strokeWidth={3}
-                />}
-                {debug && <line
-                    x1={0}
-                    y1={boundRect.top * scaley+20}
-                    x2={((boundRect.left * scalex + translationx) % (boundRect.width  * scalex)) - 10}
-                    y2={boundRect.top * scaley+20}
-                    stroke="orange"
-                    strokeWidth={3}
-                />} */}
                 {debug && deleteme && <g
                     transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}
                 >
                     {deleteme.map((i, cnt) => <circle cx={i[0]} cy={i[1]} r={4/scalex} fill='blue' key={`debug-${cnt}`}/>)}
                     {/* {deleteme.map(i => <circle cx={i.x} cy={i.y} r={4/scalex} fill='blue'/>)} */}
                 </g>}
+                {debug && <circle cx={debug_rawCursorPos[0]} cy={debug_rawCursorPos[1]} fill="grey" r='5'/>}
 
                 {/* Draw the trellis */}
                 {/* translate(${alignedTranslation[0]},

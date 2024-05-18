@@ -23,9 +23,9 @@ html{
     }
 }
 
-input[type=number] {
+/* input[type=number] {
     width: 3em;
-}
+} */
 
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {

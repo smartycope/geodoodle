@@ -108,8 +108,20 @@ export default function NavMenu({dispatch, state}){
                 step={scaley}
             />
             {/* </div> */}
-             | {`Scale: ${scalex}, ${scaley} | `}
-            <span>
+             {/* | {`Scale: ${Math.round(scalex)} | `} */}
+             <span>
+                Scale
+                <Number
+                    onChange={val => dispatch({scalex: val, scaley: val})}
+                    value={state.scalex}
+                    onMinus={prev => prev * 2}
+                    onPlus={prev => prev / 2}
+                    // See also: "scale" action in the reducer
+                    min={4}
+                    max={Math.min(window.visualViewport.width, window.visualViewport.height) / 4}
+                />
+            </span>
+            {/* <span>
                 Scale
                 <button onClick={() => dispatch({action: 'increase scale', amtx: scalex, amty: scaley})} title="Increase Scale">
                     <TbArrowBigUpLine />
@@ -117,7 +129,7 @@ export default function NavMenu({dispatch, state}){
                 <button onClick={() => dispatch({action: 'decrease scale', amtx: scalex, amty: scaley})} title="Decrease Scale">
                     <TbArrowBigDownLine />
                 </button>
-            </span>
+            </span> */}
 
             {/* Home button */}
             <button id='home-button' onClick={() => dispatch({action: "go home"})} title="Reset position and scale">

@@ -66,13 +66,22 @@ export function Input({label, onChange, type, value, inputProps, title, id, inpu
     </span>
 }
 
-export function Number({label='', onChange, value, min=-Infinity, max=Infinity, step=1, inputProps, title, id, inputId, backwards=false}){
+export function Number({label='', onChange, value, min=-Infinity, max=Infinity, step=1, inputProps,
+    title, id, inputId, backwards=false, onPlus, onMinus,
+}){
+    // Make sure everything is a number before adding to it
+    min = +min
+    max = +max
+    step = +step
+    value = +value
+
     const lab = <label htmlFor={label}>{label}</label>
+
     return <span className="checkbox" id={id} title={title} style={{
         border: "2px",
     }}>
         {!backwards && lab}
-        <button onClick={() => value > min ? onChange(value - step) : undefined}
+        <button onClick={() => onChange(Math.min(max, onPlus ? onPlus(value) : value - step))}
             style={{
                 padding: '8px',
         }}>-</button>
@@ -88,10 +97,11 @@ export function Number({label='', onChange, value, min=-Infinity, max=Infinity, 
             style={{
                 textAlign: 'center',
                 border: 'none',
-                backgroundColor: "rgb(50,50,50)"
+                backgroundColor: "rgb(50,50,50)",
+                width: `${String(value).length*10}px`
             }}
         ></input>
-        <button onClick={() => value < max ? onChange(value + step) : undefined}
+        <button onClick={() => onChange(Math.max(min, onMinus ? onMinus(value) : value + step))}
             style={{
                 marginLeft: "0px",
                 padding: '8px',
