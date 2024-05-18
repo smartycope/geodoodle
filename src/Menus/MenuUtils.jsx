@@ -95,10 +95,11 @@ export function Number({label='', onChange, value, min=-Infinity, max=Infinity, 
             max={max}
             {...inputProps}
             style={{
-                textAlign: 'center',
+                // textAlign: 'center',
                 border: 'none',
                 backgroundColor: "rgb(50,50,50)",
-                width: `${String(value).length*10}px`
+                width: `${String(value).length+1}em`,
+                paddingRight: "0px",
             }}
         ></input>
         <button onClick={() => onChange(Math.max(min, onMinus ? onMinus(value) : value + step))}

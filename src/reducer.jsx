@@ -1,6 +1,6 @@
 import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageSettingsName, localStorageName} from './globals'
-import { toRadians, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq, toggleDarkMode, align } from './utils'
-import defaultOptions, { keybindings, reversibleActions, saveSettingActions } from './options'
+import { toRadians, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq, toggleDarkMode, align, filterObjectByKeys } from './utils'
+import defaultOptions, { keybindings, reversible, reversibleActions, saveSettingActions } from './options'
 import {deserialize, serialize, serializeState} from './fileUtils';
 import {applyManualFlip, applyManualRotation, getMirrored, getStateMirrored} from './mirrorEngine';
 
@@ -87,7 +87,7 @@ export default function reducer(state, data){
         saveNext = true
 
     if (reversibleActions.includes(data.action)){
-        if (undoStack.push(state) > state.maxUndoAmt){
+        if (undoStack.push(filterObjectByKeys(state, reversible)) > state.maxUndoAmt){
             undoStack.shift()
         }
     }
@@ -289,7 +289,7 @@ export default function reducer(state, data){
             if (prevState !== undefined){
                 redoStack.push(prevState)
                 // TODO: have this maintain the current state except for the undo keys
-                return prevState
+                return reducer(state, prevState)
             } else
                 return state
 

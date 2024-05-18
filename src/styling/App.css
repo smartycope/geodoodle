@@ -27,6 +27,14 @@ html{
     width: 3em;
 } */
 
+.up-half-scale{
+    scale: 1.5;
+}
+
+.double-scale{
+    scale: 2;
+}
+
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
     opacity: 0;

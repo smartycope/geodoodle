@@ -24,6 +24,8 @@ import {applyTransformationFlip, applyTransformationRotation, getMirrored, getSt
 //     col: trellisControlVal<T>,
 // }
 
+// document.querySelectorAll('.unfocusable').forEach(button => button.addEventListener('click', e => this.blur()))
+
 // Disable the default right click menu
 window.oncontextmenu = () => false
 
@@ -327,6 +329,7 @@ export default function App() {
         }
     }, [])
 
+    // Perserve settings
     useEffect(() => {
         const local = localStorage.getItem(localStorageSettingsName)
         if (local)

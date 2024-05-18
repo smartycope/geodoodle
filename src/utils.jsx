@@ -34,8 +34,8 @@ export function removeLine(lines, line){
 export function align(state, x, y){
     const {scalex, scaley, translationx, translationy} = state
     return [
-        (Math.round((x - translationx) / scalex) * scalex) + translationx,
-        (Math.round((y - translationy) / scaley) * scaley) + translationy,
+        (Math.round((x - translationx) / scalex) * scalex) + translationx + 1,
+        (Math.round((y - translationy) / scaley) * scaley) + translationy + 1,
     ]
 }
 
@@ -251,3 +251,13 @@ export const defaultTrellisControl = value => ({
         val: value
     },
 })
+
+// Credit to ChatGPT
+export function filterObjectByKeys(obj, keys) {
+    return keys.reduce((filteredObj, key) => {
+      if (obj.hasOwnProperty(key)) {
+        filteredObj[key] = obj[key];
+      }
+      return filteredObj;
+    }, {});
+  }

@@ -1,20 +1,4 @@
-.menu-toggle-button{
-    background-color: rgba(20, 20, 20, 0);
-    color: white;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-    padding-left: 10px;
-    padding-right: 10px;
-    width: 100%;
-    text-align: left;
-    align-content: flex-start;
-    > svg{
-        margin-right: 5px;
-    }
-}
-
-#menu-selector{
+#menu-selector-desktop{
     top: 40px;
     right: 10px;
     position: absolute;
@@ -25,6 +9,41 @@
     align-items: center;
     justify-content: space-between;
     zoom: 1.5;
+}
+
+
+#menu-selector-mobile{
+    /* top:0px; */
+    padding: 2%;
+    /* padding-left: 0px; */
+    /* right: 10px; */
+    width: 96%;
+    position: absolute;
+    /* border-radius: 5px; */
+    /* background-color: rgba(20, 20, 20, .65); */
+    display: flex;
+    /* flex-direction: row; */
+    /* align-items: center; */
+    justify-content: space-between;
+    /* zoom: 2; */
+    /* scale: 3; */
+}
+
+.menu-toggle-button-desktop{
+    background-color: rgba(0, 0, 0, 0);
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    padding-left: 10px;
+    padding-right: 10px;
+    width: 100%;
+    text-align: center;
+    nav-index: -1;
+    align-content: flex-start;
+    > svg{
+        margin-right: 5px;
+    }
 }
 
 #menu-button{
@@ -40,4 +59,29 @@
 #menu-icon{
     scale: 3;
     opacity: .2;
+}
+
+.main-menu-icon{
+    scale: 3;
+    opacity: 90%;
+    /* padding: 0%; */
+}
+
+
+
+.menu-toggle-button-mobile{
+    background-color: rgba(0, 0, 0, 0);
+    /* color: white; */
+    border: none;
+    cursor: pointer;
+    /* padding: 4px;
+    padding-left: 10px;
+    padding-right: 10px; */
+    /* width: 100%; */
+    text-align: center;
+    nav-index: -1;
+    /* align-content: flex-start; */
+    /* > svg{
+        margin-right: 5px;
+    } */
 }

@@ -96,17 +96,21 @@ export default function NavMenu({dispatch, state}){
             // }}
         >
             {/* <div> */}
-            <Number
-                label="Position"
-                onChange={val => dispatch({translationx: val})}
-                value={state.translationx}
-                step={scalex}
-            />,
-            <Number
-                onChange={val => dispatch({translationy: val})}
-                value={state.translationy}
-                step={scaley}
-            />
+            <span>
+                Position
+                <Number
+                    label="x:"
+                    onChange={val => dispatch({translationx: val})}
+                    value={state.translationx}
+                    step={scalex}
+                />
+                <Number
+                    label='y:'
+                    onChange={val => dispatch({translationy: val})}
+                    value={state.translationy}
+                    step={scaley}
+                />
+            </span>
             {/* </div> */}
              {/* | {`Scale: ${Math.round(scalex)} | `} */}
              <span>

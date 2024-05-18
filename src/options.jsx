@@ -127,6 +127,47 @@ export const saveSettingActions = [
     "toggle dark mode",
 ]
 
+// When undoing an action, only these parts of the state get undone
+export const reversible = [
+    'lines',
+    'curLine',
+    'bounds',
+    'trellis',
+    'eraser',
+    'clipboard',
+]
+
+// Only preserve these parts of the state across loads (*not* when saving to a file)
+export const preservable = [
+    "stroke",
+    "dash",
+    "commonColors",
+    "strokeWidth",
+    "partials",
+    "lines",
+    "bounds",
+    "mirrorAxis",
+    "mirrorAxis2",
+    "mirrorType",
+    "mirrorMethod",
+    "trellis",
+    "translationx",
+    "translationy",
+    "scalex",
+    "scaley",
+    "rotatex",
+    "rotatey",
+    "shearx",
+    "sheary",
+    "invertedScroll",
+    "scrollSensitivity",
+    "enableGestureScale",
+    "debug",
+    "openMenus",
+    "paperColor",
+    "doubleTapTimeMS",
+]
+
 // The parts of the state that get serialized to the svg file
 export const saveable = [
     // This is handeled seperately
