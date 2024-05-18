@@ -113,6 +113,9 @@ export default function App() {
         debug: false,
         deleteme: [],
 
+        paperColor: options.paperColor,
+        doubleTapTimeMS: options.doubleTapTimeMS,
+
         openMenus: {
             main: false,
             controls: true,
@@ -160,6 +163,8 @@ export default function App() {
         enableGestureScale,
         debug,
         openMenus,
+        paperColor,
+        doubleTapTimeMS,
         deleteme,
     } = state
 
@@ -415,7 +420,6 @@ export default function App() {
     if (clipboardMirrorAxis === MIRROR_AXIS.HORZ_180 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360)
         clipboardFlip += `matrix(1, 0, 0, -1, 0, ${cursorPos[1]*2}) `
 
-    // console.log(deleteme);
 
     return (
         <div className="App">
@@ -435,6 +439,7 @@ export default function App() {
                 // onPaste={e => dispatch({action: 'paste'})}
                 // onCut={e => dispatch({action: 'cut'})}
                 ref={paper}
+                style={{backgroundColor: paperColor}}
             >
                 {/* Draw the dots */}
                 <pattern id="dot"

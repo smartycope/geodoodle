@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef, useState} from 'react';
 import "../styling/SettingsMenu.css"
 import {Checkbox, Number} from "./MenuUtils"
 import { KeyMenu } from './KeyMenu';
@@ -6,8 +6,14 @@ import { KeyMenu } from './KeyMenu';
 import { IoClose } from "react-icons/io5";
 import {localStorageSettingsName} from '../globals';
 
+import { ColorPicker, useColor, ColorService } from "react-color-palette";
+import "react-color-palette/css";
+import options from "../options";
 
 export function SettingsMenu({state, dispatch}){
+    const [palletteVisible, setPalletteVisible] = useState(false);
+    const colorMenu = useRef()
+
     const {
         removeSelectionAfterDelete,
         invertedScroll,
@@ -44,6 +50,21 @@ export function SettingsMenu({state, dispatch}){
                 onChange={(val) => dispatch({action: 'set manual', removeSelectionAfterDelete: !removeSelectionAfterDelete})}
                 checked={removeSelectionAfterDelete}
             />
+            {/* The color picker */}
+            <div ref={colorMenu}>
+                {palletteVisible && <ColorPicker color={ColorService.convert('hex', state.paperColor)} onChange={(clr) => {
+                    dispatch({paperColor: clr.hex});
+                }} hideInput={['hsv', state.hideHexColor ? 'hex' : '']}/>}
+            </div>
+            <div ref={colorMenu}>
+                <button id='color-picker-button'
+                    onClick={() => setPalletteVisible(!palletteVisible)}
+                    style={{backgroundColor: state.paperColor, color: 'black'}}
+                >
+                    {palletteVisible ? "Set" : "Pick Background Color"}
+                </button>
+            </div>
+
             <h4>Advanced</h4>
             <Checkbox label="Hide Hex Color"
                 title="Controls if the hex color is displayed in the color menu"

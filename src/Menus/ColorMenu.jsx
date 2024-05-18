@@ -122,6 +122,7 @@ export default function ColorMenu({dispatch, state}){
             >
                 {palletteVisible ? "Set" : "Pick Color"}
             </button>
+
             {/* Recently used buttons */}
             <span className='button-group' id="recent-color-buttons">
                 {JSON.parse(JSON.stringify(state.commonColors)).reverse().map((commonColor, i) =>

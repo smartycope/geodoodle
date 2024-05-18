@@ -21,6 +21,8 @@ const defaultOptions = {
     scrollSensitivity: .3,
     hideHexColor: true,
     enableGestureScale: false,
+    paperColor: "#ffddab",
+    doubleTapTimeMS: 500,
     // If we remove all the bounds after cut or delete selection
     removeSelectionAfterDelete: false,
     maxUndoAmt: 20,

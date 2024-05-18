@@ -1,8 +1,12 @@
 import React, {useEffect, useRef, useState} from "react";
 import "../styling/NavMenu.css"
 import options from "../options";
+import {Number} from "./MenuUtils";
 
 import { FaGripLinesVertical } from "react-icons/fa6";
+import { TbArrowBigUpLine } from "react-icons/tb";
+import { TbArrowBigDownLine } from "react-icons/tb";
+import { MdHome } from "react-icons/md";
 
 
 let offsetX, offsetY;
@@ -91,10 +95,35 @@ export default function NavMenu({dispatch, state}){
             //     bottom:  window.visualViewport.height -navMenu.current?.getBoundingClientRect().top,
             // }}
         >
-            {`Position: ${translationx}, ${translationy} | Scale: ${scalex}, ${scaley}`}
-            <button onClick={() => dispatch({action: 'increase scale', amtx: scalex, amty: scaley})}>
-                Increase scale
+            {/* <div> */}
+            <Number
+                label="Position"
+                onChange={val => dispatch({translationx: val})}
+                value={state.translationx}
+                step={scalex}
+            />,
+            <Number
+                onChange={val => dispatch({translationy: val})}
+                value={state.translationy}
+                step={scaley}
+            />
+            {/* </div> */}
+             | {`Scale: ${scalex}, ${scaley} | `}
+            <span>
+                Scale
+                <button onClick={() => dispatch({action: 'increase scale', amtx: scalex, amty: scaley})} title="Increase Scale">
+                    <TbArrowBigUpLine />
+                </button>
+                <button onClick={() => dispatch({action: 'decrease scale', amtx: scalex, amty: scaley})} title="Decrease Scale">
+                    <TbArrowBigDownLine />
+                </button>
+            </span>
+
+            {/* Home button */}
+            <button id='home-button' onClick={() => dispatch({action: "go home"})} title="Reset position and scale">
+                <MdHome />
             </button>
+
             {/* Grip */}
             <FaGripLinesVertical id="grip" color='darkgray'/>
         </div>
