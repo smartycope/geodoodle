@@ -1,17 +1,28 @@
 import './styling/App.css';
 import {useEffect, useReducer, useRef, useState} from 'react';
-import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, MODE} from './globals'
+import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageSettingsName} from './globals'
 import reducer from './reducer';
-import {align, calc, distCenter, getSelected, mobileAndTabletCheck} from './utils';
+import {align, calc, defaultTrellisControl, distCenter, mobileAndTabletCheck} from './utils';
 import options from './options';
 import MainMenu from './Menus/MainMenu';
 import {getTrellis} from './repeatEngine';
-
+import {deserializeState} from './fileUtils';
+import React from 'react';
+import {applyTransformationFlip, applyTransformationRotation, getMirrored, getStateMirrored} from './mirrorEngine';
 
 // Coordinate systems:
 // absolute: relative to the viewport, origin is top left, not translated
 // relative: translated, origin is the (0, 0) of the svg element
 // scaled:   each dot is 1 more unit over than the previous, multiply by scale* to get the "drawable" value
+
+// interface trellisControlVal<T> {
+//     every: number,
+//     val: T,
+// }
+// interface trellisControl<T> {
+//     row: trellisControlVal<T>,
+//     col: trellisControlVal<T>,
+// }
 
 // Disable the default right click menu
 window.oncontextmenu = () => false
@@ -20,6 +31,7 @@ window.oncontextmenu = () => false
 // so we can have it not capture passively, so we can prevent default
 // null or a 2 item list of the previous touches
 var gestureTouches = null
+
 
 export default function App() {
     const boundsGroup = useRef()
@@ -50,7 +62,7 @@ export default function App() {
         // Coord: absolute?, not scaled
         curLine: null,
         // A list of [x, y]
-        // Coord: relative, scaled
+        // Coord: relative?, scaled
         bounds: [],
         // [x, y] or null
         // Coord: relative, scaled
@@ -64,38 +76,21 @@ export default function App() {
         clipboardMirrorAxis: null,
 
         trellis: false,
+        // Coords: scalar, scaled
+        // Type: number
+        trellisOverlap: defaultTrellisControl({x: 0, y: 0}),
+        // Type: bool
+        trellisSkip: defaultTrellisControl(false),
+        // Type: MIRROR_AXIS
+        trellisFlip: defaultTrellisControl(MIRROR_AXIS.NONE_0),
+        // Type: MIRROR_AXIS
+        trellisRotate: defaultTrellisControl(MIRROR_AXIS.NONE_0),
 
-        // How many dots to overlap in the x direction
-        // Coord: scalar, scaled
-        trellisOverlapx: 0,
-        // How many dots to overlap in the y direction
-        // Coord: scalar, scaled
-        trellisOverlapy: 0,
-        // Every <trellisRowSkip> rows, we skip one
-        trellisRowSkip: 0,
-        // Every <trellisColSkip> columns, we skip one
-        trellisColSkip: 0,
-        // How we flip the rows
-        // Type: MIRROR_AXIS | null
-        trellisFlipRows: null,
-        // How we flip the columns
-        // Type: MIRROR_AXIS | null
-        trellisFlipCols: null,
-        // How we rotate the rows
-        // Type: MIRROR_AXIS | null
-        trellisRotateRows: null,
-        // How we rotate the columns
-        // Type: MIRROR_AXIS | null
-        trellisRotateCols: null,
-
-        mirroring: false,
         mirrorAxis: MIRROR_AXIS.VERT_90,
         // The second one is only used when mirrorMethod == BOTH, and it used for the Rotation one
-        mirrorAxis2: MIRROR_AXIS.VERT_90,
+        mirrorAxis2: MIRROR_AXIS.BOTH_360,
         mirrorType: MIRROR_TYPE.PAGE,
         mirrorMethod: MIRROR_METHOD.FLIP,
-
-        mode: MODE.DRAW,
 
         // Coord: not scaled
         translationx: 0,
@@ -116,16 +111,19 @@ export default function App() {
         maxUndoAmt: options.maxUndoAmt,
         enableGestureScale: options.enableGestureScale,
         debug: false,
+        deleteme: [],
 
         openMenus: {
             main: false,
-            controls: false,
+            controls: true,
             color: false,
             navigation: false,
             repeat: false,
             file: false,
             settings: false,
             help: false,
+            mirror: false,
+            key: false,
         },
     })
 
@@ -142,7 +140,6 @@ export default function App() {
         bounds,
         clipboardRotation,
         clipboardMirrorAxis,
-        mirroring,
         mirrorAxis,
         mirrorAxis2,
         mirrorType,
@@ -163,6 +160,7 @@ export default function App() {
         enableGestureScale,
         debug,
         openMenus,
+        deleteme,
     } = state
 
     const {
@@ -170,6 +168,8 @@ export default function App() {
         halfy,
         offsetx,
         offsety,
+        mirrorOriginx,
+        mirrorOriginy,
         boundRect,
         relCursorPos,
     } = calc(state)
@@ -221,13 +221,13 @@ export default function App() {
                     gestureTouches[0].pageX, gestureTouches[0].pageY,
                     gestureTouches[1].pageX, gestureTouches[1].pageY,
                 )
-                dispatch({action: 'nevermind'})
+                dispatch('nevermind')
                 dispatch({action: 'translate',
                     x: -(prevCenterx - newCenterx),
                     y: -(prevCentery - newCentery),
                 })
                 // This line helps stablize translation
-                if (Math.abs((prevDist - newDist) * scrollSensitivity) > .5 && enableGestureScale)
+                if (Math.abs((prevDist - newDist) * scrollSensitivity) > .6 && enableGestureScale)
                     dispatch({action: 'scale',
                         amtx: -(prevDist - newDist) * scrollSensitivity,
                         amty: -(prevDist - newDist) * scrollSensitivity,
@@ -235,7 +235,7 @@ export default function App() {
                         cy: newCentery
                     })
             } else {
-                dispatch({action: 'nevermind'})
+                dispatch('nevermind')
             }
             gestureTouches = e.touches
         } else if (e.touches.length === 1 && gestureTouches === null){
@@ -319,70 +319,54 @@ export default function App() {
         }
     }, [])
 
-    // Add the mirror lines
+    useEffect(() => {
+        const local = localStorage.getItem(localStorageSettingsName)
+        if (local)
+            dispatch(deserializeState(local))
+    }, [])
+
+    // Get the mirrored current lines
+    var curLines = []
+    if (openMenus.mirror)
+        curLines = getStateMirrored(state, () => '', false).map((transformation, i) => <line
+            x1={curLine?.x1}
+            y1={curLine?.y1}
+            x2={cursorPos[0]}
+            y2={cursorPos[1]}
+            stroke={stroke}
+            strokeWidth={strokeWidth}
+            strokeDasharray={dash}
+            transform={transformation}
+            key={`mirror-${i}`}
+        />)
+    else
+        curLines.push(<line
+            x1={curLine?.x1}
+            y1={curLine?.y1}
+            x2={cursorPos[0]}
+            y2={cursorPos[1]}
+            stroke={stroke}
+            strokeWidth={strokeWidth}
+            strokeDasharray={dash}
+            key='mirror0'
+        />)
+
+
+    // Get the mirror guide lines
     let mirrorLines = []
-    const curLineProps = {
-        x1: curLine?.x1,
-        y1: curLine?.y1,
-        x2: cursorPos[0],
-        y2: cursorPos[1],
-        stroke: stroke,
-        strokeWidth: strokeWidth,
-        strokeDasharray: dash,
-    }
-    let curLines = [<line {...curLineProps} key='mirror0' />]
-    const originx = mirrorType === MIRROR_TYPE.PAGE ? halfx : curLine?.x1
-    const originy = mirrorType === MIRROR_TYPE.PAGE ? halfy : curLine?.y1
 
-    if (mirroring){
-        if (((mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360))){
-            mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
-            if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
-                curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, 1, ${originx*2}, 0)`} key='mirror1' />)
-            if (mirrorMethod === MIRROR_METHOD.ROTATE)
-                curLines.push(<line {...curLineProps} transform={`rotate(90, ${originx}, ${originy})`} key='mirror2' />)
+    if (mirrorType === MIRROR_TYPE.PAGE && openMenus.mirror){
+        if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH){
+            if ((mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360))
+                mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
+            if ((mirrorAxis === MIRROR_AXIS.HORZ_180 || mirrorAxis === MIRROR_AXIS.BOTH_360))
+                mirrorLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor}/>)
         }
-        if (((mirrorAxis === MIRROR_AXIS.HORZ_180 || mirrorAxis === MIRROR_AXIS.BOTH_360))){
-            mirrorLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor}/>)
-            if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
-                curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${originy*2})`} key='mirror3' />)
-            if (mirrorMethod === MIRROR_METHOD.ROTATE)
-                curLines.push(<line {...curLineProps} transform={`rotate(180, ${originx}, ${originy})`} key='mirror4' />)
-        }
-        if ((mirrorAxis === MIRROR_AXIS.BOTH_360)){
-            if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
-                curLines.push(<line {...curLineProps} transform={`matrix(-1, 0, 0, -1, ${originx*2}, ${originy*2})`} key='mirror5'/>)
-            if (mirrorMethod === MIRROR_METHOD.ROTATE)
-                curLines.push(<line {...curLineProps} transform={`rotate(270, ${originx}, ${originy})`} key='mirror6' />)
-        }
-        if (mirrorMethod === MIRROR_METHOD.BOTH){
-            if (mirrorAxis2 === MIRROR_AXIS.VERT_90 || mirrorAxis2 === MIRROR_AXIS.BOTH_360){
-                curLines.push(<line {...curLineProps} transform={`rotate(90, ${originx}, ${originy})`} key='mirror2' />)
-                curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${originy*2}) rotate(90, ${originx} ${originy})`} key='mirror8' />)
-            }
-            if (mirrorAxis2 === MIRROR_AXIS.HORZ_180 || mirrorAxis2 === MIRROR_AXIS.BOTH_360){
-                // Optimization: 180 degree rotation == flipping both vertically & horizontally: that line already exists
-                if (mirrorAxis !== MIRROR_AXIS.BOTH_360)
-                    curLines.push(<line {...curLineProps} transform={`rotate(180, ${originx}, ${originy})`} key='mirror4' />)
-                curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${originy*2}) rotate(270, ${originx} ${originy})`} key='mirror7' />)
-            }
-            if (mirrorAxis2 === MIRROR_AXIS.BOTH_360)
-                curLines.push(<line {...curLineProps} transform={`rotate(270, ${originx}, ${originy})`} key='mirror6' />)
-            // This is only sort of part of the pattern: In this particular circumstance, I want it to have both.
-            if (mirrorAxis2 === MIRROR_AXIS.HORZ_180 && mirrorAxis === MIRROR_AXIS.BOTH_360)
-                curLines.push(<line {...curLineProps} transform={`matrix(1, 0, 0, -1, 0, ${originy*2}) rotate(90, ${originx} ${originy})`} key='mirror8' />)
-        }
+        if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
+            mirrorLines.push(<circle cx={halfx} cy={halfy} r={scalex/3} fill={options.mirrorColor} opacity={.8} strokeOpacity="0"/>)
     }
 
-    if (mirrorMethod === MIRROR_METHOD.ROTATE &&
-        mirrorType === MIRROR_TYPE.PAGE &&
-        mirrorAxis !== MIRROR_AXIS.BOTH_360
-    ) mirrorLines = []
-
-    if ((mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH) &&
-        mirrorType === MIRROR_TYPE.PAGE
-    ) mirrorLines.push(<circle cx={halfx} cy={halfy} r={scalex/3} fill={options.mirrorColor} opacity={.8} strokeOpacity="0"/>)
-
+    // Drawing the currently selecting bound rect (when theres only 1 bound)
     const drawBoundRect = boundDragging && bounds.length === 1 ? {
         left:   Math.min(boundRect?.left,   relCursorPos[0]),
         right:  Math.max(boundRect?.right,  relCursorPos[0]),
@@ -390,7 +374,7 @@ export default function App() {
         bottom: Math.max(boundRect?.bottom, relCursorPos[1]),
     } : boundRect
 
-    // Construct the cursor
+    // Construct the cursor (internal mirror lines, etc)
     let cursor = [<circle
         cx={cursorPos[0]}
         cy={cursorPos[1]}
@@ -399,13 +383,13 @@ export default function App() {
         fill={options.mirrorColor}
         // Make it filled if we're cursor rotating
         fillOpacity={Number(
-            mirroring &&
+            openMenus.mirror &&
             mirrorType === MIRROR_TYPE.CURSOR &&
             [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
         }
-        key={'cursor'}
+        key='cursor'
     />]
-    if (mirroring && mirrorType === MIRROR_TYPE.CURSOR){
+    if (openMenus.mirror && mirrorType === MIRROR_TYPE.CURSOR){
         if ([MIRROR_METHOD.FLIP, MIRROR_METHOD.BOTH].includes(mirrorMethod)){
             if ([MIRROR_AXIS.HORZ_180, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
                 cursor.push(<line
@@ -424,15 +408,14 @@ export default function App() {
         }
     }
 
-    const alignedTranslation = align(state, 0, 0)
-
+    // Clipboard translations
     let clipboardFlip = ''
-    // eslint-disable-next-line default-case
     if (clipboardMirrorAxis === MIRROR_AXIS.VERT_90 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360)
         clipboardFlip += `matrix(-1, 0, 0, 1, ${cursorPos[0]*2}, 0) `
     if (clipboardMirrorAxis === MIRROR_AXIS.HORZ_180 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360)
         clipboardFlip += `matrix(1, 0, 0, -1, 0, ${cursorPos[1]*2}) `
 
+    // console.log(deleteme);
 
     return (
         <div className="App">
@@ -476,11 +459,43 @@ export default function App() {
                 {debug && <circle cx={translationx} cy={translationy} r='8' fill='blue'/>}
                 {debug && <text x="80%" y='20'>{`Translation: ${Math.round(translationx)}, ${Math.round(translationy)}`}</text>}
                 {debug && <text x="80%" y='40'>{`Scale: ${Math.round(scalex)}, ${Math.round(scaley)}`}</text>}
+                {/* {debug && <circle cx={boundRect.left * scalex + translationx} cy={boundRect.top * scaley + translationy} r="5" fill="green" transform=''/>}
+                {debug && <line
+                    x1={10}
+                    y1={boundRect.top * scaley - translationy}
+                    x2={boundRect.left * scalex - translationx - 10}
+                    y2={boundRect.top * scaley - translationy}
+                    stroke="green"
+                    strokeWidth={3}
+                />}
+                {debug && <circle cx={boundRect.left * scalex} cy={boundRect.top * scaley} r="5" fill="blue" transform=''/>}
+                {debug && <line
+                    x1={10}
+                    y1={boundRect.top * scaley}
+                    x2={boundRect.left * scalex - 10}
+                    y2={boundRect.top * scaley}
+                    stroke="blue"
+                    strokeWidth={3}
+                />}
+                {debug && <line
+                    x1={0}
+                    y1={boundRect.top * scaley+20}
+                    x2={((boundRect.left * scalex + translationx) % (boundRect.width  * scalex)) - 10}
+                    y2={boundRect.top * scaley+20}
+                    stroke="orange"
+                    strokeWidth={3}
+                />} */}
+                {debug && deleteme && <g
+                    transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}
+                >
+                    {deleteme.map((i, cnt) => <circle cx={i[0]} cy={i[1]} r={4/scalex} fill='blue' key={`debug-${cnt}`}/>)}
+                    {/* {deleteme.map(i => <circle cx={i.x} cy={i.y} r={4/scalex} fill='blue'/>)} */}
+                </g>}
 
                 {/* Draw the trellis */}
+                {/* translate(${alignedTranslation[0]},
+                          ${alignedTranslation[1]}) */}
                 <g transform={`
-                    translate(${alignedTranslation[0]},
-                              ${alignedTranslation[1]})
                     scale(${scalex} ${scaley})
                 `}>
                     {((trellis || openMenus.repeat) && bounds.length > 1) && getTrellis(state)}
@@ -515,8 +530,8 @@ export default function App() {
 
                 {/* Draw the selection rect */}
                 {boundRect && <rect
-                    width={(drawBoundRect?.right - drawBoundRect?.left) * scalex}
-                    height={(drawBoundRect?.bottom - drawBoundRect?.top) * scaley}
+                    width={(drawBoundRect?.width) * scalex}
+                    height={(drawBoundRect?.height) * scaley}
                     x={drawBoundRect?.left * scalex + translationx}
                     y={drawBoundRect?.top * scaley + translationy}
                     stroke={options.selectionBorderColor}

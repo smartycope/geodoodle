@@ -1,21 +1,29 @@
-import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageName} from './globals'
-import { toRadians, lineIn, removeLine, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq, toggleDarkMode, align } from './utils'
-import defaultOptions, { keybindings, reversibleActions } from './options'
-import {deserialize, getFileName, serialize} from './fileUtils';
+import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageSettingsName, localStorageName} from './globals'
+import { toRadians, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq, toggleDarkMode, align } from './utils'
+import defaultOptions, { keybindings, reversibleActions, saveSettingActions } from './options'
+import {deserialize, serialize, serializeState} from './fileUtils';
+import {applyManualFlip, applyManualRotation, getMirrored, getStateMirrored} from './mirrorEngine';
+
 
 var undoStack = []
 var redoStack = []
 var preTourState = null
+// This is a bad solution:
+// When an event happens we want to persist (saveSettingActions), it saves the *current* state, not the state *after*
+// the action has run, because that's what we have. Instead of catching all the return statements and refactoring
+// *everything*, instead we just remove the limit and the next state saves instead. There's usually at least a cursor
+// movement or something, so it should work pretty well
+var saveNext = false
 
 // Can accept any of 3 parameters to dispatch:
-// {action: "...", foo: "bar"}
-// "..." -> {action: "..."}
+//                 {action: "...", foo: "bar"}
+// "..."        -> {action: "..."}
 // {foo: "bar"} -> {action: "set manual", foo: "bar"}
 export default function reducer(state, data){
     // Some convenience parameter handling
     if (typeof data === String)
         var data = {action: data}
-    if (data.action === undefined)
+    else if (data.action === undefined)
         var data = {action: "set manual", ...data}
 
 
@@ -33,7 +41,6 @@ export default function reducer(state, data){
         curLine,
         bounds,
         // pattern,
-        mirroring,
         mirrorAxis,
         mirrorAxis2,
         mirrorType,
@@ -64,16 +71,20 @@ export default function reducer(state, data){
         halfy,
         offsetx,
         offsety,
+        mirrorOriginx,
+        mirrorOriginy,
         boundRect,
         relCursorPos,
         scaledTranslationx,
         scaledTranslationy,
     } = calc(state)
 
-    if (debug && !(['cursor moved', 'translate', 'scale'].includes(data.action))){
-        console.debug(data);
-        console.debug(state);
+    if (saveNext){
+        localStorage.setItem(localStorageSettingsName, serializeState(state))
+        saveNext = false
     }
+    if (saveSettingActions.includes(data.action))
+        saveNext = true
 
     if (reversibleActions.includes(data.action)){
         if (undoStack.push(state) > state.maxUndoAmt){
@@ -100,12 +111,14 @@ export default function reducer(state, data){
             const newState = {...state,
                 translationx: translationx + data.x,
                 translationy: translationy + data.y,
+                cursorPos: [cursorPos[0] + data.x, cursorPos[1] + data.y],
+                // cursorPos: align(state, cursorPos[0], cursorPos[1]),
                 curLine: null,
             }
             // The -8 is a fudge factor to get a better guess at where the mouse is
-            return reducer(newState, {action: 'cursor moved', x: halfx, y: halfy})
-            // return reducer(newState, {action: 'cursor moved', x: cursorPos[0] + data.x, y: cursorPos[1] - data.y})
-            // return newState
+            // return reducer(newState, {action: 'cursor moved', x: halfx, y: halfy})
+            // return reducer(newState, {action: 'cursor moved', x: cursorPos[0], y: cursorPos[1]})
+            return newState
         }
         case 'scale':{ // args: amtx, amty (delta values), cx, cy (center x/y)
             const max = Math.min(window.visualViewport.width, window.visualViewport.height) / 4
@@ -139,9 +152,16 @@ export default function reducer(state, data){
         case 'clear bounds':    return {...state, bounds: []}
         case 'delete selected':
             return {...state,
-                lines: getSelected(state, true),
+                lines: getSelected(state, 'remove'),
                 bounds: removeSelectionAfterDelete ? [] : bounds,
             }
+
+        case 'delete not selected':
+            return {...state,
+                lines: getSelected(state, 'only'),
+                bounds: removeSelectionAfterDelete ? [] : bounds,
+            }
+
         case 'delete line':
             if (pointIn(bounds, relCursorPos))
                 return {...state, bounds: removePoint(bounds, relCursorPos)}
@@ -161,6 +181,7 @@ export default function reducer(state, data){
                 }
 
         case 'delete':
+            console.log('deletign');
             if (pointIn(bounds, relCursorPos))
                 return {...state, bounds: removePoint(bounds, relCursorPos)}
              else if (curLine)
@@ -170,11 +191,33 @@ export default function reducer(state, data){
             // else if (bounds.length >= 2)
             //     return reducer(state, {action: 'delete selected'})
             else {
-                return {...state, lines: (lines.filter(i =>
-                    !((pointEq(state, [i.props.x1, i.props.y1], relCursorPos, .3) ||
-                      (pointEq(state, [i.props.x2, i.props.y2], relCursorPos, .3)))
-                    )
-                ))}
+                var points = []
+                if (openMenus.mirror)
+                    points = getStateMirrored(state, () => ({x: cursorPos[0], y: cursorPos[1]}), true)
+                else
+                    points.push({x: cursorPos[0], y: cursorPos[1]})
+
+                // getMirrored() works in absolute, not scaled coords, where the lines are in relative, scaled coords
+                console.log(points.length);
+                points = points.map(i => [(i.x - translationx) / scalex, (i.y - translationy) / scaley])
+
+                // console.log(points);
+                // console.log(lines);
+
+                return {...state, lines: (lines.filter(i =>{
+                    // !((pointEq(state, [i.props.x1, i.props.y1], relCursorPos, .3) ||
+                    //   (pointEq(state, [i.props.x2, i.props.y2], relCursorPos, .3)))
+                    // )
+                    // return !(points.includes(
+                    //         {x: (i.props.x1 + translationx) * scalex, y: (i.props.y1 + translationy) * scaley}
+                    //     ) || points.includes(
+                    //         {x: (i.props.x2 + translationx) * scalex, y: (i.props.y2 + translationy) * scaley}
+                    //     )
+                    // )
+                    // console.log(points, [i.props.x1, i.props.y1])
+                    return !(pointIn(points, [i.props.x1, i.props.y1]) || pointIn(points, [i.props.x2, i.props.y2]))
+                }
+                )), deleteme: points}
             }
 
         case 'nevermind':
@@ -198,190 +241,23 @@ export default function reducer(state, data){
             else {
                 var newLines = []
                 if (curLine != null){
-                    const originx = mirrorType === MIRROR_TYPE.PAGE ? halfx : curLine.x1
-                    const originy = mirrorType === MIRROR_TYPE.PAGE ? halfy : curLine.y1
-                    const pi = Math.PI
-
-                    // First off, add the base line
-                    newLines.push(createLine(state, {
-                        ...curLine,
-                        x2: cursorPos[0],
-                        y2: cursorPos[1],
-                    }))
-
-                    // These if statements mirror (pun intended) the ones in App.jsx to create the mirrored curLines.
-                    // This is intentional. The operations are manual implementations of the matrix transformations there
-                    if (mirroring){
-                        if (mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360){
-                            if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
-                                // matrix(-1, 0, 0, 1, originx*2, 0)
-                                newLines.push(createLine(state, {
-                                    x1: curLine.x1 * -1 + originx*2,
-                                    y1: curLine.y1,
-                                    x2: cursorPos[0] * -1 + originx*2,
-                                    y2: cursorPos[1],
-                                }))
-
-                            if (mirrorMethod === MIRROR_METHOD.ROTATE)
-                                // rotate(90, originx, originy)
-                                newLines.push(createLine(state, {
-                                    x1: (curLine.x1 * Math.cos(pi/2)) +
-                                        (curLine.y1 * -Math.sin(pi/2)) +
-                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
-                                    y1: (curLine.x1 * Math.sin(pi/2)) +
-                                        (curLine.y1 * -Math.cos(pi/2)) +
-                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2),
-                                    x2: (cursorPos[0] * Math.cos(pi/2)) +
-                                        (cursorPos[1] * -Math.sin(pi/2)) +
-                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
-                                    y2: (cursorPos[0] * Math.sin(pi/2)) +
-                                        (cursorPos[1] * -Math.cos(pi/2)) +
-                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2),
-                                }))
+                    if (openMenus.mirror){
+                        const start = getStateMirrored(state, () => ({x: curLine.x1, y: curLine.y1}), true)
+                        const end = getStateMirrored(state, () => ({x: cursorPos[0], y: cursorPos[1]}), true)
+                        for (let i = 0; i < start.length; i++){
+                            newLines.push(createLine(state, {
+                                x1: start[i].x,
+                                y1: start[i].y,
+                                x2: end[i].x,
+                                y2: end[i].y,
+                            }))
                         }
-
-                        if (mirrorAxis === MIRROR_AXIS.HORZ_180 || mirrorAxis === MIRROR_AXIS.BOTH_360){
-                            if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
-                                // matrix(1, 0, 0, -1, 0, originy*2)
-                                newLines.push(createLine(state, {
-                                    x1: curLine.x1,
-                                    y1: curLine.y1 * -1 + originy*2,
-                                    x2: cursorPos[0],
-                                    y2: cursorPos[1] * -1 + originy*2,
-                                }))
-
-                            if (mirrorMethod === MIRROR_METHOD.ROTATE)
-                                // rotate(180, originx, originy)
-                                newLines.push(createLine(state, {
-                                    x1: curLine.x1 * -1 + originx*2,
-                                    y1: curLine.y1 * -1 + originy*2,
-                                    x2: cursorPos[0] * -1 + originx*2,
-                                    y2: cursorPos[1] * -1 + originy*2,
-                                }))
-                        }
-
-                        if (mirrorAxis === MIRROR_AXIS.BOTH_360){
-                            if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH)
-                                // matrix(-1, 0, 0, -1, originx*2, originy*2)
-                                newLines.push(createLine(state, {
-                                    x1: curLine.x1 * -1 + originx*2,
-                                    y1: curLine.y1 * -1 + originy*2,
-                                    x2: cursorPos[0] * -1 + originx*2,
-                                    y2: cursorPos[1] * -1 + originy*2,
-                                }))
-                            if (mirrorMethod === MIRROR_METHOD.ROTATE)
-                                // rotate(270, originx, originy)
-                                newLines.push(createLine(state, {
-                                    x1: (curLine.x1 * Math.cos(3*pi/2)) +
-                                        (curLine.y1 * -Math.sin(3*pi/2)) +
-                                        originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
-                                    y1: (curLine.x1 * Math.sin(3*pi/2)) +
-                                        (curLine.y1 * -Math.cos(3*pi/2)) +
-                                        originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2),
-                                    x2: (cursorPos[0] * Math.cos(3*pi/2)) +
-                                        (cursorPos[1] * -Math.sin(3*pi/2)) +
-                                        originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
-                                    y2: (cursorPos[0] * Math.sin(3*pi/2)) +
-                                        (cursorPos[1] * -Math.cos(3*pi/2)) +
-                                        originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2),
-                                }))
-                        }
-
-                        // Handling the mirrorMethod == BOTH situation seperately: these are directy copies of the
-                        // rotation lines above
-                        if (mirrorMethod === MIRROR_METHOD.BOTH){
-                            if (mirrorAxis2 === MIRROR_AXIS.VERT_90 || mirrorAxis2 === MIRROR_AXIS.BOTH_360){
-                                // rotate(90, originx, originy)
-                                newLines.push(createLine(state, {
-                                    x1: (curLine.x1 * Math.cos(pi/2)) +
-                                        (curLine.y1 * -Math.sin(pi/2)) +
-                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
-                                    y1: (curLine.x1 * Math.sin(pi/2)) +
-                                        (curLine.y1 * -Math.cos(pi/2)) +
-                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2),
-                                    x2: (cursorPos[0] * Math.cos(pi/2)) +
-                                        (cursorPos[1] * -Math.sin(pi/2)) +
-                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
-                                    y2: (cursorPos[0] * Math.sin(pi/2)) +
-                                        (cursorPos[1] * -Math.cos(pi/2)) +
-                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2),
-                                }))
-                                // matrix(1, 0, 0, -1, 0, originy*2) rotate(90, originx originy)
-                                newLines.push(createLine(state, {
-                                    x1: (curLine.x1 * Math.cos(pi/2)) +
-                                        (curLine.y1 * -Math.sin(pi/2)) +
-                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
-                                    y1: ((curLine.x1 * Math.sin(pi/2)) +
-                                        (curLine.y1 * -Math.cos(pi/2)) +
-                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2)) * -1 + originy*2,
-                                    x2: (cursorPos[0] * Math.cos(pi/2)) +
-                                        (cursorPos[1] * -Math.sin(pi/2)) +
-                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
-                                    y2: ((cursorPos[0] * Math.sin(pi/2)) +
-                                        (cursorPos[1] * -Math.cos(pi/2)) +
-                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2))  * -1 + originy*2,
-                                }))
-                            }
-                            if (mirrorAxis2 === MIRROR_AXIS.HORZ_180 || mirrorAxis2 === MIRROR_AXIS.BOTH_360){
-                                // Optimization: 180 degree rotation == flipping both vertically & horizontally: that line already exists
-                                if (mirrorAxis !== MIRROR_AXIS.BOTH_360)
-                                    // rotate(180, originx, originy)
-                                    newLines.push(createLine(state, {
-                                        x1: curLine.x1 * -1 + originx*2,
-                                        y1: curLine.y1 * -1 + originy*2,
-                                        x2: cursorPos[0] * -1 + originx*2,
-                                        y2: cursorPos[1] * -1 + originy*2,
-                                    }))
-                                // matrix(1, 0, 0, -1, 0, originy*2) rotate(270, originx originy)
-                                newLines.push(createLine(state, {
-                                    x1: (curLine.x1 * Math.cos(3*pi/2)) +
-                                        (curLine.y1 * -Math.sin(3*pi/2)) +
-                                        originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
-                                    y1: ((curLine.x1 * Math.sin(3*pi/2)) +
-                                        (curLine.y1 * -Math.cos(3*pi/2)) +
-                                        originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2)) * -1 + originy*2,
-                                    x2: (cursorPos[0] * Math.cos(3*pi/2)) +
-                                        (cursorPos[1] * -Math.sin(3*pi/2)) +
-                                        originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
-                                    y2: ((cursorPos[0] * Math.sin(3*pi/2)) +
-                                        (cursorPos[1] * -Math.cos(3*pi/2)) +
-                                        originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2))  * -1 + originy*2,
-                                }))
-                            }
-                            if (mirrorAxis2 === MIRROR_AXIS.BOTH_360)
-                                // rotate(270, originx, originy)
-                                newLines.push(createLine(state, {
-                                    x1: (curLine.x1 * Math.cos(3*pi/2)) +
-                                        (curLine.y1 * -Math.sin(3*pi/2)) +
-                                        originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
-                                    y1: (curLine.x1 * Math.sin(3*pi/2)) +
-                                        (curLine.y1 * -Math.cos(3*pi/2)) +
-                                        originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2),
-                                    x2: (cursorPos[0] * Math.cos(3*pi/2)) +
-                                        (cursorPos[1] * -Math.sin(3*pi/2)) +
-                                        originx*(1-Math.cos(3*pi/2)) + originy*Math.sin(3*pi/2),
-                                    y2: (cursorPos[0] * Math.sin(3*pi/2)) +
-                                        (cursorPos[1] * -Math.cos(3*pi/2)) +
-                                        originy*(1-Math.cos(3*pi/2)) - originx*Math.sin(3*pi/2),
-                                }))
-
-                            if (mirrorAxis2 === MIRROR_AXIS.HORZ_180 && mirrorAxis === MIRROR_AXIS.BOTH_360)
-                                // matrix(1, 0, 0, -1, 0, originy*2) rotate(90, originx originy)
-                                newLines.push(createLine(state, {
-                                    x1: (curLine.x1 * Math.cos(pi/2)) +
-                                        (curLine.y1 * -Math.sin(pi/2)) +
-                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
-                                    y1: ((curLine.x1 * Math.sin(pi/2)) +
-                                        (curLine.y1 * -Math.cos(pi/2)) +
-                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2)) * -1 + originy*2,
-                                    x2: (cursorPos[0] * Math.cos(pi/2)) +
-                                        (cursorPos[1] * -Math.sin(pi/2)) +
-                                        originx*(1-Math.cos(pi/2)) + originy*Math.sin(pi/2),
-                                    y2: ((cursorPos[0] * Math.sin(pi/2)) +
-                                        (cursorPos[1] * -Math.cos(pi/2)) +
-                                        originy*(1-Math.cos(pi/2)) - originx*Math.sin(pi/2))  * -1 + originy*2,
-                                }))
-                        }
+                    } else {
+                        newLines.push(createLine(state, {
+                            ...curLine,
+                            x2: cursorPos[0],
+                            y2: cursorPos[1],
+                        }))
                     }
                 }
 
@@ -510,44 +386,13 @@ export default function reducer(state, data){
                 commonColors: copy
             }
 
-        case `set to common color`: // args: index
+        case 'set to common color': // args: index
             if (data.index > commonColors.length)
                 return state
             return {...state,
                 // Because they're displayed inverted
                 stroke: commonColors[commonColors.length - data.index]
             }
-
-        // Mirror actions
-        case 'toggle mirroring': return {...state, mirroring: !mirroring}
-        case 'toggle mirror axis 1':
-            // eslint-disable-next-line default-case
-            switch (mirrorAxis){
-                case MIRROR_AXIS.VERT_90:  return {...state, mirrorAxis: MIRROR_AXIS.HORZ_180}
-                case MIRROR_AXIS.HORZ_180: return {...state, mirrorAxis: MIRROR_AXIS.BOTH_360}
-                case MIRROR_AXIS.BOTH_360: return {...state, mirrorAxis: MIRROR_AXIS.VERT_90}
-            } return state // This shouldn't be possible, but whatever
-
-        case 'toggle mirror axis 2':
-            // eslint-disable-next-line default-case
-            switch (mirrorAxis2){
-                case MIRROR_AXIS.VERT_90:  return {...state, mirrorAxis2: MIRROR_AXIS.HORZ_180}
-                case MIRROR_AXIS.HORZ_180: return {...state, mirrorAxis2: MIRROR_AXIS.BOTH_360}
-                case MIRROR_AXIS.BOTH_360: return {...state, mirrorAxis2: MIRROR_AXIS.VERT_90}
-            } return state // This shouldn't be possible, but whatever
-
-        case 'toggle mirror type':
-            return {...state,
-                mirrorType: mirrorType === MIRROR_TYPE.CURSOR ? MIRROR_TYPE.PAGE : MIRROR_TYPE.CURSOR
-            }
-
-        case 'toggle mirror method':
-            // eslint-disable-next-line default-case
-            switch (mirrorMethod){
-                case MIRROR_METHOD.FLIP:   return {...state, mirrorMethod: MIRROR_METHOD.ROTATE}
-                case MIRROR_METHOD.ROTATE: return {...state, mirrorMethod: MIRROR_METHOD.BOTH}
-                case MIRROR_METHOD.BOTH:   return {...state, mirrorMethod: MIRROR_METHOD.FLIP}
-            } return state // This shouldn't be possible, but whatever
 
         // File Actions
         case "download": // args: name (string)
@@ -566,7 +411,6 @@ export default function reducer(state, data){
             return state
 
         case "upload":
-            // console.log('here with', data.str);
             return {...state, ...deserialize(data.str)} // args: str (serialized data)
 
         case "save local": // args: name (string)
@@ -599,8 +443,8 @@ export default function reducer(state, data){
                     file: false,
                     settings: false,
                     help: false,
+                    mirror: true,
                 },
-                mirroring: true,
                 bounds: [
                     [20.05, 27.05],
                     [18.05, 23.05],
@@ -670,7 +514,7 @@ export default function reducer(state, data){
                 copy[data.open] = true
             if (data.close !== undefined)
                 copy[data.close] = false
-            return {...state, openMenus: {...copy}}
+            return {...reducer(state, "nevermind"), openMenus: {...copy}}
         }
         case "debug":
             // console.log((<line x1="2" x2="3" y1="4" y2="5" stroke="black"></line>).);

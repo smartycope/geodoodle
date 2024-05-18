@@ -1,5 +1,4 @@
 #nav-menu{
-    /* top: 0px; */
     /* To center it */
     left: 30%;
     bottom: 10px;
@@ -25,40 +24,6 @@
     }
 }
 
-.button-group{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    margin-left: 10px;
-    > *{
-        margin: 2px;
-    }
-}
-
-#grip{
-    scale: 1.5;
-    transform: scaleY(1.5);
-    position: absolute;
-    right: 5px;
-    height: max-content;
-    display: flex;
-    flex-direction: column;
-}
-
 input[type="number"]{
     max-width: 40px;
-}
-
-input[type="text"]{
-    /* max-width: 40px; */
-    /* width: min-content; */
-
-}
-
-input{
-    padding: 8px;
-    color: white;
-    border-radius: 8px;
-    background-color: rgb(40,40,40);
 }

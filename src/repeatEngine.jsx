@@ -1,20 +1,21 @@
-import {getSelected} from "./utils";
+import {MIRROR_AXIS} from "./globals";
+import {getSelected, calc} from "./utils";
 
 // This is the main logic for generating the trellis
 // It returns a list of groups of the pattern with appropriate translations
 export function getTrellis(state){
     const {
-        trellisRowSkip,
-        trellisColSkip,
-        trellisOverlapx,
-        trellisOverlapy,
-        trellisFlipRows,
-        trellisFlipCols,
-        trellisRotateRows,
-        trellisRotateCols,
+        trellisOverlap,
+        trellisSkip,
+        trellisFlip,
+        trellisRotate,
         scalex, scaley,
         translationx, translationy,
+        bounds,
     } = state
+
+    const {boundRect, offsetx, offsety} = calc(state)
+
     var rtn = []
 
     // console.log('getTrellis() called!');
@@ -24,35 +25,67 @@ export function getTrellis(state){
     // Coord: absolute @ (0,0), scaled
     const pattern = getSelected(state)
     // Coord: scalar, scaled
-    const xs = pattern.map(i => [i.props.x1, i.props.x2]).flat()
-    const ys = pattern.map(i => [i.props.y1, i.props.y2]).flat()
-    // Coord: scalar, scaled
-    const width  = Math.max(...xs) - Math.min(...xs)
-    const height = Math.max(...ys) - Math.min(...ys)
-    // Coord: scalar, scaled
     const areaWidth  = window.visualViewport.width  / scalex
     const areaHeight = window.visualViewport.height / scaley
     // Coord: scalar, scaled
-    const shiftx = width  + trellisOverlapx
-    const shifty = height + trellisOverlapy
+    // We round here just to account for floating point errors
+    // The extra - width/height is to make sure we're drawing off the page
+    const startOffsetx = (((boundRect.left * scalex + translationx) % (boundRect.width  * scalex)) / scalex) - boundRect.width
+    const startOffsety = (((boundRect.top  * scaley + translationy) % (boundRect.height * scaley)) / scaley) - boundRect.height
 
-    // console.log('areaWidth:', areaWidth);
-    // console.log('shiftx:', shiftx);
-    // console.log('areaHeight:', areaHeight);
-    // console.log('shifty:', shifty);
-    // console.log('width:', width);
-    // console.log('trellisOverlapx:', trellisOverlapx);
-    // console.log('height:', height);
-    // console.log('trellisOverlapy:', trellisOverlapy);
+    // console.warn('area:', areaWidth, areaHeight);
+    // console.log('shift:', shiftx, shifty);
+    // console.log('boundRect:', boundRect);
+    // console.log('trellisOverlap:', trellisOverlap);
+    // console.log('lhs:', ((boundRect.left * scalex) - translationx) / scalex);
+    // console.log('rhs:', (boundRect.width  * scalex) / scalex);
+    // console.log('startOffset:', startOffsetx, startOffsety);
+    // console.log('bounds:', bounds);
+    // console.log('pattern:', pattern);
 
-    if (xs.length < 1 || shiftx < 1 || shifty < 1 || width < 1 || height < 1)
+    // Checking that we don't try to do something that ruins our math (i.e. /0)
+    if (pattern.length < 1 || boundRect.width < 1 || boundRect.height < 1)
         return []
 
-    for (let row = 0, x = 0; x < areaWidth; x += shiftx, row++) {
-        for (let col = 0, y = 0; y < areaHeight; y += shifty, col++) {
-            rtn.push(<g transform={`translate(${x}, ${y})`}>
-                {pattern}
-            </g>)
+    for (let row = 0, x = startOffsetx; x < areaWidth; x += boundRect.width, row++) {
+        for (let col = 0, y = startOffsety; y < areaHeight; y += boundRect.height, col++) {
+            // Skip
+            if ((!trellisSkip.row.val || !(col % trellisSkip.row.every)) &&
+                (!trellisSkip.col.val || !(row % trellisSkip.col.every))){
+
+                // Initial translation
+                let transformation = `translate(${x}, ${y}) `
+
+                // Offset/Overlap
+                if (!(col % trellisOverlap.row.every))
+                    transformation += `translate(${trellisOverlap.row.val.x}, ${trellisOverlap.row.val.y})`
+                if (!(row % trellisOverlap.col.every))
+                    transformation += `translate(${trellisOverlap.col.val.x}, ${trellisOverlap.col.val.y})`
+
+                // Rotate
+                if (!(col % trellisRotate.row.every))
+                    transformation += `rotate(${trellisRotate.row.val})`
+                if (!(row % trellisRotate.col.every))
+                    transformation += `rotate(${trellisRotate.col.val})`
+
+                // Flip
+                if (!(col % trellisFlip.row.every)){
+                    if (trellisFlip.row.val === MIRROR_AXIS.VERT_90 || trellisFlip.row.val === MIRROR_AXIS.BOTH_360)
+                        transformation += `matrix(-1, 0, 0, 1, 0, 0) `
+                    if (trellisFlip.row.val === MIRROR_AXIS.HORZ_180 || trellisFlip.row.val === MIRROR_AXIS.BOTH_360)
+                        transformation += `matrix(1, 0, 0, -1, 0, 0) `
+                }
+                if (!(row % trellisFlip.col.every)){
+                    if (trellisFlip.col.val === MIRROR_AXIS.VERT_90 || trellisFlip.col.val === MIRROR_AXIS.BOTH_360)
+                        transformation += `matrix(-1, 0, 0, 1, 0, 0) `
+                    if (trellisFlip.col.val === MIRROR_AXIS.HORZ_180 || trellisFlip.col.val === MIRROR_AXIS.BOTH_360)
+                        transformation += `matrix(1, 0, 0, -1, 0, 0) `
+                }
+
+                rtn.push(<g transform={transformation} key={`${row}-${col}`}>
+                    {pattern}
+                </g>)
+            }
         }
     }
 

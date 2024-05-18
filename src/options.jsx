@@ -25,6 +25,7 @@ const defaultOptions = {
     removeSelectionAfterDelete: false,
     maxUndoAmt: 20,
 }
+export default defaultOptions
 
 // The default keybindings
 // This should be the names of the JS key strings, all lower case
@@ -41,20 +42,24 @@ export const keybindings = {
     ";": {action: "right"},
     "k": {action: "up"},
     "l": {action: "down"},
+    "a": {action: "left"},
+    "d": {action: "right"},
+    "w": {action: "up"},
+    "s": {action: "down"},
 
     'ctrl+arrowup': {action: "increase scale"},
     'ctrl+arrowdown': {action: "decrease scale"},
 
     'delete': {action: "delete"},
     'backspace': {action: "delete line"},
-    'ctrl+q': {action: "clear"},
+    // 'ctrl+q': {action: "clear"},
     ' ': {action: "add line"},
     'c': {action: "continue line"},
     'b': {action: "add bound"},
     'shift+b': {action: "clear bounds"},
     'escape': {action: "nevermind"},
     'p': {action: "toggle partials"},
-    'm': {action: "toggle mirror axis"},
+    'm': {action: "menu", toggle: 'mirror'},
     'home': {action: 'go home'},
     'h': {action: 'go home'},
     'x': {action: 'increment clipboard rotation'},
@@ -77,10 +82,8 @@ export const keybindings = {
     'ctrl+y': {action: 'redo'},
     'ctrl+shift+z': {action: 'redo'},
 
-    'd': {action: 'debug'}
+    '`': {action: 'debug'}
 }
-
-export default defaultOptions
 
 // Only these can be undone, all other actions are ignored by undo/redo
 export const reversibleActions = [
@@ -94,9 +97,35 @@ export const reversibleActions = [
     'add line',
     'continue line',
     'add bound',
+    'upload',
+    'load local',
+    'add common color',
+    'set to common color',
 ]
 
-// The parts of the state that get serialized
+// Only save the state to be preserved when these actions happen
+export const saveSettingActions = [
+    'increase scale',
+    'decrease scale',
+    'go home',
+    'clear',
+    'clear bounds',
+    'delete selected',
+    'delete line',
+    'delete',
+    'add line',
+    'continue line',
+    'add bound',
+    'undo',
+    'redo',
+    'paste',
+    'add common color',
+    `set to common color`,
+    'toggle partials',
+    "toggle dark mode",
+]
+
+// The parts of the state that get serialized to the svg file
 export const saveable = [
     // This is handeled seperately
     // 'lines',

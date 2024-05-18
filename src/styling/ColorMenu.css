@@ -1,6 +1,4 @@
 #color-menu{
-    /* top: 0px; */
-    /* To center it */
     left: 30%;
     bottom: 10px;
 
@@ -37,72 +35,8 @@
     /* fill-opacity: .1; */
 }
 
-/* @media screen and (max-width: 768px) {
-    #controls-menu{
-        width: 348px;
-        left: 10%;
-    }
-} */
-/*
-#home-icon{
-    width: 18px;
-}
-*/
-.button-group{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    margin-left: 10px;
-    > *{
-        margin: 2px;
-    }
-}
-/*
-.selection-group{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    align-content: space-between;
-    justify-content: space-between;
-    > *{
-        margin: 2px;
-    }
-}
-
-#mirror-buttons{
-    > button > svg{
-        margin-right: 5px;
-    }
-}
-
-.checkbox{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    label{
-        margin-right: 1px;
-    }
-}
-*/
-#grip{
-    scale: 1.5;
-    transform: scaleY(1.5);
-    position: absolute;
-    right: 5px;
-    height: max-content;
-    display: flex;
-    flex-direction: column;
-}
-
 input[type="number"]{
     max-width: 40px;
-}
-
-input[type="text"]{
-    /* max-width: 40px; */
-    /* width: min-content; */
-
 }
 
 input{

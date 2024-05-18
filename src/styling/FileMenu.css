@@ -26,7 +26,6 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    /* justify-content: space-between; */
     margin-left: 10px;
     > *{
         margin: 2px;
@@ -36,7 +35,4 @@
 .footer{
     bottom: 10px;
     position: absolute;
-    /* align-self: center; */
-    /* left: 20%; */
-    /* left:  */
 }

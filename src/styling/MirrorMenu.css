@@ -1,0 +1,16 @@
+#mirror-menu{
+    top: 0px;
+    /* To center it */
+    left: 30%;
+    background-color: rgba(20,20,20,.65);
+    border-radius: 10px;
+    margin: 10px;
+    width: 335px;
+    padding: 10px;
+    padding-left: 10px;
+    padding-right: 25px;
+    position: absolute;
+    align-items: center;
+    cursor: grab;
+    z-index: 1;
+}

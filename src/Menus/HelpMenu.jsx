@@ -3,9 +3,10 @@ import Tour from 'reactour'
 import "../styling/HelpMenu.css"
 
 import { IoClose } from "react-icons/io5";
+import {version} from '../globals';
 
 
-export function HelpMenu({state, dispatch, setControlsVisible, setColorVisible}){
+export function HelpMenu({state, dispatch}){
     const [inTour, setInTour] = useState(false);
 
     const steps = [
@@ -107,9 +108,9 @@ export function HelpMenu({state, dispatch, setControlsVisible, setColorVisible})
                 <li>✅ Mirroring</li>
                 <li>✅ Colors &amp; Stroke Patterns</li>
                 <li>✅ File Handling</li>
+                <li>✅ Settings</li>
+                <li>☑️ Repeating</li>
                 <li>☑️ Mobile Compatibility</li>
-                <li>❌ Repeating</li>
-                <li>❌ Settings</li>
                 <li>❌ Connect to Google Drive</li>
                 <li>❌ Alternate Dot Patterns</li>
                 <li>❌ Custom Keyboard Shortcuts</li>
@@ -126,6 +127,7 @@ export function HelpMenu({state, dispatch, setControlsVisible, setColorVisible})
                 <button id='tour-button' onClick={startTour}>Start full tour</button>
                 {/* <button id='close-button' onClick={close}>Close</button> */}
             </span>
+            <footer className='footer'>v{version}</footer>
         </div>}
         <Tour
             steps={steps}

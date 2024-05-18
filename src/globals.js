@@ -1,26 +1,24 @@
-export const MODE = {
-    DRAW: 0,
-    SELECT: 1,
-    DELETE: 2,
-    REPEAT: 3,
-    NAVIGATE: 4,
-}
-
 export const MIRROR_AXIS = {
-    VERT_90: 0,
-    HORZ_180: 1,
-    BOTH_360: 2,
+    NONE_0: 0,
+    VERT_90: 90,
+    HORZ_180: 180,
+    BOTH_360: 270,
 }
 
 export const MIRROR_TYPE = {
-    PAGE: 0,
-    CURSOR: 1,
+    NONE: 0,
+    PAGE: 1,
+    CURSOR: 2,
 }
 
 export const MIRROR_METHOD = {
-    FLIP: 0,
-    ROTATE: 1,
-    BOTH: 2,
+    NONE: 0,
+    FLIP: 1,
+    ROTATE: 2,
+    BOTH: 3,
 }
 
 export const localStorageName = 'GeoDoodleSaves'
+export const localStorageSettingsName = "GeoDoodleState"
+
+export const version = '1.0.1'

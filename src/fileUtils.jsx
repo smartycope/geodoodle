@@ -23,6 +23,15 @@ export function deserialize(str){
     return metadata
 }
 
+export function serializeState(state){
+    return JSON.stringify({...state, lines: state.lines.map(i => i.props)})
+}
+
+export function deserializeState(str){
+    const parsed = JSON.parse(str)
+    return {...parsed, lines: parsed.lines.map(i => <line {...i}/>)}
+}
+
 // Currently unused
 export function getFileName(state){
     return "pattern.svg"

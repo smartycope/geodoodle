@@ -7,12 +7,6 @@ html{
 }
 
 #paper{
-    /* border: none; */
-    /* border: 0px; */
-    /* border-color: rgba(0,0,0,0); */
-    /* height: 100vh; */
-
-
     /* background-color: #C8A064; */
     /* background-color: #E4C699; */
     background-color: #ffddab;
@@ -26,5 +20,111 @@ html{
     align-items: center;
     label{
         margin-right: 1px;
+    }
+}
+
+input[type=number] {
+    width: 3em;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    opacity: 0;
+    /* padding-top: 35%;
+    padding-bottom: 30%;
+    padding-left: 5%; */
+    /* fill: rgb(60,60,60);
+    background: rgb(60,60,60);
+
+    border-radius: 5px; */
+}
+
+.button-group{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-left: 10px;
+    > *{
+        margin: 2px;
+    }
+}
+
+.selection-group{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-content: space-between;
+    justify-content: space-between;
+    > *{
+        margin: 2px;
+    }
+}
+
+#grip{
+    scale: 1.5;
+    transform: scaleY(1.5);
+    position: absolute;
+    right: 5px;
+    height: max-content;
+    display: flex;
+    flex-direction: column;
+}
+
+
+#close-button{
+    top: 10px;
+    right: 10px;
+    position: absolute;
+}
+
+#close-button{
+    bottom: 10px;
+    /* top: 300px; */
+    max-height: 50px;
+    right: 10px;
+    position: absolute;
+}
+
+ul{
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+}
+
+
+label{
+    color: white;
+    margin-left: 5px;
+    font-size: small;
+}
+
+button:hover{
+    background-color: gray;
+    border-radius: 8px;
+}
+
+button{
+    background-color: rgb(40,40,40);
+    color: white;
+    border-radius: 8px;
+    border: none;
+    margin-left: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+}
+
+select{
+    background-color: rgb(40,40,40);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#mirror-buttons{
+    > button > svg{
+        margin-right: 5px;
     }
 }

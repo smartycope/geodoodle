@@ -1,4 +1,4 @@
-#help-menu{
+#key-menu{
     position: absolute;
     width: 80%;
     height: 80%;
@@ -7,14 +7,4 @@
     border-radius: 10px;
     color: white;
     z-index: 1;
-}
-
-#tour-button{
-    bottom: 10px;
-    align-self: center;
-    position: absolute;
-}
-
-#expanding{
-    height: 80%;
 }

@@ -1,36 +1,18 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect} from "react";
 import "../styling/ControlsMenu.css"
+
 import { MdContentCopy } from "react-icons/md"
 import { MdHome } from "react-icons/md";
 import { MdOutlineContentCut } from "react-icons/md";
 import { MdContentPaste } from "react-icons/md";
-import { MdCropPortrait } from "react-icons/md";
-import { MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE } from "../globals";
-
-import { FaMinus } from "react-icons/fa6";
-import { FaPlus } from "react-icons/fa6";
-import { PiLineVerticalBold } from "react-icons/pi";
 import { MdUndo } from "react-icons/md";
 import { MdRedo } from "react-icons/md";
 import { GiNuclear } from "react-icons/gi";
-import { BsSlash } from "react-icons/bs";
-import { RiCursorFill } from "react-icons/ri";
 import { FaGripLinesVertical } from "react-icons/fa6";
-import { MdInsertPageBreak } from "react-icons/md";
-import { RiFlipHorizontalLine } from "react-icons/ri";
-import { RxRotateCounterClockwise } from "react-icons/rx";
-import { RiFlipVerticalFill } from "react-icons/ri";
-import { FaChevronRight } from "react-icons/fa";
-import { TbArrowsUpRight } from "react-icons/tb";
-import { TbArrowsVertical } from "react-icons/tb";
-import { TbArrowsMaximize } from "react-icons/tb";
-import { PiSelectionDuotone } from "react-icons/pi";
-import { TbArrowsRandom } from "react-icons/tb";
 import { PiSelectionPlusDuotone } from "react-icons/pi";
 import { PiSelectionSlashDuotone } from "react-icons/pi";
 import { MdDelete } from "react-icons/md";
 import { MdDeleteForever } from "react-icons/md";
-import { GoMirror } from "react-icons/go";
 
 let offsetX, offsetY;
 let isDragging = false;
@@ -105,98 +87,9 @@ export default function ControlsMenu({dispatch, state}){
         }
     }, [])
 
-    let mirrorAxis, mirrorAxis2, mirrorType, mirrorMethod
-    switch(state.mirrorAxis){
-        case MIRROR_AXIS.VERT_90:
-            mirrorAxis = state.mirrorMethod === MIRROR_METHOD.FLIP || state.mirrorMethod === MIRROR_METHOD.BOTH
-                ? <><RiFlipHorizontalLine /> Vertical</>
-                : <><TbArrowsUpRight /> 90°</>
-            break
-        case MIRROR_AXIS.HORZ_180:
-            mirrorAxis = state.mirrorMethod === MIRROR_METHOD.FLIP || state.mirrorMethod === MIRROR_METHOD.BOTH
-                ? <><RiFlipVerticalFill /> Horizontal</>
-                : <><TbArrowsVertical /> 180°</>
-            break
-        case MIRROR_AXIS.BOTH_360:
-            mirrorAxis = state.mirrorMethod === MIRROR_METHOD.FLIP || state.mirrorMethod === MIRROR_METHOD.BOTH
-                ? <><FaPlus /> Crossed</>
-                : <><TbArrowsMaximize /> 360°</>
-            break
-        default: console.error(state.mirrorAxis, 'is not a valid mirror axis');
-    }
-    switch(state.mirrorAxis2){
-        case MIRROR_AXIS.VERT_90:
-            mirrorAxis2 = <><TbArrowsUpRight /> 90°</>
-            break
-        case MIRROR_AXIS.HORZ_180:
-            mirrorAxis2 = <><TbArrowsVertical /> 180°</>
-            break
-        case MIRROR_AXIS.BOTH_360:
-            mirrorAxis2 = <><TbArrowsMaximize /> 360°</>
-            break
-        default: console.error(state.mirrorAxis2, 'is not a valid mirror axis');
-    }
-    switch(state.mirrorType){
-        case MIRROR_TYPE.CURSOR: mirrorType = <><RiCursorFill /> Cursor</>; break
-        case MIRROR_TYPE.PAGE:   mirrorType = <><MdInsertPageBreak /> Page</>; break
-        default: console.error(state.mirrorType, 'is not a valid mirror type');
-    }
-    switch(state.mirrorMethod){
-        case MIRROR_METHOD.FLIP:   mirrorMethod = <><GoMirror /> Flip</>; break
-        case MIRROR_METHOD.ROTATE: mirrorMethod = <><RxRotateCounterClockwise /> Rotate</>; break
-        case MIRROR_METHOD.BOTH:   mirrorMethod = <><TbArrowsRandom /> Both</>; break
-        default: console.error(state.mirrorMethod, 'is not a valid mirror method');
-    }
 
     return <div id="controls-menu">
-        {/* <span id='button-group'>
-            <span id='mode-picker'>
-                <label htmlFor="mode-selector">Mode: </label>
-                <select id='mode-selector'
-                    name="node-picker"
-                    required
-                    onChange={e => dispatch({action: 'set mode', mode: Number(e.target.value)})}
-                    defaultChecked='line'
-                >
-                    {/* The values correspond to their enum values
-                    <option value="0">Draw</option>
-                    <option value="1">Select</option>
-                    <option value="2">Delete</option>
-                    <option value="3">Repeat</option>
-                    {/* <option value="4">Navigate</option>
-                </select>
-            </span> */}
-        <span className="checkbox">
-            <label htmlFor="mirror-picker">Mirroring: </label>
-            <input
-                type="checkbox"
-                name="mirror-picker"
-                id="mirror-toggler"
-                onChange={() => dispatch({action: "toggle mirroring"})}
-                checked={state.mirroring}
-            ></input>
-        </span>
-
-        {state.mirroring && <span id="mirror-buttons" className="button-group">
-            <button onClick={() => dispatch({action: "toggle mirror type"})} title='Toggle mirror type' id='mirror-type'>
-                {mirrorType}
-            </button>
-            <button onClick={() => dispatch({action: "toggle mirror method"})} title='Toggle mirror method' id='mirror-method'>
-                {mirrorMethod}
-            </button>
-            <button onClick={() => dispatch({action: "toggle mirror axis 1"})} title='Toggle mirror axis/angle' id='mirror-axis-1'>
-                {mirrorAxis}
-            </button>
-            {state.mirrorMethod === MIRROR_METHOD.BOTH &&
-                <button onClick={() => dispatch({action: "toggle mirror axis 2"})} title='Toggle mirror rotation axis/angle' id='mirror-axis-2'>
-                    {mirrorAxis2}
-                </button>
-            }
-        </span>}
-        {/* </span> */}
-
         {window.innerWidth <= 768 && <div className="br"/>}
-        {/* <hr/> */}
 
         {/* Selection buttons */}
         <span className='selection-group' style={{width: state.bounds.length > 1 ? '100%' : 'auto'}}>
@@ -204,7 +97,7 @@ export default function ControlsMenu({dispatch, state}){
                 <PiSelectionPlusDuotone />
             </button>}
             {state.bounds.length > 1 && <>
-                <button title="Clear selection" onClick={() => dispatch({action: 'nevermind'})} id="clear-selection">
+                <button title="Clear selection" onClick={() => dispatch('nevermind')} id="clear-selection">
                     <PiSelectionSlashDuotone />
                 </button>
                 <span className="checkbox" id='partial-picker'>

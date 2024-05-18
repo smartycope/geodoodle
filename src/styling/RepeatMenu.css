@@ -2,10 +2,6 @@
     top: 0px;
     /* To center it */
     left: 30%;
-    /* transform: translateX(-50%); */
-    /* width: 90%; */
-    /* width: max-content; */
-    /* opacity: .1; */
     background-color: rgba(20,20,20,.65);
     border-radius: 10px;
     margin: 10px;
@@ -13,44 +9,19 @@
     padding-left: 10px;
     padding-right: 25px;
     position: absolute;
-    /* align-items: flex-end; */
     align-items: center;
     flex-flow: wrap;
     align-content: space-between;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    /* width: min-content; */
+    color: white;
     cursor: grab;
-    /* zoom: 1.25; */
     z-index: 1;
-    .br {
-        width: 100%;
-        /* width: calc(max-content + 50px); */
-        /* flex-grow: 100%; */
-        /* display: flex; */
-    }
-
-
-    /* > select{ */
-        /* padding-left: 20px; */
-        /* margin-right: 30px; */
-    /* } */
+    width: 400px;
 }
 
-
-/* #home-button{
-    margin-left: 10px;
-    background-color: rgb(60,60,60);
-    border: none;
-}
-#home-button:hover{
-    background-color: gray;
-    border-radius: 8px;
-    border: none;
-} */
-
-.button-group{
+.trellis-control{
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -59,29 +30,4 @@
     > *{
         margin: 2px;
     }
-}
-
-.selection-group{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    align-content: space-between;
-    /* width: max-content; */
-    /* width: 100%; */
-    justify-content: space-between;
-    /* margin-left: 10px; */
-    > *{
-        margin: 2px;
-    }
-}
-
-#grip{
-    scale: 1.5;
-    transform: scaleY(1.5);
-    /* padding-left: 8px; */
-    position: absolute;
-    right: 5px;
-    height: max-content;
-    display: flex;
-    flex-direction: column;
 }
