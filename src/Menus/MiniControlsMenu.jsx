@@ -34,7 +34,7 @@ export function SelectMenu({dispatch, state, align}){
         </button>
         {state.bounds.length > 1 && <>
             <button title="Clear selection" onClick={() => dispatch('nevermind')} id="clear-selection" className="mobile-button">
-                <PiSelectionSlashDuotone className="mobile-icon"/> Remove Selection
+                <PiSelectionSlashDuotone className="mobile-icon"/> Remove<br/> Selection
             </button>
             <span className="checkbox" id='partial-picker'>
                 <label htmlFor="partial-picker" title="Include lines that only have one end in the selected area">

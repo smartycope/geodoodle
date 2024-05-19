@@ -41,6 +41,13 @@ html{
     scale: 2;
 }
 
+input{
+    padding: 8px;
+    color: white;
+    border-radius: 8px;
+    background-color: rgb(40,40,40);
+}
+
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
     opacity: 0;

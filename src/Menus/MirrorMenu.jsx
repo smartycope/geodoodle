@@ -2,7 +2,7 @@ import React, {useEffect} from "react";
 import { MIRROR_METHOD } from "../globals";
 import { FaGripLinesVertical } from "react-icons/fa6";
 import {incrementMirrorAxis, incrementMirrorMethod, incrementMirrorType} from "../utils";
-import {MirrorAxisIcon, MirrorMethodIcon, MirrorTypeIcon} from "./MenuUtils";
+import {Checkbox, MirrorAxisIcon, MirrorMethodIcon, MirrorTypeIcon} from "./MenuUtils";
 import "../styling/MirrorMenu.css"
 
 let offsetX, offsetY;
@@ -120,12 +120,12 @@ function DesktopMirrorMenu({dispatch, state}){
 }
 
 function MobileMirrorMenu({dispatch, state, align}){
-    const {mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2} = state
-    console.log(align);
+    const {mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2, mirroring} = state
     const to = document.querySelector("#" + align).getBoundingClientRect()
-    console.log(to);
 
     return <span id="mirror-menu-mobile" className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
+        {/* Enabled */}
+        <Checkbox checked={mirroring} onChange={() => dispatch({mirroring: !mirroring})} label={"Enabled:"} backwards={true}/>
         Type
         <button
             id='mirror-type'

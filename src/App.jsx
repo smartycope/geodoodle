@@ -90,6 +90,7 @@ export default function App() {
         // Type: MIRROR_AXIS
         trellisRotate: defaultTrellisControl(MIRROR_AXIS.NONE_0),
 
+        mirroring: false,
         mirrorAxis: MIRROR_AXIS.VERT_90,
         // The second one is only used when mirrorMethod == BOTH, and it used for the Rotation one
         mirrorAxis2: MIRROR_AXIS.BOTH_360,
@@ -163,6 +164,7 @@ export default function App() {
         clipboard,
         translationx,
         translationy,
+        mirroring,
         scalex,
         scaley,
         rotatex,
@@ -345,7 +347,7 @@ export default function App() {
 
     // Get the mirrored current lines
     var curLines = []
-    if (openMenus.mirror)
+    if (mirroring || openMenus.mirror)
         curLines = getStateMirrored(state, () => '', false).map((transformation, i) => <line
             x1={curLine?.x1}
             y1={curLine?.y1}
@@ -373,7 +375,7 @@ export default function App() {
     // Get the mirror guide lines
     let mirrorLines = []
 
-    if (mirrorType === MIRROR_TYPE.PAGE && openMenus.mirror){
+    if (mirrorType === MIRROR_TYPE.PAGE && (mirroring || openMenus.mirror)){
         if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH){
             if ((mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360))
                 mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
@@ -401,13 +403,13 @@ export default function App() {
         fill={options.mirrorColor}
         // Make it filled if we're cursor rotating
         fillOpacity={Number(
-            openMenus.mirror &&
+            (mirroring || openMenus.mirror) &&
             mirrorType === MIRROR_TYPE.CURSOR &&
             [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
         }
         key='cursorr'
     />]
-    if (openMenus.mirror && mirrorType === MIRROR_TYPE.CURSOR){
+    if ((mirroring || openMenus.mirror) && mirrorType === MIRROR_TYPE.CURSOR){
         if ([MIRROR_METHOD.FLIP, MIRROR_METHOD.BOTH].includes(mirrorMethod)){
             if ([MIRROR_AXIS.HORZ_180, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
                 cursor.push(<line

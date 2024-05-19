@@ -40,6 +40,7 @@ export default function reducer(state, data){
         lines,
         curLine,
         bounds,
+        mirroring,
         mirrorAxis,
         mirrorAxis2,
         mirrorType,
@@ -200,7 +201,7 @@ export default function reducer(state, data){
             //     return reducer(state, {action: 'delete selected'})
             else {
                 var points = []
-                if (openMenus.mirror)
+                if (mirroring || openMenus.mirror)
                     points = getStateMirrored(state, () => ({x: cursorPos[0], y: cursorPos[1]}), true)
                 else
                     points.push({x: cursorPos[0], y: cursorPos[1]})
@@ -249,7 +250,7 @@ export default function reducer(state, data){
             else {
                 var newLines = []
                 if (curLine != null){
-                    if (openMenus.mirror){
+                    if (mirroring || openMenus.mirror){
                         const start = getStateMirrored(state, () => ({x: curLine.x1, y: curLine.y1}), true)
                         const end = getStateMirrored(state, () => ({x: cursorPos[0], y: cursorPos[1]}), true)
                         for (let i = 0; i < start.length; i++){
@@ -387,6 +388,9 @@ export default function reducer(state, data){
 
         // Color & Stroke Actions
         case 'add common color': // args: color (hex string)
+            // If we havne't changed the color don't add a new common color
+            if (commonColors.includes(data.color))
+                return state
             let copy = JSON.parse(JSON.stringify(commonColors))
             copy.push(data.color)
             copy.shift()

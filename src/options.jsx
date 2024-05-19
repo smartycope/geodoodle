@@ -19,7 +19,7 @@ const defaultOptions = {
     eraserWidth: 2,
     invertedScroll: true,
     scrollSensitivity: .3,
-    hideHexColor: true,
+    hideHexColor: false,
     enableGestureScale: false,
     paperColor: "#ffddab",
     doubleTapTimeMS: 500,

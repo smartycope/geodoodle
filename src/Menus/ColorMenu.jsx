@@ -11,20 +11,21 @@ import "react-color-palette/css";
 import options from "../options";
 
 import { FaGripLinesVertical } from "react-icons/fa6";
+import {Number} from "./MenuUtils";
 
 
 let offsetX, offsetY;
 let isDragging = false;
 
-export default function ColorMenu({dispatch, state}){
+function DesktopColorMenu({dispatch, state}){
     // const [color, setColor] = useColor(state.stroke);
     const [palletteVisible, setPalletteVisible] = useState(false);
     const colorMenu = useRef()
 
     // Enable dragging - mostly copied from ChatGPT
     useEffect(() =>{
-        const draggableElement = document.getElementById('color-menu');
-        const colorPicker = document.getElementById('color-picker');
+        const draggableElement = document.getElementById('color-menu-desktop');
+        const colorPicker = document.getElementById('color-picker-desktop');
 
         // Function to handle mouse down event
         function handleMouseDown(event) {
@@ -100,7 +101,7 @@ export default function ColorMenu({dispatch, state}){
 
 
     return <>
-        <div id='color-picker' ref={colorMenu}
+        <div id='color-picker-desktop' ref={colorMenu}
             style={{
                 left: colorMenu.current?.getBoundingClientRect().left,
                 bottom:  window.visualViewport.height -colorMenu.current?.getBoundingClientRect().top,
@@ -111,7 +112,7 @@ export default function ColorMenu({dispatch, state}){
                 // setColor(clr)
             }} hideInput={['hsv', state.hideHexColor ? 'hex' : '']}/>}
         </div>
-        <div id="color-menu" ref={colorMenu}>
+        <div id="color-menu-desktop" ref={colorMenu}>
             <button id='color-picker-button'
                 onClick={() => {
                     if (palletteVisible)
@@ -161,4 +162,70 @@ export default function ColorMenu({dispatch, state}){
         </div>
     </>
 }
-const a = []
+
+function MobileColorMenu({dispatch, state}){
+    // const [palletteVisible, setPalletteVisible] = useState(false);
+    // const colorMenu = useRef()
+
+
+    return <div id="color-menu-mobile">
+        {/* The full screen color menu */}
+        <div id="color-picker-mobile-actual">
+            <ColorPicker
+                color={ColorService.convert('hex', state.stroke)}
+                onChange={(clr) => dispatch({action: 'set manual', stroke: clr.hex})}
+                hideInput={['hsv', state.hideHexColor ? 'hex' : '']}
+                // id="color-picker-mobile-actual"
+            />
+        </div>
+
+        {/* Recently used buttons */}
+        <span className='button-group' id="recent-color-buttons">
+            {JSON.parse(JSON.stringify(state.commonColors)).reverse().map((commonColor, i) =>
+                <button
+                    onClick={() => dispatch({action: 'set manual', stroke: commonColor})}
+                    style={{backgroundColor: commonColor}}
+                    key={`colorButton${i}`}
+                    className="common-color-button"
+                >{i+1}</button>
+            )}
+        </span>
+
+        {/* Stroke input */}
+        <Number
+            label={"Stroke:"}
+            value={state.strokeWidth}
+            onChange={(val) => dispatch({strokeWidth: val.target.value})}
+            id='stroke-input'
+        />
+
+        {/* Dash code */}
+        <span id="dash-input-area">
+            <label htmlFor="dash-input">Dash Code: </label>
+            <input
+                id="dash-input"
+                type="text"
+                value={state.dash}
+                style={{width: state.dash.length * 5 + 10}}
+                onChange={(val) => dispatch({dash: val.target.value})}
+            ></input>
+        </span>
+
+        {/* The set button */}
+        <button id='color-picker-button-mobile'
+            onClick={() => {
+                dispatch({action: 'add common color', color: state.stroke})
+                dispatch({action: 'menu', close: 'color'})
+            }}
+            style={{backgroundColor: state.stroke}}
+        >
+            Set
+        </button>
+    </div>
+}
+
+export default function ColorMenu({dispatch, state}){
+    return state.mobile
+        ? <MobileColorMenu dispatch={dispatch} state={state}/>
+        : <DesktopColorMenu dispatch={dispatch} state={state}/>
+}
