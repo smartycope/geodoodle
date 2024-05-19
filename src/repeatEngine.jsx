@@ -93,6 +93,6 @@ export function getTrellis(state){
             }
         }
     }
-    // return [rtn, rtn[rtn.length/2].props.transform]
-    return rtn
+    return [rtn, rtn[Math.round(rtn.length/2)].props.transform]
+    // return rtn
 }

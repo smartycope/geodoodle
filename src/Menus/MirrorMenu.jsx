@@ -9,10 +9,10 @@ let offsetX, offsetY;
 let isDragging = false;
 
 
-export default function MirrorMenu({dispatch, state}){
+function DesktopMirrorMenu({dispatch, state}){
     // Enable dragging - mostly copied from ChatGPT
     useEffect(() =>{
-        const draggableElement = document.getElementById('mirror-menu');
+        const draggableElement = document.getElementById('mirror-menu-desktop');
 
         // Function to handle mouse down event
         function handleMouseDown(event) {
@@ -81,7 +81,7 @@ export default function MirrorMenu({dispatch, state}){
 
     const {mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2} = state
 
-    return <span id="mirror-menu" className="button-group">
+    return <span id="mirror-menu-desktop" className="button-group">
         <button
             id='mirror-type'
             title='Toggle mirror type'
@@ -117,4 +117,60 @@ export default function MirrorMenu({dispatch, state}){
         {/* Grip */}
         <FaGripLinesVertical id="grip" color='darkgray'/>
     </span>
+}
+
+function MobileMirrorMenu({dispatch, state, align}){
+    const {mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2} = state
+    console.log(align);
+    const to = document.querySelector("#" + align).getBoundingClientRect()
+    console.log(to);
+
+    return <span id="mirror-menu-mobile" className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
+        Type
+        <button
+            id='mirror-type'
+            title='Toggle mirror type'
+            onClick={() => dispatch({mirrorType: incrementMirrorType(mirrorType)})}
+        >
+            <MirrorTypeIcon mirrorType={state.mirrorType}/>
+        </button>
+        Method
+        <button
+            id='mirror-method'
+            title='Toggle mirror method'
+            onClick={() => dispatch({mirrorMethod: incrementMirrorMethod(mirrorMethod)})}
+        >
+            <MirrorMethodIcon mirrorMethod={state.mirrorMethod}/>
+        </button>
+        {[MIRROR_METHOD.BOTH, MIRROR_METHOD.FLIP].includes(state.mirrorMethod) &&
+            <span>
+                Flip
+                <button
+                    id='mirror-axis-1'
+                    title='Toggle mirror axis'
+                    onClick={() => dispatch({mirrorAxis: incrementMirrorAxis(mirrorAxis)})}
+                >
+                    <MirrorAxisIcon mirrorAxis={state.mirrorAxis} mirrorMethod={MIRROR_METHOD.FLIP}/>
+                </button>
+            </span>
+        }
+        {[MIRROR_METHOD.BOTH, MIRROR_METHOD.ROTATE].includes(state.mirrorMethod) &&
+            <span>
+                Rotate
+                <button
+                    id='mirror-axis-2'
+                    title='Toggle mirror rotation angle'
+                    onClick={() => dispatch({mirrorAxis2: incrementMirrorAxis(mirrorAxis2)})}
+                >
+                    <MirrorAxisIcon mirrorAxis={state.mirrorAxis2} mirrorMethod={MIRROR_METHOD.ROTATE}/>
+                </button>
+            </span>
+        }
+    </span>
+}
+
+export default function MirrorMenu({dispatch, state, align}){
+    return state.mobile
+        ? <MobileMirrorMenu dispatch={dispatch} state={state} align={align}/>
+        : <DesktopMirrorMenu dispatch={dispatch} state={state}/>
 }

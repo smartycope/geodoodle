@@ -21,4 +21,4 @@ export const MIRROR_METHOD = {
 export const localStorageName = 'GeoDoodleSaves'
 export const localStorageSettingsName = "GeoDoodleState"
 
-export const version = '1.0.1'
+export const version = '1.1.2'

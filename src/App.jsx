@@ -434,9 +434,7 @@ export default function App() {
         clipboardFlip += `matrix(1, 0, 0, -1, 0, ${cursorPos[1]*2}) `
 
     if ((trellis || openMenus.repeat) && bounds.length > 1)
-        var trellisActual = getTrellis(state)
-
-    // console.log(selectionTransform);
+        var [trellisActual, selectionTransform] = getTrellis(state)
 
     return (
         <div className="App">
@@ -527,15 +525,20 @@ export default function App() {
 
                 {/* Draw the selection rect */}
                 {boundRect && <rect
-                    width={(drawBoundRect.width) * scalex}
-                    height={(drawBoundRect.height) * scaley}
-                    x={drawBoundRect.left * scalex + translationx}
-                    y={drawBoundRect.top * scaley + translationy}
+                    width={(drawBoundRect.width)}
+                    height={(drawBoundRect.height)}
+                    x={drawBoundRect.left}
+                    y={drawBoundRect.top}
                     stroke={options.selectionBorderColor}
                     fillOpacity={options.selectionOpacity}
                     fill={options.selectionColor}
-                    rx={partials ? 4 : 0}
-                    // transform={selectionTransform ?? ""}
+                    rx={partials ? 4/scalex : 0}
+                    strokeWidth={1/scalex}
+                    // ${selectionTransform ?? ""}
+                    transform={`
+                        translate(${translationx}, ${translationy})
+                        scale(${scalex}, ${scaley})
+                    `}
                 />}
 
                 {/* Draw the mirror lines */}

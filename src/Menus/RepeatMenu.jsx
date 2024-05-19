@@ -271,6 +271,13 @@ function MobileRepeatMenu({dispatch, state}){
             <TrellisControl value='trellisSkip'    verb='skip' />
             <TrellisControl value='trellisFlip'    verb='flip' />
             <TrellisControl value='trellisRotate'  verb='rotate' />
+            <hr/>
+            <button onClick={() => dispatch({
+                trellisOverlap: defaultTrellisControl({x: 0, y: 0}),
+                trellisSkip:    defaultTrellisControl(false),
+                trellisFlip:    defaultTrellisControl(MIRROR_AXIS.NONE_0),
+                trellisRotate:  defaultTrellisControl(MIRROR_AXIS.NONE_0),
+            })}>Reset</button>
         </div>
         <div id="repeat-left" className="repeat-side">
             <h4>...By</h4>
@@ -299,14 +306,6 @@ function MobileRepeatMenu({dispatch, state}){
             Rotate Column
             {rotate('col')}
         </div>
-
-        {/* <button onClick={() => dispatch({
-            trellisOverlap: defaultTrellisControl({x: 0, y: 0}),
-            trellisSkip:    defaultTrellisControl(false),
-            trellisFlip:    defaultTrellisControl(MIRROR_AXIS.NONE_0),
-            trellisRotate:  defaultTrellisControl(MIRROR_AXIS.NONE_0),
-        })}>Reset</button> */}
-
     </div>
 }
 

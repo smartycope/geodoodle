@@ -7,6 +7,7 @@ import { FaGripLinesVertical } from "react-icons/fa6";
 import { TbArrowBigUpLine } from "react-icons/tb";
 import { TbArrowBigDownLine } from "react-icons/tb";
 import { MdHome } from "react-icons/md";
+import { PiSelectionAll } from "react-icons/pi";
 
 
 let offsetX, offsetY;
@@ -138,6 +139,9 @@ export default function NavMenu({dispatch, state}){
             {/* Home button */}
             <button id='home-button' onClick={() => dispatch({action: "go home"})} title="Reset position and scale">
                 <MdHome />
+            </button>
+            <button id='nav-selection-button' onClick={() => dispatch({action: 'go to selection'})} title="Go to the current selection">
+                <PiSelectionAll />
             </button>
 
             {/* Grip */}

@@ -142,6 +142,14 @@ export default function reducer(state, data){
         case 'increase scale':  return {...state, scalex: scalex*2, scaley: scaley*2}
         case 'decrease scale':  return {...state, scalex: scalex/2, scaley: scaley/2}
         case 'go home':         return {...state, translationx: 0, translationy: 0, scalex: defaultScalex, scaley: defaultScaley}
+        case 'go to selection':
+            if (!boundRect)
+                return state
+            else
+                return {...state,
+                    translationx: boundRect.left - (window.visualViewport.width / 2) / scalex,
+                    translationy: boundRect.top - (window.visualViewport.height / 2) / scaley
+                }
         // Direction actions
         case 'left':            return {...state, cursorPos: [cursorPos[0] - scalex, cursorPos[1]]}
         case 'right':           return {...state, cursorPos: [cursorPos[0] + scalex, cursorPos[1]]}

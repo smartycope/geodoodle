@@ -34,3 +34,9 @@
 #select-menu{
     /* transform: translate(-40%, 80%); 120px */
 }
+
+#undo-menu{
+    display: flex;
+    flex-direction: row;
+    /* *>{margin: 0px;} */
+}

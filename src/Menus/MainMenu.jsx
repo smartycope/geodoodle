@@ -147,7 +147,7 @@ export default function MainMenu({dispatch, state}){
                         }}
                     > <GoMirror className="main-menu-icon"/>
                     </button>
-                    {state.openMenus.mirror && <MirrorMenu dispatch={dispatch} state={state} align="mirror-button-menu" />}
+                    {state.openMenus.mirror && <MirrorMenu dispatch={dispatch} state={state} align="mirror-menu-button" />}
                 </>
                 <> {/*select */}
                     <button onClick={() => {dispatch({action: "menu", toggle: "select"})}}
