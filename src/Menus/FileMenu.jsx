@@ -32,8 +32,8 @@ export function FileMenu({state, dispatch}){
         <span className='group'>
             <p>Name: </p>
             <input type="text" onChange={(e) => setDownloadName(e.target.value)}></input>
-            <button onClick={() => dispatch({action: "download", name: downloadName})}><IoMdDownload /> Download</button>
         </span>
+        <button onClick={() => dispatch({action: "download", name: downloadName})}><IoMdDownload /> Download</button>
         <span className='group'>
             <p><MdUpload /> Upload: </p>
             <input type="file" onChange={handleFileSelection}></input>

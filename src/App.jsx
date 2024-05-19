@@ -44,6 +44,8 @@ export default function App() {
 
     const [state, dispatch] = useReducer(reducer, {
         mobile: mobileAndTabletCheck(),
+        defaultScalex: mobileAndTabletCheck() ? 30 : 20,
+        defaultScaley: mobileAndTabletCheck() ? 30 : 20,
         // A hex color string
         stroke: options.stroke,
         // Coord: Scalar, not scaled
@@ -97,8 +99,8 @@ export default function App() {
         // Coord: not scaled
         translationx: 0,
         translationy: 0,
-        scalex: options.scalex,
-        scaley: options.scaley,
+        scalex: mobileAndTabletCheck() ? 30 : 20,
+        scaley: mobileAndTabletCheck() ? 30 : 20,
         rotatex: 0,
         rotatey: 0,
         shearx: 0,
@@ -131,6 +133,11 @@ export default function App() {
             help: false,
             mirror: false,
             key: false,
+            extra: false,
+            undo: false,
+            select: false,
+            clipboard: false,
+            delete: false,
         },
     })
 
@@ -398,7 +405,7 @@ export default function App() {
             mirrorType === MIRROR_TYPE.CURSOR &&
             [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
         }
-        key='cursor'
+        key='cursorr'
     />]
     if (openMenus.mirror && mirrorType === MIRROR_TYPE.CURSOR){
         if ([MIRROR_METHOD.FLIP, MIRROR_METHOD.BOTH].includes(mirrorMethod)){
@@ -426,6 +433,10 @@ export default function App() {
     if (clipboardMirrorAxis === MIRROR_AXIS.HORZ_180 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360)
         clipboardFlip += `matrix(1, 0, 0, -1, 0, ${cursorPos[1]*2}) `
 
+    if ((trellis || openMenus.repeat) && bounds.length > 1)
+        var trellisActual = getTrellis(state)
+
+    // console.log(selectionTransform);
 
     return (
         <div className="App">
@@ -484,7 +495,7 @@ export default function App() {
                 <g transform={`
                     scale(${scalex} ${scaley})
                 `}>
-                    {((trellis || openMenus.repeat) && bounds.length > 1) && getTrellis(state)}
+                    {((trellis || openMenus.repeat) && bounds.length > 1) && trellisActual}
                 </g>
 
                 {/* Draw the cursor */}
@@ -516,14 +527,15 @@ export default function App() {
 
                 {/* Draw the selection rect */}
                 {boundRect && <rect
-                    width={(drawBoundRect?.width) * scalex}
-                    height={(drawBoundRect?.height) * scaley}
-                    x={drawBoundRect?.left * scalex + translationx}
-                    y={drawBoundRect?.top * scaley + translationy}
+                    width={(drawBoundRect.width) * scalex}
+                    height={(drawBoundRect.height) * scaley}
+                    x={drawBoundRect.left * scalex + translationx}
+                    y={drawBoundRect.top * scaley + translationy}
                     stroke={options.selectionBorderColor}
                     fillOpacity={options.selectionOpacity}
                     fill={options.selectionColor}
                     rx={partials ? 4 : 0}
+                    // transform={selectionTransform ?? ""}
                 />}
 
                 {/* Draw the mirror lines */}

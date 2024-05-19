@@ -10,7 +10,6 @@
     z-index: 1;
 }
 
-
 #expanding{
     height: 80%;
 }
@@ -20,7 +19,6 @@
     right: 10px;
     position: absolute;
 }
-
 
 .group{
     display: flex;

@@ -47,6 +47,8 @@ export function getTrellis(state){
     if (pattern.length < 1 || boundRect.width < 1 || boundRect.height < 1)
         return []
 
+    let center
+
     for (let row = 0, x = startOffsetx; x < areaWidth; x += boundRect.width, row++) {
         for (let col = 0, y = startOffsety; y < areaHeight; y += boundRect.height, col++) {
             // Skip
@@ -82,12 +84,15 @@ export function getTrellis(state){
                         transformation += `matrix(1, 0, 0, -1, 0, 0) `
                 }
 
+                // if ((areaWidth/2) / boundRect.width === x && (areaHeight/2) / boundRect.height === y)
+                //     center = pattern
+
                 rtn.push(<g transform={transformation} key={`${row}-${col}`}>
                     {pattern}
                 </g>)
             }
         }
     }
-
+    // return [rtn, rtn[rtn.length/2].props.transform]
     return rtn
 }

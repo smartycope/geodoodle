@@ -40,7 +40,6 @@ export default function reducer(state, data){
         lines,
         curLine,
         bounds,
-        // pattern,
         mirrorAxis,
         mirrorAxis2,
         mirrorType,
@@ -64,6 +63,8 @@ export default function reducer(state, data){
         mode,
         debug,
         openMenus,
+        defaultScalex,
+        defaultScaley,
     } = state
 
     const {
@@ -140,7 +141,7 @@ export default function reducer(state, data){
         }
         case 'increase scale':  return {...state, scalex: scalex*2, scaley: scaley*2}
         case 'decrease scale':  return {...state, scalex: scalex/2, scaley: scaley/2}
-        case 'go home':         return {...state, translationx: 0, translationy: 0, scalex: defaultOptions.scalex, scaley: defaultOptions.scaley}
+        case 'go home':         return {...state, translationx: 0, translationy: 0, scalex: defaultScalex, scaley: defaultScaley}
         // Direction actions
         case 'left':            return {...state, cursorPos: [cursorPos[0] - scalex, cursorPos[1]]}
         case 'right':           return {...state, cursorPos: [cursorPos[0] + scalex, cursorPos[1]]}
@@ -298,7 +299,7 @@ export default function reducer(state, data){
             if (nextState === undefined)
                 return state
             undoStack.push(nextState)
-            return nextState
+            return {...state, ...nextState}
         // Clipboard Actions
         case 'copy':            return {...state, clipboard: getSelected(state), curLine: null}
         case 'paste':

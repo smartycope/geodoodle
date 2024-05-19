@@ -23,6 +23,12 @@ html{
     }
 }
 
+.align-horz{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
 /* input[type=number] {
     width: 3em;
 } */
@@ -135,4 +141,8 @@ select{
     > button > svg{
         margin-right: 5px;
     }
+}
+
+hr{
+    width: 95%;
 }

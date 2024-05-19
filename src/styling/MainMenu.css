@@ -11,7 +11,6 @@
     zoom: 1.5;
 }
 
-
 #menu-selector-mobile{
     /* top:0px; */
     padding: 2%;
@@ -25,6 +24,7 @@
     /* flex-direction: row; */
     /* align-items: center; */
     justify-content: space-between;
+    pointer-events: none;
     /* zoom: 2; */
     /* scale: 3; */
 }
@@ -59,15 +59,22 @@
 #menu-icon{
     scale: 3;
     opacity: .2;
+    outline-style: none;
+    box-shadow: none;
+    border-color: transparent;
+    background-color: transparent;
 }
 
 .main-menu-icon{
     scale: 3;
     opacity: 90%;
+    outline-style: none;
+    box-shadow: none;
+    border-color: transparent;
+    background-color: transparent;
+    color: rgba(60,60,60,.95);
     /* padding: 0%; */
 }
-
-
 
 .menu-toggle-button-mobile{
     background-color: rgba(0, 0, 0, 0);
@@ -78,8 +85,10 @@
     padding-left: 10px;
     padding-right: 10px; */
     /* width: 100%; */
+    pointer-events: all;
     text-align: center;
     nav-index: -1;
+    /* z-index: 2; */
     /* align-content: flex-start; */
     /* > svg{
         margin-right: 5px;

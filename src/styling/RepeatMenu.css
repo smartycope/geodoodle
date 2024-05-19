@@ -1,4 +1,4 @@
-#repeat-menu{
+#repeat-menu-desktop{
     top: 0px;
     /* To center it */
     left: 30%;
@@ -21,7 +21,7 @@
     width: 400px;
 }
 
-.trellis-control{
+.trellis-control-desktop{
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -30,4 +30,60 @@
     > *{
         margin: 2px;
     }
+}
+
+#repeat-menu-mobile{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    pointer-events: none;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+}
+
+#repeat-right{
+    left: 0px;
+}
+
+#repeat-left{
+    right: 0px;
+}
+
+.repeat-side{
+    position: absolute;
+    background-color: rgba(20,20,20,.65);
+    border-radius: 10px;
+    align-content: space-between;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: white;
+    cursor: grab;
+    z-index: 1;
+    padding: 2px;
+    pointer-events: all;
+}
+
+.trellis-control-mobile{
+    /* display: flex; */
+    /* flex-direction: column; */
+    /* align-items: left; */
+    /* justify-content: space-between; */
+    /* margin-left: 10px; */
+    /* > *{
+        margin: 2px;
+    } */
+}
+
+h4{
+    padding: 0px;
+    margin: 0px;
+    /* margin-bottom: 3px; */
+}
+
+hr{
+    margin: 5px;
 }
