@@ -14,6 +14,7 @@ var preTourState = null
 // *everything*, instead we just remove the limit and the next state saves instead. There's usually at least a cursor
 // movement or something, so it should work pretty well
 var saveNext = false
+const miniMenus = ['extra', 'color', 'mirror', 'select', 'clipboard', 'delete', 'undo']
 
 // Can accept any of 3 parameters to dispatch:
 //                 {action: "...", foo: "bar"}
@@ -526,6 +527,25 @@ export default function reducer(state, data){
                 copy[data.open] = true
             if (data.close !== undefined)
                 copy[data.close] = false
+
+            // Only allow one mini menu to be open at a time
+            if (((data.open !== undefined && miniMenus.includes(data.open)) ||
+                (data.toggle !== undefined && copy[data.toggle] && miniMenus.includes(data.toggle)))
+            ){
+                const setFalse = miniMenus.filter(i => i !== data.open && i !== data.toggle)
+                Object.keys(copy).forEach(key => {
+                    copy[key] = setFalse.includes(key) ? false : copy[key]
+                })
+            }
+
+            // If we close the main menu, close the mini menus as well
+            if (data.close === 'main' || (data.toggle === 'main' && !copy[data.toggle])){
+                Object.keys(copy).forEach(key => {
+                    copy[key] = miniMenus.includes(key) ? false : copy[key]
+                })
+            }
+
+
             return {...reducer(state, "nevermind"), openMenus: {...copy}}
         }
         case "debug":
