@@ -90,7 +90,8 @@ export function Number({label='', onChange, value, min=-Infinity, max=Infinity, 
             name={label}
             id={inputId}
             value={value}
-            readOnly={true}
+            // readOnly={true}
+            onChange={e => onChange(e.target.value)}
             min={min}
             max={max}
             {...inputProps}

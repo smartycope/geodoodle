@@ -9,6 +9,8 @@ import {getTrellis} from './repeatEngine';
 import {deserializeState} from './fileUtils';
 import React from 'react';
 import {applyTransformationFlip, applyTransformationRotation, getMirrored, getStateMirrored} from './mirrorEngine';
+import { RxRotateCounterClockwise } from "react-icons/rx";
+import { GoMirror } from "react-icons/go";
 
 // Coordinate systems:
 // absolute: relative to the viewport, origin is top left, not translated
@@ -63,6 +65,8 @@ export default function App() {
         // "a series of comma and/or whitespace separated numbers"
         // The numbers are scaled
         dash: "0",
+        lineCap: options.lineCap,
+        lineJoin: options.lineJoin,
 
         // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
         // Coord: absolute, not scaled
@@ -156,6 +160,8 @@ export default function App() {
         cursorPos,
         stroke,
         dash,
+        lineCap,
+        lineJoin,
         commonColors,
         strokeWidth,
         partials,
@@ -246,11 +252,7 @@ export default function App() {
 
     function onTouchHold(){
         // This also only applies to touch events, not mouse events
-        console.log("tapHolding = ", tapHolding);
         if (tapHolding){
-            console.log(_state.clipboard);
-            console.log(Boolean(_state.clipboard));
-            console.log(Boolean(_state.clipboard?.length));
             if (_state.clipboard?.length)
                 dispatch({action: "paste"})
             else
@@ -260,7 +262,6 @@ export default function App() {
     }
 
     function onTouchMove(e){
-        console.log("Touch moved!");
         // withinDoubleTapTime = false
         mouseMoveEventWhileHoldingCount += 1
         if (mouseMoveEventWhileHoldingCount > maxMouseMoveEventsDuringHold)
@@ -307,7 +308,6 @@ export default function App() {
     function onTouchEnd(e){
         e.preventDefault()
         const touch = (e.touches[0] || e.changedTouches[0])
-        console.log('releasing tapholding');
         // I don't know why, but for some reason this causes the time out to double, but seems to fix the problem I was
         // having, where timers overlap touches
         clearTimeout(touchHoldTimer)
@@ -405,31 +405,64 @@ export default function App() {
             dispatch(deserializeState(local))
     }, [])
 
+
+    // Clipboard translations
+    let clipboardFlip = ''
+    if (clipboardMirrorAxis === MIRROR_AXIS.VERT_90 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360)
+        clipboardFlip += `matrix(-1, 0, 0, 1, ${cursorPos[0]*2}, 0) `
+    if (clipboardMirrorAxis === MIRROR_AXIS.HORZ_180 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360)
+        clipboardFlip += `matrix(1, 0, 0, -1, 0, ${cursorPos[1]*2}) `
+
+    if ((trellis || openMenus.repeat) && bounds.length > 1)
+        var [trellisActual, selectionTransform] = getTrellis(state)
+
     // Get the mirrored current lines
     var curLines = []
-    if (mirroring || openMenus.mirror)
-        curLines = getStateMirrored(state, () => '', false).map((transformation, i) => <line
+    var clip = []
+    if (mirroring || openMenus.mirror){
+        const trellisTransformations = getStateMirrored(state, () => '', false)
+        curLines = trellisTransformations.map((transformation, i) => <line
             x1={curLine?.x1}
             y1={curLine?.y1}
             x2={cursorPos[0]}
             y2={cursorPos[1]}
             stroke={stroke}
-            strokeWidth={strokeWidth}
+            strokeWidth={strokeWidth * scalex}
+            strokeLinecap={lineCap}
+            strokeLinejoin={lineJoin}
             strokeDasharray={dash}
             transform={transformation}
             key={`mirror-${i}`}
         />)
-    else
+        // clip = trellisTransformations.map((tranformation, i) => <g transform={tranformation}>{clipboard}</g>)
+        clip = trellisTransformations.map((tranformation, i) => <g transform={`
+            ${clipboardFlip}
+            ${tranformation}
+            rotate(${clipboardRotation}, ${cursorPos[0]}, ${cursorPos[1]})
+            translate(${cursorPos[0]} ${cursorPos[1]})
+            scale(${scalex} ${scaley})
+        `}>{clipboard}</g>)
+
+    } else {
         curLines.push(<line
             x1={curLine?.x1}
             y1={curLine?.y1}
             x2={cursorPos[0]}
             y2={cursorPos[1]}
             stroke={stroke}
-            strokeWidth={strokeWidth}
+            strokeWidth={strokeWidth * scalex}
+            strokeLinecap={lineCap}
+            strokeLinejoin={lineJoin}
             strokeDasharray={dash}
             key='mirror0'
         />)
+        clip.push(<g transform={`
+            ${clipboardFlip}
+            rotate(${clipboardRotation}, ${cursorPos[0]}, ${cursorPos[1]})
+            translate(${cursorPos[0]} ${cursorPos[1]})
+            scale(${scalex} ${scaley})
+        `}>{clipboard}</g>)
+    }
 
 
     // Get the mirror guide lines
@@ -467,7 +500,7 @@ export default function App() {
             mirrorType === MIRROR_TYPE.CURSOR &&
             [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
         }
-        key='cursorr'
+        key='cursor'
     />]
     if ((mirroring || openMenus.mirror) && mirrorType === MIRROR_TYPE.CURSOR){
         if ([MIRROR_METHOD.FLIP, MIRROR_METHOD.BOTH].includes(mirrorMethod)){
@@ -487,16 +520,6 @@ export default function App() {
                 />)
         }
     }
-
-    // Clipboard translations
-    let clipboardFlip = ''
-    if (clipboardMirrorAxis === MIRROR_AXIS.VERT_90 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360)
-        clipboardFlip += `matrix(-1, 0, 0, 1, ${cursorPos[0]*2}, 0) `
-    if (clipboardMirrorAxis === MIRROR_AXIS.HORZ_180 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360)
-        clipboardFlip += `matrix(1, 0, 0, -1, 0, ${cursorPos[1]*2}) `
-
-    if ((trellis || openMenus.repeat) && bounds.length > 1)
-        var [trellisActual, selectionTransform] = getTrellis(state)
 
     return (
         <div className="App">
@@ -559,7 +582,7 @@ export default function App() {
                 </g>
 
                 {/* Draw the cursor */}
-                <g>{cursor}</g>
+                <g key="cursor-group">{cursor}</g>
 
                 {/* Draw the lines */}
                 <g id='lines' transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}>
@@ -603,6 +626,20 @@ export default function App() {
                     `}
                 />}
 
+                {/* Draw the rotate & flip buttons when there's a clipboard */}
+                {/* TODO These don't work yet: they won't accept press events? */}
+                {mobile && clipboard?.length && <foreignObject
+                    x={cursorPos[0]} y={cursorPos[1] - scaley}
+                    // 100 is too much, but it shouldn't matter
+                    width="100" height="100"
+                    style={{pointerEvents: "all", overflow: "visible", zIndex: 1}}
+                    >
+                        <div xmlns="http://www.w3.org/1999/xhtml" id="clipboard-transform-buttons-mobile">
+                            <button id='rotator' onClick={() => {console.log('rotated!'); dispatch({action: "increment clipboard rotation"})}}><RxRotateCounterClockwise /></button>
+                            <button onClick={() => dispatch({action: "increment clipboard mirror axis"})}><GoMirror /></button>
+                        </div>
+                </foreignObject>}
+
                 {/* Draw the mirror lines */}
                 {mirrorType === MIRROR_TYPE.PAGE && mirrorLines}
 
@@ -629,14 +666,15 @@ export default function App() {
                 ]}
 
                 {/* Draw the current clipboard */}
-                <g transform={`
+                {/* <g transform={`
                     ${clipboardFlip}
                     rotate(${clipboardRotation}, ${cursorPos[0]}, ${cursorPos[1]})
                     translate(${cursorPos[0]} ${cursorPos[1]})
                     scale(${scalex} ${scaley})
                 `}>
                     {clipboard}
-                </g>
+                </g> */}
+                {clip}
             </svg>
         </div>
     )

@@ -79,7 +79,6 @@ function DesktopMirrorMenu({dispatch, state}){
         }
     }, [])
 
-    console.log('here');
     const {mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2} = state
 
     return <span id="mirror-menu-desktop" className="button-group">
@@ -171,7 +170,6 @@ function MobileMirrorMenu({dispatch, state, align}){
 }
 
 export default function MirrorMenu({dispatch, state, align}){
-    console.log('here?');
     return state.mobile
         ? <MobileMirrorMenu dispatch={dispatch} state={state} align={align}/>
         : <DesktopMirrorMenu dispatch={dispatch} state={state}/>

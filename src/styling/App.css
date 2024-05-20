@@ -153,3 +153,14 @@ select{
 hr{
     width: 95%;
 }
+
+#clipboard-transform-buttons-mobile:focus{
+    background-color: red;
+    width: 50;
+}
+#clipboard-transform-buttons-mobile{
+    display: flex;
+    flex-direction: row;
+    pointer-events: all;
+    /* background-color: blue; */
+}

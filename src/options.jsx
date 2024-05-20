@@ -4,7 +4,7 @@ const defaultOptions = {
     scaley: 20,
     stroke: "#000000",
     commonColorAmt: 5,
-    strokeWidth: 1,
+    strokeWidth: .1,
     boundColor: "black",
     mirrorColor: 'green',
     selectionBorderColor: 'black',
@@ -27,6 +27,8 @@ const defaultOptions = {
     holdTapTimeMS: 1000 / 2,
     // If we remove all the bounds after cut or delete selection
     removeSelectionAfterDelete: false,
+    lineCap: 'round',
+    lineJoin: 'round',
     maxUndoAmt: 20,
 }
 export default defaultOptions

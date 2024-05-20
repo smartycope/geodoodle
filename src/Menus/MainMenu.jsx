@@ -144,6 +144,7 @@ function MobileMainMenu({dispatch, state}){
                     style={{
                         visibility: state.openMenus.main ? 'visible': "hidden",
                         pointerEvents: state.openMenus.main ? 'all' : 'none',
+                        backgroundColor: state.mirroring ? "gray" : "transparent"
                     }}
                 > <GoMirror className="main-menu-icon"/>
                 </button>
@@ -190,8 +191,8 @@ function MobileMainMenu({dispatch, state}){
                 className="menu-toggle-button-mobile"
             > <FaBars color="black" id='menu-icon'/>
             </button>
-
         </div>
+
         {/* The menus */}
         {/* {state.openMenus.controls   && <ControlsMenu dispatch={dispatch} state={state}/>} */}
         {/* {state.openMenus.color      && <ColorMenu    dispatch={dispatch} state={state}/>} */}

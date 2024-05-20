@@ -109,8 +109,8 @@ export function HelpMenu({state, dispatch}){
                 <li>✅ Colors &amp; Stroke Patterns</li>
                 <li>✅ File Handling</li>
                 <li>✅ Settings</li>
-                <li>☑️ Repeating</li>
-                <li>☑️ Mobile Compatibility</li>
+                <li>✅ Repeating</li>
+                <li>✅ Mobile Compatibility</li>
                 <li>❌ Connect to Google Drive</li>
                 <li>❌ Alternate Dot Patterns</li>
                 <li>❌ Custom Keyboard Shortcuts</li>

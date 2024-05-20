@@ -136,15 +136,12 @@ function DesktopColorMenu({dispatch, state}){
             </span>
 
             {/* Stroke input */}
-            <span id="stoke-input-area">
-                <label htmlFor="stroke-input">Stroke: </label>
-                <input
-                    id="stroke-input"
-                    type="number"
-                    value={state.strokeWidth}
-                    onChange={(val) => dispatch({action: 'set manual', strokeWidth: val.target.value})}
-                ></input>
-            </span>
+            <Number
+                label={"Stroke:"}
+                value={state.strokeWidth * 100}
+                onChange={(val) => dispatch({strokeWidth: val / 100})}
+                id='stroke-input'
+            />
 
             {/* Dash code */}
             <span id="dash-input-area">
@@ -164,10 +161,6 @@ function DesktopColorMenu({dispatch, state}){
 }
 
 function MobileColorMenu({dispatch, state}){
-    // const [palletteVisible, setPalletteVisible] = useState(false);
-    // const colorMenu = useRef()
-
-
     return <div id="color-menu-mobile">
         {/* The full screen color menu */}
         <div id="color-picker-mobile-actual">
@@ -175,7 +168,6 @@ function MobileColorMenu({dispatch, state}){
                 color={ColorService.convert('hex', state.stroke)}
                 onChange={(clr) => dispatch({action: 'set manual', stroke: clr.hex})}
                 hideInput={['hsv', state.hideHexColor ? 'hex' : '']}
-                // id="color-picker-mobile-actual"
             />
         </div>
 
@@ -194,8 +186,8 @@ function MobileColorMenu({dispatch, state}){
         {/* Stroke input */}
         <Number
             label={"Stroke:"}
-            value={state.strokeWidth}
-            onChange={(val) => dispatch({strokeWidth: val.target.value})}
+            value={state.strokeWidth * 100}
+            onChange={(val) => dispatch({strokeWidth: val / 100})}
             id='stroke-input'
         />
 
@@ -207,7 +199,7 @@ function MobileColorMenu({dispatch, state}){
                 type="text"
                 value={state.dash}
                 style={{width: state.dash.length * 5 + 10}}
-                onChange={(val) => dispatch({dash: val.target.value})}
+                onChange={(val) => dispatch({dash: val})}
             ></input>
         </span>
 

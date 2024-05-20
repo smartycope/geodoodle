@@ -37,6 +37,8 @@ export default function reducer(state, data){
         stroke,
         strokeWidth,
         dash,
+        lineCap,
+        lineJoin,
         partials,
         lines,
         curLine,
@@ -92,6 +94,7 @@ export default function reducer(state, data){
     if (reversibleActions.includes(data.action)){
         if (undoStack.push(filterObjectByKeys(state, reversible)) > state.maxUndoAmt){
             undoStack.shift()
+            redoStack = []
         }
     }
 
@@ -202,8 +205,22 @@ export default function reducer(state, data){
             //     return reducer(state, {action: 'delete selected'})
             else {
                 var points = []
-                if (mirroring || openMenus.mirror)
-                    points = getStateMirrored(state, () => ({x: cursorPos[0], y: cursorPos[1]}), true)
+                if (mirroring || openMenus.mirror){
+                    // points = getStateMirrored(state, () => ({x: cursorPos[0], y: cursorPos[1]}), true)
+                    // TODO: the 0 here doesn't work, I don't know why.
+                    const originx = mirrorType === MIRROR_TYPE.PAGE ? halfx : cursorPos[0]
+                    const originy = mirrorType === MIRROR_TYPE.PAGE ? halfy : cursorPos[1]
+                    points = getMirrored(
+                        mirrorMethod,
+                        mirrorAxis,
+                        mirrorAxis2,
+                        originx,
+                        originy,
+                        () => ({x: cursorPos[0], y: cursorPos[1]}),
+                        applyManualRotation,
+                        applyManualFlip,
+                    )
+                }
                 else
                     points.push({x: cursorPos[0], y: cursorPos[1]})
 
@@ -211,22 +228,8 @@ export default function reducer(state, data){
                 console.log(points.length);
                 points = points.map(i => [(i.x - translationx) / scalex, (i.y - translationy) / scaley])
 
-                // console.log(points);
-                // console.log(lines);
-
-                return {...state, lines: (lines.filter(i =>{
-                    // !((pointEq(state, [i.props.x1, i.props.y1], relCursorPos, .3) ||
-                    //   (pointEq(state, [i.props.x2, i.props.y2], relCursorPos, .3)))
-                    // )
-                    // return !(points.includes(
-                    //         {x: (i.props.x1 + translationx) * scalex, y: (i.props.y1 + translationy) * scaley}
-                    //     ) || points.includes(
-                    //         {x: (i.props.x2 + translationx) * scalex, y: (i.props.y2 + translationy) * scaley}
-                    //     )
-                    // )
-                    // console.log(points, [i.props.x1, i.props.y1])
-                    return !(pointIn(points, [i.props.x1, i.props.y1]) || pointIn(points, [i.props.x2, i.props.y2]))
-                }
+                return {...state, lines: (lines.filter(i =>
+                    !(pointIn(points, [i.props.x1, i.props.y1]) || pointIn(points, [i.props.x2, i.props.y2]))
                 )), deleteme: points}
             }
 
@@ -539,7 +542,7 @@ export default function reducer(state, data){
             }
 
             // If we close the main menu, close the mini menus as well
-            if (data.close === 'main' || (data.toggle === 'main' && !copy[data.toggle])){
+            if ((data.close === 'main' || (data.toggle === 'main' && !copy[data.toggle])) && mobile){
                 Object.keys(copy).forEach(key => {
                     copy[key] = miniMenus.includes(key) ? false : copy[key]
                 })
