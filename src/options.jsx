@@ -23,6 +23,8 @@ const defaultOptions = {
     enableGestureScale: false,
     paperColor: "#ffddab",
     doubleTapTimeMS: 500,
+    // See note in onTouchEnd in App.jsx to see why this is / 2
+    holdTapTimeMS: 1000 / 2,
     // If we remove all the bounds after cut or delete selection
     removeSelectionAfterDelete: false,
     maxUndoAmt: 20,

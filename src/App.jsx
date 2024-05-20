@@ -2,7 +2,7 @@ import './styling/App.css';
 import {useEffect, useReducer, useRef, useState} from 'react';
 import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageSettingsName} from './globals'
 import reducer from './reducer';
-import {align, calc, defaultTrellisControl, distCenter, mobileAndTabletCheck} from './utils';
+import {align, calc, defaultTrellisControl, distCenter, mobileAndTabletCheck, pointEq} from './utils';
 import options from './options';
 import MainMenu from './Menus/MainMenu';
 import {getTrellis} from './repeatEngine';
@@ -33,7 +33,15 @@ window.oncontextmenu = () => false
 // so we can have it not capture passively, so we can prevent default
 // null or a 2 item list of the previous touches
 var gestureTouches = null
-
+var withinDoubleTapTime = false
+var lastTapPos = [0,0]
+var tapHolding = false
+var touchHoldTimer = null
+var mouseMoveEventWhileHoldingCount = 0
+const maxMouseMoveEventsDuringHold = 6
+// This is for the mouse/touch events that need to be bound non-passively, but also need access to the state
+// This is hacky, but I can't think of a better way
+var _state = {}
 
 export default function App() {
     const boundsGroup = useRef()
@@ -122,6 +130,7 @@ export default function App() {
 
         paperColor: options.paperColor,
         doubleTapTimeMS: options.doubleTapTimeMS,
+        holdTapTimeMS: options.holdTapTimeMS,
 
         openMenus: {
             main: false,
@@ -150,6 +159,7 @@ export default function App() {
         commonColors,
         strokeWidth,
         partials,
+        holdTapTimeMS,
         lines,
         curLine,
         bounds,
@@ -193,6 +203,7 @@ export default function App() {
         relCursorPos,
     } = calc(state)
 
+    _state = state
     const boundRadius = scalex / 1.5
 
     function onMouseMove(e){
@@ -227,7 +238,33 @@ export default function App() {
         setDragging(false)
     }
 
+    function onDoubleTap(e){
+        // This is only for touches, mouse clicks aren't counted.
+        // e is the event of the last touchend event, which is guranteed ("should") be within 1 scalex of the first tap
+        dispatch({action: 'delete'})
+    }
+
+    function onTouchHold(){
+        // This also only applies to touch events, not mouse events
+        console.log("tapHolding = ", tapHolding);
+        if (tapHolding){
+            console.log(_state.clipboard);
+            console.log(Boolean(_state.clipboard));
+            console.log(Boolean(_state.clipboard?.length));
+            if (_state.clipboard?.length)
+                dispatch({action: "paste"})
+            else
+                dispatch({action: "add bound"})
+            tapHolding = false
+        }
+    }
+
     function onTouchMove(e){
+        console.log("Touch moved!");
+        // withinDoubleTapTime = false
+        mouseMoveEventWhileHoldingCount += 1
+        if (mouseMoveEventWhileHoldingCount > maxMouseMoveEventsDuringHold)
+            tapHolding = false
         e.preventDefault()
         if (e.touches.length === 2){
             if (gestureTouches !== null){
@@ -269,9 +306,28 @@ export default function App() {
 
     function onTouchEnd(e){
         e.preventDefault()
-        if (!clipboard)
+        const touch = (e.touches[0] || e.changedTouches[0])
+        console.log('releasing tapholding');
+        // I don't know why, but for some reason this causes the time out to double, but seems to fix the problem I was
+        // having, where timers overlap touches
+        clearTimeout(touchHoldTimer)
+        tapHolding = false
+        mouseMoveEventWhileHoldingCount = 0
+
+        if (!_state.clipboard?.length)
             dispatch({action: 'add line'})
         gestureTouches = null
+
+        if (!withinDoubleTapTime){
+            withinDoubleTapTime = true
+            setTimeout(() => withinDoubleTapTime = false, doubleTapTimeMS)
+        } else if (pointEq(state, lastTapPos, [touch.pageX, touch.pageY], scalex)){
+            withinDoubleTapTime = false
+            onDoubleTap(e)
+        }
+
+        lastTapPos = [touch.pageX, touch.pageY]
+
     }
 
     function onTouchStart(e){
@@ -283,8 +339,12 @@ export default function App() {
             x: touch.pageX,
             y: touch.pageY,
         })
-        if (!clipboard)
+        if (!_state.clipboard?.length)
             dispatch({action: 'add line'})
+
+        // clearTimeout(touchHoldTimer)
+        tapHolding = true
+        touchHoldTimer = setTimeout(onTouchHold, holdTapTimeMS)
     }
 
     function onScroll(e){

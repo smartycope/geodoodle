@@ -545,7 +545,6 @@ export default function reducer(state, data){
                 })
             }
 
-
             return {...reducer(state, "nevermind"), openMenus: {...copy}}
         }
         case "debug":
