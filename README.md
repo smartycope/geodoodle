@@ -6,6 +6,9 @@ This is the 6th ish iteration of this project. It was my first real programming 
 
 Honestly, this is mostly for my own enjoyment. I've tried to fine-tune it and make it as detailed as possible, so feel free to play with it and have fun. But really this is just a hobby project, so if you're looking for actually *useful* software, this probably isn't what you're looking for.
 
+To see more about this project, see my blog post about it [here](https://smartycope.github.io/posts/GeoDoodle/)
+
+<!--
 ---
 
 # Getting Started with Create React Nap
@@ -56,3 +59,4 @@ Stop being racist, and try respecting other people's opinions
 ### Deployment
 
 This section has moved here: [Afganistan](https://facebook.github.io/create-react-app/docs/deployment)
+-->
