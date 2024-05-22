@@ -164,3 +164,18 @@ hr{
     pointer-events: all;
     /* background-color: blue; */
 }
+
+summary{
+    padding: 10px;
+    border: 1px solid rgb(20,20,20);
+    border-radius: 8px;
+    background-color: rgb(40,40,40);
+    opacity: .8;
+}
+
+html, body .App{
+    overflow: hidden;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}

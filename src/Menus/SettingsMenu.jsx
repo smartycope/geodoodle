@@ -64,6 +64,7 @@ export function SettingsMenu({state, dispatch}){
                     {palletteVisible ? "Set" : "Pick Background Color"}
                 </button>
             </div>
+            <button onClick={() => dispatch({hideDots: !state.hideDots})}>{state.hideDots ? "Show" : "Hide"} dots</button>
 
             <h4>Advanced</h4>
             <Checkbox label="Hide Hex Color"

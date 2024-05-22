@@ -186,7 +186,8 @@ function DesktopRepeatMenu({dispatch, state}){
 function MobileRepeatMenu({dispatch, state}){
     function TrellisControl({verb, value}){
         const line = (rowCol) => <span className="trellis-control-mobile">
-            <hr/>
+            {/* <hr/> */}
+            {rowCol === 'row' ? "Rows" : 'Columns'}
             <Number
                 onChange={val => {
                     let obj = {}
@@ -198,13 +199,13 @@ function MobileRepeatMenu({dispatch, state}){
                 min="1"
                 step="1"
             ></Number>
-            {rowCol === 'row' ? "rows" : 'columns'} {verb}
         </span>
 
-        return <span>
+        return <details>
+            <summary>{verb}</summary>
             {line('row')}
             {line('col')}
-        </span>
+        </details>
     }
 
     const overlap = rowCol => <span>
@@ -265,46 +266,57 @@ function MobileRepeatMenu({dispatch, state}){
 
     return <div id="repeat-menu-mobile">
         <div id="repeat-right" className="repeat-side">
-            <h4>Every...</h4>
-            {/* <hr/> */}
-            <TrellisControl value='trellisOverlap' verb='offset' />
-            <TrellisControl value='trellisSkip'    verb='skip' />
-            <TrellisControl value='trellisFlip'    verb='flip' />
-            <TrellisControl value='trellisRotate'  verb='rotate' />
+            <h4>Every</h4>
             <hr/>
-            <button onClick={() => dispatch({
-                trellisOverlap: defaultTrellisControl({x: 0, y: 0}),
-                trellisSkip:    defaultTrellisControl(false),
-                trellisFlip:    defaultTrellisControl(MIRROR_AXIS.NONE_0),
-                trellisRotate:  defaultTrellisControl(MIRROR_AXIS.NONE_0),
-            })}>Reset</button>
+            <TrellisControl value='trellisOverlap' verb='Offset' />
+            <TrellisControl value='trellisSkip'    verb='Skip' />
+            <TrellisControl value='trellisFlip'    verb='Flip' />
+            <TrellisControl value='trellisRotate'  verb='Rotate' />
+            <hr/>
+            <details>
+                <summary>Settings</summary>
+                <button onClick={() => dispatch({
+                    trellisOverlap: defaultTrellisControl({x: 0, y: 0}),
+                    trellisSkip:    defaultTrellisControl(false),
+                    trellisFlip:    defaultTrellisControl(MIRROR_AXIS.NONE_0),
+                    trellisRotate:  defaultTrellisControl(MIRROR_AXIS.NONE_0),
+                })}>Reset</button>
+                <button onClick={() => dispatch({hideDots: !state.hideDots})}>{state.hideDots ? "Show" : "Hide"} dots</button>
+            </details>
         </div>
+
+
         <div id="repeat-left" className="repeat-side">
-            <h4>...By</h4>
+            <h4>By</h4>
             <hr/>
-            Offset Row
-            {overlap('row')}
-            <hr/>
-            Offset Column
-            {overlap('col')}
-            <hr/>
-            Skip Row
-            {skip('row')}
-            <hr/>
-            Skip Column
-            {skip('col')}
-            <hr/>
-            Flip Row
-            {flip('row')}
-            <hr/>
-            Flip Column
-            {flip('col')}
-            <hr/>
-            Rotate Row
-            {rotate('row')}
-            <hr/>
-            Rotate Column
-            {rotate('col')}
+            <details>
+                <summary>Offset</summary>
+                Rows
+                {overlap('row')}
+                Columns
+                {overlap('col')}
+            </details>
+            <details>
+                <summary>Skip</summary>
+                Rows
+                {skip('row')}
+                Columns
+                {skip('col')}
+            </details>
+            <details>
+                <summary>Flip</summary>
+                Rows
+                {flip('row')}
+                Columns
+                {flip('col')}
+            </details>
+            <details>
+                <summary>Rotate</summary>
+                Rows
+                {rotate('row')}
+                Columns
+                {rotate('col')}
+            </details>
         </div>
     </div>
 }

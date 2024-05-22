@@ -46,6 +46,8 @@
 
 #repeat-right{
     left: 0px;
+    align-items: start;
+    /* min-width: 80; */
 }
 
 #repeat-left{
@@ -54,17 +56,22 @@
 
 .repeat-side{
     position: absolute;
-    background-color: rgba(20,20,20,.65);
+    background-color: rgba(20,20,20,.5);
     border-radius: 10px;
-    align-content: space-between;
+    /* align-content: space-between; */
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    /* justify-content: space-between; */
     color: white;
     cursor: grab;
     z-index: 1;
     padding: 2px;
+    /* width: 200px; */
+    width: fit-content;
     pointer-events: all;
+    button {
+        opacity: .8;
+    }
 }
 
 .trellis-control-mobile{
@@ -86,4 +93,27 @@ h4{
 
 hr{
     margin: 5px;
+}
+
+summary{
+    /* padding: 5px; */
+    padding-left: 5px;
+    padding-right: 0px;
+    margin-bottom: 2px;
+    width: 90%;
+    align-items: start;
+    text-align: start;
+    /* flex-grow: 1; */
+    /* box-sizing: content-box; */
+}
+
+summary[open]{
+    padding-left: 2px;
+}
+
+details{
+    width: 100%;
+    padding-right: 10px;;
+    align-items: start;
+
 }

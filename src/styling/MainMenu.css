@@ -52,7 +52,12 @@
     border: none;
     top: 20px;
     right: 20px;
-    padding: 1%;
+    padding: 1%;html, body {
+        overflow: hidden;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
     cursor: pointer;
 }
 

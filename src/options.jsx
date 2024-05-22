@@ -4,7 +4,7 @@ const defaultOptions = {
     scaley: 20,
     stroke: "#000000",
     commonColorAmt: 5,
-    strokeWidth: .1,
+    strokeWidth: .05,
     boundColor: "black",
     mirrorColor: 'green',
     selectionBorderColor: 'black',
@@ -22,6 +22,7 @@ const defaultOptions = {
     hideHexColor: false,
     enableGestureScale: false,
     paperColor: "#ffddab",
+    maxMouseMoveEventsDuringHold: 30,
     doubleTapTimeMS: 500,
     // See note in onTouchEnd in App.jsx to see why this is / 2
     holdTapTimeMS: 1000 / 2,

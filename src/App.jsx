@@ -1,6 +1,6 @@
 import './styling/App.css';
 import {useEffect, useReducer, useRef, useState} from 'react';
-import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageSettingsName} from './globals'
+import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageSettingsName, localStorageTourTakenName} from './globals'
 import reducer from './reducer';
 import {align, calc, defaultTrellisControl, distCenter, mobileAndTabletCheck, pointEq} from './utils';
 import options from './options';
@@ -37,13 +37,17 @@ window.oncontextmenu = () => false
 var gestureTouches = null
 var withinDoubleTapTime = false
 var lastTapPos = [0,0]
+// The only place outside this file that this is touched, is in reducer.jsx in 'cursor moved'
 var tapHolding = false
+export const disableTapHolding = () => {
+    tapHolding = false
+    console.log('disabling tapHolding');
+}
 var touchHoldTimer = null
-var mouseMoveEventWhileHoldingCount = 0
-const maxMouseMoveEventsDuringHold = 6
 // This is for the mouse/touch events that need to be bound non-passively, but also need access to the state
 // This is hacky, but I can't think of a better way
 var _state = {}
+var offeredTour = false
 
 export default function App() {
     const boundsGroup = useRef()
@@ -101,6 +105,7 @@ export default function App() {
         trellisFlip: defaultTrellisControl(MIRROR_AXIS.NONE_0),
         // Type: MIRROR_AXIS
         trellisRotate: defaultTrellisControl(MIRROR_AXIS.NONE_0),
+        hideDots: false,
 
         mirroring: false,
         mirrorAxis: MIRROR_AXIS.VERT_90,
@@ -194,6 +199,7 @@ export default function App() {
         debug_rawCursorPos,
         openMenus,
         paperColor,
+        hideDots,
         doubleTapTimeMS,
         deleteme,
     } = state
@@ -252,6 +258,7 @@ export default function App() {
 
     function onTouchHold(){
         // This also only applies to touch events, not mouse events
+        console.log('onTouchHold called with tapHolding =', tapHolding);
         if (tapHolding){
             if (_state.clipboard?.length)
                 dispatch({action: "paste"})
@@ -262,10 +269,6 @@ export default function App() {
     }
 
     function onTouchMove(e){
-        // withinDoubleTapTime = false
-        mouseMoveEventWhileHoldingCount += 1
-        if (mouseMoveEventWhileHoldingCount > maxMouseMoveEventsDuringHold)
-            tapHolding = false
         e.preventDefault()
         if (e.touches.length === 2){
             if (gestureTouches !== null){
@@ -312,7 +315,6 @@ export default function App() {
         // having, where timers overlap touches
         clearTimeout(touchHoldTimer)
         tapHolding = false
-        mouseMoveEventWhileHoldingCount = 0
 
         if (!_state.clipboard?.length)
             dispatch({action: 'add line'})
@@ -342,8 +344,8 @@ export default function App() {
         if (!_state.clipboard?.length)
             dispatch({action: 'add line'})
 
-        // clearTimeout(touchHoldTimer)
-        tapHolding = true
+        // We have to wait until the state updates and the cursor moves, before we compare to new cursor positions
+        setTimeout(() => tapHolding = true, 10)
         touchHoldTimer = setTimeout(onTouchHold, holdTapTimeMS)
     }
 
@@ -521,6 +523,20 @@ export default function App() {
         }
     }
 
+    /* If we haven't taken the tour before, add a popup that offers it */
+    if (!localStorage.getItem(localStorageTourTakenName) && !offeredTour){
+        offeredTour = true
+        setTimeout(() => {
+            if (window.confirm("It looks like this is your first time. Would you like to take a guided tour?")){
+                console.log('starting tour!');
+                dispatch({action: 'menu', open: 'help'})
+                setTimeout(() => {
+                    document.querySelector('#tour-button').click()
+                }, 300)
+            }
+        }, 1000)
+    }
+
     return (
         <div className="App">
             <MainMenu dispatch={dispatch} state={state}/>
@@ -542,23 +558,25 @@ export default function App() {
                 style={{backgroundColor: paperColor}}
             >
                 {/* Draw the dots */}
-                <pattern id="dot"
-                    x={translationx}
-                    y={translationy}
-                    width={scalex}
-                    height={scaley}
-                    patternUnits='userSpaceOnUse'
-                    // patternTransform={`scale(${scalex}, ${scaley})`}
-                >
-                    <circle
-                        cx={0}
-                        cy={0}
-                        // r={options.dotRadius/scalex}
-                        r={options.dotRadius}
-                        fill={options.dotColor}
-                    />
-                </pattern>
-                <rect fill="url(#dot)" stroke="black" width="100%" height="100%" />
+                {!hideDots && <>
+                    <pattern id="dot"
+                        x={translationx}
+                        y={translationy}
+                        width={scalex}
+                        height={scaley}
+                        patternUnits='userSpaceOnUse'
+                        // patternTransform={`scale(${scalex}, ${scaley})`}
+                    >
+                        <circle
+                            cx={0}
+                            cy={0}
+                            // r={options.dotRadius/scalex}
+                            r={options.dotRadius}
+                            fill={options.dotColor}
+                        />
+                    </pattern>
+                    <rect fill="url(#dot)" stroke="black" width="100%" height="100%" />
+                </>}
 
                 {/* Draw the debug info */}
                 {debug && <circle cx={translationx} cy={translationy} r='8' fill='blue'/>}

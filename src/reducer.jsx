@@ -3,6 +3,7 @@ import { toRadians, pointIn, removePoint, calc, getSelected, createLine, eventMa
 import defaultOptions, { keybindings, reversible, reversibleActions, saveSettingActions } from './options'
 import {deserialize, serialize, serializeState} from './fileUtils';
 import {applyManualFlip, applyManualRotation, getMirrored, getStateMirrored} from './mirrorEngine';
+import {disableTapHolding} from './App';
 
 
 var undoStack = []
@@ -99,7 +100,12 @@ export default function reducer(state, data){
     }
 
     switch (data.action){
-        case 'cursor moved': return {...state, cursorPos: align(state, data.x, data.y), debug_rawCursorPos: [data.x, data.y]} // args: x, y
+        case 'cursor moved': // args: x, y
+            // This is here so when a touch is being held, and has moved enough to move the cursor, it disables the hold action
+            const newPos = align(state, data.x, data.y)
+            if (JSON.stringify(newPos) !== JSON.stringify(cursorPos))
+                disableTapHolding()
+            return {...state, cursorPos: newPos, debug_rawCursorPos: [data.x, data.y]}
         case 'key press': // args: event
             // If it's just a modifier key, don't do anything (it'll falsely trigger things)
             if (['Shift', 'Meta', 'Control', 'Alt'].includes(data.event.key))
@@ -161,7 +167,7 @@ export default function reducer(state, data){
         case 'up':              return {...state, cursorPos: [cursorPos[0], cursorPos[1] - scaley]}
         case 'down':            return {...state, cursorPos: [cursorPos[0], cursorPos[1] + scaley]}
         // Destruction Actions
-        case 'clear':           return {...state, lines: [], bounds: []}
+        case 'clear':           return {...state, lines: [], bounds: [], openMenus: {...openMenus, delete: false}}
         case 'clear bounds':    return {...state, bounds: []}
         case 'delete selected':
             return {...state,
@@ -451,15 +457,15 @@ export default function reducer(state, data){
             preTourState = state
             return {...reducer(state, {action: 'go home'}),
                 openMenus: {
-                    main: false,
-                    controls: true,
-                    color: true,
-                    navigation: true,
-                    repeat: true,
+                    main: true,
+                    controls: false,
+                    color: false,
+                    navigation: false,
+                    repeat: false,
                     file: false,
                     settings: false,
                     help: false,
-                    mirror: true,
+                    mirror: false,
                 },
                 bounds: [
                     [20.05, 27.05],
