@@ -37,7 +37,7 @@ import { BsGrid3X3GapFill } from "react-icons/bs";
 import { MdOutlineTabUnselected } from "react-icons/md";
 import {ClipboardMenu, DeleteMenu, SelectMenu, UndoMenu} from "./MiniControlsMenu";
 
-function DesktopMainMenu({dispatch, state}){
+function DesktopMainMenu({dispatch, state, setInTour}){
     return <>
         {/* The menu button in the corner */}
         <button onClick={() => dispatch({action: "menu", toggle: "main"})} id='menu-button'>
@@ -94,11 +94,11 @@ function DesktopMainMenu({dispatch, state}){
         {state.openMenus.repeat     && <RepeatMenu   dispatch={dispatch} state={state}/>}
         {state.openMenus.file       && <FileMenu     dispatch={dispatch} state={state}/>}
         {state.openMenus.settings   && <SettingsMenu dispatch={dispatch} state={state}/>}
-        {state.openMenus.help       && <HelpMenu     dispatch={dispatch} state={state}/>}
+        {state.openMenus.help       && <HelpMenu     dispatch={dispatch} state={state} setInTour={setInTour}/>}
     </>
 }
 
-function MobileMainMenu({dispatch, state}){
+function MobileMainMenu({dispatch, state, setInTour}){
     return <>
         <div id='menu-selector-mobile' >
             <> {/*extra */}
@@ -201,12 +201,12 @@ function MobileMainMenu({dispatch, state}){
         {state.openMenus.repeat     && <RepeatMenu   dispatch={dispatch} state={state}/>}
         {state.openMenus.file       && <FileMenu     dispatch={dispatch} state={state}/>}
         {state.openMenus.settings   && <SettingsMenu dispatch={dispatch} state={state}/>}
-        {state.openMenus.help       && <HelpMenu     dispatch={dispatch} state={state}/>}
+        {state.openMenus.help       && <HelpMenu     dispatch={dispatch} state={state} setInTour={setInTour}/>}
     </>
 }
 
-export default function MainMenu({dispatch, state}){
+export default function MainMenu({dispatch, state, setInTour}){
     return state.mobile
-        ? <MobileMainMenu dispatch={dispatch} state={state}/>
-        : <DesktopMainMenu dispatch={dispatch} state={state}/>
+        ? <MobileMainMenu dispatch={dispatch} state={state} setInTour={setInTour}/>
+        : <DesktopMainMenu dispatch={dispatch} state={state} setInTour={setInTour}/>
 }

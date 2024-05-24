@@ -265,7 +265,7 @@ function MobileRepeatMenu({dispatch, state}){
 
 
     return <div id="repeat-menu-mobile">
-        <div id="repeat-right" className="repeat-side">
+        <div id="repeat-left" className="repeat-side">
             <h4>Every</h4>
             <hr/>
             <TrellisControl value='trellisOverlap' verb='Offset' />
@@ -274,19 +274,21 @@ function MobileRepeatMenu({dispatch, state}){
             <TrellisControl value='trellisRotate'  verb='Rotate' />
             <hr/>
             <details>
-                <summary>Settings</summary>
-                <button onClick={() => dispatch({
+                <summary id="settings-summary">Settings</summary>
+                <button id='repeat-settings-reset' onClick={() => dispatch({
                     trellisOverlap: defaultTrellisControl({x: 0, y: 0}),
                     trellisSkip:    defaultTrellisControl(false),
                     trellisFlip:    defaultTrellisControl(MIRROR_AXIS.NONE_0),
                     trellisRotate:  defaultTrellisControl(MIRROR_AXIS.NONE_0),
                 })}>Reset</button>
-                <button onClick={() => dispatch({hideDots: !state.hideDots})}>{state.hideDots ? "Show" : "Hide"} dots</button>
+                <button id='repeat-settings-hide-dots' onClick={() => dispatch({hideDots: !state.hideDots})}>
+                    {state.hideDots ? "Show" : "Hide"} dots
+                </button>
             </details>
         </div>
 
 
-        <div id="repeat-left" className="repeat-side">
+        <div id="repeat-right" className="repeat-side">
             <h4>By</h4>
             <hr/>
             <details>

@@ -1,9 +1,9 @@
-import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageSettingsName, localStorageName} from './globals'
+import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageSettingsName, localStorageName, localStorageTourTakenName} from './globals'
 import { toRadians, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq, toggleDarkMode, align, filterObjectByKeys } from './utils'
 import defaultOptions, { keybindings, reversible, reversibleActions, saveSettingActions } from './options'
 import {deserialize, serialize, serializeState} from './fileUtils';
 import {applyManualFlip, applyManualRotation, getMirrored, getStateMirrored} from './mirrorEngine';
-import {disableTapHolding} from './App';
+import {disableTapHolding} from './Paper';
 
 
 var undoStack = []
@@ -22,10 +22,15 @@ const miniMenus = ['extra', 'color', 'mirror', 'select', 'clipboard', 'delete', 
 // "..."        -> {action: "..."}
 // {foo: "bar"} -> {action: "set manual", foo: "bar"}
 export default function reducer(state, data){
+    if (state === null){
+        console.warn('state is null!')
+        return {}
+    }
+
     // Some convenience parameter handling
     if (typeof data === String)
         var data = {action: data}
-    else if (data.action === undefined)
+    if (data?.action === undefined)
         var data = {action: "set manual", ...data}
 
 
@@ -455,7 +460,9 @@ export default function reducer(state, data){
 
         case 'start tour':
             preTourState = state
+            console.log('starting tour');
             return {...reducer(state, {action: 'go home'}),
+                inTour: true,
                 openMenus: {
                     main: true,
                     controls: false,
@@ -464,12 +471,13 @@ export default function reducer(state, data){
                     repeat: false,
                     file: false,
                     settings: false,
+                    //// Remember, the tour itself is part of the help menu: the help menu handles hiding itself
                     help: false,
                     mirror: false,
                 },
                 bounds: [
-                    [20.05, 27.05],
-                    [18.05, 23.05],
+                    [6.05, 13.05],
+                    [4.05, 9.05],
                 ],
                 curLine: null,
                 dash: "20, 10",
@@ -477,49 +485,50 @@ export default function reducer(state, data){
                 commonColors: ['#000000', '#000000', '#ffddab', '#ff784b', '#1a31ff'],
                 lines: [
                     <line id="dashed-line" {...{
-                        "x1": 19.05 + 4,
-                        "y1": 27.05 + 4,
-                        "x2": 20.05 + 6,
-                        "y2": 25.05 + 10,
+                        "x1": 5.05 + 4,
+                        "y1": 13.05 + 4,
+                        "x2": 6.05 + 6,
+                        "y2": 11.05 + 10,
                         "stroke": "black",
                         "strokeWidth": 0.05,
                         "strokeDasharray": '1, .5'
                     }}/>,
                     <line {...{
-                        "x1": 19.05,
-                        "y1": 27.05,
-                        "x2": 20.05,
-                        "y2": 25.05,
+                        "x1": 5.05,
+                        "y1": 13.05,
+                        "x2": 6.05,
+                        "y2": 11.05,
                         "stroke": "black",
                         "strokeWidth": 0.05,
                     }}/>,
                     <line {...{
-                        "x1": 20.05,
-                        "y1": 25.05,
-                        "x2": 19.05,
-                        "y2": 23.05,
+                        "x1": 6.05,
+                        "y1": 11.05,
+                        "x2": 5.05,
+                        "y2": 9.05,
                         "stroke": "black",
                         "strokeWidth": 0.05
                     }}/>,
                     <line {...{
-                        "x1": 19.05,
-                        "y1": 23.05,
-                        "x2": 18.05,
-                        "y2": 25.05,
+                        "x1": 5.05,
+                        "y1": 9.05,
+                        "x2": 4.05,
+                        "y2": 11.05,
                         "stroke": "black",
                         "strokeWidth": 0.05
                     }}/>,
                     <line {...{
-                        "x1": 18.05,
-                        "y1": 25.05,
-                        "x2": 19.05,
-                        "y2": 27.05,
+                        "x1": 4.05,
+                        "y1": 11.05,
+                        "x2": 5.05,
+                        "y2": 13.05,
                         "stroke": "black",
                         "strokeWidth": 0.05
                     }}/>,
                 ]
             }
         case 'end tour':
+            console.log('ending tour');
             return preTourState
 
         case 'set manual': {

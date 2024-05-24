@@ -125,7 +125,7 @@ function MobileMirrorMenu({dispatch, state, align}){
 
     return <span id="mirror-menu-mobile" className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
         {/* Enabled */}
-        <Checkbox checked={mirroring} onChange={() => dispatch({mirroring: !mirroring})} label={"Enabled:"} backwards={true}/>
+        <Checkbox id='mirror-enabled' checked={mirroring} onChange={() => dispatch({mirroring: !mirroring})} label={"Enabled:"} backwards={true}/>
         Type
         <button
             id='mirror-type'

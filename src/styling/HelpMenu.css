@@ -7,6 +7,8 @@
     border-radius: 10px;
     color: white;
     z-index: 1;
+    text-align: left;
+    padding: 10px;
 }
 
 #tour-button{
@@ -17,4 +19,10 @@
 
 #expanding{
     height: 80%;
+}
+
+#version{
+    right: 10px;
+    bottom: 10px;
+    position: absolute;
 }

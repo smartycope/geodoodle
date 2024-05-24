@@ -44,13 +44,13 @@
     flex-direction: column;
 }
 
-#repeat-right{
+#repeat-left{
     left: 0px;
     align-items: start;
     /* min-width: 80; */
 }
 
-#repeat-left{
+#repeat-right{
     right: 0px;
 }
 
