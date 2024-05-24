@@ -31,6 +31,8 @@ const defaultOptions = {
     lineCap: 'round',
     lineJoin: 'round',
     maxUndoAmt: 20,
+    maxScale: Math.min(window.visualViewport.width, window.visualViewport.height) / 2,
+    minScale: 4,
 }
 export default defaultOptions
 

@@ -104,8 +104,8 @@ const tour = _dispatch => {
         {   selector: "#dashed-line",
             content: "For example, this is what a dash code of \"20, 10\" looks like. To draw a solid line, just put \"0\"."
         },
-        {   selector: "#undo-menu-button",
-            content: "These are your standard undo/redo buttons. You may have to press undo multiple times to undo a line completely. Later, you should be able to tap this to undo, and long press to redo."
+        {   selector: "#undo-button",
+            content: "This is the undo button. Tap to undo, and tap and hold to redo. You may have to press undo multiple times to undo a line completely."
         },
         menu({open: 'mirror'}),
         {   selector: "#mirror-menu-mobile",

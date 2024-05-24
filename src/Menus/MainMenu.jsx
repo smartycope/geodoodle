@@ -37,6 +37,10 @@ import { BsGrid3X3GapFill } from "react-icons/bs";
 import { MdOutlineTabUnselected } from "react-icons/md";
 import {ClipboardMenu, DeleteMenu, SelectMenu, UndoMenu} from "./MiniControlsMenu";
 
+var tapHolding = false
+var touchHoldTimer = null
+var redid = false
+
 function DesktopMainMenu({dispatch, state, setInTour}){
     return <>
         {/* The menu button in the corner */}
@@ -99,6 +103,29 @@ function DesktopMainMenu({dispatch, state, setInTour}){
 }
 
 function MobileMainMenu({dispatch, state, setInTour}){
+    function undoOnTouchHold(){
+        if (tapHolding){
+            redid = true
+            dispatch({action: 'redo'})
+            tapHolding = false
+        }
+    }
+
+    function undoOnTouchStart(){
+        console.log('undo button pressed');
+        setTimeout(() => tapHolding = true, 10)
+        touchHoldTimer = setTimeout(undoOnTouchHold, state.holdTapTimeMS)
+    }
+
+    function undoOnTouchEnd(){
+        clearTimeout(touchHoldTimer)
+        tapHolding = false
+        if (!redid){
+            dispatch({action: 'undo'})
+        }
+        redid = false
+    }
+
     return <>
         <div id='menu-selector-mobile' >
             <> {/*extra */}
@@ -126,7 +153,8 @@ function MobileMainMenu({dispatch, state, setInTour}){
                 {state.openMenus.color && <ColorMenu dispatch={dispatch} state={state} align="color-menu-button" />}
             </>
             <> {/*undo */}
-                <button onClick={() => {dispatch({action: "menu", toggle: "undo"})}}
+                {/* Undo menu */}
+                {/* <button onClick={() => {dispatch({action: "menu", toggle: "undo"})}}
                     className="menu-toggle-button-mobile"
                     id="undo-menu-button"
                     style={{
@@ -135,7 +163,14 @@ function MobileMainMenu({dispatch, state, setInTour}){
                     }}
                 > <MdUndo className="main-menu-icon"/>
                 </button>
-                {state.openMenus.undo && <UndoMenu dispatch={dispatch} state={state} align="undo-menu-button" />}
+                {state.openMenus.undo && <UndoMenu dispatch={dispatch} state={state} align="undo-menu-button" />} */}
+                {/* Undo button */}
+                <button onTouchStart={undoOnTouchStart}
+                    onTouchEnd={undoOnTouchEnd}
+                    id="undo-button"
+                    className="menu-toggle-button-mobile"
+                >   <MdUndo className="main-menu-icon"/>
+                </button>
             </>
             <> {/*mirror */}
                 <button onClick={() => {dispatch({action: "menu", toggle: "mirror"})}}

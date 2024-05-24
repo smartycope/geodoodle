@@ -31,23 +31,23 @@ export function SettingsMenu({state, dispatch}){
             {/* removeSelectionAfterDelete */}
             <Checkbox label="Invert Scroll"
                 title="Controls the scroll direction"
-                onChange={(val) => dispatch({action: 'set manual', invertedScroll: !invertedScroll})}
+                onChange={(val) => dispatch({invertedScroll: !invertedScroll})}
                 checked={invertedScroll}
             />
             <Number label="Scroll Sensitivity"
                 title="Controls how fast scroll translates"
-                onChange={val => dispatch({action: 'set manual', scrollSensitivity: val})}
+                onChange={val => dispatch({scrollSensitivity: val})}
                 value={scrollSensitivity}
                 step={.1}
             />
             <Checkbox label="Scale with 2 Finger Spread"
                 title="Controls whether the 2 finger spread gesture scales the page or not"
-                onChange={(val) => dispatch({action: 'set manual', enableGestureScale: !enableGestureScale})}
+                onChange={(val) => dispatch({enableGestureScale: !enableGestureScale})}
                 checked={enableGestureScale}
             />
             <Checkbox label="Remove Selection after Cut"
                 title="Controls if the bounds get removed after the selection gets deleted, whether from cutting or by deleting"
-                onChange={(val) => dispatch({action: 'set manual', removeSelectionAfterDelete: !removeSelectionAfterDelete})}
+                onChange={(val) => dispatch({removeSelectionAfterDelete: !removeSelectionAfterDelete})}
                 checked={removeSelectionAfterDelete}
             />
             {/* The color picker */}
@@ -69,18 +69,18 @@ export function SettingsMenu({state, dispatch}){
             <h4>Advanced</h4>
             <Checkbox label="Hide Hex Color"
                 title="Controls if the hex color is displayed in the color menu"
-                onChange={(val) => dispatch({action: 'set manual', hideHexColor: !hideHexColor})}
+                onChange={(val) => dispatch({hideHexColor: !hideHexColor})}
                 checked={hideHexColor}
             />
             <Number label="Max Undo Amount"
                 title="Controls how many consecutive undos you can do at once"
-                onChange={val => dispatch({action: 'set manual', maxUndoAmt: val})}
+                onChange={val => dispatch({maxUndoAmt: val})}
                 value={maxUndoAmt}
                 min={2}
             />
             <Checkbox label="Debug Mode"
                 title="Adds some visual aids useful for debugging"
-                onChange={(val) => dispatch({action: 'set manual', debug: !debug})}
+                onChange={(val) => dispatch({debug: !debug})}
                 checked={debug}
             />
             <button onClick={() => {

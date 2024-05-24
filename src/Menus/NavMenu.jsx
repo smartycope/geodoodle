@@ -8,6 +8,7 @@ import { TbArrowBigUpLine } from "react-icons/tb";
 import { TbArrowBigDownLine } from "react-icons/tb";
 import { MdHome } from "react-icons/md";
 import { PiSelectionAll } from "react-icons/pi";
+import defaultOptions from "../options";
 
 
 let offsetX, offsetY;
@@ -122,8 +123,8 @@ export default function NavMenu({dispatch, state}){
                     onMinus={prev => prev * 2}
                     onPlus={prev => prev / 2}
                     // See also: "scale" action in the reducer
-                    min={4}
-                    max={Math.min(window.visualViewport.width, window.visualViewport.height) / 4}
+                    min={defaultOptions.minScale}
+                    max={defaultOptions.maxScale}
                 />
             </span>
             {/* <span>

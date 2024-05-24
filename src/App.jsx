@@ -23,7 +23,6 @@ export default function App() {
         localStorage.setItem(localStorageTourTakenName, '1')
         setTimeout(() => {
             if (window.confirm("It looks like this is your first time. Would you like to take a guided tour?")){
-                console.log('starting tour!');
                 dispatch({action: 'start tour'})
                 setInTour(true)
             }

@@ -1,6 +1,6 @@
 import './styling/App.css';
 import {useEffect, useReducer, useRef, useState} from 'react';
-import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageSettingsName, localStorageTourTakenName} from './globals'
+import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageSettingsName} from './globals'
 import reducer from './reducer';
 import {align, calc, defaultTrellisControl, distCenter, mobileAndTabletCheck, pointEq} from './utils';
 import options from './options';
@@ -12,7 +12,6 @@ import {applyTransformationFlip, applyTransformationRotation, getMirrored, getSt
 import { RxRotateCounterClockwise } from "react-icons/rx";
 import { GoMirror } from "react-icons/go";
 import { setDispatch as registerDispatch } from './App';
-// import Tour from 'reactour';
 
 // Coordinate systems:
 // absolute: relative to the viewport, origin is top left, not translated
@@ -38,12 +37,11 @@ window.oncontextmenu = () => false
 // null or a 2 item list of the previous touches
 var gestureTouches = null
 var withinDoubleTapTime = false
-var lastTapPos = [0,0]
+var lastTapPos = [-10,-10]
 // The only place outside this file that this is touched, is in reducer.jsx in 'cursor moved'
 var tapHolding = false
 export const disableTapHolding = () => {
     tapHolding = false
-    console.log('disabling tapHolding');
 }
 var touchHoldTimer = null
 // This is for the mouse/touch events that need to be bound non-passively, but also need access to the state
@@ -115,7 +113,7 @@ export default function Paper({setInTour}) {
         mirrorType: MIRROR_TYPE.PAGE,
         mirrorMethod: MIRROR_METHOD.FLIP,
 
-        // Coord: not scaled
+        // Coord: absolute, not scaled
         translationx: 0,
         translationy: 0,
         scalex: mobileAndTabletCheck() ? 30 : 20,
@@ -155,7 +153,7 @@ export default function Paper({setInTour}) {
             mirror: false,
             key: false,
             extra: false,
-            undo: false,
+            // undo: false,
             select: false,
             clipboard: false,
             delete: false,
@@ -261,7 +259,6 @@ export default function Paper({setInTour}) {
 
     function onTouchHold(){
         // This also only applies to touch events, not mouse events
-        console.log('onTouchHold called with tapHolding =', tapHolding);
         if (tapHolding){
             if (_state.clipboard?.length)
                 dispatch({action: "paste"})
@@ -274,6 +271,15 @@ export default function Paper({setInTour}) {
     function onTouchMove(e){
         e.preventDefault()
         if (e.touches.length === 2){
+            // Immediately stop all double tap, tap and hold, dragging, and curLine
+            setDragging(false)
+            tapHolding = false
+            clearTimeout(touchHoldTimer)
+            withinDoubleTapTime = false
+            // For good measure
+            lastTapPos = [-10,-10]
+            dispatch({curLine: null})
+
             if (gestureTouches !== null){
                 const {distance: newDist, centerx:newCenterx, centery:newCentery} = distCenter(
                     e.touches[0].pageX, e.touches[0].pageY,
@@ -289,14 +295,18 @@ export default function Paper({setInTour}) {
                     x: -(prevCenterx - newCenterx),
                     y: -(prevCentery - newCentery),
                 })
+                // TODO: enableGestureScale is broken
+                // console.log('enableGestureScale', enableGestureScale);
+                // console.log('amt', Math.abs((prevDist - newDist) * scrollSensitivity) > .6);
                 // This line helps stablize translation
-                if (Math.abs((prevDist - newDist) * scrollSensitivity) > .6 && enableGestureScale)
+                if (Math.abs((prevDist - newDist) * scrollSensitivity) > .6){
                     dispatch({action: 'scale',
                         amtx: -(prevDist - newDist) * scrollSensitivity,
                         amty: -(prevDist - newDist) * scrollSensitivity,
                         cx: newCenterx,
                         cy: newCentery
                     })
+                }
             } else {
                 dispatch('nevermind')
             }
@@ -332,7 +342,6 @@ export default function Paper({setInTour}) {
         }
 
         lastTapPos = [touch.pageX, touch.pageY]
-
     }
 
     function onTouchStart(e){
@@ -412,11 +421,7 @@ export default function Paper({setInTour}) {
     }, [])
 
     // So the tour can effect state
-    useEffect(() =>{
-        console.log(dispatch);
-        registerDispatch(dispatch)
-    }, [])
-    // }, [dispatch, registerDispatch])
+    useEffect(() => registerDispatch(dispatch), [])
 
     // Clipboard translations
     let clipboardFlip = ''
@@ -501,19 +506,36 @@ export default function Paper({setInTour}) {
 
     // Construct the cursor (internal mirror lines, etc)
     let cursor = [<circle
-        cx={cursorPos[0]}
-        cy={cursorPos[1]}
-        r={scalex / 3}
-        stroke={options.cursorColor}
-        fill={options.mirrorColor}
-        // Make it filled if we're cursor rotating
-        fillOpacity={Number(
-            (mirroring || openMenus.mirror) &&
-            mirrorType === MIRROR_TYPE.CURSOR &&
-            [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
-        }
-        key='cursor'
-    />]
+            cx={cursorPos[0]}
+            cy={cursorPos[1]}
+            r={scalex / 3}
+            stroke={options.cursorColor}
+            fill={options.mirrorColor}
+            // Make it filled if we're cursor rotating
+            fillOpacity={Number(
+                (mirroring || openMenus.mirror) &&
+                mirrorType === MIRROR_TYPE.CURSOR &&
+                [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
+            }
+            key='cursor'
+        />,
+        // To add a shadow to the cursor
+        // <circle
+        //     cx={cursorPos[0]+3}
+        //     cy={cursorPos[1]+2}
+        //     r={scalex / 3}
+        //     stroke={'gray'}
+        //     alpha=".8"
+        //     fill={options.mirrorColor}
+        //     // Make it filled if we're cursor rotating
+        //     fillOpacity={Number(
+        //         (mirroring || openMenus.mirror) &&
+        //         mirrorType === MIRROR_TYPE.CURSOR &&
+        //         [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
+        //     }
+        //     key='cursor-shadow'
+        // />]
+    ]
     if ((mirroring || openMenus.mirror) && mirrorType === MIRROR_TYPE.CURSOR){
         if ([MIRROR_METHOD.FLIP, MIRROR_METHOD.BOTH].includes(mirrorMethod)){
             if ([MIRROR_AXIS.HORZ_180, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
@@ -590,9 +612,7 @@ export default function Paper({setInTour}) {
                 {/* Draw the trellis */}
                 {/* translate(${alignedTranslation[0]},
                           ${alignedTranslation[1]}) */}
-                <g transform={`
-                    scale(${scalex} ${scaley})
-                `}>
+                <g transform={`scale(${scalex} ${scaley})`}>
                     {((trellis || openMenus.repeat) && bounds.length > 1) && trellisActual}
                 </g>
 
@@ -680,15 +700,6 @@ export default function Paper({setInTour}) {
                     />
                 ]}
 
-                {/* Draw the current clipboard */}
-                {/* <g transform={`
-                    ${clipboardFlip}
-                    rotate(${clipboardRotation}, ${cursorPos[0]}, ${cursorPos[1]})
-                    translate(${cursorPos[0]} ${cursorPos[1]})
-                    scale(${scalex} ${scaley})
-                `}>
-                    {clipboard}
-                </g> */}
                 {clip}
             </svg>
         </div>

@@ -14,6 +14,7 @@ import { PiSelectionSlashDuotone } from "react-icons/pi";
 import { MdDelete } from "react-icons/md";
 import { MdDeleteForever } from "react-icons/md";
 
+// Depricated: no longer used: undo button is now a regular button
 export function UndoMenu({dispatch, state, align}){
     const to = document.querySelector("#" + align).getBoundingClientRect()
     return <div id='undo-menu' className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
@@ -33,7 +34,7 @@ export function SelectMenu({dispatch, state, align}){
             <PiSelectionPlusDuotone className="mobile-icon"/> Add Bound
         </button>
         {state.bounds.length > 1 && <>
-            <button title="Clear selection" onClick={() => dispatch('nevermind')} id="clear-selection" className="mobile-button">
+            <button title="Clear selection" onClick={() => dispatch({action: "clear bounds"})} id="clear-selection" className="mobile-button">
                 <PiSelectionSlashDuotone className="mobile-icon"/> Remove<br/> Selection
             </button>
             <span className="checkbox" id='partial-picker'>

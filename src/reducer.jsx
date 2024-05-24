@@ -15,7 +15,7 @@ var preTourState = null
 // *everything*, instead we just remove the limit and the next state saves instead. There's usually at least a cursor
 // movement or something, so it should work pretty well
 var saveNext = false
-const miniMenus = ['extra', 'color', 'mirror', 'select', 'clipboard', 'delete', 'undo']
+const miniMenus = ['extra', 'color', 'mirror', 'select', 'clipboard', 'delete']
 
 // Can accept any of 3 parameters to dispatch:
 //                 {action: "...", foo: "bar"}
@@ -137,21 +137,20 @@ export default function reducer(state, data){
             // return reducer(newState, {action: 'cursor moved', x: cursorPos[0], y: cursorPos[1]})
             return newState
         }
-        case 'scale':{ // args: amtx, amty (delta values), cx, cy (center x/y)
-            // See also: nav menu scale number input
-            const max = Math.min(window.visualViewport.width, window.visualViewport.height) / 4
-            const cx = data.cx ?? cursorPos[0]
-            const cy = data.cy ?? cursorPos[1]
+        // Arg Coords: absolute, not scaled
+        case 'scale':{ // args: amtx, amty (delta values), optional: cx, cy (center x/y) (defaults to cursorPos)
+            // This took FOREVER to figure out
+            const cx = (-(data.cx ?? cursorPos[0])) + translationx
+            const cy = (-(data.cy ?? cursorPos[1])) + translationy
 
-            const x = Math.min(max, Math.max(4, scalex + data.amtx))
-            const y = Math.min(max, Math.max(4, scaley + data.amty))
+            const x = Math.min(defaultOptions.maxScale, Math.max(defaultOptions.minScale, scalex + data.amtx))
+            const y = Math.min(defaultOptions.maxScale, Math.max(defaultOptions.minScale, scaley + data.amty))
 
-            // TODO: This still doesn't work
             return {...state,
                 scalex: x,
                 scaley: y,
-                translationx: translationx,
-                translationy: translationy,
+                translationx: translationx + ((cx/scalex)*x) - cx,
+                translationy: translationy + ((cy/scaley)*y) - cy,
                 curLine: null,
             }
         }
@@ -205,7 +204,6 @@ export default function reducer(state, data){
                 }
 
         case 'delete':
-            console.log('deletign');
             if (pointIn(bounds, relCursorPos))
                 return {...state, bounds: removePoint(bounds, relCursorPos)}
              else if (curLine)
@@ -236,7 +234,6 @@ export default function reducer(state, data){
                     points.push({x: cursorPos[0], y: cursorPos[1]})
 
                 // getMirrored() works in absolute, not scaled coords, where the lines are in relative, scaled coords
-                console.log(points.length);
                 points = points.map(i => [(i.x - translationx) / scalex, (i.y - translationy) / scaley])
 
                 return {...state, lines: (lines.filter(i =>
@@ -263,6 +260,10 @@ export default function reducer(state, data){
                     clipboardRotation:   data.continue ? clipboardRotation   : 0,
                 }
             else {
+                // This is so you undo the whole line all at once, instead of only undoing half the line at a time
+                if (curLine !== null)
+                    undoStack.pop()
+
                 var newLines = []
                 if (curLine != null){
                     if (mirroring || openMenus.mirror){
@@ -535,6 +536,10 @@ export default function reducer(state, data){
             // Don't know why I can't just delete action from DATA, but WHATEVER I guess
             let newState = {...state, ...data}
             delete newState.action
+            if (Object.keys(data).includes('enableGestureScale')){
+                console.log('enableGestureScale is now', data['enableGestureScale']);
+                console.log(newState)
+            }
             return newState
         }
         case 'menu': { // args: any one of toggle, open, or close: the menu to do that to
