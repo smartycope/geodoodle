@@ -1,5 +1,6 @@
 import {MIRROR_AXIS} from "./globals";
 import {getSelected, calc} from "./utils";
+import options from "./options";
 
 // This is the main logic for generating the trellis
 // It returns a list of groups of the pattern with appropriate translations
@@ -12,6 +13,8 @@ export function getTrellis(state){
         scalex, scaley,
         translationx, translationy,
         bounds,
+        partials,
+        debug,
     } = state
 
     const {boundRect, offsetx, offsety} = calc(state)
@@ -25,13 +28,25 @@ export function getTrellis(state){
     // Coord: absolute @ (0,0), scaled
     const pattern = getSelected(state)
     // Coord: scalar, scaled
-    const areaWidth  = window.visualViewport.width  / scalex
-    const areaHeight = window.visualViewport.height / scaley
+    let areaWidth  = window.visualViewport.width  / scalex
+    let areaHeight = window.visualViewport.height / scaley
     // Coord: scalar, scaled
-    // We round here just to account for floating point errors
     // The extra - width/height is to make sure we're drawing off the page
-    const startOffsetx = (((boundRect.left * scalex + translationx) % (boundRect.width  * scalex)) / scalex) - boundRect.width
-    const startOffsety = (((boundRect.top  * scaley + translationy) % (boundRect.height * scaley)) / scaley) - boundRect.height
+    // const startOffsetx = (((boundRect.left * scalex + translationx) % (boundRect.width  * scalex)) / scalex) - boundRect.width
+    // const startOffsety = (((boundRect.top  * scaley + translationy) % (boundRect.height * scaley)) / scaley) - boundRect.height
+    // let startOffsetx = (translationx % scalex) / scalex
+    // let startOffsety = (translationy % scaley) / scaley
+    // const startOffsetx = (translationx / scalex)
+    // const startOffsety = (translationy / scaley)
+    let startOffsetx = 0
+    let startOffsety = 0
+
+    if (debug){
+        areaWidth /= 2
+        areaHeight /= 2
+        startOffsetx += areaWidth / 2
+        startOffsety += areaHeight / 2
+    }
 
     // console.warn('area:', areaWidth, areaHeight);
     // console.log('shift:', shiftx, shifty);
@@ -87,12 +102,25 @@ export function getTrellis(state){
                 // if ((areaWidth/2) / boundRect.width === x && (areaHeight/2) / boundRect.height === y)
                 //     center = pattern
 
-                rtn.push(<g transform={transformation} key={`${row}-${col}`}>
+                const selected =
+                    (x === ((areaWidth-startOffsetx) / 2) / boundRect.width) &&
+                    (y === ((areaHeight-startOffsety) / 2) / boundRect.height)
+                ? {style: {
+                    stroke: options.selectionBorderColor,
+                    fillOpacity: options.selectionOpacity,
+                    fill: options.selectionColor,
+                    backgroundColor: options.selectionColor,
+                    borderRadius: partials ? 4/scalex : 0,
+                    strokeWidth: 1/scalex,
+                }}
+                : {}
+
+                rtn.push(<g transform={transformation} key={`${row}-${col}`}> ...selected
                     {pattern}
                 </g>)
             }
         }
     }
-    return [rtn, rtn[Math.round(rtn.length/2)].props.transform]
+    return [rtn, rtn[2].props.transform]
     // return rtn
 }

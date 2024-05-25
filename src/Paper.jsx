@@ -598,16 +598,20 @@ export default function Paper({setInTour}) {
                 </>}
 
                 {/* Draw the debug info */}
-                {debug && <circle cx={translationx} cy={translationy} r='8' fill='blue'/>}
-                {debug && <text x="80%" y='20'>{`Translation: ${Math.round(translationx)}, ${Math.round(translationy)}`}</text>}
-                {debug && <text x="80%" y='40'>{`Scale: ${Math.round(scalex)}, ${Math.round(scaley)}`}</text>}
-                {debug && deleteme && <g
-                    transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}
-                >
-                    {deleteme.map((i, cnt) => <circle cx={i[0]} cy={i[1]} r={4/scalex} fill='blue' key={`debug-${cnt}`}/>)}
-                    {/* {deleteme.map(i => <circle cx={i.x} cy={i.y} r={4/scalex} fill='blue'/>)} */}
+                {debug && <g>
+                    <circle cx={translationx} cy={translationy} r='8' fill='blue'/>
+                    <text x="80%" y='20'>{`Translation: ${Math.round(translationx)}, ${Math.round(translationy)}`}</text>
+                    <text x="80%" y='40'>{`Scale: ${Math.round(scalex)}, ${Math.round(scaley)}`}</text>
+                    {deleteme && <g transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}>
+                        {deleteme.map((i, cnt) => <circle cx={i[0]} cy={i[1]} r={4/scalex} fill='blue' key={`debug-${cnt}`}/>)}
+                    </g>}
+                    <circle cx={debug_rawCursorPos[0]} cy={debug_rawCursorPos[1]} fill="grey" r='5'/>
+                    {openMenus.repeat && <rect x={window.visualViewport.width / 4} y={window.visualViewport.height / 4}
+                        width={window.visualViewport.width / 2} height={window.visualViewport.height / 2}
+                        stroke='green' strokeWidth={3} fillOpacity={0}
+                    />}
                 </g>}
-                {debug && <circle cx={debug_rawCursorPos[0]} cy={debug_rawCursorPos[1]} fill="grey" r='5'/>}
+
 
                 {/* Draw the trellis */}
                 {/* translate(${alignedTranslation[0]},
@@ -654,10 +658,10 @@ export default function Paper({setInTour}) {
                     fill={options.selectionColor}
                     rx={partials ? 4/scalex : 0}
                     strokeWidth={1/scalex}
-                    // ${selectionTransform ?? ""}
                     transform={`
-                        translate(${translationx}, ${translationy})
-                        scale(${scalex}, ${scaley})
+                    translate(${translationx}, ${translationy})
+                    scale(${scalex}, ${scaley})
+                    ${selectionTransform ?? ""}
                     `}
                 />}
 

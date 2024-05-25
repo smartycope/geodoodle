@@ -199,7 +199,7 @@ function MobileColorMenu({dispatch, state}){
                 type="text"
                 value={state.dash}
                 style={{width: state.dash.length * 5 + 10}}
-                onChange={(val) => dispatch({dash: val})}
+                onChange={e => dispatch({dash: e.target.value})}
             ></input>
         </span>
 
