@@ -32,6 +32,23 @@
         left: 10px;
         top: 15px;
     }
+
+    #gridbox{
+        display: grid;
+        grid-row: 2;
+        /* gap: 50px 100px; */
+        grid-template-columns: 200px 200px;
+    }
+
+    .fit-button{
+        max-width: 55%;
+    }
+
+    #first-details{
+        /* position: absolute; */
+        /* top: 50px; */
+        /* padding-top: 60px; */
+    }
 }
 
 #expanding{

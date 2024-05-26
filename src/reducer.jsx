@@ -424,7 +424,7 @@ export default function reducer(state, data){
         case "download": // args: name (string)
             switch (data.format) {
                 case 'svg':
-                    download(data.name, 'image/svg+xml', {str: serialize(state)})
+                    download(data.name, 'image/svg+xml', {str: serialize(state, data.selectedOnly)})
                     break
                 case 'png':
                 case 'jpeg':
@@ -433,7 +433,10 @@ export default function reducer(state, data){
                         data.format,
                         data.width,
                         data.height,
+                        data.x,
+                        data.y,
                         false,
+                        data.selectedOnly && bounds.length > 1,
                         url => download(data.name + '.' + data.format, `image/${data.format}`, {url})
                     )
                     break
@@ -458,11 +461,23 @@ export default function reducer(state, data){
             return {...state, ...deserialize(JSON.parse(localStorage.getItem(localStorageName))[data.name.trim()])}
 
         case 'copy image':
+            const rect = document.querySelector('#lines').getBBox()
+            // const rect = document.querySelector('#lines').getBoundingClientRect()
+            console.log(rect);
+            console.log('width:', boundRect.width  * state.scalex,
+                        'height:', boundRect.height * state.scaley,
+                        'x:', boundRect.right  * state.scalex,
+                        'y:', boundRect.top    * state.scaley);
             image(state,
                 'png',
-                window.visualViewport.width,
-                window.visualViewport.height,
+                bounds.length > 1 ? boundRect.width  * scalex : rect.width * scalex,
+                bounds.length > 1 ? boundRect.height * scaley : rect.height * scaley,
+                // bounds.length > 1 ? -boundRect.left * scalex : (rect.x - translationx),
+                // bounds.length > 1 ? -boundRect.top * scaley : (rect.y - translationy),
+                bounds.length > 1 ? 0 : 0,//(rect.x * scalex + translationx),
+                bounds.length > 1 ? 0 : 0,//(rect.y * scaley + translationy),
                 false,
+                bounds.length > 1, // Default to selectedOnly
                 blob => {
                     try {
                         navigator.clipboard.write([

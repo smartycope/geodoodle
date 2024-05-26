@@ -81,7 +81,7 @@ export default function Paper({setInTour}) {
         // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
         // Coord: absolute, not scaled
         cursorPos: [0, 0],
-        // A list of <line> objects
+        // A list of <line> objects, or undefined ()
         // Coord: relative, scaled
         lines: [],
         // {x1: float, y1: float} or null

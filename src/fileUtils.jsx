@@ -1,16 +1,39 @@
 import {preservable, saveable} from "./options";
-import {filterObjectByKeys} from "./utils";
+import {filterObjectByKeys, getSelected} from "./utils";
 import { Parser as HtmlToReactParser } from "html-to-react";
 import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 
-export function serialize(state){
+export function serialize(state, selectedOnly=false, transform=''){
+    const {scalex, scaley, lines} = state
+
+    const _lines = lines.filter(i => i !== undefined && i.props.x1 && i.props.x2 && i.props.y1 && i.props.y2)
+
+    const left   = Math.min(..._lines.map(i => i.props.x1), ..._lines.map(i => i.props.x2))
+    const top    = Math.min(..._lines.map(i => i.props.y1), ..._lines.map(i => i.props.y2))
+
+    const rescaleFunc = i => <line
+        // Remove the translation (so it's absolutely positioned with respect to the cursor)
+        {...i.props}
+        x1={i.props.x1 - left}
+        x2={i.props.x2 - left}
+        y1={i.props.y1 - top}
+        y2={i.props.y2 - top}
+    />
+
     let saveme = Object.fromEntries(Object.entries(state).filter(([key]) => saveable.includes(key)));
     saveme['repeating'] = state.openMenus.repeat
+
     const svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' +
         '<!-- ' + JSON.stringify(saveme) + ' -->\n' +
-        '<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">\n' +
-        document.querySelector('#lines').outerHTML +
+        `<svg width="100%" height="100%" transform="${transform}" xmlns="http://www.w3.org/2000/svg">\n` +
+        `<g id='lines' transform="scale(${scalex} ${scaley})">\n` +
+            renderToStaticMarkup(selectedOnly
+                ? getSelected(state)
+                : _lines.map(rescaleFunc)
+            ) +
+        "\n</g>" +
         '\n</svg>'
     return svg
 }
@@ -33,116 +56,32 @@ export function deserialize(str){
 
 // format is one of: 'png', 'jpeg', 'svg', 'blob'
 // `func` gets passed the dataUrl or blob (if format == 'blob')
-export function image_not_working(state, format='png', func, dots=false){
-    var toFormat
-    switch (format) {
-        case 'png':  toFormat = toPng;  break;
-        case 'jpeg': toFormat = toJpeg; break;
-        case 'svg':  toFormat = toSvg;  break;
-        case 'blob':  toFormat = toBlob;  break;
-        default: console.error('Invalid format given:', format); break;
-    }
-    console.log('TODO: add dots option to downloadImage')
-    console.log(document.querySelector('#lines'))
-    toFormat(document.querySelector('#lines')).then(func).catch(err => window.alert("Error downloading image: " + String(err)))
-}
+// Coords: width, height: scalar, scaled
+// Coords: x, y: relative?, scaled
+export function image(state, format='png', width, height, x, y, dots=false, selectedOnly, func, blob=false, margin=10){
+    // This serializes the state (with the function above), then creates a canvas, draws the serialized svg onto the
+    // canvas, creates an image from the canvas
+    const svgBlob = new Blob([serialize(state, selectedOnly, `translate(${x} ${y})`)], {
+    type: 'image/svg+xml;charset=utf-8'
+    });
 
-export function image_almost_working(state, format='png', func, dots=false){
-    const dataHeader = 'data:image/svg+xml;charset=utf-8'
-    const $svg = document.querySelector('#paper')
-    // const $holder = document.getElementById('img-container')
-    // const $label = document.getElementById('img-format')
+    const DOMURL = window.URL || window.webkitURL || window;
+    const url = DOMURL.createObjectURL(svgBlob);
 
-    // const destroyChildren = $element => {
-    //   while ($element.firstChild) {
-    //     const $lastChild = $element.lastChild ?? false
-    //     if ($lastChild) $element.removeChild($lastChild)
-    //   }
-    // }
-
-    const loadImage = async url => {
-      const $img = document.createElement('img')
-      $img.src = url
-      return new Promise((resolve, reject) => {
-        $img.onload = () => resolve($img)
-        $img.onerror = reject
-      })
-    }
-
-    const serializeAsXML = $e => (new XMLSerializer()).serializeToString($e)
-
-    const encodeAsUTF8 = s => `${dataHeader},${encodeURIComponent(s)}`
-    // const encodeAsB64 = s => `${dataHeader};base64,${btoa(s)}`
-
-    const convertSVGtoImg = async e => {
-    //   $label.textContent = format
-
-    //   destroyChildren($holder)
-
-      const svgData = encodeAsUTF8(serializeAsXML($svg))
-
-      const img = await loadImage(svgData)
-
-      const $canvas = document.createElement('canvas')
-      $canvas.width = $svg.clientWidth
-      $canvas.height = $svg.clientHeight
-      $canvas.getContext('2d').drawImage(img, 0, 0, $svg.clientWidth, $svg.clientHeight)
-
-      const dataURL = await $canvas.toDataURL(`image/${format}`, 1.0)
-      console.log(dataURL)
-
-      func(dataURL)
-
-    //   const $img = document.createElement('img')
-    //   $img.src = dataURL
-    //   $holder.appendChild($img)
-    }
-    convertSVGtoImg()
-}
-
-export function image(state, format='png', width, height, dots=false, func, blob=false){
-    // function triggerDownload(imgURI) {
-    //     const a = document.createElement('a');
-    //     a.download = 'MY_COOL_IMAGE.png'; // filename
-    //     a.target = '_blank';
-    //     a.href = imgURI;
-
-    //     // trigger download button
-    //     // (set `bubbles` to false here.
-    //     // or just `a.click()` if you don't care about bubbling)
-    //     a.dispatchEvent(new MouseEvent('click', {
-    //       view: window,
-    //       bubbles: false,
-    //       cancelable: true
-    //     }));
-    //   }
-
-    //   const btn = document.querySelector('button');
-    //   btn.addEventListener('click', function () {
-        // const svgNode = document.querySelector('#paper');
-        // const svgString = (new XMLSerializer()).serializeToString(svgNode);
-        // const svgBlob = new Blob([svgString], {
-        const svgBlob = new Blob([serialize(state)], {
-        type: 'image/svg+xml;charset=utf-8'
-        });
-
-        const DOMURL = window.URL || window.webkitURL || window;
-        const url = DOMURL.createObjectURL(svgBlob);
-
-        const image = new Image();
-        image.width = width;
-        image.height = height;
-        image.src = url;
-        image.onload = function () {
+    const img = new Image();
+    img.width = width+margin*2;
+    img.height = height+margin*2;
+    img.src = url;
+    img.onload = function () {
         const canvas = document.getElementById('canvas');
-        canvas.width = image.width;
-        canvas.height = image.height;
+        canvas.width = img.width;
+        canvas.height = img.height;
 
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = state.paperColor
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.drawImage(image, 0, 0);
+        ctx.drawImage(img, margin, margin);
         DOMURL.revokeObjectURL(url);
 
         if (!blob)
@@ -152,7 +91,7 @@ export function image(state, format='png', width, height, dots=false, func, blob
             )
         else
             canvas.toBlob(func)
-      }
+    }
 }
 
 export function download(name, mime, {str, blob, url}){

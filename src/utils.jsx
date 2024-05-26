@@ -71,12 +71,6 @@ export function getSelected(state, filter=null){
         }
     }
 
-    // If rect is null, then that means we're repeating, but we're behind 1 render and we don't have the current
-    // selection yet. In that case, just return whatever the previous selection was, because that should still be accurate.
-    // if (rect === null){
-    //     return pureSelection
-    // }
-
     // boundRect is relative and scaled
     const filterFunc = i => (
             i.props.x1 >= rect.left   &&
@@ -149,6 +143,7 @@ export function createLine(state, props, translate=true, scale=true, exact=false
         />
 }
 
+// This calculates commonly used values that shouldn't be in the state because they can be derived from values in the state.
 export function calc(state){
     const {scalex, scaley, translationx, translationy, bounds, cursorPos, mirrorType, curLine} = state
     const offsetx = translationx % scalex
