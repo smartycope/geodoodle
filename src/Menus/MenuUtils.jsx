@@ -112,6 +112,13 @@ export function Number({label='', onChange, value, min=-Infinity, max=Infinity, 
     </span>
 }
 
+export function Collapsible({summary, children}){
+    return <details>
+        <summary>{summary}</summary>
+        {children}
+    </details>
+}
+
 
 export function MirrorAxisIcon({mirrorAxis, mirrorMethod}){
     switch(mirrorAxis){

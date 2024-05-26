@@ -26,7 +26,7 @@ export function FileMenu({state, dispatch}){
 
     const saves = localStorage.getItem(localStorageName)
 
-    return <div id='file-menu' onAbort={() => dispatch({action: "menu", close: "file"})}>
+    return <div id='file-menu'> {/*onAbort={() => dispatch({action: "menu", close: "file"})}>*/}
         <h3>Load & Save Files</h3>
         <button id='close-button' onClick={() => dispatch({action: "menu", close: "file"})}><IoClose /></button>
         <span className='group'>
@@ -47,7 +47,7 @@ export function FileMenu({state, dispatch}){
             <span>
                 <label htmlFor="radio-group">Saves:</label>
                 <div id="radio-group">
-                    {saves && Object.keys(JSON.parse(saves)).map(key => <div className='group'>
+                    {saves && Object.keys(JSON.parse(saves)).map(key => <div className='group' key={key}>
                         <input key={key} type="radio" id={key} name="saves" value={key} onChange={(e) => setLoadName(e.target.value)}/>
                         <label htmlFor={key}>{key}</label>
                     </div>)}
@@ -57,8 +57,8 @@ export function FileMenu({state, dispatch}){
         </span>
 
         <footer className="footer">
-            I'm reasonably sure that any method of loading files is technically hackable.<br/>
-            Don't load or upload files from unknown sources
+            I&apos;m reasonably sure that any method of loading files is technically hackable.<br/>
+            Don$apos;t load or upload files from unknown sources
         </footer>
         {/* <button onClick={() => dispatch({action: "load", })}><MdUpload />Upload</button> */}
     </div>

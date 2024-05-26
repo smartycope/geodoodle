@@ -25,7 +25,7 @@ export function SettingsMenu({state, dispatch}){
     } = state
 
     return <>
-        <div id='settings-menu' onAbort={() => dispatch({action: "menu", close: "settings"})}>
+        <div id='settings-menu'> {/*onAbort={() => dispatch({action: "menu", close: "settings"})}>*/}
             <h3>Settings</h3>
             <button id='close-button' onClick={() => dispatch({action: "menu", close: "settings"})}><IoClose /></button>
             {/* removeSelectionAfterDelete */}

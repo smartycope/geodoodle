@@ -242,7 +242,9 @@ export default function reducer(state, data){
             }
 
         case 'nevermind':
-            if (clipboard)
+            if (openMenus.main && !mobile)
+                return {...state, openMenus: {...openMenus, main: false}}
+            else if (clipboard)
                 return {...state, clipboard: null, clipboardMirrorAxis: null, clipboardRotation: 0}
             else if (curLine)
                 return {...state, curLine: null}
@@ -485,7 +487,7 @@ export default function reducer(state, data){
                 mobile: true,
                 commonColors: ['#000000', '#000000', '#ffddab', '#ff784b', '#1a31ff'],
                 lines: [
-                    <line id="dashed-line" {...{
+                    <line key='dashed-line' id="dashed-line" {...{
                         "x1": 5.05 + 4,
                         "y1": 13.05 + 4,
                         "x2": 6.05 + 6,
@@ -494,7 +496,7 @@ export default function reducer(state, data){
                         "strokeWidth": 0.05,
                         "strokeDasharray": '1, .5'
                     }}/>,
-                    <line {...{
+                    <line key="tour-line-1" {...{
                         "x1": 5.05,
                         "y1": 13.05,
                         "x2": 6.05,
@@ -502,7 +504,7 @@ export default function reducer(state, data){
                         "stroke": "black",
                         "strokeWidth": 0.05,
                     }}/>,
-                    <line {...{
+                    <line key="tour-line-2" {...{
                         "x1": 6.05,
                         "y1": 11.05,
                         "x2": 5.05,
@@ -510,7 +512,7 @@ export default function reducer(state, data){
                         "stroke": "black",
                         "strokeWidth": 0.05
                     }}/>,
-                    <line {...{
+                    <line key="tour-line-3" {...{
                         "x1": 5.05,
                         "y1": 9.05,
                         "x2": 4.05,
@@ -518,7 +520,7 @@ export default function reducer(state, data){
                         "stroke": "black",
                         "strokeWidth": 0.05
                     }}/>,
-                    <line {...{
+                    <line key="tour-line-4" {...{
                         "x1": 4.05,
                         "y1": 11.05,
                         "x2": 5.05,

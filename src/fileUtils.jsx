@@ -1,6 +1,6 @@
 import {preservable, saveable} from "./options";
 import {filterObjectByKeys} from "./utils";
-const HtmlToReactParser = require('html-to-react').Parser;
+import { Parser as HtmlToReactParser } from "html-to-react";
 
 export function serialize(state){
     const saveme = Object.fromEntries(Object.entries(state).filter(([key]) => saveable.includes(key)));
@@ -30,7 +30,7 @@ export function serializeState(state){
 
 export function deserializeState(str){
     const parsed = JSON.parse(str)
-    return {...parsed, lines: parsed.lines.map(i => <line {...i}/>)}
+    return {...parsed, lines: parsed.lines.map((i, cnt) => <line key={`loaded-line-${cnt}`} {...i}/>)}
 }
 
 // Currently unused

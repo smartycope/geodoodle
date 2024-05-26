@@ -201,10 +201,16 @@ function MobileRepeatMenu({dispatch, state}){
             ></Number>
         </span>
 
-        return <details>
+        return <details onToggle={e => {
+            e.stopPropagation();
+            console.log('here!');
+            e.target.open = true;
+        }}>
             <summary>{verb}</summary>
-            {line('row')}
-            {line('col')}
+            <div className="front">
+                {line('row')}
+                {line('col')}
+            </div>
         </details>
     }
 

@@ -48,6 +48,13 @@ var touchHoldTimer = null
 // This is hacky, but I can't think of a better way
 var _state = {}
 
+// Explanation:
+// We use the bounding rect to get the selection while repeating, so we can select something that's guarenteed to be a
+// pattern. Because of that, we have to get the rect *after* it's been displayed. This means we're always 1 render behind.
+// Because of that, every other render it's null, because the selection is null. This stablizes that.
+// The same thing also happens in utils for getSelected()
+export var selected = null
+
 export default function Paper({setInTour}) {
     const boundsGroup = useRef()
     const paper = useRef()
@@ -452,7 +459,7 @@ export default function Paper({setInTour}) {
             key={`mirror-${i}`}
         />)
         // clip = trellisTransformations.map((tranformation, i) => <g transform={tranformation}>{clipboard}</g>)
-        clip = trellisTransformations.map((tranformation, i) => <g transform={`
+        clip = trellisTransformations.map((tranformation, i) => <g key={`trellis-trans-${i}`} transform={`
             ${clipboardFlip}
             ${tranformation}
             rotate(${clipboardRotation}, ${cursorPos[0]}, ${cursorPos[1]})
@@ -555,6 +562,20 @@ export default function Paper({setInTour}) {
         }
     }
 
+    // For explanation, see the declaration of prevSelectedRect
+    const _selected = document.querySelector('#selected-trellis-pattern')
+    if (_selected)
+        selected = _selected
+
+    if (!openMenus.repeat)
+        selected = null
+
+    const selectedRect = selected?.getBoundingClientRect()
+
+    // if (selectedRect)
+    //     console.log('found selected, drawing', selectedRect);
+
+    const debugBox_xy = align(state, window.visualViewport.width / 4, window.visualViewport.height / 4)
 
     return (
         <div>
@@ -606,9 +627,10 @@ export default function Paper({setInTour}) {
                         {deleteme.map((i, cnt) => <circle cx={i[0]} cy={i[1]} r={4/scalex} fill='blue' key={`debug-${cnt}`}/>)}
                     </g>}
                     <circle cx={debug_rawCursorPos[0]} cy={debug_rawCursorPos[1]} fill="grey" r='5'/>
-                    {openMenus.repeat && <rect x={window.visualViewport.width / 4} y={window.visualViewport.height / 4}
+                    {/* Repeat box */}
+                    {openMenus.repeat && <rect x={debugBox_xy[0]} y={debugBox_xy[1]}
                         width={window.visualViewport.width / 2} height={window.visualViewport.height / 2}
-                        stroke='green' strokeWidth={3} fillOpacity={0}
+                        stroke='green' strokeWidth={2} fillOpacity={0}
                     />}
                 </g>}
 
@@ -629,7 +651,7 @@ export default function Paper({setInTour}) {
                 </g>
 
                 {/* Draw the current line */}
-                {curLine && <g>{curLines}</g>}
+                {curLine && <g style={{backgroundColor: "green"}}>{curLines}</g>}
 
                 {/* Draw the bounds */}
                 <g id='bounds' ref={boundsGroup}>
@@ -648,22 +670,42 @@ export default function Paper({setInTour}) {
                 </g>
 
                 {/* Draw the selection rect */}
-                {boundRect && <rect
-                    width={(drawBoundRect.width)}
-                    height={(drawBoundRect.height)}
-                    x={drawBoundRect.left}
-                    y={drawBoundRect.top}
-                    stroke={options.selectionBorderColor}
-                    fillOpacity={options.selectionOpacity}
-                    fill={options.selectionColor}
-                    rx={partials ? 4/scalex : 0}
-                    strokeWidth={1/scalex}
-                    transform={`
-                    translate(${translationx}, ${translationy})
-                    scale(${scalex}, ${scaley})
-                    ${selectionTransform ?? ""}
-                    `}
-                />}
+                {openMenus.repeat
+                    // If selected exists, that means we're repeating currently, in which case ignore the actual
+                    // selection, and make our own
+                    ? <rect
+                        width={(selectedRect?.width)}
+                        height={(selectedRect?.height)}
+                        x={selectedRect?.x}
+                        y={selectedRect?.y}
+                        stroke={options.selectionBorderColor}
+                        fillOpacity={options.selectionOpacity}
+                        fill={options.selectionColor}
+                        rx={partials ? 4 : 0}
+                        strokeWidth={1}
+                        // transform={`
+                        //     translate(${translationx}, ${translationy})
+                        //     scale(${scalex}, ${scaley})
+                        // `}
+                    />
+                    // Otherwise, just draw the usual selection rect, assuming there's bounds to do so
+                    : (boundRect && <rect
+                        width={(drawBoundRect.width)}
+                        height={(drawBoundRect.height)}
+                        x={drawBoundRect.left}
+                        y={drawBoundRect.top}
+                        stroke={options.selectionBorderColor}
+                        fillOpacity={options.selectionOpacity}
+                        fill={options.selectionColor}
+                        rx={partials ? 4/scalex : 0}
+                        strokeWidth={1/scalex}
+                        // ${selectionTransform ?? ""}
+                        transform={`
+                            translate(${translationx}, ${translationy})
+                            scale(${scalex}, ${scaley})
+                        `}
+                    />)
+                }
 
                 {/* Draw the rotate & flip buttons when there's a clipboard */}
                 {/* TODO These don't work yet: they won't accept press events? */}

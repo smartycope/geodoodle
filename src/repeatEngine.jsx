@@ -1,5 +1,5 @@
 import {MIRROR_AXIS} from "./globals";
-import {getSelected, calc} from "./utils";
+import {getSelected, calc, align} from "./utils";
 import options from "./options";
 
 // This is the main logic for generating the trellis
@@ -32,20 +32,33 @@ export function getTrellis(state){
     let areaHeight = window.visualViewport.height / scaley
     // Coord: scalar, scaled
     // The extra - width/height is to make sure we're drawing off the page
-    // const startOffsetx = (((boundRect.left * scalex + translationx) % (boundRect.width  * scalex)) / scalex) - boundRect.width
-    // const startOffsety = (((boundRect.top  * scaley + translationy) % (boundRect.height * scaley)) / scaley) - boundRect.height
-    // let startOffsetx = (translationx % scalex) / scalex
-    // let startOffsety = (translationy % scaley) / scaley
-    // const startOffsetx = (translationx / scalex)
-    // const startOffsety = (translationy / scaley)
-    let startOffsetx = 0
-    let startOffsety = 0
+    // let startOffsetx = (((boundRect.left * scalex + translationx) % (boundRect.width  * scalex)) / scalex) - boundRect.width
+    // let startOffsety = (((boundRect.top  * scaley + translationy) % (boundRect.height * scaley)) / scaley) - boundRect.height
+    // let startOffsetx = (translationx % scalex + 1) / scalex
+    // let startOffsety = (translationy % scaley + 1) / scaley
+    // let startOffsetx = (translationx / scalex)
+    // let startOffsety = (translationy / scaley)
+    // let startOffsetx = 0
+    // let startOffsety = 0
+
+    let width = boundRect.width
+    let height = boundRect.height
+    // width += trellisOverlap.col.val.x
+    // width += trellisOverlap.row.val.x
+    // height += trellisOverlap.col.val.y
+    // height += trellisOverlap.row.val.y
+    let startOffsetx = (((boundRect.left * scalex + translationx) % (width  * scalex)) / scalex) - width
+    let startOffsety = (((boundRect.top  * scaley + translationy) % (height * scaley)) / scaley) - height
 
     if (debug){
-        areaWidth /= 2
-        areaHeight /= 2
-        startOffsetx += areaWidth / 2
-        startOffsety += areaHeight / 2
+        areaWidth = (window.visualViewport.width / 1.5) / scalex
+        areaHeight = (window.visualViewport.height / 1.5) / scaley
+
+        const debugBox_xy = align(state, window.visualViewport.width / 4, window.visualViewport.height / 4)
+        // areaWidth = (window.visualViewport.width / 2) / scalex
+        // areaHeight = (window.visualViewport.height / 2) / scaley
+        startOffsetx += debugBox_xy[0] / scalex
+        startOffsety += debugBox_xy[1] / scaley
     }
 
     // console.warn('area:', areaWidth, areaHeight);
@@ -62,9 +75,8 @@ export function getTrellis(state){
     if (pattern.length < 1 || boundRect.width < 1 || boundRect.height < 1)
         return []
 
-    let center
 
-    for (let row = 0, x = startOffsetx; x < areaWidth; x += boundRect.width, row++) {
+        for (let row = 0, x = startOffsetx; x < areaWidth; x += boundRect.width, row++) {
         for (let col = 0, y = startOffsety; y < areaHeight; y += boundRect.height, col++) {
             // Skip
             if ((!trellisSkip.row.val || !(col % trellisSkip.row.every)) &&
@@ -102,25 +114,22 @@ export function getTrellis(state){
                 // if ((areaWidth/2) / boundRect.width === x && (areaHeight/2) / boundRect.height === y)
                 //     center = pattern
 
-                const selected =
-                    (x === ((areaWidth-startOffsetx) / 2) / boundRect.width) &&
-                    (y === ((areaHeight-startOffsety) / 2) / boundRect.height)
-                ? {style: {
-                    stroke: options.selectionBorderColor,
-                    fillOpacity: options.selectionOpacity,
-                    fill: options.selectionColor,
-                    backgroundColor: options.selectionColor,
-                    borderRadius: partials ? 4/scalex : 0,
-                    strokeWidth: 1/scalex,
-                }}
-                : {}
+                const selected = (row === 4 && col === 4)
+                    // (x === ((areaWidth-startOffsetx) / 2) / boundRect.width) &&
+                    // (y === ((areaHeight-startOffsety) / 2) / boundRect.height)
 
-                rtn.push(<g transform={transformation} key={`${row}-${col}`}> ...selected
+
+                rtn.push(<g
+                    transform={transformation}
+                    key={`${row}-${col}`}
+                    id={selected ? 'selected-trellis-pattern' : undefined}
+                >
                     {pattern}
                 </g>)
             }
         }
     }
+
     return [rtn, rtn[2].props.transform]
     // return rtn
 }

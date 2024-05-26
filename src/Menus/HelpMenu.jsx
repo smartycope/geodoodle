@@ -33,7 +33,7 @@ export function HelpMenu({state, dispatch, setInTour}){
             {/* <li>Lines from line intersections: ❌</li> */}
         </ul>
         This is a passion project of Copeland Carter, Computer Goblin.
-        To see one of the other things he's really proud of,
+        To see one of the other things he&apos;s really proud of,
         check out <a href='http://ezregex.org/'>EZRegex.org</a>! <br/>
         This project is entirely open source, and the code is available on
         <a href='https://github.com/smartycope/geodoodle'>GitHub</a>

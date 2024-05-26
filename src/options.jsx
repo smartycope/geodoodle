@@ -68,11 +68,14 @@ export const keybindings = {
     'shift+b': {action: "clear bounds"},
     'escape': {action: "nevermind"},
     'p': {action: "toggle partials"},
-    'm': {action: "menu", toggle: 'mirror'},
     'home': {action: 'go home'},
     'h': {action: 'go home'},
     'x': {action: 'increment clipboard rotation'},
     'z': {action: 'increment clipboard mirror axis'},
+
+    'm': {action: "menu", toggle: 'mirror'},
+    'r': {action: "menu", toggle: 'repeat'},
+    'ctrl+s': {action: "menu", toggle: 'settings'},
 
     '1': {action: `set to common color`, index: 1},
     '2': {action: `set to common color`, index: 2},

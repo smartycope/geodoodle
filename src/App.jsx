@@ -1,5 +1,5 @@
 import Paper from "./Paper";
-import tour from './Menus/tour';
+import tour from './Menus/tour.jsx';
 import Tour from "reactour";
 import {mobileAndTabletCheck} from "./utils";
 import {useState} from "react";
