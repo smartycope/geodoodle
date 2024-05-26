@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 /** @type {import('vite').UserConfig} */
 export default defineConfig({
     plugins: [react()],
-    base: '/',
+    base: '/geodoodle/',
     server: {
         port: 3006,
     },

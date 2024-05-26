@@ -29,7 +29,7 @@
     "vite": "^5.2.0"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "vite",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
     "build": "vite build",
