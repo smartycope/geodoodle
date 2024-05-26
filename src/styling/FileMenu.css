@@ -4,10 +4,34 @@
     left: 10%;
     width: 80%;
     height: 80%;
-    background-color: rgba(20,20,20,.9);
+    background-color: rgba(20,20,20,.95);
     border-radius: 10px;
     color: white;
     z-index: 1;
+    hr{
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+    h4{
+        margin-bottom: 10px;;
+    }
+    button{
+        background-color: rgb(60, 60, 60);
+        /* background-color: #282828; */
+    }
+    #download-buttons{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        /* align-content: center; */
+        /* width: 100%; */
+        /* background-color: blue; */
+    }
+    #copy-button{
+        position: absolute;
+        left: 10px;
+        top: 15px;
+    }
 }
 
 #expanding{

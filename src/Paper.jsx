@@ -750,6 +750,7 @@ export default function Paper({setInTour}) {
 
                 {clip}
             </svg>
+            <canvas id="canvas"></canvas>
         </div>
     )
 }

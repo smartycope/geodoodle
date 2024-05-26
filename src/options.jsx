@@ -182,7 +182,7 @@ export const preservable = [
 export const saveable = [
     // This is handeled seperately
     // 'lines',
-    'repeating',
+    'bounds',
     'translationx',
     'translationy',
     "scalex",

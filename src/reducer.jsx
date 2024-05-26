@@ -1,7 +1,7 @@
 import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageSettingsName, localStorageName, localStorageTourTakenName} from './globals'
 import { toRadians, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq, toggleDarkMode, align, filterObjectByKeys } from './utils'
 import defaultOptions, { keybindings, reversible, reversibleActions, saveSettingActions } from './options'
-import {deserialize, serialize, serializeState} from './fileUtils';
+import {deserialize, download, image, serialize, serializeState} from './fileUtils';
 import {applyManualFlip, applyManualRotation, getMirrored, getStateMirrored} from './mirrorEngine';
 import {disableTapHolding} from './Paper';
 
@@ -22,11 +22,6 @@ const miniMenus = ['extra', 'color', 'mirror', 'select', 'clipboard', 'delete']
 // "..."        -> {action: "..."}
 // {foo: "bar"} -> {action: "set manual", foo: "bar"}
 export default function reducer(state, data){
-    if (state === null){
-        console.warn('state is null!')
-        return {}
-    }
-
     // Some convenience parameter handling
     if (typeof data === String)
         var data = {action: data}
@@ -53,6 +48,7 @@ export default function reducer(state, data){
         mirrorAxis,
         mirrorAxis2,
         mirrorType,
+        hideDots,
         mirrorMethod,
         trellis,
         eraser,
@@ -426,18 +422,25 @@ export default function reducer(state, data){
 
         // File Actions
         case "download": // args: name (string)
-            // Create a Blob with the contents and set the MIME type
-            const blob = new Blob([serialize(state)], { type: 'image/svg+xml' });
-            // Create a link (anchor) element
-            const link = document.createElement('a');
-            // Set the download attribute and href with the Blob
-            link.download = data.name.trim()
-            link.href = URL.createObjectURL(blob);
-            // Append the link to the body and trigger a click event
-            document.body.appendChild(link);
-            link.click();
-            // Remove the link from the body
-            document.body.removeChild(link);
+            switch (data.format) {
+                case 'svg':
+                    download(data.name, 'image/svg+xml', {str: serialize(state)})
+                    break
+                case 'png':
+                case 'jpeg':
+                    // Data has width, height, and format
+                    image(state,
+                        data.format,
+                        data.width,
+                        data.height,
+                        false,
+                        url => download(data.name + '.' + data.format, `image/${data.format}`, {url})
+                    )
+                    break
+                default:
+                    console.error('Invalid format given to download:', data.format)
+                    break
+            }
             return state
 
         case "upload":
@@ -448,10 +451,32 @@ export default function reducer(state, data){
             let obj = {}
             obj[data.name.trim()] = serialize(state)
             localStorage.setItem(localStorageName, JSON.stringify({...JSON.parse(localStorage.getItem(localStorageName)), ...obj}))
+            setTimeout(() => reducer(state, {action: 'cursor moved'}), 100)
             return state
 
         case "load local": // args: name (string)
             return {...state, ...deserialize(JSON.parse(localStorage.getItem(localStorageName))[data.name.trim()])}
+
+        case 'copy image':
+            image(state,
+                'png',
+                window.visualViewport.width,
+                window.visualViewport.height,
+                false,
+                blob => {
+                    try {
+                        navigator.clipboard.write([
+                            new ClipboardItem({
+                                'image/png': blob
+                            })
+                        ]);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                },
+                true
+            )
+            return state
 
         // Misc Actions
         // TODO: remove toggle partials
@@ -570,7 +595,11 @@ export default function reducer(state, data){
                 })
             }
 
-            return {...reducer(state, "nevermind"), openMenus: {...copy}}
+            return {...reducer(state, "nevermind"),
+                openMenus: {...copy},
+                // If we close the repeat menu, and we have dots turned off, turn them back on
+                hideDots: !(openMenus.repeat && !copy.repeat) && hideDots,
+            }
         }
         case "debug":
             // console.log((<line x1="2" x2="3" y1="4" y2="5" stroke="black"></line>).);
