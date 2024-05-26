@@ -130,6 +130,5 @@ export function getTrellis(state){
         }
     }
 
-    return [rtn, rtn[2].props.transform]
-    // return rtn
+    return rtn
 }

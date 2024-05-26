@@ -225,6 +225,8 @@ export default function Paper({setInTour}) {
 
     _state = state
     const boundRadius = scalex / 1.5
+    // window.scrollX = 0
+    // window.scrollY = 0
 
     function onMouseMove(e){
         // console.log('mouse moved')
@@ -438,7 +440,7 @@ export default function Paper({setInTour}) {
         clipboardFlip += `matrix(1, 0, 0, -1, 0, ${cursorPos[1]*2}) `
 
     if ((trellis || openMenus.repeat) && bounds.length > 1)
-        var [trellisActual, selectionTransform] = getTrellis(state)
+        var trellisActual = getTrellis(state)
 
     // Get the mirrored current lines
     var curLines = []
