@@ -538,10 +538,10 @@ export default function reducer(state, data){
             // Don't know why I can't just delete action from DATA, but WHATEVER I guess
             let newState = {...state, ...data}
             delete newState.action
-            if (Object.keys(data).includes('enableGestureScale')){
-                console.log('enableGestureScale is now', data['enableGestureScale']);
-                console.log(newState)
-            }
+            // if (Object.keys(data).includes('enableGestureScale')){
+            //     console.log('enableGestureScale is now', data['enableGestureScale']);
+            //     console.log(newState)
+            // }
             return newState
         }
         case 'menu': { // args: any one of toggle, open, or close: the menu to do that to

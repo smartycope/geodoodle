@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import "../styling/RepeatMenu.css"
 import { MIRROR_AXIS, MIRROR_METHOD } from "../globals";
 import { MirrorAxisIcon, Number } from "./MenuUtils"
@@ -184,7 +184,13 @@ function DesktopRepeatMenu({dispatch, state}){
 }
 
 function MobileRepeatMenu({dispatch, state}){
-    function TrellisControl({verb, value}){
+    const [leftOpen, setLeftOpen] = useState({
+        Offset: false,
+        Skip: false,
+        Flip: false,
+        Rotate: false,
+    });
+    const TrellisControl = ({verb, value}) => {
         const line = (rowCol) => <span className="trellis-control-mobile">
             {/* <hr/> */}
             {rowCol === 'row' ? "Rows" : 'Columns'}
@@ -201,19 +207,24 @@ function MobileRepeatMenu({dispatch, state}){
             ></Number>
         </span>
 
-        return <details onToggle={e => {
-            e.stopPropagation();
-            console.log('here!');
-            e.target.open = true;
+        // So the even onToggle and onClick here:
+        // For SOME REASON (I *still* don't know why) details toggles itself whenever it's clicked, not just in the
+        // summary. I'm baffled by this because none of the other details elements do this, and I can't find a difference.
+        // Anyway, how I'm getting around it, is to manually control the open state of details with the `open` prop, then
+        // whenever it tries to toggle, reset it to what it's *supposed* to be (the manual state). Then, the summary
+        // toggles the state.
+        return <details open={leftOpen[verb]} onToggle={e => {
+            e.target.open = leftOpen[verb]
         }}>
-            <summary>{verb}</summary>
-            <div className="front">
-                {line('row')}
-                {line('col')}
-            </div>
+            <summary onClick={() => {
+                const copy = JSON.parse(JSON.stringify(leftOpen))
+                copy[verb] = !copy[verb]
+                setLeftOpen(copy)
+            }}>{verb}</summary>
+            {line('row')}
+            {line('col')}
         </details>
     }
-
     const overlap = rowCol => <span>
             <span className="align-horz">x:<Number
                 type="number"
@@ -268,7 +279,6 @@ function MobileRepeatMenu({dispatch, state}){
         }}>
             <MirrorAxisIcon mirrorAxis={state.trellisRotate[rowCol].val} mirrorMethod={MIRROR_METHOD.ROTATE}/>
         </button>
-
 
     return <div id="repeat-menu-mobile">
         <div id="repeat-left" className="repeat-side">

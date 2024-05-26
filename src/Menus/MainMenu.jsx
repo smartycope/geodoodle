@@ -169,6 +169,11 @@ function MobileMainMenu({dispatch, state, setInTour}){
                     onTouchEnd={undoOnTouchEnd}
                     id="undo-button"
                     className="menu-toggle-button-mobile"
+                    style={{
+                        visibility: state.openMenus.main ? 'visible': "hidden",
+                        pointerEvents: state.openMenus.main ? 'all' : 'none',
+                        backgroundColor: state.mirroring ? "gray" : "transparent"
+                    }}
                 >   <MdUndo className="main-menu-icon"/>
                 </button>
             </>
