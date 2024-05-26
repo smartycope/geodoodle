@@ -24,9 +24,6 @@ export function FileMenu({state, dispatch}){
     const [y, sety] = useState(0);
     const [selectedOnly, setSelectedOnly] = useState(true);
 
-    const {boundRect} = calc(state)
-    // const [saves, setSaves] = useState(localStorage.getItem(localStorageName))
-
     function handleFileSelection(e) {
         if (e.target.files.length > 0) {
             var reader = new FileReader()
@@ -86,12 +83,6 @@ export function FileMenu({state, dispatch}){
                     setx(rect.x)
                     sety(rect.y)
                 }}><MdOutlineTabUnselected/> Fit to Pattern</button>
-                {/* {state.bounds.length > 1 && <button className='fit-button' onClick={() => {
-                    setWidth(boundRect.width * state.scalex)
-                    setHeight(boundRect.height * state.scaley)
-                    setx(boundRect.right * state.scalex)
-                    sety(boundRect.top * state.scaley)
-                }}>Selected Area</button>} */}
             </span>}
         </details>
 
@@ -134,10 +125,10 @@ export function FileMenu({state, dispatch}){
             </span>
         </details>
 
-        <footer className="footer">
+        {/* <footer className="footer"> */}
             {/* I&apos;m reasonably sure that any method of loading files is technically hackable.<br/> */}
-            Don&apos;t load or upload files from unknown sources
-        </footer>
+            {/* Don&apos;t load or upload files from unknown sources */}
+        {/* </footer> */}
         {/* <button onClick={() => dispatch({action: "load", })}><MdUpload />Upload</button> */}
     </div>
 }

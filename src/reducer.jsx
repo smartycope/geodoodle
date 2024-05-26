@@ -431,10 +431,8 @@ export default function reducer(state, data){
                     // Data has width, height, and format
                     image(state,
                         data.format,
-                        data.width,
-                        data.height,
-                        data.x,
-                        data.y,
+                        data.width, data.height,
+                        data.x, data.y,
                         false,
                         data.selectedOnly && bounds.length > 1,
                         url => download(data.name + '.' + data.format, `image/${data.format}`, {url})
@@ -462,20 +460,11 @@ export default function reducer(state, data){
 
         case 'copy image':
             const rect = document.querySelector('#lines').getBBox()
-            // const rect = document.querySelector('#lines').getBoundingClientRect()
-            console.log(rect);
-            console.log('width:', boundRect.width  * state.scalex,
-                        'height:', boundRect.height * state.scaley,
-                        'x:', boundRect.right  * state.scalex,
-                        'y:', boundRect.top    * state.scaley);
             image(state,
                 'png',
                 bounds.length > 1 ? boundRect.width  * scalex : rect.width * scalex,
                 bounds.length > 1 ? boundRect.height * scaley : rect.height * scaley,
-                // bounds.length > 1 ? -boundRect.left * scalex : (rect.x - translationx),
-                // bounds.length > 1 ? -boundRect.top * scaley : (rect.y - translationy),
-                bounds.length > 1 ? 0 : 0,//(rect.x * scalex + translationx),
-                bounds.length > 1 ? 0 : 0,//(rect.y * scaley + translationy),
+                0, 0,
                 false,
                 bounds.length > 1, // Default to selectedOnly
                 blob => {

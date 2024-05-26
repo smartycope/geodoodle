@@ -39,10 +39,13 @@ export function serialize(state, selectedOnly=false, transform=''){
 }
 
 export function deserialize(str){
+    console.error('here');
     // First, check if there's a script element in it. If it is, red flag that it's a hacking attempt
-    if (str.includes('script'))
-        if (!window.confirm('The uploaded file may be trying to run malitious code. Only continue if you\'re sure it\'s safe. Continue?'))
-            return {}
+    if (str.includes('/script')){
+        window.alert('The uploaded file may be trying to run malitious code. To continue, remove any script tags in the file.')
+        return {}
+    }
+
     // Parse the comment and get the data from it
     const match = /<!-- (.+) -->/.exec(str)
     // TODO: This won't auto-enable repeating until "repeating" state is implemented
