@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import "../styling/RepeatMenu.css"
 import { MIRROR_AXIS, MIRROR_METHOD } from "../globals";
 import { MirrorAxisIcon, Number } from "./MenuUtils"
@@ -141,7 +141,7 @@ function DesktopRepeatMenu({dispatch, state}){
             </span>
         }/>
         <TrellisControl value='trellisSkip' verb='Skip' input={rowCol =>
-            <button onClick={e => {
+            <button onClick={() => {
                 let obj = {}
                 obj.trellisSkip = state.trellisSkip
                 obj.trellisSkip[rowCol].val = !state.trellisSkip[rowCol].val
@@ -151,7 +151,7 @@ function DesktopRepeatMenu({dispatch, state}){
             </button>
         }/>
         <TrellisControl value='trellisFlip' verb='Flip' input={rowCol =>
-            <button onClick={e => {
+            <button onClick={() => {
                 let obj = {}
                 obj.trellisFlip = state.trellisFlip
                 obj.trellisFlip[rowCol].val = incrementMirrorAxis(state.trellisFlip[rowCol].val, true)
@@ -161,7 +161,7 @@ function DesktopRepeatMenu({dispatch, state}){
             </button>
         }/>
         <TrellisControl value='trellisRotate'  verb='Rotate' input={rowCol =>
-            <button onClick={e => {
+            <button onClick={() => {
                 let obj = {}
                 obj.trellisRotate = state.trellisRotate
                 obj.trellisRotate[rowCol].val = incrementMirrorAxis(state.trellisRotate[rowCol].val, true)
@@ -251,7 +251,7 @@ function MobileRepeatMenu({dispatch, state}){
         </span>
 
     const skip = rowCol =>
-        <button onClick={e => {
+        <button onClick={() => {
             let obj = {}
             obj.trellisSkip = state.trellisSkip
             obj.trellisSkip[rowCol].val = !state.trellisSkip[rowCol].val
@@ -261,7 +261,7 @@ function MobileRepeatMenu({dispatch, state}){
         </button>
 
     const flip = rowCol =>
-        <button onClick={e => {
+        <button onClick={() => {
             let obj = {}
             obj.trellisFlip = state.trellisFlip
             obj.trellisFlip[rowCol].val = incrementMirrorAxis(state.trellisFlip[rowCol].val, true)
@@ -271,7 +271,7 @@ function MobileRepeatMenu({dispatch, state}){
         </button>
 
     const rotate = rowCol =>
-        <button onClick={e => {
+        <button onClick={() => {
             let obj = {}
             obj.trellisRotate = state.trellisRotate
             obj.trellisRotate[rowCol].val = incrementMirrorAxis(state.trellisRotate[rowCol].val, true)

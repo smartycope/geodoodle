@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 import "../styling/SettingsMenu.css"
 import {Checkbox, Number} from "./MenuUtils"
 import { KeyMenu } from './KeyMenu';
@@ -6,9 +6,9 @@ import { KeyMenu } from './KeyMenu';
 import { IoClose } from "react-icons/io5";
 import {localStorageSettingsName} from '../globals';
 
-import { ColorPicker, useColor, ColorService } from "react-color-palette";
+import { ColorPicker, ColorService } from "react-color-palette";
 import "react-color-palette/css";
-import options, {extraButtons} from "../options";
+import {extraButtons} from "../options";
 
 export function SettingsMenu({state, dispatch}){
     const [palletteVisible, setPalletteVisible] = useState(false);
@@ -34,7 +34,7 @@ export function SettingsMenu({state, dispatch}){
             {/* removeSelectionAfterDelete */}
             <Checkbox label="Invert Scroll"
                 title="Controls the scroll direction"
-                onChange={(val) => dispatch({invertedScroll: !invertedScroll})}
+                onChange={() => dispatch({invertedScroll: !invertedScroll})}
                 checked={invertedScroll}
             />
             <Number label="Scroll Sensitivity"
@@ -57,17 +57,17 @@ export function SettingsMenu({state, dispatch}){
             />
             <Checkbox label="Smooth Scale Gesture"
                 title="Can help smooth out 2 finger gestures"
-                onChange={val => dispatch({smoothGestureScale: !smoothGestureScale})}
+                onChange={() => dispatch({smoothGestureScale: !smoothGestureScale})}
                 checked={smoothGestureScale}
             />
             <Checkbox label="Scale with 2 Finger Spread"
                 title="Controls whether the 2 finger spread gesture scales the page or not"
-                onChange={(val) => dispatch({enableGestureScale: !enableGestureScale})}
+                onChange={() => dispatch({enableGestureScale: !enableGestureScale})}
                 checked={enableGestureScale}
             />
             <Checkbox label="Remove Selection after Cut"
                 title="Controls if the bounds get removed after the selection gets deleted, whether from cutting or by deleting"
-                onChange={(val) => dispatch({removeSelectionAfterDelete: !removeSelectionAfterDelete})}
+                onChange={() => dispatch({removeSelectionAfterDelete: !removeSelectionAfterDelete})}
                 checked={removeSelectionAfterDelete}
             />
             <select required onChange={e => dispatch({extraButton: e.target.val})} value={state.extraButton}>
@@ -92,7 +92,7 @@ export function SettingsMenu({state, dispatch}){
             <h4>Advanced</h4>
             <Checkbox label="Hide Hex Color"
                 title="Controls if the hex color is displayed in the color menu"
-                onChange={(val) => dispatch({hideHexColor: !hideHexColor})}
+                onChange={() => dispatch({hideHexColor: !hideHexColor})}
                 checked={hideHexColor}
             />
             <Number label="Max Undo Amount"
@@ -103,7 +103,7 @@ export function SettingsMenu({state, dispatch}){
             />
             <Checkbox label="Debug Mode"
                 title="Adds some visual aids useful for debugging"
-                onChange={(val) => dispatch({debug: !debug})}
+                onChange={() => dispatch({debug: !debug})}
                 checked={debug}
             />
             <button onClick={() => {

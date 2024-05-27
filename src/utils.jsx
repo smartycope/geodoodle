@@ -1,6 +1,5 @@
-import React from "react"
 import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE} from "./globals";
-import { selected } from "./Paper";
+import { selected } from "./globals";
 
 export const hashPoint = ([x, y]) => `${x}${y}`
 export function pointIn(points, point){
@@ -294,7 +293,7 @@ export const defaultTrellisControl = value => ({
 // Credit to ChatGPT
 export function filterObjectByKeys(obj, keys) {
     return keys.reduce((filteredObj, key) => {
-      if (obj.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
         filteredObj[key] = obj[key];
       }
       return filteredObj;

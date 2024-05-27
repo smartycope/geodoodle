@@ -1,4 +1,4 @@
-import {useRef, useState} from 'react';
+import {useState} from 'react';
 import "../styling/FileMenu.css"
 import {localStorageName} from '../globals.js'
 
@@ -10,13 +10,12 @@ import { IoIosDownload } from "react-icons/io";
 import {Checkbox, Number} from './MenuUtils.jsx';
 import {GiNuclear} from 'react-icons/gi';
 import { MdOutlineFileCopy } from "react-icons/md";
-import {calc} from '../utils.jsx';
 import { FaMobileScreenButton } from "react-icons/fa6";
 
 export function FileMenu({state, dispatch}){
     const [saveName, setSaveName] = useState('');
     const [loadName, setLoadName] = useState('');
-    const [downloadName, setDownloadName] = useState('');
+    const [downloadName, ] = useState('');
     const [format, setFormat] = useState('svg');
     const [width, setWidth] = useState(window.visualViewport.width);
     const [height, setHeight] = useState(window.visualViewport.height);

@@ -1,11 +1,11 @@
-import React, {useEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import "../styling/ColorMenu.css"
-import { ColorPicker, useColor, ColorService } from "react-color-palette";
+import { ColorPicker, ColorService } from "react-color-palette";
 import "react-color-palette/css";
 import options from "../options";
+import {Number} from "./MenuUtils";
 
 import { FaGripLinesVertical } from "react-icons/fa6";
-import {Number} from "./MenuUtils";
 
 
 let offsetX, offsetY;

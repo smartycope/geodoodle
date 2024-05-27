@@ -1,23 +1,20 @@
-import React, {useEffect} from "react";
 import "../styling/MiniControlsMenu.css"
 
 import { MdContentCopy } from "react-icons/md"
-import { MdHome } from "react-icons/md";
 import { MdOutlineContentCut } from "react-icons/md";
 import { MdContentPaste } from "react-icons/md";
 import { MdUndo } from "react-icons/md";
 import { MdRedo } from "react-icons/md";
 import { GiNuclear } from "react-icons/gi";
-import { FaGripLinesVertical } from "react-icons/fa6";
 import { PiSelectionPlusDuotone } from "react-icons/pi";
 import { PiSelectionSlashDuotone } from "react-icons/pi";
 import { MdDelete } from "react-icons/md";
 import { MdDeleteForever } from "react-icons/md";
-import {BsExclude} from "react-icons/bs";
 import { BiArea } from "react-icons/bi";
 import { BiSolidArea } from "react-icons/bi";
 
 // Depricated: no longer used: undo button is now a regular button
+// eslint-disable-next-line no-unused-vars
 export function UndoMenu({dispatch, state, align}){
     const to = document.querySelector("#" + align).getBoundingClientRect()
     return <div id='undo-menu' className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
@@ -56,6 +53,7 @@ export function SelectMenu({dispatch, state, align}){
         {/* </span> */}
     </div>
 }
+// eslint-disable-next-line no-unused-vars
 export function ClipboardMenu({dispatch, state, align}){
     const to = document.querySelector("#" + align).getBoundingClientRect()
     return <div id='clipboard-menu' className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
@@ -84,7 +82,7 @@ export function DeleteMenu({dispatch, state, align}){
 
         {state.bounds.length > 1 && <span>
             <button
-                id="delete-unselected"
+                id="delete-selected"
                 onClick={() => dispatch({action: "delete selected"})}
                 className="mobile-button"
             >

@@ -1,7 +1,6 @@
 import {preservable, saveable} from "./options";
 import {filterObjectByKeys, getSelected} from "./utils";
 import { Parser as HtmlToReactParser } from "html-to-react";
-import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 
@@ -61,6 +60,7 @@ export function deserialize(str){
 // `func` gets passed the dataUrl or blob (if format == 'blob')
 // Coords: width, height: scalar, scaled
 // Coords: x, y: relative?, scaled
+// eslint-disable-next-line no-unused-vars
 export function image(state, format='png', width, height, x, y, dots=false, selectedOnly, func, blob=false, margin=10){
     // This serializes the state (with the function above), then creates a canvas, draws the serialized svg onto the
     // canvas, creates an image from the canvas
@@ -123,6 +123,7 @@ export function deserializeState(str){
 }
 
 // Currently unused
+// eslint-disable-next-line no-unused-vars
 export function getFileName(state){
     return "pattern.svg"
 }

@@ -1,11 +1,10 @@
-import {useState} from 'react';
-import Tour from 'reactour'
 import "../styling/HelpMenu.css"
 
 import { IoClose } from "react-icons/io5";
-import {localStorageTourTakenName, version} from '../globals';
+import {version} from '../globals';
 
 
+// eslint-disable-next-line no-unused-vars
 export function HelpMenu({state, dispatch, setInTour}){
     return <div id='help-menu'>
         <button id='close-button' onClick={() => dispatch({action: "menu", close: "help"})}>
@@ -32,7 +31,7 @@ export function HelpMenu({state, dispatch, setInTour}){
             <li>❌ Curved Lines</li>
             {/* <li>Lines from line intersections: ❌</li> */}
         </ul>
-        This is a passion project of Copeland Carter, Computer Goblin.
+        This is a passion project of Copeland Carter.
         To see one of the other things he&apos;s really proud of,
         check out <a href='http://ezregex.org/'>EZRegex.org</a>! <br/>
         This project is entirely open source, and the code is available on

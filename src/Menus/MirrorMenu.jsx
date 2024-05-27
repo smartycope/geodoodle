@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import {useEffect} from "react";
 import { MIRROR_METHOD } from "../globals";
 import { FaGripLinesVertical } from "react-icons/fa6";
 import {incrementMirrorAxis, incrementMirrorMethod, incrementMirrorType} from "../utils";

@@ -14,7 +14,7 @@ module.exports = {
   rules: {
     'no-unused-vars': 'warn',
     'no-redeclare': 'warn',
-    'react/prop-types': 'warn',
+    'react/prop-types': 'off',
     'no-case-declarations': 'off',
     'no-inner-declarations': "off",
     'no-prototype-builtins': 'warn',

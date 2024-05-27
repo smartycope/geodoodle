@@ -1,9 +1,21 @@
 import {MIRROR_AXIS, MIRROR_TYPE, localStorageSettingsName, localStorageName} from './globals'
-import { toRadians, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq, toggleDarkMode, align, filterObjectByKeys } from './utils'
+import {
+    toRadians,
+    pointIn,
+    removePoint,
+    calc,
+    getSelected,
+    createLine,
+    eventMatchesKeycode,
+    pointEq,
+    toggleDarkMode,
+    align,
+    filterObjectByKeys
+} from './utils'
 import defaultOptions, { keybindings, reversible, reversibleActions, saveSettingActions } from './options'
 import {deserialize, download, image, serialize, serializeState} from './fileUtils';
 import {applyManualFlip, applyManualRotation, getMirrored, getStateMirrored} from './mirrorEngine';
-import {disableTapHolding} from './Paper';
+import {setTapHolding} from './globals';
 
 
 var undoStack = []
@@ -24,20 +36,14 @@ const miniMenus = ['extra', 'color', 'mirror', 'select', 'clipboard', 'delete']
 export default function reducer(state, data){
     // Some convenience parameter handling
     if (typeof data === String)
-        var data = {action: data}
+        data = {action: data}
     if (data?.action === undefined)
-        var data = {action: "set manual", ...data}
-
+        data = {action: "set manual", ...data}
 
     const {
         mobile,
         cursorPos,
         rotate,
-        stroke,
-        strokeWidth,
-        dash,
-        lineCap,
-        lineJoin,
         partials,
         lines,
         curLine,
@@ -48,7 +54,6 @@ export default function reducer(state, data){
         mirrorType,
         hideDots,
         mirrorMethod,
-        trellis,
         eraser,
         clipboard,
         clipboardRotation,
@@ -57,15 +62,7 @@ export default function reducer(state, data){
         translationy,
         scalex,
         scaley,
-        rotatex,
-        rotatey,
-        shearx,
-        sheary,
-        invertedScroll,
-        scrollSensitivity,
         removeSelectionAfterDelete,
-        mode,
-        debug,
         openMenus,
         defaultScalex,
         defaultScaley,
@@ -75,14 +72,8 @@ export default function reducer(state, data){
         halfx,
         halfy,
         clipx, clipy,
-        offsetx,
-        offsety,
-        mirrorOriginx,
-        mirrorOriginy,
         boundRect,
         relCursorPos,
-        scaledTranslationx,
-        scaledTranslationy,
     } = calc(state)
 
     if (saveNext){
@@ -104,7 +95,7 @@ export default function reducer(state, data){
             // This is here so when a touch is being held, and has moved enough to move the cursor, it disables the hold action
             const newPos = align(state, data.x, data.y)
             if (JSON.stringify(newPos) !== JSON.stringify(cursorPos))
-                disableTapHolding()
+                setTapHolding(false)
             return {...state, cursorPos: newPos, debug_rawCursorPos: [data.x, data.y]}
         case 'key press': // args: event
             // If it's just a modifier key, don't do anything (it'll falsely trigger things)
@@ -418,33 +409,12 @@ export default function reducer(state, data){
         }
         case 'increment clipboard rotation': return {...state, clipboardRotation: (clipboardRotation + 90) % 360}
         case 'increment clipboard mirror axis':
-            // eslint-disable-next-line default-case
             switch (clipboardMirrorAxis){
-                case null:                 return {...state, clipboardMirrorAxis: MIRROR_AXIS.VERT_90};
                 case MIRROR_AXIS.VERT_90:  return {...state, clipboardMirrorAxis: MIRROR_AXIS.BOTH_360};
                 case MIRROR_AXIS.BOTH_360: return {...state, clipboardMirrorAxis: MIRROR_AXIS.HORZ_180};
                 case MIRROR_AXIS.HORZ_180: return {...state, clipboardMirrorAxis: null};
-            } return state // Unreachable
-
-        // Color & Stroke Actions
-        // case 'add common color': // args: color (hex string)
-        //     // If we havne't changed the color don't add a new common color
-        //     if (commonColors.includes(data.color))
-        //         return state
-        //     let copy = JSON.parse(JSON.stringify(commonColors))
-        //     copy.push(data.color)
-        //     copy.shift()
-        //     return {...state,
-        //         commonColors: copy
-        //     }
-
-        // case 'set to common color': // args: index
-        //     if (data.index > commonColors.length)
-        //         return state
-        //     return {...state,
-        //         // Because they're displayed inverted
-        //         stroke: commonColors[commonColors.length - data.index]
-        //     }
+                default:                   return {...state, clipboardMirrorAxis: MIRROR_AXIS.VERT_90}
+            }
 
         // File Actions
         case "download": // args: name (string)
@@ -529,7 +499,6 @@ export default function reducer(state, data){
                     repeat: false,
                     file: false,
                     settings: false,
-                    //// Remember, the tour itself is part of the help menu: the help menu handles hiding itself
                     help: false,
                     mirror: false,
                 },
@@ -539,6 +508,7 @@ export default function reducer(state, data){
                 ],
                 curLine: null,
                 dash: ['0', "20, 10", '0', '0', '0'],
+                colorProfile: 1,
                 mobile: true,
                 stroke: ['#000000', '#000000', '#ffddab', '#ff784b', '#1a31ff'],
                 lines: [

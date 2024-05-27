@@ -1,6 +1,5 @@
 import {MIRROR_AXIS} from "./globals";
 import {getSelected, calc, align} from "./utils";
-import options from "./options";
 
 // This is the main logic for generating the trellis
 // It returns a list of groups of the pattern with appropriate translations
@@ -12,12 +11,10 @@ export function getTrellis(state){
         trellisRotate,
         scalex, scaley,
         translationx, translationy,
-        bounds,
-        partials,
         debug,
     } = state
 
-    const {boundRect, offsetx, offsety} = calc(state)
+    const {boundRect} = calc(state)
 
     var rtn = []
 

@@ -61,15 +61,13 @@ const tour = _dispatch => {
             content: "Use this to set the color of the current line"
         },
         {   selector: "#recent-color-buttons",
-            content: "As you select colors, these buttons keep your most recently used colors. You can click on them to jump back to that color",
-            // action: () => dispatch({action: "add common color", color: "#ff0000"})
+            content: "These induvidually keep track of ",
         },
         {   selector: "#stoke-input-area",
             content: "The stroke is the width of the line. It scales with the page"
         },
         {   selector: "#dash-input-area",
             content: "This lets you specify the 'dash code'. It lets you draw customized dashed lines.",
-            // action: () => dispatch({action: "set manual", dash: "#"})
         },
         {   selector: "#dashed-line",
             content: "This is what a dash code of '20, 10' looks like. To draw a solid line, just put '0'"
@@ -91,21 +89,22 @@ const tour = _dispatch => {
         {   selector: "#color-picker-mobile-actual",
             content: "This is the color menu. You can use this to set the color and transparency of the lines."
         },
-        {   selector: "#recent-color-buttons",
-            content: "As you select colors, these buttons keep your most recently used colors. You can click on them to jump back to that color.",
+        {   selector: "#color-profile-buttons",
+            content: "These let you keep track of multiple color/stroke/dashes induvidually, so you can swap back and forth quickly.",
         },
         {   selector: "#stroke-input",
             content: "The stroke is the width of the line. It scales with the page."
         },
         {   selector: "#dash-input",
-            content: "This lets you specify the \"dash code\". It lets you draw customized dashed lines.",
+            content: "This lets you specify the \"dash code\". It lets you draw customized dashed lines. To draw a solid line, just put \"0\".",
+            highlightedSelectors: ['#color-menu-close-button']
         },
         menu({close: 'color'}),
-        {   selector: "#dashed-line",
-            content: "For example, this is what a dash code of \"20, 10\" looks like. To draw a solid line, just put \"0\"."
-        },
+        // {   selector: "#dashed-line",
+        //     content: "For example, this is what a dash code of \"20, 10\" looks like. To draw a solid line, just put \"0\"."
+        // },
         {   selector: "#undo-button",
-            content: "This is the undo button. Tap to undo, and tap and hold to redo. You may have to press undo multiple times to undo a line completely."
+            content: "This is the undo button. Tap to undo, and tap and hold to redo."
         },
         menu({open: 'mirror'}),
         {   selector: "#mirror-menu-mobile",
@@ -138,7 +137,7 @@ const tour = _dispatch => {
         },
         menu({open: 'clipboard'}),
         {   selector: "#clipboard-menu",
-            content: "These are your standard copy, cut, and paste buttons."
+            content: "These are your standard copy, cut, and paste buttons. When you're copying, you can long tap to paste, and double tap to cancel."
         },
         menu({open: 'delete'}),
         {   selector: "#delete-lines",
@@ -147,6 +146,10 @@ const tour = _dispatch => {
         {   selector: "#delete-line",
             content: "This button lets you erase a specific line. You press it once to leave a marker on one end of a line, and when you press it again on the other end of the line, it only deletes that line."
         },
+        {   selector: "#delete-selected",
+            content: "These buttons let you erase everything in the selection, or everything except what's in the selection.",
+            highlightedSelectors: ['#delete-unselected']
+        },
         {   selector: "#clear-all",
             content: "This button clears all the lines. Careful!"
         },
@@ -154,9 +157,12 @@ const tour = _dispatch => {
         {   selector: "#extra-menu",
             content: "Here are some more menus.",
         },
+        {   selector: ".bonus-button",
+            content: "This button is customizable in settings, for easy access",
+        },
         menu({open: 'navigation', close: 'extra'}),
         {   selector: "#nav-menu",
-            content: "This is the navigation menu. You can set the current position and scale here manually, or you can use 2 fingers to move and spread 2 fingers to scale (available in settings).",
+            content: "This is the navigation menu. You can set the current position and scale here manually, or you can use 2 fingers to move and spread 2 fingers to scale.",
         },
         {   selector: "#home-button",
             content: "This button resets the position and scale to the starting position and scale.",
@@ -185,6 +191,7 @@ const tour = _dispatch => {
             content: "And this button to hide the dots. There's a similar button in settings as well."
         },
         menu({close: 'repeat'}),
+        // {content: "A few last things. "}
         {content: "And that's it! There's also File and Settings menus, but I think you can figure them out yourself. If you have any problems, suggestions, or questions, feel free to email me at smartycope@gmail.com."},
     ]}}
     export default tour

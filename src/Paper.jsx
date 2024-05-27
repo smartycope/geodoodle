@@ -1,6 +1,15 @@
 import './styling/App.css';
 import {useEffect, useReducer, useRef, useState} from 'react';
-import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageSettingsName} from './globals'
+import {
+    MIRROR_AXIS,
+    MIRROR_METHOD,
+    MIRROR_TYPE,
+    localStorageSettingsName,
+    tapHolding,
+    setTapHolding,
+    selected,
+    setSelected
+} from './globals'
 import reducer from './reducer';
 import {align, calc, defaultTrellisControl, distCenter, mobileAndTabletCheck, pointEq} from './utils';
 import options from './options';
@@ -10,7 +19,6 @@ import {deserializeState} from './fileUtils';
 import {getStateMirrored} from './mirrorEngine';
 import { RxRotateCounterClockwise } from "react-icons/rx";
 import { GoMirror } from "react-icons/go";
-import { setDispatch as registerDispatch } from './App';
 import {FaCheck} from 'react-icons/fa6';
 
 /*
@@ -31,33 +39,18 @@ import {FaCheck} from 'react-icons/fa6';
  * }
  */
 
-// Disable the default right click menu
-window.oncontextmenu = () => false
-
 // This has to be a global variable instead of a state, because we attach the touchMove listener function directly,
 // so we can have it not capture passively, so we can prevent default
 // null or a 2 item list of the previous touches
 var gestureTouches = null
 var withinDoubleTapTime = false
 var lastTapPos = [-10,-10]
-// The only place outside this file that this is touched, is in reducer.jsx in 'cursor moved'
-var tapHolding = false
-export const disableTapHolding = () => {
-    tapHolding = false
-}
-var touchHoldTimer = null
 // This is for the mouse/touch events that need to be bound non-passively, but also need access to the state
 // This is hacky, but I can't think of a better way
 var _state = {}
+var touchHoldTimer = null
 
-// Explanation:
-// We use the bounding rect to get the selection while repeating, so we can select something that's guarenteed to be a
-// pattern. Because of that, we have to get the rect *after* it's been displayed. This means we're always 1 render behind.
-// Because of that, every other render it's null, because the selection is null. This stablizes that.
-// The same thing also happens in utils for getSelected()
-export var selected = null
-
-export default function Paper({setInTour}) {
+export default function Paper({setInTour, setDispatch}) {
     const boundsGroup = useRef()
     const paper = useRef()
 
@@ -184,22 +177,16 @@ export default function Paper({setInTour}) {
         dash,
         colorProfile,
         rotate,
-        gestureTranslateSensitivity,
-        gestureScaleSensitivity,
-        smoothGestureScale,
         lineCap,
         lineJoin,
-        commonColors,
         strokeWidth,
         partials,
-        holdTapTimeMS,
         lines,
         curLine,
         bounds,
         clipboardRotation,
         clipboardMirrorAxis,
         mirrorAxis,
-        mirrorAxis2,
         mirrorType,
         mirrorMethod,
         trellis,
@@ -210,41 +197,25 @@ export default function Paper({setInTour}) {
         mirroring,
         scalex,
         scaley,
-        rotatex,
-        rotatey,
-        shearx,
-        sheary,
-        invertedScroll,
-        scrollSensitivity,
-        enableGestureScale,
         debug,
         debug_rawCursorPos,
         openMenus,
         paperColor,
         hideDots,
-        doubleTapTimeMS,
-        inTour,
         deleteme,
     } = state
 
     const {
         halfx,
         halfy,
-        offsetx,
-        offsety,
-        mirrorOriginx,
-        mirrorOriginy,
         boundRect,
         relCursorPos,
         clipx, clipy,
     } = calc(state)
 
-    // document.querySelector('#clipboard-transformer')?.addEventListener('click', () => console.log('here!!'), {passive: false})
 
     _state = state
     const boundRadius = scalex / 1.5
-    // window.scrollX = 0
-    // window.scrollY = 0
 
     function onMouseMove(e){
         // console.log('mouse moved')
@@ -260,7 +231,6 @@ export default function Paper({setInTour}) {
 
     function onMouseDown(e){
         // console.log('mouse down')
-        // eslint-disable-next-line default-case
         switch (e.button){
             // Left click
             case 0: dispatch({action: 'add line'}); break;
@@ -271,14 +241,14 @@ export default function Paper({setInTour}) {
         }
     }
 
-    function onMouseUp(e){
+    function onMouseUp(){
         // console.log('mouse up')
         if (dragging)
             dispatch({action: 'add line'})
         setDragging(false)
     }
 
-    function onDoubleTap(e){
+    function onDoubleTap(){
         // This is only for touches, mouse clicks aren't counted.
         // e is the event of the last touchend event, which is guranteed ("should") be within 1 scalex of the first tap
         dispatch({action: 'delete'})
@@ -291,161 +261,8 @@ export default function Paper({setInTour}) {
                 dispatch({action: "paste"})
             else
                 dispatch({action: "add bound"})
-            tapHolding = false
+            setTapHolding(false)
         }
-    }
-
-    function onTouchMove(e){
-        e.preventDefault()
-        if (e.touches.length === 2){
-            // Immediately stop all double tap, tap and hold, dragging, and curLine
-            setDragging(false)
-            tapHolding = false
-            clearTimeout(touchHoldTimer)
-            withinDoubleTapTime = false
-            // For good measure
-            lastTapPos = [-10,-10]
-            dispatch({curLine: null})
-
-            if (gestureTouches !== null){
-                const {distance: newDist, centerx:newCenterx, centery:newCentery} = distCenter(
-                    e.touches[0].pageX, e.touches[0].pageY,
-                    e.touches[1].pageX, e.touches[1].pageY,
-                )
-
-                const {distance: prevDist, centerx:prevCenterx, centery:prevCentery} = distCenter(
-                    gestureTouches[0].pageX, gestureTouches[0].pageY,
-                    gestureTouches[1].pageX, gestureTouches[1].pageY,
-                )
-                dispatch('nevermind')
-                dispatch({action: 'translate',
-                    x: -(prevCenterx - newCenterx) * _state.gestureTranslateSensitivity,
-                    y: -(prevCentery - newCentery) * _state.gestureTranslateSensitivity,
-                })
-                // TODO: enableGestureScale is broken
-                // This line helps stablize translation
-                if (Math.abs((prevDist - newDist) * _state.gestureScaleSensitivity) > .6 || !_state.smoothGestureScale){
-                    dispatch({action: 'scale',
-                        amtx: -(prevDist - newDist) * _state.gestureScaleSensitivity * .25,
-                        amty: -(prevDist - newDist) * _state.gestureScaleSensitivity * .25,
-                        cx: newCenterx,
-                        cy: newCentery
-                    })
-                }
-            } else {
-                dispatch('nevermind')
-            }
-            gestureTouches = e.touches
-        } else if (e.touches.length === 1 && gestureTouches === null){
-            const touch = (e.touches[0] || e.changedTouches[0])
-            dispatch({
-                action: 'cursor moved',
-                x: touch.pageX,
-                y: touch.pageY,
-            })
-        }
-    }
-
-    function onTouchEnd(e){
-        e.preventDefault()
-        const touch = (e.touches[0] || e.changedTouches[0])
-        // I don't know why, but for some reason this causes the time out to double, but seems to fix the problem I was
-        // having, where timers overlap touches
-        clearTimeout(touchHoldTimer)
-        tapHolding = false
-
-        if (!_state.clipboard?.length)
-            dispatch({action: 'add line'})
-        gestureTouches = null
-
-        if (!withinDoubleTapTime){
-            withinDoubleTapTime = true
-            setTimeout(() => withinDoubleTapTime = false, doubleTapTimeMS)
-        } else if (pointEq(state, lastTapPos, [touch.pageX, touch.pageY], scalex)){
-            withinDoubleTapTime = false
-            onDoubleTap(e)
-        }
-
-        lastTapPos = [touch.pageX, touch.pageY]
-    }
-
-    function onTouchStart(e){
-        // console.log('touch start')
-        e.preventDefault()
-        const touch = (e.touches[0] || e.changedTouches[0])
-
-        // First, before we do anything else, if the clipboard is open, and we're on a mobile device, check if they just
-        // tried to click on the clipboard transformation buttons. Because foriegnObjects don't seem to work with events,
-        // we have to handle them manually from here
-        if (_state.mobile && _state.clipboard){
-            const {clipx, clipy} = calc(_state)
-            // These are esitimates, I didn't get them from anywhere
-            const width = 35
-            const height = 40
-            const gap = 5
-            const x = touch.pageX
-            const y = touch.pageY
-            // The first button is rotate
-            if (x >= clipx && x <= clipx + width &&
-                y >= clipy && y <= clipy + height){
-                dispatch({action: 'increment clipboard rotation'})
-                withinDoubleTapTime = false
-                return
-            }
-            // The second button is flip
-            if (x >= clipx + width + gap && x <= clipx + width * 2 + gap &&
-                y >= clipy && y <= clipy + height){
-                dispatch({action: 'increment clipboard mirror axis'})
-                withinDoubleTapTime = false
-                return
-            }
-            // The third button is accept
-            if (x >= clipx + width*2 + gap*2 && x <= clipx + width * 3 + gap*2 &&
-                y >= clipy && y <= clipy + height){
-                dispatch({action: 'paste'})
-                withinDoubleTapTime = false
-                return
-            }
-        }
-
-
-        dispatch({
-            action: 'cursor moved',
-            x: touch.pageX,
-            y: touch.pageY,
-        })
-        if (!_state.clipboard?.length)
-            dispatch({action: 'add line'})
-
-        // We have to wait until the state updates and the cursor moves, before we compare to new cursor positions
-        setTimeout(() => tapHolding = true, 10)
-        touchHoldTimer = setTimeout(onTouchHold, holdTapTimeMS)
-    }
-
-    function onScroll(e){
-        // console.log('scrolled')
-        if (e.shiftKey)
-            dispatch({
-                action: 'translate',
-                x: e.deltaY * scrollSensitivity * (invertedScroll ? -1 : 1),
-                y: e.deltaX * scrollSensitivity * (invertedScroll ? -1 : 1),
-            })
-        else if (e.ctrlKey){
-            // Disable the broswer zoom shortcut
-            e.preventDefault()
-            dispatch({action: 'scale',
-                amtx: (e.deltaY / 8) * scrollSensitivity * (invertedScroll ? -1 : 1),
-                amty: (e.deltaY / 8) * scrollSensitivity * (invertedScroll ? -1 : 1),
-                // cx: cursorPos[0], cy:
-                // cursorPos[1]
-            })
-        }
-        else
-            dispatch({
-                action: 'translate',
-                x: e.deltaX * scrollSensitivity * (invertedScroll ? -1 : 1),
-                y: e.deltaY * scrollSensitivity * (invertedScroll ? -1 : 1),
-            })
     }
 
     // This keeps the focus always on the paper element
@@ -458,19 +275,171 @@ export default function Paper({setInTour}) {
 
     // Capture touch events non-passively so we can prevent default
     useEffect(() => {
+        function onTouchMove(e){
+            e.preventDefault()
+            if (e.touches.length === 2){
+                // Immediately stop all double tap, tap and hold, dragging, and curLine
+                setDragging(false)
+                setTapHolding(false)
+                clearTimeout(touchHoldTimer)
+                withinDoubleTapTime = false
+                // For good measure
+                lastTapPos = [-10,-10]
+                dispatch({curLine: null})
+
+                if (gestureTouches !== null){
+                    const {distance: newDist, centerx:newCenterx, centery:newCentery} = distCenter(
+                        e.touches[0].pageX, e.touches[0].pageY,
+                        e.touches[1].pageX, e.touches[1].pageY,
+                    )
+
+                    const {distance: prevDist, centerx:prevCenterx, centery:prevCentery} = distCenter(
+                        gestureTouches[0].pageX, gestureTouches[0].pageY,
+                        gestureTouches[1].pageX, gestureTouches[1].pageY,
+                    )
+                    dispatch('nevermind')
+                    dispatch({action: 'translate',
+                        x: -(prevCenterx - newCenterx) * _state.gestureTranslateSensitivity,
+                        y: -(prevCentery - newCentery) * _state.gestureTranslateSensitivity,
+                    })
+                    // TODO: enableGestureScale is broken
+                    // This line helps stablize translation
+                    if (Math.abs((prevDist - newDist) * _state.gestureScaleSensitivity) > .6 || !_state.smoothGestureScale){
+                        dispatch({action: 'scale',
+                            amtx: -(prevDist - newDist) * _state.gestureScaleSensitivity * .25,
+                            amty: -(prevDist - newDist) * _state.gestureScaleSensitivity * .25,
+                            cx: newCenterx,
+                            cy: newCentery
+                        })
+                    }
+                } else {
+                    dispatch('nevermind')
+                }
+                gestureTouches = e.touches
+            } else if (e.touches.length === 1 && gestureTouches === null){
+                const touch = (e.touches[0] || e.changedTouches[0])
+                dispatch({
+                    action: 'cursor moved',
+                    x: touch.pageX,
+                    y: touch.pageY,
+                })
+            }
+        }
+
+        function onTouchEnd(e){
+            e.preventDefault()
+            const touch = (e.touches[0] || e.changedTouches[0])
+            // I don't know why, but for some reason this causes the time out to double, but seems to fix the problem I was
+            // having, where timers overlap touches
+            clearTimeout(touchHoldTimer)
+            setTapHolding(false)
+
+            if (!_state.clipboard?.length)
+                dispatch({action: 'add line'})
+            gestureTouches = null
+
+            if (!withinDoubleTapTime){
+                withinDoubleTapTime = true
+                setTimeout(() => withinDoubleTapTime = false, _state.doubleTapTimeMS)
+            } else if (pointEq(_state, lastTapPos, [touch.pageX, touch.pageY], _state.scalex)){
+                withinDoubleTapTime = false
+                onDoubleTap(e)
+            }
+
+            lastTapPos = [touch.pageX, touch.pageY]
+        }
+
+        function onTouchStart(e){
+            // console.log('touch start')
+            e.preventDefault()
+            const touch = (e.touches[0] || e.changedTouches[0])
+
+            // First, before we do anything else, if the clipboard is open, and we're on a mobile device, check if they just
+            // tried to click on the clipboard transformation buttons. Because foriegnObjects don't seem to work with events,
+            // we have to handle them manually from here
+            if (_state.mobile && _state.clipboard){
+                const {clipx, clipy} = calc(_state)
+                // These are esitimates, I didn't get them from anywhere
+                const width = 35
+                const height = 40
+                const gap = 5
+                const x = touch.pageX
+                const y = touch.pageY
+                // The first button is rotate
+                if (x >= clipx && x <= clipx + width &&
+                    y >= clipy && y <= clipy + height){
+                    dispatch({action: 'increment clipboard rotation'})
+                    withinDoubleTapTime = false
+                    return
+                }
+                // The second button is flip
+                if (x >= clipx + width + gap && x <= clipx + width * 2 + gap &&
+                    y >= clipy && y <= clipy + height){
+                    dispatch({action: 'increment clipboard mirror axis'})
+                    withinDoubleTapTime = false
+                    return
+                }
+                // The third button is accept
+                if (x >= clipx + width*2 + gap*2 && x <= clipx + width * 3 + gap*2 &&
+                    y >= clipy && y <= clipy + height){
+                    dispatch({action: 'paste'})
+                    withinDoubleTapTime = false
+                    return
+                }
+            }
+
+
+            dispatch({
+                action: 'cursor moved',
+                x: touch.pageX,
+                y: touch.pageY,
+            })
+            if (!_state.clipboard?.length)
+                dispatch({action: 'add line'})
+
+            // We have to wait until the state updates and the cursor moves, before we compare to new cursor positions
+            setTimeout(() => setTapHolding(true), 10)
+            touchHoldTimer = setTimeout(onTouchHold, _state.holdTapTimeMS)
+        }
+
+        function onScroll(e){
+            // console.log('scrolled')
+            if (e.shiftKey)
+                dispatch({
+                    action: 'translate',
+                    x: e.deltaY * _state.scrollSensitivity * (_state.invertedScroll ? -1 : 1),
+                    y: e.deltaX * _state.scrollSensitivity * (_state.invertedScroll ? -1 : 1),
+                })
+            else if (e.ctrlKey){
+                // Disable the broswer zoom shortcut
+                e.preventDefault()
+                dispatch({action: 'scale',
+                    amtx: (e.deltaY / 8) * _state.scrollSensitivity * (_state.invertedScroll ? -1 : 1),
+                    amty: (e.deltaY / 8) * _state.scrollSensitivity * (_state.invertedScroll ? -1 : 1),
+                    // cx: cursorPos[0], cy:
+                    // cursorPos[1]
+                })
+            }
+            else
+                dispatch({
+                    action: 'translate',
+                    x: e.deltaX * _state.scrollSensitivity * (_state.invertedScroll ? -1 : 1),
+                    y: e.deltaY * _state.scrollSensitivity * (_state.invertedScroll ? -1 : 1),
+                })
+        }
+
         // See https://stackoverflow.com/questions/63663025/react-onwheel-handler-cant-preventdefault-because-its-a-passive-event-listenev
         // for why we have to do it this way (because of the zoom browser shortcut)
-        paper.current.addEventListener('wheel', onScroll, { passive: false })
-        paper.current.addEventListener('touchend', onTouchEnd, { passive: false })
-        paper.current.addEventListener('touchstart', onTouchStart, { passive: false })
-        paper.current.addEventListener('touchmove', onTouchMove, { passive: false })
-        // paper.current.addEventListener('keydown', onKeyDown, { passive: false })
+        const _paper = paper.current
+        _paper.addEventListener('wheel', onScroll, { passive: false })
+        _paper.addEventListener('touchend', onTouchEnd, { passive: false })
+        _paper.addEventListener('touchstart', onTouchStart, { passive: false })
+        _paper.addEventListener('touchmove', onTouchMove, { passive: false })
         return () => {
-            paper.current?.removeEventListener('wheel', onScroll)
-            paper.current?.removeEventListener('touchend', onTouchEnd)
-            paper.current?.removeEventListener('touchstart', onTouchStart)
-            paper.current?.removeEventListener('touchmove', onTouchMove)
-            // paper.current?.removeEventListener('keydown', onKeyDown)
+            _paper?.removeEventListener('wheel', onScroll)
+            _paper?.removeEventListener('touchend', onTouchEnd)
+            _paper?.removeEventListener('touchstart', onTouchStart)
+            _paper?.removeEventListener('touchmove', onTouchMove)
         }
     }, [])
 
@@ -482,7 +451,7 @@ export default function Paper({setInTour}) {
     }, [])
 
     // So the tour can effect state
-    useEffect(() => registerDispatch(dispatch), [])
+    useEffect(() => setDispatch(dispatch), [setDispatch])
 
     // Clipboard translations
     let clipboardFlip = ''
@@ -619,10 +588,10 @@ export default function Paper({setInTour}) {
     // For explanation, see the declaration of prevSelectedRect
     const _selected = document.querySelector('#selected-trellis-pattern')
     if (_selected)
-        selected = _selected
+        setSelected(_selected)
 
     if (!openMenus.repeat)
-        selected = null
+        setSelected(null)
 
     const selectedRect = selected?.getBoundingClientRect()
 

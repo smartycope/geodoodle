@@ -1,11 +1,8 @@
-import React, {useEffect, useRef, useState} from "react";
+import {useEffect} from "react";
 import "../styling/NavMenu.css"
-import options from "../options";
 import {Number} from "./MenuUtils";
 
 import { FaGripLinesVertical } from "react-icons/fa6";
-import { TbArrowBigUpLine } from "react-icons/tb";
-import { TbArrowBigDownLine } from "react-icons/tb";
 import { MdHome } from "react-icons/md";
 import { PiSelectionAll } from "react-icons/pi";
 import defaultOptions from "../options";
@@ -17,7 +14,7 @@ let isDragging = false;
 export default function NavMenu({dispatch, state}){
     // const navMenu = useRef()
 
-    const {translationx, translationy, scalex, scaley} = state
+    const {scalex, scaley} = state
 
     // Enable dragging - mostly copied from ChatGPT
     useEffect(() =>{
@@ -127,12 +124,14 @@ export default function NavMenu({dispatch, state}){
                     max={defaultOptions.maxScale}
                 />
             </span>
-            <Number
+
+            {/* Rotation */}
+            {/* <Number
                 label="Rotation:"
                 onChange={val => dispatch({rotate: val})}
                 value={state.rotate}
                 step={30}
-            />
+            /> */}
 
             {/* Home button */}
             <button id='home-button' onClick={() => dispatch({action: "go home"})} title="Reset position and scale">

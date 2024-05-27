@@ -14,7 +14,7 @@ export default function ExtraMenu({dispatch, state, align}){
     switch (state.extraButton) {
         case 'copy image':
             extraButton = <button onClick={() => dispatch({action: 'copy image'})}
-                className="menu-toggle-button-mobile extra-button"
+                className="menu-toggle-button-mobile extra-button bonus-button"
                 id='copy-button-extra'
             ><MdOutlineFileCopy className="main-menu-icon extra-icon" />Copy as<br/> Image
             </button>
@@ -23,7 +23,7 @@ export default function ExtraMenu({dispatch, state, align}){
         default:
             extraButton = <button id='home-button-extra'
                 onClick={() => dispatch({action: "go home"})}
-                className="menu-toggle-button-mobile extra-button"
+                className="menu-toggle-button-mobile extra-button bonus-button"
                 title="Reset position and scale">
                 <MdHome className="main-menu-icon extra-icon"/> Home
             </button>

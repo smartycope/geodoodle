@@ -1,4 +1,3 @@
-import React from "react";
 import "../styling/MainMenu.css"
 import ControlsMenu from "./ControlsMenu";
 import {HelpMenu} from "./HelpMenu"
@@ -11,17 +10,8 @@ import MirrorMenu from "./MirrorMenu";
 import ExtraMenu from "./ExtraMenu";
 
 import { MdContentCopy } from "react-icons/md"
-import { MdHome } from "react-icons/md";
-import { MdOutlineContentCut } from "react-icons/md";
-import { MdContentPaste } from "react-icons/md";
 import { MdUndo } from "react-icons/md";
-import { MdRedo } from "react-icons/md";
-import { GiNuclear } from "react-icons/gi";
-import { FaGripLinesVertical } from "react-icons/fa6";
-import { PiSelectionPlusDuotone } from "react-icons/pi";
-import { PiSelectionSlashDuotone } from "react-icons/pi";
 import { MdDelete } from "react-icons/md";
-import { MdDeleteForever } from "react-icons/md";
 import { FaSave } from "react-icons/fa";
 import { MdColorLens } from "react-icons/md";
 import { FaSliders } from "react-icons/fa6";
@@ -29,13 +19,11 @@ import { MdDashboard } from "react-icons/md";
 import { FaBars } from "react-icons/fa6";
 import { MdHelp } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
-import { CgMenuGridR } from "react-icons/cg";
 import { RiNavigationFill } from "react-icons/ri";
 import {GoMirror} from "react-icons/go";
-import { CgMenuGridO } from "react-icons/cg";
 import { BsGrid3X3GapFill } from "react-icons/bs";
 import { MdOutlineTabUnselected } from "react-icons/md";
-import {ClipboardMenu, DeleteMenu, SelectMenu, UndoMenu} from "./MiniControlsMenu";
+import {ClipboardMenu, DeleteMenu, SelectMenu} from "./MiniControlsMenu";
 
 var tapHolding = false
 var touchHoldTimer = null

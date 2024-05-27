@@ -5,10 +5,14 @@ import {mobileAndTabletCheck} from "./utils";
 import {useState} from "react";
 import {localStorageTourTakenName} from "./globals";
 
+
+// Disable the default right click menu
+window.oncontextmenu = () => false
+
 // These SHOULD be states, but for some, inexplicable reason, it doesn't work. So they're global instead.
 var steps
 var dispatch
-export const setDispatch = to => {
+const setDispatch = to => {
     steps = tour(to)[mobileAndTabletCheck() ? 'mobile' : 'desktop']
     dispatch = to
 }
@@ -31,7 +35,7 @@ export default function App() {
     }
 
     return <div className="App">
-        <Paper setInTour={setInTour}/>
+        <Paper setInTour={setInTour} setDispatch={setDispatch}/>
         <Tour
             steps={steps}
             isOpen={inTour}

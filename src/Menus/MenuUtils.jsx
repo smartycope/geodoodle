@@ -1,36 +1,11 @@
 import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE} from "../globals";
 
-import { MdContentCopy } from "react-icons/md"
-import { MdHome } from "react-icons/md";
-import { MdOutlineContentCut } from "react-icons/md";
-import { MdContentPaste } from "react-icons/md";
-import { MdCropPortrait } from "react-icons/md";
-
-import { FaMinus } from "react-icons/fa6";
 import { FaPlus } from "react-icons/fa6";
-import { PiLineVerticalBold } from "react-icons/pi";
-import { MdUndo } from "react-icons/md";
-import { MdRedo } from "react-icons/md";
-import { GiNuclear } from "react-icons/gi";
-import { BsSlash } from "react-icons/bs";
-import { RiCursorFill } from "react-icons/ri";
-import { FaGripLinesVertical } from "react-icons/fa6";
+import { RiCursorFill, RiFlipHorizontalLine, RiFlipVerticalFill } from "react-icons/ri";
 import { MdInsertPageBreak } from "react-icons/md";
-import { RiFlipHorizontalLine } from "react-icons/ri";
 import { RxRotateCounterClockwise } from "react-icons/rx";
-import { RiFlipVerticalFill } from "react-icons/ri";
-import { FaChevronRight } from "react-icons/fa";
-import { TbArrowsUpRight } from "react-icons/tb";
-import { TbArrowsVertical } from "react-icons/tb";
-import { TbArrowsMaximize } from "react-icons/tb";
-import { PiSelectionDuotone } from "react-icons/pi";
-import { TbArrowsRandom } from "react-icons/tb";
-import { PiSelectionPlusDuotone } from "react-icons/pi";
-import { PiSelectionSlashDuotone } from "react-icons/pi";
-import { MdDelete } from "react-icons/md";
-import { MdDeleteForever } from "react-icons/md";
+import { TbArrowsUpRight, TbArrowsVertical, TbArrowsMaximize, TbArrowsRandom } from "react-icons/tb";
 import { GoMirror } from "react-icons/go";
-import {incrementMirrorAxis, incrementMirrorMethod, incrementMirrorType} from "../utils";
 
 
 export function Checkbox({label, onChange, checked, title, id, inputId, backwards=false}){

@@ -22,3 +22,18 @@ export const MIRROR_METHOD = {
 export const localStorageName = 'GeoDoodleSaves'
 export const localStorageSettingsName = "GeoDoodleState"
 export const localStorageTourTakenName = "GeoDoodleTourTaken"
+
+
+// Mutable globals -- these are here so the vite HMR fast refresh will work. They should be in Paper.jsx
+
+// The only place outside this file that this is touched, is in reducer.jsx in 'cursor moved'
+export var tapHolding = false
+export const setTapHolding = to => tapHolding = to
+
+// Explanation:
+// We use the bounding rect to get the selection while repeating, so we can select something that's guarenteed to be a
+// pattern. Because of that, we have to get the rect *after* it's been displayed. This means we're always 1 render behind.
+// Because of that, every other render it's null, because the selection is null. This stablizes that.
+// The same thing also happens in utils for getSelected()
+export var selected = null
+export const setSelected = to => selected = to
