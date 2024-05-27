@@ -68,15 +68,17 @@ export default function Paper({setInTour}) {
         mobile: mobileAndTabletCheck(),
         defaultScalex: mobileAndTabletCheck() ? 30 : 20,
         defaultScaley: mobileAndTabletCheck() ? 30 : 20,
-        // A hex color string
-        stroke: options.stroke,
+        // 0 indexed
+        colorProfile: 0,
+        // A list of hex color string
+        stroke: Array(options.commonColorAmt).fill(options.stroke),
         // Coord: Scalar, not scaled
-        strokeWidth: options.strokeWidth,
+        strokeWidth: Array(options.commonColorAmt).fill(.05),
         // A list of hex color strings that gets shifted
-        commonColors: new Array(options.commonColorAmt).fill(options.stroke),
+        // commonColors: Array(options.commonColorAmt).fill(options.stroke),
         // "a series of comma and/or whitespace separated numbers"
         // The numbers are scaled
-        dash: "0",
+        dash: Array(options.commonColorAmt).fill('0'),
         lineCap: options.lineCap,
         lineJoin: options.lineJoin,
         filename: "",
@@ -180,6 +182,7 @@ export default function Paper({setInTour}) {
         cursorPos,
         stroke,
         dash,
+        colorProfile,
         rotate,
         gestureTranslateSensitivity,
         gestureScaleSensitivity,
@@ -501,11 +504,11 @@ export default function Paper({setInTour}) {
             y1={curLine?.y1}
             x2={cursorPos[0]}
             y2={cursorPos[1]}
-            stroke={stroke}
-            strokeWidth={strokeWidth * scalex}
+            stroke={stroke[colorProfile]}
+            strokeWidth={strokeWidth[colorProfile] * scalex}
             strokeLinecap={lineCap}
             strokeLinejoin={lineJoin}
-            strokeDasharray={dash}
+            strokeDasharray={dash[colorProfile]}
             transform={transformation}
             key={`mirror-${i}`}
         />)
@@ -524,19 +527,20 @@ export default function Paper({setInTour}) {
             y1={curLine?.y1}
             x2={cursorPos[0]}
             y2={cursorPos[1]}
-            stroke={stroke}
-            strokeWidth={strokeWidth * scalex}
+            stroke={stroke[colorProfile]}
+            strokeWidth={strokeWidth[colorProfile] * scalex}
             strokeLinecap={lineCap}
             strokeLinejoin={lineJoin}
-            strokeDasharray={dash}
+            strokeDasharray={dash[colorProfile]}
             key='mirror0'
         />)
-        clip.push(<g transform={`
-            ${clipboardFlip}
-            rotate(${clipboardRotation}, ${cursorPos[0]}, ${cursorPos[1]})
-            translate(${clipx} ${clipy})
-            scale(${scalex} ${scaley})
-        `}>{clipboard}</g>)
+        if (clipboard)
+            clip.push(<g transform={`
+                ${clipboardFlip}
+                rotate(${clipboardRotation}, ${cursorPos[0]}, ${cursorPos[1]})
+                translate(${clipx} ${clipy})
+                scale(${scalex} ${scaley})
+            `} key='yo mama'>{clipboard}</g>)
     }
 
     // Get the mirror guide lines
@@ -623,6 +627,7 @@ export default function Paper({setInTour}) {
     const selectedRect = selected?.getBoundingClientRect()
 
     const debugBox_xy = align(state, window.visualViewport.width / 4, window.visualViewport.height / 4)
+
 
     return (
         <div>

@@ -33,7 +33,6 @@ export default function reducer(state, data){
         mobile,
         cursorPos,
         rotate,
-        commonColors,
         stroke,
         strokeWidth,
         dash,
@@ -428,24 +427,24 @@ export default function reducer(state, data){
             } return state // Unreachable
 
         // Color & Stroke Actions
-        case 'add common color': // args: color (hex string)
-            // If we havne't changed the color don't add a new common color
-            if (commonColors.includes(data.color))
-                return state
-            let copy = JSON.parse(JSON.stringify(commonColors))
-            copy.push(data.color)
-            copy.shift()
-            return {...state,
-                commonColors: copy
-            }
+        // case 'add common color': // args: color (hex string)
+        //     // If we havne't changed the color don't add a new common color
+        //     if (commonColors.includes(data.color))
+        //         return state
+        //     let copy = JSON.parse(JSON.stringify(commonColors))
+        //     copy.push(data.color)
+        //     copy.shift()
+        //     return {...state,
+        //         commonColors: copy
+        //     }
 
-        case 'set to common color': // args: index
-            if (data.index > commonColors.length)
-                return state
-            return {...state,
-                // Because they're displayed inverted
-                stroke: commonColors[commonColors.length - data.index]
-            }
+        // case 'set to common color': // args: index
+        //     if (data.index > commonColors.length)
+        //         return state
+        //     return {...state,
+        //         // Because they're displayed inverted
+        //         stroke: commonColors[commonColors.length - data.index]
+        //     }
 
         // File Actions
         case "download": // args: name (string)
@@ -539,9 +538,9 @@ export default function reducer(state, data){
                     [4.05, 9.05],
                 ],
                 curLine: null,
-                dash: "20, 10",
+                dash: ['0', "20, 10", '0', '0', '0'],
                 mobile: true,
-                commonColors: ['#000000', '#000000', '#ffddab', '#ff784b', '#1a31ff'],
+                stroke: ['#000000', '#000000', '#ffddab', '#ff784b', '#1a31ff'],
                 lines: [
                     <line key='dashed-line' id="dashed-line" {...{
                         "x1": 5.05 + 4,
@@ -633,36 +632,6 @@ export default function reducer(state, data){
             }
         }
         case "debug":
-            // console.log((<line x1="2" x2="3" y1="4" y2="5" stroke="black"></line>).);
-            // function saveSvg(svgEl, name) {
-            //     // svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-            //     var svgData = svgEl.outerHTML;
-            //     var pre = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\r\n<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">';
-            //     var post = '</svg>';
-            //     var svgBlob = new Blob([pre + svgData + post], {type:"image/svg+xml;charset=utf-8"});
-            //     var svgUrl = URL.createObjectURL(svgBlob);
-            //     var downloadLink = document.createElement("a");
-            //     downloadLink.href = svgUrl;
-            //     downloadLink.download = name;
-            //     document.body.appendChild(downloadLink);
-            //     downloadLink.click();
-            //     document.body.removeChild(downloadLink);
-            // }
-            // saveSvg(document.querySelector('#lines'), 'lines.svg')
-            // const ReactDOMServer = require('react-dom/server');
-            // const HtmlToReactParser = require('html-to-react').Parser;
-            // const htmlInput = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>' +
-            // '<!-- {"repeating":false,"translationx":0,"translationy":0,"scalex":20,"scaley":20,"rotatex":0,"rotatey":0,"shearx":0,"sheary":0} -->' +
-            // '<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">' +
-            // '<g id="lines" transform="translate(0 0) scale(20 20)" xmlns="http://www.w3.org/2000/svg"> <line x1="27.05" y1="11.05" x2="17.05" y2="21.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line><line x1="36.05" y1="14.05" x2="43.05" y2="21.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line><line x1="50.05" y1="25.05" x2="45.05" y2="31.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line><line x1="35.05" y1="41.05" x2="28.05" y2="41.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line><line x1="19.05" y1="41.05" x2="13.05" y2="40.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line><line x1="7.05" y1="35.05" x2="5.05" y2="30.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line><line x1="35.05" y1="12.05" x2="23.05" y2="24.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line><line x1="15.05" y1="10.05" x2="32.05" y2="23.05" stroke="#000000" stroke-width="0.05" stroke-dasharray="0"></line> </g>' +
-            // '</svg>'
-
-            // // const htmlInput = '<div><h1>Title</h1><p>A paragraph</p></div>';
-            // // const htmlToReactParser = new HtmlToReactParser();
-            // // const reactElement = htmlToReactParser.parse(htmlInput)[0].props.children.props.children;
-            // // console.log(reactElement);
-
-            // console.log(/<!-- (.+) -->/.exec(htmlInput))
             return state
         default:
             console.warn(`Unknown action: ${data.action}`)

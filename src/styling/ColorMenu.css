@@ -61,7 +61,8 @@
     width: 100%;
 }
 
-#recent-color-buttons{
+#color-profile-buttons{
+    margin-left: 0;
     width: 100%;
 }
 
@@ -81,10 +82,11 @@
     margin: 10px;
 }
 
-#color-picker-button-mobile{
+#color-menu-close-button{
     width: 80%;
     text-align: center;
     display: flex;
     flex-direction: column;
     margin: 10px;
+    background-color: rgb(60,60,60);
 }

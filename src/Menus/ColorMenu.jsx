@@ -1,11 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
 import "../styling/ColorMenu.css"
-import { MdContentCopy } from "react-icons/md"
-import { MdHome } from "react-icons/md";
-import { MdOutlineContentCut } from "react-icons/md";
-import { MdContentPaste } from "react-icons/md";
-import { MdCropPortrait } from "react-icons/md";
-import { MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE } from "../globals";
 import { ColorPicker, useColor, ColorService } from "react-color-palette";
 import "react-color-palette/css";
 import options from "../options";
@@ -161,34 +155,52 @@ function DesktopColorMenu({dispatch, state}){
 }
 
 function MobileColorMenu({dispatch, state}){
+    const {stroke, strokeWidth, dash, colorProfile, scalex} = state
+
     return <div id="color-menu-mobile">
         {/* The full screen color menu */}
         <div id="color-picker-mobile-actual">
             <ColorPicker
-                color={ColorService.convert('hex', state.stroke)}
-                onChange={(clr) => dispatch({action: 'set manual', stroke: clr.hex})}
+                color={ColorService.convert('hex', stroke[colorProfile])}
                 hideInput={['hsv', state.hideHexColor ? 'hex' : '']}
+                onChange={(clr) => {
+                    let copy = JSON.parse(JSON.stringify(stroke))
+                    copy[colorProfile] = clr.hex
+                    dispatch({stroke: copy})
+                }}
             />
         </div>
 
-        {/* Recently used buttons */}
-        <span className='button-group' id="recent-color-buttons">
-            {JSON.parse(JSON.stringify(state.commonColors)).reverse().map((commonColor, i) =>
+        {/* Color profile buttons */}
+        <span className='button-group' id="color-profile-buttons">
+            {Array(options.commonColorAmt).fill().map((_, i) =>
                 <button
-                    onClick={() => dispatch({action: 'set manual', stroke: commonColor})}
-                    style={{backgroundColor: commonColor}}
+                    onClick={() => dispatch({colorProfile: i})}
+                    // // style={{backgroundColor: stroke[i]}}
+                    style={{backgroundColor: i === colorProfile ? "rgb(100,100,100)" : "rgb(60,60,60)"}}
                     key={`colorButton${i}`}
                     className="common-color-button"
-                >{i+1}</button>
+                >{i+1}<svg width="30" height='20'><line
+                    x1={0} x2="90%" y1={10} y2={10}
+                    // stroke="black"
+                    stroke={stroke[i]}
+                    strokeWidth={strokeWidth[i] * scalex}
+                    strokeDasharray={dash[i].replace(/\s/, '').split(',').map(k => k/3).join(',')}
+                    strokeLinecap="round"
+                /></svg></button>
             )}
         </span>
 
         {/* Stroke input */}
         <Number
-            label={"Stroke:"}
-            value={state.strokeWidth * 100}
-            onChange={(val) => dispatch({strokeWidth: val / 100})}
             id='stroke-input'
+            label="Stroke:"
+            value={strokeWidth[colorProfile] * 100}
+            onChange={val => {
+                let copy = JSON.parse(JSON.stringify(strokeWidth))
+                copy[colorProfile] = val / 100
+                dispatch({strokeWidth: copy})
+            }}
         />
 
         {/* Dash code */}
@@ -197,21 +209,32 @@ function MobileColorMenu({dispatch, state}){
             <input
                 id="dash-input"
                 type="text"
-                value={state.dash}
-                style={{width: state.dash.length * 5 + 10}}
-                onChange={e => dispatch({dash: e.target.value})}
+                value={dash[colorProfile]}
+                style={{width: dash.length * 5 + 10}}
+                onChange={e => {
+                    let copy = JSON.parse(JSON.stringify(dash))
+                    copy[colorProfile] = e.target.value
+                    dispatch({dash: copy})
+                }}
             ></input>
         </span>
 
         {/* The set button */}
-        <button id='color-picker-button-mobile'
+        <button id='color-menu-close-button'
             onClick={() => {
-                dispatch({action: 'add common color', color: state.stroke})
+                // dispatch({action: 'add common color', color: state.stroke})
                 dispatch({action: 'menu', close: 'color'})
             }}
-            style={{backgroundColor: state.stroke}}
+            // style={{backgroundColor: state.stroke}}
         >
-            Set
+            Close
+        <svg width="90%" height='10'><line
+            x1='0' x2="90%" y1={5} y2={5}
+            stroke={stroke[colorProfile]}
+            strokeWidth={strokeWidth[colorProfile] * scalex}
+            strokeDasharray={dash[colorProfile]}
+            strokeLinecap="round"
+        /></svg>
         </button>
     </div>
 }

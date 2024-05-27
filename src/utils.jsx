@@ -113,7 +113,7 @@ export function getSelected(state, filter=null){
 
 // *All* permenant lines are made using this funciton
 export function createLine(state, props, translate=true, scale=true, exact=false){
-    const {translationx, translationy, stroke, strokeWidth, dash, scalex, scaley, lineCap, lineJoin} = state
+    const {translationx, translationy, stroke, strokeWidth, dash, scalex, scaley, lineCap, lineJoin, colorProfile} = state
 
     // TODO: figure how to avoid this
     // TODO: and also not create duplicate lines
@@ -130,9 +130,9 @@ export function createLine(state, props, translate=true, scale=true, exact=false
     }
 
     const aes = {
-        stroke: stroke,
-        strokeWidth: strokeWidth,
-        strokeDasharray: dash.replace(/\s/, '').split(',').map(i => i/scalex).join(','),
+        stroke: stroke[colorProfile],
+        strokeWidth: strokeWidth[colorProfile],
+        strokeDasharray: dash[colorProfile].replace(/\s/, '').split(',').map(i => i/scalex).join(','),
         strokeLinecap: lineCap,
         strokeLinejoin: lineJoin,
     }
@@ -193,8 +193,8 @@ export function calc(state){
         mirrorOriginy: mirrorType === MIRROR_TYPE.PAGE ? alignedHalf[1] : curLine?.y1,
         // Because the cursor is at the center (ish) of the clipboard, instead of the top left
         // Coord: absolute, not scaled
-        clipx: cursorPos[0] - Math.floor((right-left) / 2) * scalex,
-        clipy: cursorPos[1] - Math.floor((bottom-top) / 2) * scaley,
+        clipx: bounds.length > 1 ? cursorPos[0] - Math.floor((right-left) / 2) * scalex : null,
+        clipy: bounds.length > 1 ? cursorPos[1] - Math.floor((bottom-top) / 2) * scaley : null,
     }
 }
 
