@@ -141,6 +141,8 @@ export default function Paper({setInTour}) {
         gestureTranslateSensitivity: 1,
         gestureScaleSensitivity: .3,
         smoothGestureScale: false,
+        // One of options.extraButtons
+        extraButton: 'home',
         hideHexColor: options.hideHexColor,
         maxUndoAmt: options.maxUndoAmt,
         enableGestureScale: options.enableGestureScale,
@@ -364,7 +366,6 @@ export default function Paper({setInTour}) {
         lastTapPos = [touch.pageX, touch.pageY]
     }
 
-    // TODO: moving clipxy into calc(), clipboard ctranslation origin == clipxy
     function onTouchStart(e){
         // console.log('touch start')
         e.preventDefault()

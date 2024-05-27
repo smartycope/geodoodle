@@ -91,7 +91,7 @@ export function Number({label='', onChange, value, min=-Infinity, max=Infinity, 
             type="number"
             name={label}
             id={inputId}
-            value={Math.round(value, round)}
+            value={value.toFixed(round)}
             // readOnly={true}
             onChange={e => onChange(e.target.value)}
             min={min}

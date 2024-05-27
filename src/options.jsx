@@ -97,6 +97,12 @@ export const keybindings = {
     '`': {action: 'debug'}
 }
 
+// Things which can go in the extra button slot
+export const extraButtons = [
+    'home',
+    'copy image',
+]
+
 // Only these can be undone, all other actions are ignored by undo/redo
 export const reversibleActions = [
     'go home',
@@ -153,6 +159,7 @@ export const preservable = [
     "dash",
     'filename',
     "commonColors",
+    'extraButton',
     "strokeWidth",
     'rotate',
     "partials",

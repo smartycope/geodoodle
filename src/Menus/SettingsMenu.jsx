@@ -8,7 +8,7 @@ import {localStorageSettingsName} from '../globals';
 
 import { ColorPicker, useColor, ColorService } from "react-color-palette";
 import "react-color-palette/css";
-import options from "../options";
+import options, {extraButtons} from "../options";
 
 export function SettingsMenu({state, dispatch}){
     const [palletteVisible, setPalletteVisible] = useState(false);
@@ -70,6 +70,9 @@ export function SettingsMenu({state, dispatch}){
                 onChange={(val) => dispatch({removeSelectionAfterDelete: !removeSelectionAfterDelete})}
                 checked={removeSelectionAfterDelete}
             />
+            <select required onChange={e => dispatch({extraButton: e.target.val})} value={state.extraButton}>
+                {extraButtons.map(i => <option value={i} key={i}>{i}</option>)}
+            </select>
             {/* The color picker */}
             <div ref={colorMenu}>
                 {palletteVisible && <ColorPicker color={ColorService.convert('hex', state.paperColor)} onChange={(clr) => {
