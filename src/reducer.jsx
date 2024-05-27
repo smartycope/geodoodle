@@ -1,4 +1,4 @@
-import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, localStorageSettingsName, localStorageName, localStorageTourTakenName} from './globals'
+import {MIRROR_AXIS, MIRROR_TYPE, localStorageSettingsName, localStorageName} from './globals'
 import { toRadians, pointIn, removePoint, calc, getSelected, createLine, eventMatchesKeycode, pointEq, toggleDarkMode, align, filterObjectByKeys } from './utils'
 import defaultOptions, { keybindings, reversible, reversibleActions, saveSettingActions } from './options'
 import {deserialize, download, image, serialize, serializeState} from './fileUtils';
@@ -30,10 +30,9 @@ export default function reducer(state, data){
 
 
     const {
-        // spacingx,
-        // spacingy,
         mobile,
         cursorPos,
+        rotate,
         commonColors,
         stroke,
         strokeWidth,
@@ -76,6 +75,7 @@ export default function reducer(state, data){
     const {
         halfx,
         halfy,
+        clipx, clipy,
         offsetx,
         offsety,
         mirrorOriginx,
@@ -150,9 +150,18 @@ export default function reducer(state, data){
                 curLine: null,
             }
         }
+        case 'rotate': // args: amt
+            return {...state, rotate: rotate + data.amt}
         case 'increase scale':  return {...state, scalex: scalex*2, scaley: scaley*2}
         case 'decrease scale':  return {...state, scalex: scalex/2, scaley: scaley/2}
-        case 'go home':         return {...state, translationx: 0, translationy: 0, scalex: defaultScalex, scaley: defaultScaley}
+        case 'go home':
+            return {...state,
+                translationx: 0,
+                translationy: 0,
+                scalex: defaultScalex,
+                scaley: defaultScaley,
+                rotate: 0,
+            }
         case 'go to selection':
             if (!boundRect)
                 return state
@@ -175,7 +184,7 @@ export default function reducer(state, data){
                 bounds: removeSelectionAfterDelete ? [] : bounds,
             }
 
-        case 'delete not selected':
+        case 'delete unselected':
             return {...state,
                 lines: getSelected(state, 'only'),
                 bounds: removeSelectionAfterDelete ? [] : bounds,
@@ -327,15 +336,18 @@ export default function reducer(state, data){
         case 'copy':            return {...state, clipboard: getSelected(state), curLine: null}
         case 'paste':
             if (clipboard){
+                console.log('pasting');
+                const clipboardx = (clipx - translationx) / scalex
+                const clipboardy = (clipy - translationy) / scaley
                 function transform({x1, y1, x2, y2}){
                     const rad = toRadians(clipboardRotation)
 
                     // We have to do this so in setting the rotation, they don't cascade on each other and set
                     // values that are used in the next calculation
-                    const __x1 = x1 + relCursorPos[0]
-                    const __y1 = y1 + relCursorPos[1]
-                    const __x2 = x2 + relCursorPos[0]
-                    const __y2 = y2 + relCursorPos[1]
+                    const __x1 = x1 + clipboardx
+                    const __y1 = y1 + clipboardy
+                    const __x2 = x2 + clipboardx
+                    const __y2 = y2 + clipboardy
 
                     // We have to do this, because parameters are const or something?
                     let _x1 = __x1
@@ -344,7 +356,7 @@ export default function reducer(state, data){
                     let _y2 = __y2
 
                     if (clipboardRotation !== 180 && clipboardRotation !== 0){
-                        // rotate(rad, cursorPos[0], cursorPos[1])
+                        // rotate(rad, clipboardx, clipboardy)
                         _x1 = (__x1 * Math.cos(rad)) +
                             (__y1 * -Math.sin(rad)) +
                             relCursorPos[0]*(1-Math.cos(rad)) + relCursorPos[1]*Math.sin(rad)
@@ -359,16 +371,31 @@ export default function reducer(state, data){
                             relCursorPos[1]*(1-Math.cos(rad)) - relCursorPos[0]*Math.sin(rad)
                     }
 
-                    if (clipboardMirrorAxis === MIRROR_AXIS.VERT_90 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360 || clipboardRotation === 180){
-                        // matrix(-1, 0, 0, 1, cursorPos[0]*2, 0)
+                    // I honestly have no idea why this uses relCursorPos instead of clipboardxy.
+                    // But it works, so I'm not questioning it
+                    if (clipboardMirrorAxis === MIRROR_AXIS.VERT_90 ||
+                        clipboardMirrorAxis === MIRROR_AXIS.BOTH_360
+                    ){
+                        // matrix(-1, 0, 0, 1, clipboardx*2, 0)
                         _x1 = _x1 * -1 + relCursorPos[0]*2
                         _x2 = _x2 * -1 + relCursorPos[0]*2
                     }
-                    if (clipboardMirrorAxis === MIRROR_AXIS.HORZ_180 || clipboardMirrorAxis === MIRROR_AXIS.BOTH_360 || clipboardRotation === 180){
-                        // matrix(1, 0, 0, -1, 0, cursorPos[1]*2)
+                    if (clipboardMirrorAxis === MIRROR_AXIS.HORZ_180 ||
+                        clipboardMirrorAxis === MIRROR_AXIS.BOTH_360
+                    ){
+                        // matrix(1, 0, 0, -1, 0, clipboardy*2)
                         _y1 = _y1 * -1 + relCursorPos[1]*2
                         _y2 = _y2 * -1 + relCursorPos[1]*2
                     }
+
+                    // We do 180 rotation by flipping accross both axis. I still don't know why.
+                    if (clipboardRotation === 180){
+                        _y1 = _y1 * -1 + relCursorPos[1]*2
+                        _y2 = _y2 * -1 + relCursorPos[1]*2
+                        _x1 = _x1 * -1 + relCursorPos[0]*2
+                        _x2 = _x2 * -1 + relCursorPos[0]*2
+                    }
+
                     return {x1: _x1, y1: _y1, x2: _x2, y2: _y2}
                 }
 

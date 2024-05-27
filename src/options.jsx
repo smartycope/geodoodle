@@ -151,8 +151,10 @@ export const reversible = [
 export const preservable = [
     "stroke",
     "dash",
+    'filename',
     "commonColors",
     "strokeWidth",
+    'rotate',
     "partials",
     "lines",
     "bounds",
@@ -187,8 +189,7 @@ export const saveable = [
     'translationy',
     "scalex",
     "scaley",
-    "rotatex",
-    "rotatey",
+    "rotate",
     "shearx",
     "sheary"
 ]

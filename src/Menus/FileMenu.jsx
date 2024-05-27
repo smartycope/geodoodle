@@ -30,6 +30,7 @@ export function FileMenu({state, dispatch}){
             reader.onload = function(e) {
                 dispatch({action: 'upload', str: e.target.result})
             }
+            dispatch({filename: /(.+)\./.exec(e.target.files[0].name)[1]})
             reader.readAsText(e.target.files[0]);
         } else
             alert("Failed to load file");
@@ -37,7 +38,7 @@ export function FileMenu({state, dispatch}){
 
     const saves = localStorage.getItem(localStorageName)
 
-    return <div id='file-menu'> {/*onAbort={() => dispatch({action: "menu", close: "file"})}>*/}
+    return <div id='file-menu'>
         <button id='copy-button' onClick={() => dispatch({action: 'copy image'})}><MdOutlineFileCopy />Copy</button>
         <button id='close-button' onClick={() => dispatch({action: "menu", close: "file"})}><IoClose /></button>
         <h3>Files</h3>
@@ -45,7 +46,7 @@ export function FileMenu({state, dispatch}){
         <details open id='first-details'><summary><IoMdDownload />Download</summary>
             <span className='group'>
                 <p>Pattern Name: </p>
-                <input type="text" onChange={(e) => setDownloadName(e.target.value)}></input>
+                <input type="text" value={state.filename} onChange={(e) => dispatch({filename: e.target.value})}></input>
             </span>
             <span className='group' id='download-buttons'>
                 <select onChange={e => setFormat(e.target.value)}>

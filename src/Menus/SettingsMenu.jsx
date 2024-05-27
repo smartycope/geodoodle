@@ -22,6 +22,9 @@ export function SettingsMenu({state, dispatch}){
         enableGestureScale,
         maxUndoAmt,
         debug,
+        gestureTranslateSensitivity,
+        gestureScaleSensitivity,
+        smoothGestureScale,
     } = state
 
     return <>
@@ -39,6 +42,23 @@ export function SettingsMenu({state, dispatch}){
                 onChange={val => dispatch({scrollSensitivity: val})}
                 value={scrollSensitivity}
                 step={.1}
+            />
+            <Number label="2 Finger Move Sensitivity"
+                // title="Controls how 2 finger scroll translates"
+                onChange={val => dispatch({gestureTranslateSensitivity: val})}
+                value={gestureTranslateSensitivity}
+                step={.1}
+            />
+            <Number label="2 Finger Scale Sensitivity"
+                // title="Controls how fast scroll translates"
+                onChange={val => dispatch({gestureScaleSensitivity: val})}
+                value={gestureScaleSensitivity}
+                step={.1}
+            />
+            <Checkbox label="Smooth Scale Gesture"
+                title="Can help smooth out 2 finger gestures"
+                onChange={val => dispatch({smoothGestureScale: !smoothGestureScale})}
+                checked={smoothGestureScale}
             />
             <Checkbox label="Scale with 2 Finger Spread"
                 title="Controls whether the 2 finger spread gesture scales the page or not"

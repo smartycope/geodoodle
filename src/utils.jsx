@@ -191,6 +191,10 @@ export function calc(state){
         // Coord: absolute, not scaled
         mirrorOriginx: mirrorType === MIRROR_TYPE.PAGE ? alignedHalf[0] : curLine?.x1,
         mirrorOriginy: mirrorType === MIRROR_TYPE.PAGE ? alignedHalf[1] : curLine?.y1,
+        // Because the cursor is at the center (ish) of the clipboard, instead of the top left
+        // Coord: absolute, not scaled
+        clipx: cursorPos[0] - Math.floor((right-left) / 2) * scalex,
+        clipy: cursorPos[1] - Math.floor((bottom-top) / 2) * scaley,
     }
 }
 

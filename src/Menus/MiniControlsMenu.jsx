@@ -13,6 +13,9 @@ import { PiSelectionPlusDuotone } from "react-icons/pi";
 import { PiSelectionSlashDuotone } from "react-icons/pi";
 import { MdDelete } from "react-icons/md";
 import { MdDeleteForever } from "react-icons/md";
+import {BsExclude} from "react-icons/bs";
+import { BiArea } from "react-icons/bi";
+import { BiSolidArea } from "react-icons/bi";
 
 // Depricated: no longer used: undo button is now a regular button
 export function UndoMenu({dispatch, state, align}){
@@ -70,12 +73,32 @@ export function ClipboardMenu({dispatch, state, align}){
 export function DeleteMenu({dispatch, state, align}){
     const to = document.querySelector("#" + align).getBoundingClientRect()
     return <div id='delete-menu' className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
+
         <button id="delete-lines" onClick={() => dispatch({action: "delete"})} title="Delete all lines attached to a point" className="mobile-button">
             <MdDelete className="mobile-icon" /> Delete Lines
         </button>
+
         <button id="delete-line" onClick={() => dispatch({action: "delete line"})} title="Delete a specific line" className="mobile-button">
             <MdDeleteForever className="mobile-icon" /> Delete Line
         </button>
+
+        {state.bounds.length > 1 && <span>
+            <button
+                id="delete-unselected"
+                onClick={() => dispatch({action: "delete selected"})}
+                className="mobile-button"
+            >
+                <BiSolidArea className="mobile-icon" /> Delete Selected
+            </button>
+            <button
+                id="delete-unselected"
+                onClick={() => dispatch({action: "delete unselected"})}
+                className="mobile-button"
+            >
+                <BiArea className="mobile-icon" /> Delete Unselected
+            </button>
+        </span>}
+
         <button
             onClick={() => window.confirm("Are you sure you want to delete everything?") ? dispatch({action: "clear"}) : undefined}
             title="Clear all"

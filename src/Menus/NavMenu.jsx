@@ -127,15 +127,12 @@ export default function NavMenu({dispatch, state}){
                     max={defaultOptions.maxScale}
                 />
             </span>
-            {/* <span>
-                Scale
-                <button onClick={() => dispatch({action: 'increase scale', amtx: scalex, amty: scaley})} title="Increase Scale">
-                    <TbArrowBigUpLine />
-                </button>
-                <button onClick={() => dispatch({action: 'decrease scale', amtx: scalex, amty: scaley})} title="Decrease Scale">
-                    <TbArrowBigDownLine />
-                </button>
-            </span> */}
+            <Number
+                label="Rotation:"
+                onChange={val => dispatch({rotate: val})}
+                value={state.rotate}
+                step={30}
+            />
 
             {/* Home button */}
             <button id='home-button' onClick={() => dispatch({action: "go home"})} title="Reset position and scale">

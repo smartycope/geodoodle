@@ -11,22 +11,25 @@ import {getStateMirrored} from './mirrorEngine';
 import { RxRotateCounterClockwise } from "react-icons/rx";
 import { GoMirror } from "react-icons/go";
 import { setDispatch as registerDispatch } from './App';
+import {FaCheck} from 'react-icons/fa6';
 
-// Coordinate systems:
-// absolute: relative to the viewport, origin is top left, not translated
-// relative: translated, origin is the (0, 0) of the svg element
-// scaled:   each dot is 1 more unit over than the previous, multiply by scale* to get the "drawable" value
+/*
+ * Coordinate systems:
+ * absolute: relative to the viewport, origin is top left, not translated
+ * relative: translated, origin is the (0, 0) of the svg element
+ * scaled:   each dot is 1 more unit over than the previous, multiply by scale* to get the "drawable" value
+ */
 
-// interface trellisControlVal<T> {
-//     every: number,
-//     val: T,
-// }
-// interface trellisControl<T> {
-//     row: trellisControlVal<T>,
-//     col: trellisControlVal<T>,
-// }
-
-// document.querySelectorAll('.unfocusable').forEach(button => button.addEventListener('click', e => this.blur()))
+/*
+ * interface trellisControlVal<T> {
+ *     every: number,
+ *     val: T,
+ * }
+ * interface trellisControl<T> {
+ *     row: trellisControlVal<T>,
+ *     col: trellisControlVal<T>,
+ * }
+ */
 
 // Disable the default right click menu
 window.oncontextmenu = () => false
@@ -76,6 +79,7 @@ export default function Paper({setInTour}) {
         dash: "0",
         lineCap: options.lineCap,
         lineJoin: options.lineJoin,
+        filename: "",
 
         // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
         // Coord: absolute, not scaled
@@ -124,8 +128,8 @@ export default function Paper({setInTour}) {
         translationy: 0,
         scalex: mobileAndTabletCheck() ? 30 : 20,
         scaley: mobileAndTabletCheck() ? 30 : 20,
-        rotatex: 0,
-        rotatey: 0,
+        // In degrees
+        rotate: 0,
         shearx: 0,
         sheary: 0,
 
@@ -134,6 +138,9 @@ export default function Paper({setInTour}) {
         partials: options.partials,
         invertedScroll: options.invertedScroll,
         scrollSensitivity: options.scrollSensitivity,
+        gestureTranslateSensitivity: 1,
+        gestureScaleSensitivity: .3,
+        smoothGestureScale: false,
         hideHexColor: options.hideHexColor,
         maxUndoAmt: options.maxUndoAmt,
         enableGestureScale: options.enableGestureScale,
@@ -171,6 +178,10 @@ export default function Paper({setInTour}) {
         cursorPos,
         stroke,
         dash,
+        rotate,
+        gestureTranslateSensitivity,
+        gestureScaleSensitivity,
+        smoothGestureScale,
         lineCap,
         lineJoin,
         commonColors,
@@ -220,7 +231,10 @@ export default function Paper({setInTour}) {
         mirrorOriginy,
         boundRect,
         relCursorPos,
+        clipx, clipy,
     } = calc(state)
+
+    // document.querySelector('#clipboard-transformer')?.addEventListener('click', () => console.log('here!!'), {passive: false})
 
     _state = state
     const boundRadius = scalex / 1.5
@@ -300,17 +314,15 @@ export default function Paper({setInTour}) {
                 )
                 dispatch('nevermind')
                 dispatch({action: 'translate',
-                    x: -(prevCenterx - newCenterx),
-                    y: -(prevCentery - newCentery),
+                    x: -(prevCenterx - newCenterx) * _state.gestureTranslateSensitivity,
+                    y: -(prevCentery - newCentery) * _state.gestureTranslateSensitivity,
                 })
                 // TODO: enableGestureScale is broken
-                // console.log('enableGestureScale', enableGestureScale);
-                // console.log('amt', Math.abs((prevDist - newDist) * scrollSensitivity) > .6);
                 // This line helps stablize translation
-                if (Math.abs((prevDist - newDist) * scrollSensitivity) > .6){
+                if (Math.abs((prevDist - newDist) * _state.gestureScaleSensitivity) > .6 || !_state.smoothGestureScale){
                     dispatch({action: 'scale',
-                        amtx: -(prevDist - newDist) * scrollSensitivity,
-                        amty: -(prevDist - newDist) * scrollSensitivity,
+                        amtx: -(prevDist - newDist) * _state.gestureScaleSensitivity * .25,
+                        amty: -(prevDist - newDist) * _state.gestureScaleSensitivity * .25,
                         cx: newCenterx,
                         cy: newCentery
                     })
@@ -352,10 +364,47 @@ export default function Paper({setInTour}) {
         lastTapPos = [touch.pageX, touch.pageY]
     }
 
+    // TODO: moving clipxy into calc(), clipboard ctranslation origin == clipxy
     function onTouchStart(e){
         // console.log('touch start')
         e.preventDefault()
         const touch = (e.touches[0] || e.changedTouches[0])
+
+        // First, before we do anything else, if the clipboard is open, and we're on a mobile device, check if they just
+        // tried to click on the clipboard transformation buttons. Because foriegnObjects don't seem to work with events,
+        // we have to handle them manually from here
+        if (_state.mobile && _state.clipboard){
+            const {clipx, clipy} = calc(_state)
+            // These are esitimates, I didn't get them from anywhere
+            const width = 35
+            const height = 40
+            const gap = 5
+            const x = touch.pageX
+            const y = touch.pageY
+            // The first button is rotate
+            if (x >= clipx && x <= clipx + width &&
+                y >= clipy && y <= clipy + height){
+                dispatch({action: 'increment clipboard rotation'})
+                withinDoubleTapTime = false
+                return
+            }
+            // The second button is flip
+            if (x >= clipx + width + gap && x <= clipx + width * 2 + gap &&
+                y >= clipy && y <= clipy + height){
+                dispatch({action: 'increment clipboard mirror axis'})
+                withinDoubleTapTime = false
+                return
+            }
+            // The third button is accept
+            if (x >= clipx + width*2 + gap*2 && x <= clipx + width * 3 + gap*2 &&
+                y >= clipy && y <= clipy + height){
+                dispatch({action: 'paste'})
+                withinDoubleTapTime = false
+                return
+            }
+        }
+
+
         dispatch({
             action: 'cursor moved',
             x: touch.pageX,
@@ -464,7 +513,7 @@ export default function Paper({setInTour}) {
             ${clipboardFlip}
             ${tranformation}
             rotate(${clipboardRotation}, ${cursorPos[0]}, ${cursorPos[1]})
-            translate(${cursorPos[0]} ${cursorPos[1]})
+            translate(${clipx} ${clipy})
             scale(${scalex} ${scaley})
         `}>{clipboard}</g>)
 
@@ -484,11 +533,10 @@ export default function Paper({setInTour}) {
         clip.push(<g transform={`
             ${clipboardFlip}
             rotate(${clipboardRotation}, ${cursorPos[0]}, ${cursorPos[1]})
-            translate(${cursorPos[0]} ${cursorPos[1]})
+            translate(${clipx} ${clipy})
             scale(${scalex} ${scaley})
         `}>{clipboard}</g>)
     }
-
 
     // Get the mirror guide lines
     let mirrorLines = []
@@ -573,9 +621,6 @@ export default function Paper({setInTour}) {
 
     const selectedRect = selected?.getBoundingClientRect()
 
-    // if (selectedRect)
-    //     console.log('found selected, drawing', selectedRect);
-
     const debugBox_xy = align(state, window.visualViewport.width / 4, window.visualViewport.height / 4)
 
     return (
@@ -606,6 +651,7 @@ export default function Paper({setInTour}) {
                         width={scalex}
                         height={scaley}
                         patternUnits='userSpaceOnUse'
+                        patternTransform={`rotate(${rotate})`}
                         // patternTransform={`scale(${scalex}, ${scaley})`}
                     >
                         <circle
@@ -635,10 +681,7 @@ export default function Paper({setInTour}) {
                     />}
                 </g>}
 
-
                 {/* Draw the trellis */}
-                {/* translate(${alignedTranslation[0]},
-                          ${alignedTranslation[1]}) */}
                 <g transform={`scale(${scalex} ${scaley})`}>
                     {((trellis || openMenus.repeat) && bounds.length > 1) && trellisActual}
                 </g>
@@ -647,7 +690,10 @@ export default function Paper({setInTour}) {
                 <g key="cursor-group">{cursor}</g>
 
                 {/* Draw the lines */}
-                <g id='lines' transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}>
+                <g id='lines' transform={`
+                    translate(${translationx} ${translationy})
+                    scale(${scalex} ${scaley})
+                `}>
                     {lines}
                 </g>
 
@@ -684,10 +730,6 @@ export default function Paper({setInTour}) {
                         fill={options.selectionColor}
                         rx={partials ? 4 : 0}
                         strokeWidth={1}
-                        // transform={`
-                        //     translate(${translationx}, ${translationy})
-                        //     scale(${scalex}, ${scaley})
-                        // `}
                     />
                     // Otherwise, just draw the usual selection rect, assuming there's bounds to do so
                     : (boundRect && <rect
@@ -700,7 +742,6 @@ export default function Paper({setInTour}) {
                         fill={options.selectionColor}
                         rx={partials ? 4/scalex : 0}
                         strokeWidth={1/scalex}
-                        // ${selectionTransform ?? ""}
                         transform={`
                             translate(${translationx}, ${translationy})
                             scale(${scalex}, ${scaley})
@@ -709,16 +750,17 @@ export default function Paper({setInTour}) {
                 }
 
                 {/* Draw the rotate & flip buttons when there's a clipboard */}
-                {/* TODO These don't work yet: they won't accept press events? */}
                 {mobile && clipboard?.length && <foreignObject
-                    x={cursorPos[0]} y={cursorPos[1] - scaley}
+                    // Apparently foreignObjects don't acknowledge pointer (or possibly any) events.
+                    // These are "buttons", but they're actually handled manually in touchStart() above
+                    x={clipx} y={clipy}
                     // 100 is too much, but it shouldn't matter
-                    width="100" height="100"
-                    style={{pointerEvents: "all", overflow: "visible", zIndex: 1}}
+                    width="130" height="50"
                     >
-                        <div xmlns="http://www.w3.org/1999/xhtml" id="clipboard-transform-buttons-mobile">
-                            <button id='rotator' onClick={() => {console.log('rotated!'); dispatch({action: "increment clipboard rotation"})}}><RxRotateCounterClockwise /></button>
-                            <button onClick={() => dispatch({action: "increment clipboard mirror axis"})}><GoMirror /></button>
+                        <div id="clipboard-transform-buttons-mobile">
+                            <button><RxRotateCounterClockwise /></button>
+                            <button> <GoMirror /> </button>
+                            <button><FaCheck /></button>
                         </div>
                 </foreignObject>}
 
@@ -747,8 +789,10 @@ export default function Paper({setInTour}) {
                     />
                 ]}
 
+                {/* Draw the clipboard */}
                 {clip}
             </svg>
+            {/* For exporting to images */}
             <canvas id="canvas"></canvas>
         </div>
     )

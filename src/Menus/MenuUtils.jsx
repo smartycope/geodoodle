@@ -67,13 +67,15 @@ export function Input({label, onChange, type, value, inputProps, title, id, inpu
 }
 
 export function Number({label='', onChange, value, min=-Infinity, max=Infinity, step=1, inputProps,
-    title, id, inputId, backwards=false, onPlus, onMinus,
+    title, id, inputId, backwards=false, onPlus, onMinus, round,
 }){
     // Make sure everything is a number before adding to it
     min = +min
     max = +max
     step = +step
     value = +value
+    if (round === undefined)
+        round = !(step >= 1)
 
     const lab = <label htmlFor={label}>{label}</label>
 
@@ -89,7 +91,7 @@ export function Number({label='', onChange, value, min=-Infinity, max=Infinity, 
             type="number"
             name={label}
             id={inputId}
-            value={value}
+            value={Math.round(value, round)}
             // readOnly={true}
             onChange={e => onChange(e.target.value)}
             min={min}
