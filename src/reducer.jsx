@@ -1,4 +1,4 @@
-import {MIRROR_AXIS, MIRROR_TYPE, localStorageSettingsName, localStorageName} from './globals'
+import {MIRROR_AXIS, MIRROR_TYPE, localStorageSettingsName, localStorageName, version} from './globals'
 import {
     toRadians,
     pointIn,

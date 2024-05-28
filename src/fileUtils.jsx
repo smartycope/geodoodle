@@ -1,3 +1,4 @@
+import {version} from "./globals";
 import {preservable, saveable} from "./options";
 import {filterObjectByKeys, getSelected} from "./utils";
 import { Parser as HtmlToReactParser } from "html-to-react";
@@ -114,11 +115,16 @@ export function download(name, mime, {str, blob, url}){
 }
 
 export function serializeState(state){
-    return JSON.stringify({...filterObjectByKeys(state, preservable), lines: state.lines.map(i => i.props)})
+    return JSON.stringify({...filterObjectByKeys(state, preservable), lines: state.lines.map(i => i.props), version: version})
 }
 
+// Returns {} if it can't deserialize properly (like if there's a version mismatch)
 export function deserializeState(str){
     const parsed = JSON.parse(str)
+    if (parsed.version !== version){
+        console.log(`Current version == ${version}, but preserved state had ${parsed.version}, abandoning state`);
+        return {}
+    }
     return {...parsed, lines: parsed.lines.map((i, cnt) => <line key={`loaded-line-${cnt}`} {...i}/>)}
 }
 
