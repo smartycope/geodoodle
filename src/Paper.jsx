@@ -20,6 +20,7 @@ import {getStateMirrored} from './mirrorEngine';
 import { RxRotateCounterClockwise } from "react-icons/rx";
 import { GoMirror } from "react-icons/go";
 import {FaCheck} from 'react-icons/fa6';
+import {StateContext} from './Contexts';
 
 /*
  * Coordinate systems:
@@ -50,12 +51,13 @@ var lastTapPos = [-10,-10]
 var _state = {}
 var touchHoldTimer = null
 
-export default function Paper({setInTour, setDispatch}) {
+export default function Paper({setDispatch}) {
     const boundsGroup = useRef()
     const paper = useRef()
 
     const [dragging, setDragging] = useState(false)
     const [boundDragging, setBoundDragging] = useState(false)
+
 
     const [state, dispatch] = useReducer(reducer, {
         mobile: mobileAndTabletCheck(),
@@ -75,6 +77,8 @@ export default function Paper({setInTour, setDispatch}) {
         lineCap: options.lineCap,
         lineJoin: options.lineJoin,
         filename: "",
+        // The side of page we have the menu bound to: left, right, top, or bottom
+        side: 'top',
 
         // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
         // Coord: absolute, not scaled
@@ -598,9 +602,9 @@ export default function Paper({setInTour, setDispatch}) {
     const debugBox_xy = align(state, window.visualViewport.width / 4, window.visualViewport.height / 4)
 
 
-    return (
+    return <StateContext.Provider value={[state, dispatch]}>
         <div>
-            <MainMenu dispatch={dispatch} state={state} setInTour={setInTour}/>
+            <MainMenu/>
             {/* <samp><kbd>Shift</kbd></samp> */}
             <svg id='paper'
                 width="100%"
@@ -770,5 +774,5 @@ export default function Paper({setInTour, setDispatch}) {
             {/* For exporting to images */}
             <canvas id="canvas"></canvas>
         </div>
-    )
+    </StateContext.Provider>
 }

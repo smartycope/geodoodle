@@ -4,6 +4,7 @@ import Tour from "reactour";
 import {mobileAndTabletCheck} from "./utils";
 import {useState} from "react";
 import {localStorageTourTakenName} from "./globals";
+import {InTourContext} from "./Contexts.jsx";
 
 
 // Disable the default right click menu
@@ -35,20 +36,22 @@ export default function App() {
     }
 
     return <div className="App">
-        <Paper setInTour={setInTour} setDispatch={setDispatch}/>
-        <Tour
-            steps={steps}
-            isOpen={inTour}
-            onRequestClose={() => {
-                dispatch({action: 'end tour'})
-                setInTour(false)
-            }}
-            accentColor='#ffddab'
-            // startAt={0}
-            rounded={8}
-            showNavigationNumber={false}
-            showNumber={false}
-            showNavigation={false}
-        />
+        <InTourContext.Provider value={setInTour}>
+            <Paper setInTour={setInTour} setDispatch={setDispatch}/>
+            <Tour
+                steps={steps}
+                isOpen={inTour}
+                onRequestClose={() => {
+                    dispatch({action: 'end tour'})
+                    setInTour(false)
+                }}
+                accentColor='#ffddab'
+                // startAt={0}
+                rounded={8}
+                showNavigationNumber={false}
+                showNumber={false}
+                showNavigation={false}
+            />
+        </InTourContext.Provider>
     </div>
 }

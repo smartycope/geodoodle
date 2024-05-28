@@ -5,9 +5,14 @@ import { MdDashboard } from "react-icons/md";
 import { MdHelp } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
 import { RiNavigationFill } from "react-icons/ri";
+import {StateContext} from "../Contexts";
+import {useContext} from "react";
 
 // Only made for mobile
-export default function ExtraMenu({dispatch, state, align}){
+export default function ExtraMenu({align}){
+    const [state, dispatch] = useContext(StateContext)
+    const {side} = state
+
     const to = document.querySelector("#" + align).getBoundingClientRect()
 
     var extraButton

@@ -24,12 +24,15 @@ import {GoMirror} from "react-icons/go";
 import { BsGrid3X3GapFill } from "react-icons/bs";
 import { MdOutlineTabUnselected } from "react-icons/md";
 import {ClipboardMenu, DeleteMenu, SelectMenu} from "./MiniControlsMenu";
+import {useContext} from "react";
+import {StateContext} from "../Contexts";
 
 var tapHolding = false
 var touchHoldTimer = null
 var redid = false
 
-function DesktopMainMenu({dispatch, state, setInTour}){
+function DesktopMainMenu(){
+    const [state, dispatch] = useContext(StateContext)
     return <>
         {/* The menu button in the corner */}
         <button onClick={() => dispatch({action: "menu", toggle: "main"})} id='menu-button'>
@@ -79,18 +82,20 @@ function DesktopMainMenu({dispatch, state, setInTour}){
             </button>
         </div>}
         {/* The menus */}
-        {state.openMenus.controls   && <ControlsMenu dispatch={dispatch} state={state}/>}
-        {state.openMenus.color      && <ColorMenu    dispatch={dispatch} state={state}/>}
-        {state.openMenus.navigation && <NavMenu      dispatch={dispatch} state={state}/>}
-        {state.openMenus.mirror     && <MirrorMenu   dispatch={dispatch} state={state}/>}
-        {state.openMenus.repeat     && <RepeatMenu   dispatch={dispatch} state={state}/>}
-        {state.openMenus.file       && <FileMenu     dispatch={dispatch} state={state}/>}
-        {state.openMenus.settings   && <SettingsMenu dispatch={dispatch} state={state}/>}
-        {state.openMenus.help       && <HelpMenu     dispatch={dispatch} state={state} setInTour={setInTour}/>}
+        {state.openMenus.controls   && <ControlsMenu/>}
+        {state.openMenus.color      && <ColorMenu/>}
+        {state.openMenus.navigation && <NavMenu/>}
+        {state.openMenus.mirror     && <MirrorMenu/>}
+        {state.openMenus.repeat     && <RepeatMenu/>}
+        {state.openMenus.file       && <FileMenu/>}
+        {state.openMenus.settings   && <SettingsMenu/>}
+        {state.openMenus.help       && <HelpMenu/>}
     </>
 }
 
-function MobileMainMenu({dispatch, state, setInTour}){
+function MobileMainMenu(){
+    const [state, dispatch] = useContext(StateContext)
+    const {side} = state
     function undoOnTouchHold(){
         if (tapHolding){
             redid = true
@@ -115,7 +120,12 @@ function MobileMainMenu({dispatch, state, setInTour}){
     }
 
     return <>
-        <div id='menu-selector-mobile' >
+        <div id='menu-selector-mobile' style={{
+            width: side ? undefined : '96%',
+            flexDirection: side ? 'column-reverse' : 'row',
+            height: side ? '96%' : undefined,
+
+        }}>
             <> {/*extra */}
                 <button onClick={() => {dispatch({action: "menu", toggle: "extra"})}}
                     className="menu-toggle-button-mobile"
@@ -222,19 +232,18 @@ function MobileMainMenu({dispatch, state, setInTour}){
         </div>
 
         {/* The menus */}
-        {/* {state.openMenus.controls   && <ControlsMenu dispatch={dispatch} state={state}/>} */}
-        {/* {state.openMenus.color      && <ColorMenu    dispatch={dispatch} state={state}/>} */}
-        {state.openMenus.navigation && <NavMenu      dispatch={dispatch} state={state}/>}
-        {/* {state.openMenus.mirror     && <MirrorMenu   dispatch={dispatch} state={state}/>} */}
-        {state.openMenus.repeat     && <RepeatMenu   dispatch={dispatch} state={state}/>}
-        {state.openMenus.file       && <FileMenu     dispatch={dispatch} state={state}/>}
-        {state.openMenus.settings   && <SettingsMenu dispatch={dispatch} state={state}/>}
-        {state.openMenus.help       && <HelpMenu     dispatch={dispatch} state={state} setInTour={setInTour}/>}
+        {state.openMenus.navigation && <NavMenu/>}
+        {state.openMenus.repeat     && <RepeatMenu/>}
+        {state.openMenus.file       && <FileMenu/>}
+        {state.openMenus.settings   && <SettingsMenu/>}
+        {state.openMenus.help       && <HelpMenu/>}
     </>
 }
 
-export default function MainMenu({dispatch, state, setInTour}){
-    return state.mobile
-        ? <MobileMainMenu dispatch={dispatch} state={state} setInTour={setInTour}/>
-        : <DesktopMainMenu dispatch={dispatch} state={state} setInTour={setInTour}/>
+export default function MainMenu(){
+    // return window.visualViewport.width < window.visualViewport.height
+    // return state.mobile
+    return <MobileMainMenu/>
+        // : <DesktopMainMenu/>
+        // : <MobileMainMenu side={true}/>
 }

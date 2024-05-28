@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useContext, useState} from 'react';
 import "../styling/FileMenu.css"
 import {localStorageName} from '../globals.js'
 
@@ -11,8 +11,12 @@ import {Checkbox, Number} from './MenuUtils.jsx';
 import {GiNuclear} from 'react-icons/gi';
 import { MdOutlineFileCopy } from "react-icons/md";
 import { FaMobileScreenButton } from "react-icons/fa6";
+import {StateContext} from '../Contexts.jsx';
 
-export function FileMenu({state, dispatch}){
+export function FileMenu(){
+    const [state, dispatch] = useContext(StateContext)
+    const {side} = state
+
     const [saveName, setSaveName] = useState('');
     const [loadName, setLoadName] = useState('');
     const [downloadName, ] = useState('');

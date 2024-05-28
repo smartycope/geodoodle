@@ -16,7 +16,7 @@
     padding: 2%;
     /* padding-left: 0px; */
     /* right: 10px; */
-    width: 96%;
+    /* width: 96%; */
     position: absolute;
     /* border-radius: 5px; */
     /* background-color: rgba(20, 20, 20, .65); */
@@ -70,12 +70,6 @@
     background-color: transparent;
 }
 
-
-/* .main-menu-icon:focus */
-/* .main-menu-icon:active */
-/* .main-menu-button
-.main-menu-button:focus
-.main-menu-button:active */
 .main-menu-icon{
     scale: 3;
     opacity: 90%;

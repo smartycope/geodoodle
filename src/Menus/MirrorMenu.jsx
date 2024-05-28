@@ -1,15 +1,19 @@
-import {useEffect} from "react";
+import {useContext, useEffect} from "react";
 import { MIRROR_METHOD } from "../globals";
 import { FaGripLinesVertical } from "react-icons/fa6";
 import {incrementMirrorAxis, incrementMirrorMethod, incrementMirrorType} from "../utils";
 import {Checkbox, MirrorAxisIcon, MirrorMethodIcon, MirrorTypeIcon} from "./MenuUtils";
 import "../styling/MirrorMenu.css"
+import {StateContext} from "../Contexts";
 
 let offsetX, offsetY;
 let isDragging = false;
 
 
-function DesktopMirrorMenu({dispatch, state}){
+function DesktopMirrorMenu(){
+    const [state, dispatch] = useContext(StateContext)
+    const {side} = state
+
     // Enable dragging - mostly copied from ChatGPT
     useEffect(() =>{
         const draggableElement = document.getElementById('mirror-menu-desktop');
@@ -119,8 +123,9 @@ function DesktopMirrorMenu({dispatch, state}){
     </span>
 }
 
-function MobileMirrorMenu({dispatch, state, align}){
-    const {mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2, mirroring} = state
+function MobileMirrorMenu({align}){
+    const [state, dispatch] = useContext(StateContext)
+    const {side, mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2, mirroring} = state
     const to = document.querySelector("#" + align).getBoundingClientRect()
 
     return <span id="mirror-menu-mobile" className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
@@ -169,8 +174,11 @@ function MobileMirrorMenu({dispatch, state, align}){
     </span>
 }
 
-export default function MirrorMenu({dispatch, state, align}){
+export default function MirrorMenu({align}){
+    const [state, dispatch] = useContext(StateContext)
+    const {side} = state
+
     return state.mobile
-        ? <MobileMirrorMenu dispatch={dispatch} state={state} align={align}/>
-        : <DesktopMirrorMenu dispatch={dispatch} state={state}/>
+        ? <MobileMirrorMenu align={align}/>
+        : <DesktopMirrorMenu/>
 }

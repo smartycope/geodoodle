@@ -12,10 +12,15 @@ import { MdDelete } from "react-icons/md";
 import { MdDeleteForever } from "react-icons/md";
 import { BiArea } from "react-icons/bi";
 import { BiSolidArea } from "react-icons/bi";
+import {useContext} from "react";
+import {StateContext} from "../Contexts";
 
 // Depricated: no longer used: undo button is now a regular button
 // eslint-disable-next-line no-unused-vars
-export function UndoMenu({dispatch, state, align}){
+export function UndoMenu({align}){
+    const [state, dispatch] = useContext(StateContext)
+    const {side} = state
+
     const to = document.querySelector("#" + align).getBoundingClientRect()
     return <div id='undo-menu' className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
         <button onClick={() => dispatch({action: "undo"})} title="Undo" className="mobile-button">
@@ -26,7 +31,10 @@ export function UndoMenu({dispatch, state, align}){
         </button>
     </div>
 }
-export function SelectMenu({dispatch, state, align}){
+export function SelectMenu({align}){
+    const [state, dispatch] = useContext(StateContext)
+    const {side} = state
+
     const to = document.querySelector("#" + align).getBoundingClientRect()
     return <div id='select-menu' className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
         {/* <span className='selection-group' style={{width: state.bounds.length > 1 ? '100%' : 'auto'}}> */}
@@ -54,7 +62,10 @@ export function SelectMenu({dispatch, state, align}){
     </div>
 }
 // eslint-disable-next-line no-unused-vars
-export function ClipboardMenu({dispatch, state, align}){
+export function ClipboardMenu({align}){
+    const [state, dispatch] = useContext(StateContext)
+    const {side} = state
+
     const to = document.querySelector("#" + align).getBoundingClientRect()
     return <div id='clipboard-menu' className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
         <button onClick={() => dispatch({action: "copy"})} title="Copy" className="mobile-button">
@@ -68,7 +79,10 @@ export function ClipboardMenu({dispatch, state, align}){
         </button>
     </div>
 }
-export function DeleteMenu({dispatch, state, align}){
+export function DeleteMenu({align}){
+    const [state, dispatch] = useContext(StateContext)
+    const {side} = state
+
     const to = document.querySelector("#" + align).getBoundingClientRect()
     return <div id='delete-menu' className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
 

@@ -1,4 +1,4 @@
-import {useRef, useState} from 'react';
+import {useContext, useRef, useState} from 'react';
 import "../styling/SettingsMenu.css"
 import {Checkbox, Number} from "./MenuUtils"
 import { KeyMenu } from './KeyMenu';
@@ -9,10 +9,13 @@ import {localStorageSettingsName} from '../globals';
 import { ColorPicker, ColorService } from "react-color-palette";
 import "react-color-palette/css";
 import {extraButtons} from "../options";
+import {StateContext} from '../Contexts';
 
-export function SettingsMenu({state, dispatch}){
+export function SettingsMenu(){
+    const [state, dispatch] = useContext(StateContext)
     const [palletteVisible, setPalletteVisible] = useState(false);
     const colorMenu = useRef()
+    const {side} = state
 
     const {
         removeSelectionAfterDelete,

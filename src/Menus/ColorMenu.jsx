@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import {useContext, useEffect, useRef, useState} from "react";
 import "../styling/ColorMenu.css"
 import { ColorPicker, ColorService } from "react-color-palette";
 import "react-color-palette/css";
@@ -6,12 +6,16 @@ import options from "../options";
 import {Number} from "./MenuUtils";
 
 import { FaGripLinesVertical } from "react-icons/fa6";
+import {StateContext} from "../Contexts";
 
 
 let offsetX, offsetY;
 let isDragging = false;
 
-function DesktopColorMenu({dispatch, state}){
+function DesktopColorMenu(){
+    const [state, dispatch] = useContext(StateContext)
+    const {side} = state
+
     // const [color, setColor] = useColor(state.stroke);
     const [palletteVisible, setPalletteVisible] = useState(false);
     const colorMenu = useRef()
@@ -154,7 +158,10 @@ function DesktopColorMenu({dispatch, state}){
     </>
 }
 
-function MobileColorMenu({dispatch, state}){
+function MobileColorMenu(){
+    const [state, dispatch] = useContext(StateContext)
+    const {side} = state
+
     const {stroke, strokeWidth, dash, colorProfile, scalex} = state
 
     return <div id="color-menu-mobile">
@@ -239,7 +246,10 @@ function MobileColorMenu({dispatch, state}){
     </div>
 }
 
-export default function ColorMenu({dispatch, state}){
+export default function ColorMenu(){
+    const [state, dispatch] = useContext(StateContext)
+    const {side} = state
+
     return state.mobile
         ? <MobileColorMenu dispatch={dispatch} state={state}/>
         : <DesktopColorMenu dispatch={dispatch} state={state}/>

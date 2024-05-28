@@ -2,10 +2,16 @@ import "../styling/HelpMenu.css"
 
 import { IoClose } from "react-icons/io5";
 import {version} from '../globals';
+import {InTourContext, StateContext} from "../Contexts";
+import {useContext} from "react";
 
 
 // eslint-disable-next-line no-unused-vars
-export function HelpMenu({state, dispatch, setInTour}){
+export function HelpMenu(){
+    const [state, dispatch] = useContext(StateContext)
+    const setInTour = useContext(InTourContext)
+    const {side} = state
+
     return <div id='help-menu'>
         <button id='close-button' onClick={() => dispatch({action: "menu", close: "help"})}>
             <IoClose />

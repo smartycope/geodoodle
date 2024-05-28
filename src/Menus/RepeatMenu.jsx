@@ -1,10 +1,11 @@
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import "../styling/RepeatMenu.css"
 import { MIRROR_AXIS, MIRROR_METHOD } from "../globals";
 import { MirrorAxisIcon, Number } from "./MenuUtils"
 import {defaultTrellisControl, incrementMirrorAxis} from "../utils";
 
 import { FaGripLinesVertical } from "react-icons/fa6";
+import {StateContext} from "../Contexts";
 
 let offsetX, offsetY;
 let isDragging = false;
@@ -20,7 +21,10 @@ const defaultTrellisControl = {
     },
 }
 */
-function DesktopRepeatMenu({dispatch, state}){
+function DesktopRepeatMenu(){
+    const [state, dispatch] = useContext(StateContext)
+    const {side} = state
+
     function TrellisControl({verb, value, extra='', input}){
         const line = (rowCol) => <span className="trellis-control-desktop">
             {verb} every

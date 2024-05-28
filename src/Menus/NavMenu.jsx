@@ -1,4 +1,4 @@
-import {useEffect} from "react";
+import {useContext, useEffect} from "react";
 import "../styling/NavMenu.css"
 import {Number} from "./MenuUtils";
 
@@ -6,12 +6,15 @@ import { FaGripLinesVertical } from "react-icons/fa6";
 import { MdHome } from "react-icons/md";
 import { PiSelectionAll } from "react-icons/pi";
 import defaultOptions from "../options";
+import {StateContext} from "../Contexts";
 
 
 let offsetX, offsetY;
 let isDragging = false;
 
-export default function NavMenu({dispatch, state}){
+export default function NavMenu(){
+    const [state, dispatch] = useContext(StateContext)
+    const {side} = state
     // const navMenu = useRef()
 
     const {scalex, scaley} = state
