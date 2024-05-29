@@ -186,7 +186,8 @@ function MobileColorMenu({align}){
                 <button
                     onClick={() => dispatch({colorProfile: i})}
                     // // style={{backgroundColor: stroke[i]}}
-                    style={{backgroundColor: i === colorProfile ? "rgb(100,100,100)" : "rgb(60,60,60)"}}
+                    // style={{backgroundColor: i === colorProfile ? "rgb(100,100,100)" : "rgb(60,60,60)"}}
+                    style={{backgroundColor: i === colorProfile ? "#aa9578" : state.paperColor}}
                     key={`colorButton${i}`}
                     className="common-color-button"
                 >{i+1}<svg width="30" height='20'><line
@@ -234,7 +235,7 @@ function MobileColorMenu({align}){
                 // dispatch({action: 'add common color', color: state.stroke})
                 dispatch({action: 'menu', close: 'color'})
             }}
-            // style={{backgroundColor: state.stroke}}
+            style={{backgroundColor: state.paperColor}}
         >
             Close
         <svg width="90%" height='10'><line

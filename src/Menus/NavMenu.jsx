@@ -18,7 +18,7 @@ export default function NavMenu(){
     // const navMenu = useRef()
 
     const {scalex, scaley} = state
-
+    /*
     // Enable dragging - mostly copied from ChatGPT
     useEffect(() =>{
         const draggableElement = document.getElementById('nav-menu');
@@ -88,7 +88,7 @@ export default function NavMenu(){
             document.removeEventListener('touchend', handleMouseUp, {passive: false})
         }
     }, [])
-
+    */
 
     return <>
         <div id='nav-menu' // ref={navMenu}
@@ -98,7 +98,7 @@ export default function NavMenu(){
             // }}
         >
             {/* <div> */}
-            <span>
+            <span id='pos-nav-menu'>
                 Position
                 <Number
                     label="x:"
@@ -115,7 +115,8 @@ export default function NavMenu(){
             </span>
             {/* </div> */}
              {/* | {`Scale: ${Math.round(scalex)} | `} */}
-             <span>
+             <div id='sub-grid'>
+             <span id='scale-nav-menu'>
                 Scale
                 <Number
                     onChange={val => dispatch({scalex: val, scaley: val})}
@@ -137,15 +138,18 @@ export default function NavMenu(){
             /> */}
 
             {/* Home button */}
+            <span id='sub-sub-grid'>
             <button id='home-button' onClick={() => dispatch({action: "go home"})} title="Reset position and scale">
                 <MdHome />
             </button>
             <button id='nav-selection-button' onClick={() => dispatch({action: 'go to selection'})} title="Go to the current selection">
                 <PiSelectionAll />
             </button>
+            </span>
+            </div>
 
             {/* Grip */}
-            <FaGripLinesVertical id="grip" color='darkgray'/>
+            {/* <FaGripLinesVertical id="grip" color='darkgray'/> */}
         </div>
     </>
 }

@@ -76,13 +76,12 @@ export function SettingsMenu(){
                 checked={removeSelectionAfterDelete}
             />
 
-            Extra Button:
-            <select required onChange={e => dispatch({extraButton: e.target.value })} value={extraButton}>
+            Extra Button: <select required onChange={e => dispatch({extraButton: e.target.value })} value={extraButton}>
                 {extraButtons.map(i => <option value={i} key={i}>{i}</option>)}
             </select>
+            <br/>
 
-            Menu Side:
-            <select required onChange={e => dispatch({side: e.target.value})} value={side}>
+            Menu Side: <select required onChange={e => dispatch({side: e.target.value})} value={side}>
                 {['top', 'left', 'right', 'bottom'].map(i => <option value={i} key={i}>{i}</option>)}
             </select>
             {/* The color picker */}
@@ -125,9 +124,13 @@ export function SettingsMenu(){
                 }}} title="Clears the settings cache">
                 Reset to Defaults
             </button>
-            {/* <footer> */}
-            <button className='footer' onClick={() => dispatch({action: 'menu', open: 'key', close: 'settings'})}>Keyboard Shortcuts</button>
-            {/* </footer> */}
+
+            {!state.mobile && <button
+                className='footer'
+                onClick={() => dispatch({action: 'menu', open: 'key', close: 'settings'})}
+            >
+                Keyboard Shortcuts
+            </button>}
         </div>
         {state.openMenus.key && <KeyMenu />}
     </>

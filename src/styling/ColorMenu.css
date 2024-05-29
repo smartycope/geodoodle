@@ -71,6 +71,7 @@
     width: 100%;
     /* height: 100%; */
     left: 0px;
+    color: black;
 }
 
 #stroke-input{
@@ -89,5 +90,6 @@
     display: flex;
     flex-direction: column;
     margin: 10px;
-    background-color: rgb(60,60,60);
+    color: black;
+    /* background-color: rgb(60,60,60); */
 }
