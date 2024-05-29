@@ -1,7 +1,7 @@
 .main-mobile-sub-menu{
     position: absolute;
     /* translate: 0, -40; */
-    transform: translate(-30%, 0);
+    /* transform: translate(-30%, 0); */
     border-radius: 8px;
     background-color: rgba(20, 20, 20, .65);
     padding: 0px;
@@ -15,6 +15,7 @@
     /* width: 50px; */
     /* grid-template-columns: 1fr 1fr 1fr; */
     gap: 10px;
+    margin: 5px;
 }
 
 .mobile-button{

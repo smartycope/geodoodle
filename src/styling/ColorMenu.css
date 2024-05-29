@@ -44,13 +44,14 @@
     background-color: rgba(20,20,20,.9);
     /* background: "red"; */
     display: flex;
-    top: 100%;
+    /* top: 100%; */
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 80%;
-    left: 10%;
-    height: 70vh;
+    /* width: 80%; */
+    width: fit-content;
+    /* left: 10%; */
+    /* height: 70vh; */
     border-radius: 10px;
     color: white;
     z-index: 1;

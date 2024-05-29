@@ -15,14 +15,16 @@ export function SettingsMenu(){
     const [state, dispatch] = useContext(StateContext)
     const [palletteVisible, setPalletteVisible] = useState(false);
     const colorMenu = useRef()
-    const {side} = state
 
     const {
         removeSelectionAfterDelete,
+        side,
         invertedScroll,
         scrollSensitivity,
         hideHexColor,
         enableGestureScale,
+        extraButton,
+        hideDots,
         maxUndoAmt,
         debug,
         gestureTranslateSensitivity,
@@ -73,8 +75,15 @@ export function SettingsMenu(){
                 onChange={() => dispatch({removeSelectionAfterDelete: !removeSelectionAfterDelete})}
                 checked={removeSelectionAfterDelete}
             />
-            <select required onChange={e => dispatch({extraButton: e.target.val})} value={state.extraButton}>
+
+            Extra Button:
+            <select required onChange={e => dispatch({extraButton: e.target.value })} value={extraButton}>
                 {extraButtons.map(i => <option value={i} key={i}>{i}</option>)}
+            </select>
+
+            Menu Side:
+            <select required onChange={e => dispatch({side: e.target.value})} value={side}>
+                {['top', 'left', 'right', 'bottom'].map(i => <option value={i} key={i}>{i}</option>)}
             </select>
             {/* The color picker */}
             <div ref={colorMenu}>
@@ -90,7 +99,7 @@ export function SettingsMenu(){
                     {palletteVisible ? "Set" : "Pick Background Color"}
                 </button>
             </div>
-            <button onClick={() => dispatch({hideDots: !state.hideDots})}>{state.hideDots ? "Show" : "Hide"} dots</button>
+            <button onClick={() => dispatch({hideDots: !state.hideDots})}>{hideDots ? "Show" : "Hide"} dots</button>
 
             <h4>Advanced</h4>
             <Checkbox label="Hide Hex Color"
@@ -120,6 +129,6 @@ export function SettingsMenu(){
             <button className='footer' onClick={() => dispatch({action: 'menu', open: 'key', close: 'settings'})}>Keyboard Shortcuts</button>
             {/* </footer> */}
         </div>
-        {state.openMenus.key && <KeyMenu state={state} dispatch={dispatch} />}
+        {state.openMenus.key && <KeyMenu />}
     </>
 }

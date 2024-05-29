@@ -20,7 +20,7 @@ import { FaBars } from "react-icons/fa6";
 import { MdHelp } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
 import { RiNavigationFill } from "react-icons/ri";
-import {GoMirror} from "react-icons/go";
+import { GoMirror } from "react-icons/go";
 import { BsGrid3X3GapFill } from "react-icons/bs";
 import { MdOutlineTabUnselected } from "react-icons/md";
 import {ClipboardMenu, DeleteMenu, SelectMenu} from "./MiniControlsMenu";
@@ -105,7 +105,6 @@ function MobileMainMenu(){
     }
 
     function undoOnTouchStart(){
-        console.log('undo button pressed');
         setTimeout(() => tapHolding = true, 10)
         touchHoldTimer = setTimeout(undoOnTouchHold, state.holdTapTimeMS)
     }
@@ -119,13 +118,25 @@ function MobileMainMenu(){
         redid = false
     }
 
-    return <>
-        <div id='menu-selector-mobile' style={{
-            width: side ? undefined : '96%',
-            flexDirection: side ? 'column-reverse' : 'row',
-            height: side ? '96%' : undefined,
+    let style = {}
+    switch (side) {
+        case 'right': style = {right: '0px'}
+        case 'left':
+            style = {...style,
+                flexDirection: 'column-reverse',
+                height: '93%',
+            }
+            break
+        case 'bottom': style = {bottom: "0px",}
+        case 'top':
+            style = {...style,
+                flexDirection: 'row',
+                width: '93%',
+            }
+    }
 
-        }}>
+    return <>
+        <div id='menu-selector-mobile' style={style}>
             <> {/*extra */}
                 <button onClick={() => {dispatch({action: "menu", toggle: "extra"})}}
                     className="menu-toggle-button-mobile"
@@ -136,7 +147,7 @@ function MobileMainMenu(){
                     }}
                 > <BsGrid3X3GapFill className="main-menu-icon" />
                 </button>
-                {state.openMenus.extra && <ExtraMenu dispatch={dispatch} state={state} align="extra-menu-button"/>}
+                {state.openMenus.extra && <ExtraMenu align="extra-menu-button"/>}
             </>
             <> {/*color */}
                 <button onClick={() => {dispatch({action: "menu", toggle: "color"})}}
@@ -148,7 +159,7 @@ function MobileMainMenu(){
                     }}
                 > <MdColorLens className="main-menu-icon"/>
                 </button>
-                {state.openMenus.color && <ColorMenu dispatch={dispatch} state={state} align="color-menu-button" />}
+                {state.openMenus.color && <ColorMenu align="color-menu-button" />}
             </>
             <> {/*undo */}
                 {/* Undo menu */}
@@ -161,7 +172,7 @@ function MobileMainMenu(){
                     }}
                 > <MdUndo className="main-menu-icon"/>
                 </button>
-                {state.openMenus.undo && <UndoMenu dispatch={dispatch} state={state} align="undo-menu-button" />} */}
+                {state.openMenus.undo && <UndoMenu align="undo-menu-button" />} */}
                 {/* Undo button */}
                 <button onTouchStart={undoOnTouchStart}
                     onTouchEnd={undoOnTouchEnd}
@@ -186,7 +197,7 @@ function MobileMainMenu(){
                     }}
                 > <GoMirror className="main-menu-icon"/>
                 </button>
-                {state.openMenus.mirror && <MirrorMenu dispatch={dispatch} state={state} align="mirror-menu-button" />}
+                {state.openMenus.mirror && <MirrorMenu align="mirror-menu-button" />}
             </>
             <> {/*select */}
                 <button onClick={() => {dispatch({action: "menu", toggle: "select"})}}
@@ -198,7 +209,7 @@ function MobileMainMenu(){
                     }}
                 > <MdOutlineTabUnselected className="main-menu-icon"/>
                 </button>
-                {state.openMenus.select && <SelectMenu dispatch={dispatch} state={state} align="select-menu-button" />}
+                {state.openMenus.select && <SelectMenu align="select-menu-button" />}
             </>
             <> {/*clipboard */}
                 <button onClick={() => {dispatch({action: "menu", toggle: "clipboard"})}}
@@ -210,7 +221,7 @@ function MobileMainMenu(){
                     }}
                 > <MdContentCopy className="main-menu-icon"/>
                 </button>
-                {state.openMenus.clipboard && <ClipboardMenu dispatch={dispatch} state={state} align="clipboard-menu-button" />}
+                {state.openMenus.clipboard && <ClipboardMenu align="clipboard-menu-button" />}
             </>
             <> {/*delete */}
                 <button onClick={() => {dispatch({action: "menu", toggle: "delete"})}}
@@ -222,7 +233,7 @@ function MobileMainMenu(){
                     }}
                 > <MdDelete className="main-menu-icon"/>
                 </button>
-                {state.openMenus.delete && <DeleteMenu dispatch={dispatch} state={state} align="delete-menu-button" />}
+                {state.openMenus.delete && <DeleteMenu align="delete-menu-button" />}
             </>
             {/* The menu button in the corner */}
             <button onClick={() => dispatch({action: "menu", toggle: "main"})}
@@ -241,8 +252,6 @@ function MobileMainMenu(){
 }
 
 export default function MainMenu(){
-    // return window.visualViewport.width < window.visualViewport.height
-    // return state.mobile
     return <MobileMainMenu/>
         // : <DesktopMainMenu/>
         // : <MobileMainMenu side={true}/>

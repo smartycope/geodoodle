@@ -19,6 +19,7 @@ module.exports = {
     'no-inner-declarations': "off",
     'no-prototype-builtins': 'warn',
     'react/jsx-no-target-blank': 'off',
+    'no-fallthrough': 'off',
     'react-refresh/only-export-components': [
       'warn',
       { allowConstantExport: true },

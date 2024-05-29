@@ -6,6 +6,8 @@ import { MdInsertPageBreak } from "react-icons/md";
 import { RxRotateCounterClockwise } from "react-icons/rx";
 import { TbArrowsUpRight, TbArrowsVertical, TbArrowsMaximize, TbArrowsRandom } from "react-icons/tb";
 import { GoMirror } from "react-icons/go";
+import {useContext} from "react";
+import {StateContext} from "../Contexts";
 
 
 export function Checkbox({label, onChange, checked, title, id, inputId, backwards=false}){

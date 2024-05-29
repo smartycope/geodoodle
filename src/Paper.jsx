@@ -78,7 +78,7 @@ export default function Paper({setDispatch}) {
         lineJoin: options.lineJoin,
         filename: "",
         // The side of page we have the menu bound to: left, right, top, or bottom
-        side: 'top',
+        side: window.visualViewport.width < window.visualViewport.height ? 'top' : 'right',
 
         // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
         // Coord: absolute, not scaled
@@ -220,6 +220,8 @@ export default function Paper({setDispatch}) {
 
     _state = state
     const boundRadius = scalex / 1.5
+    window.scrollX = 0
+    window.scrollY = 0
 
     function onMouseMove(e){
         // console.log('mouse moved')

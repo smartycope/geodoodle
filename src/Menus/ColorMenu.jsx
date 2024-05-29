@@ -4,6 +4,7 @@ import { ColorPicker, ColorService } from "react-color-palette";
 import "react-color-palette/css";
 import options from "../options";
 import {Number} from "./MenuUtils";
+import {useAlignWithElement} from "./MenuHooks";
 
 import { FaGripLinesVertical } from "react-icons/fa6";
 import {StateContext} from "../Contexts";
@@ -94,9 +95,6 @@ function DesktopColorMenu(){
         }
     }, [])
 
-    // console.log(state.commonColors);
-    // console.log(ColorService(state.stroke))
-
 
     return <>
         <div id='color-picker-desktop' ref={colorMenu}
@@ -158,13 +156,17 @@ function DesktopColorMenu(){
     </>
 }
 
-function MobileColorMenu(){
+function MobileColorMenu({align}){
     const [state, dispatch] = useContext(StateContext)
-    const {side} = state
+    const style = useAlignWithElement(align)
 
     const {stroke, strokeWidth, dash, colorProfile, scalex} = state
 
-    return <div id="color-menu-mobile">
+    return <div id="color-menu-mobile" style={{...style,
+            top: ['left', 'right'].includes(state.side) ? undefined : style.top,
+            // Custom style to make it look better
+            transform: state.side === 'left' ? 'translate(10px, 0)' : undefined,
+        }}>
         {/* The full screen color menu */}
         <div id="color-picker-mobile-actual">
             <ColorPicker
@@ -246,11 +248,10 @@ function MobileColorMenu(){
     </div>
 }
 
-export default function ColorMenu(){
-    const [state, dispatch] = useContext(StateContext)
-    const {side} = state
+export default function ColorMenu({align}){
+    // const [state, ] = useContext(StateContext)
 
-    return state.mobile
-        ? <MobileColorMenu dispatch={dispatch} state={state}/>
-        : <DesktopColorMenu dispatch={dispatch} state={state}/>
+    // return state.mobile
+    return <MobileColorMenu align={align}/>
+        // : <DesktopColorMenu/>
 }

@@ -7,13 +7,12 @@ import { IoMdSettings } from "react-icons/io";
 import { RiNavigationFill } from "react-icons/ri";
 import {StateContext} from "../Contexts";
 import {useContext} from "react";
+import {useAlignWithElement} from "./MenuHooks";
 
 // Only made for mobile
 export default function ExtraMenu({align}){
     const [state, dispatch] = useContext(StateContext)
-    const {side} = state
-
-    const to = document.querySelector("#" + align).getBoundingClientRect()
+    const style = useAlignWithElement(align)
 
     var extraButton
     switch (state.extraButton) {
@@ -35,7 +34,9 @@ export default function ExtraMenu({align}){
             break;
     }
 
-    return <div id='extra-menu' style={{top: to.bottom+5, left: to.left}}>
+    return <div id='extra-menu' style={{...style,
+            transform: ['left', 'right'].includes(state.side) ? 'translate(0px, -100px)': undefined,
+        }}>
         <button onClick={() => {dispatch({action: "menu", toggle: "navigation", close: "extra"})}}
             className="menu-toggle-button-mobile extra-button"
             style={{visibility: state.openMenus.main ? 'visible': "hidden"}}

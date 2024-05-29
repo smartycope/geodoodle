@@ -249,7 +249,7 @@ export const multMat = (A, B) =>
         )
     )
 
-export function toRadians (angle) {
+    export function toRadians (angle) {
     return angle * (Math.PI / 180);
 }
 

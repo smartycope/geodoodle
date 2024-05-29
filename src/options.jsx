@@ -157,6 +157,7 @@ export const reversible = [
 export const preservable = [
     "stroke",
     "dash",
+    // This is contested
     'side',
     'filename',
     "commonColors",

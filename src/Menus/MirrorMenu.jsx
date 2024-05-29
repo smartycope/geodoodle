@@ -5,6 +5,7 @@ import {incrementMirrorAxis, incrementMirrorMethod, incrementMirrorType} from ".
 import {Checkbox, MirrorAxisIcon, MirrorMethodIcon, MirrorTypeIcon} from "./MenuUtils";
 import "../styling/MirrorMenu.css"
 import {StateContext} from "../Contexts";
+import {useAlignWithElement} from "./MenuHooks";
 
 let offsetX, offsetY;
 let isDragging = false;
@@ -12,7 +13,6 @@ let isDragging = false;
 
 function DesktopMirrorMenu(){
     const [state, dispatch] = useContext(StateContext)
-    const {side} = state
 
     // Enable dragging - mostly copied from ChatGPT
     useEffect(() =>{
@@ -125,10 +125,10 @@ function DesktopMirrorMenu(){
 
 function MobileMirrorMenu({align}){
     const [state, dispatch] = useContext(StateContext)
-    const {side, mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2, mirroring} = state
-    const to = document.querySelector("#" + align).getBoundingClientRect()
+    const style = useAlignWithElement(align)
+    const {mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2, mirroring} = state
 
-    return <span id="mirror-menu-mobile" className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
+    return <span id="mirror-menu-mobile" className="main-mobile-sub-menu" style={style}>
         {/* Enabled */}
         <Checkbox id='mirror-enabled' checked={mirroring} onChange={() => dispatch({mirroring: !mirroring})} label={"Enabled:"} backwards={true}/>
         Type
@@ -175,10 +175,10 @@ function MobileMirrorMenu({align}){
 }
 
 export default function MirrorMenu({align}){
-    const [state, dispatch] = useContext(StateContext)
-    const {side} = state
+    // const [state, dispatch] = useContext(StateContext)
+    // const {side} = state
 
-    return state.mobile
-        ? <MobileMirrorMenu align={align}/>
-        : <DesktopMirrorMenu/>
+    // return state.mobile
+    return <MobileMirrorMenu align={align}/>
+        // : <DesktopMirrorMenu/>
 }

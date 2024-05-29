@@ -14,15 +14,15 @@ import { BiArea } from "react-icons/bi";
 import { BiSolidArea } from "react-icons/bi";
 import {useContext} from "react";
 import {StateContext} from "../Contexts";
+import {useAlignWithElement} from "./MenuHooks";
 
 // Depricated: no longer used: undo button is now a regular button
 // eslint-disable-next-line no-unused-vars
 export function UndoMenu({align}){
     const [state, dispatch] = useContext(StateContext)
-    const {side} = state
+    const style = useAlignWithElement(align)
 
-    const to = document.querySelector("#" + align).getBoundingClientRect()
-    return <div id='undo-menu' className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
+    return <div id='undo-menu' className="main-mobile-sub-menu" style={style}>
         <button onClick={() => dispatch({action: "undo"})} title="Undo" className="mobile-button">
             <MdUndo className="mobile-icon"/> Undo
         </button>
@@ -33,10 +33,9 @@ export function UndoMenu({align}){
 }
 export function SelectMenu({align}){
     const [state, dispatch] = useContext(StateContext)
-    const {side} = state
+    const style = useAlignWithElement(align)
 
-    const to = document.querySelector("#" + align).getBoundingClientRect()
-    return <div id='select-menu' className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
+    return <div id='select-menu' className="main-mobile-sub-menu" style={style}>
         {/* <span className='selection-group' style={{width: state.bounds.length > 1 ? '100%' : 'auto'}}> */}
         <button title="Add selection bound" onClick={() => dispatch({action: 'add bound'})} id='add-bound' className="mobile-button">
             <PiSelectionPlusDuotone className="mobile-icon"/> Add Bound
@@ -64,10 +63,9 @@ export function SelectMenu({align}){
 // eslint-disable-next-line no-unused-vars
 export function ClipboardMenu({align}){
     const [state, dispatch] = useContext(StateContext)
-    const {side} = state
+    const style = useAlignWithElement(align)
 
-    const to = document.querySelector("#" + align).getBoundingClientRect()
-    return <div id='clipboard-menu' className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
+    return <div id='clipboard-menu' className="main-mobile-sub-menu" style={style}>
         <button onClick={() => dispatch({action: "copy"})} title="Copy" className="mobile-button">
             <MdContentCopy className="mobile-icon"/> Copy
         </button>
@@ -81,10 +79,9 @@ export function ClipboardMenu({align}){
 }
 export function DeleteMenu({align}){
     const [state, dispatch] = useContext(StateContext)
-    const {side} = state
+    const style = useAlignWithElement(align)
 
-    const to = document.querySelector("#" + align).getBoundingClientRect()
-    return <div id='delete-menu' className="main-mobile-sub-menu" style={{top: to.bottom, left: to.left}}>
+    return <div id='delete-menu' className="main-mobile-sub-menu" style={style}>
 
         <button id="delete-lines" onClick={() => dispatch({action: "delete"})} title="Delete all lines attached to a point" className="mobile-button">
             <MdDelete className="mobile-icon" /> Delete Lines
