@@ -2,7 +2,7 @@ import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE} from "../globals";
 
 import { FaPlus } from "react-icons/fa6";
 import { RiCursorFill, RiFlipHorizontalLine, RiFlipVerticalFill } from "react-icons/ri";
-import { MdInsertPageBreak } from "react-icons/md";
+import { MdHome, MdInsertPageBreak, MdOutlineFileCopy } from "react-icons/md";
 import { RxRotateCounterClockwise } from "react-icons/rx";
 import { TbArrowsUpRight, TbArrowsVertical, TbArrowsMaximize, TbArrowsRandom } from "react-icons/tb";
 import { GoMirror } from "react-icons/go";
@@ -135,5 +135,27 @@ export function MirrorMethodIcon({mirrorMethod}){
         case MIRROR_METHOD.BOTH:   return <><TbArrowsRandom /> Both</>
         case MIRROR_METHOD.NONE:   return "Off"
         default: console.error(mirrorMethod, 'is not a valid mirror method');
+    }
+}
+
+export function ExtraButton({mainMenu=false}){
+    const [state, dispatch] = useContext(StateContext)
+
+    switch (state.extraButton) {
+        case 'copy image':
+            return <button onClick={() => dispatch({action: 'copy image'})}
+                className="menu-toggle-button-mobile extra-button bonus-button"
+                id='copy-button-extra'>
+                <MdOutlineFileCopy className={mainMenu ? "main-menu-icon" : 'main-menu-icon extra-icon'} />
+                {!mainMenu && <>Copy as<br/> Image</>}
+            </button>
+        // Home is the default
+        default:
+            return <button id='home-button-extra'
+                onClick={() => dispatch({action: "go home"})}
+                className="menu-toggle-button-mobile extra-button bonus-button"
+                title="Reset position and scale">
+                <MdHome className={mainMenu ? "main-menu-icon" : 'main-menu-icon extra-icon'}/> {!mainMenu && 'Home'}
+            </button>
     }
 }

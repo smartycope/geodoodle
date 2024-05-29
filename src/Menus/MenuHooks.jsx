@@ -4,7 +4,8 @@ import {StateContext} from "../Contexts";
 export function useAlignWithElement(id){
     const [state, ] = useContext(StateContext)
 
-    const to = document.querySelector("#" + id).getBoundingClientRect()
+    const to = document.querySelector("#" + id)?.getBoundingClientRect()
+    if (!to) return {}
 
     let style = {}
     switch (state.side) {

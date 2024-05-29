@@ -299,3 +299,19 @@ export function filterObjectByKeys(obj, keys) {
       return filteredObj;
     }, {});
   }
+
+
+export function extraSlots(state){
+    let sideLen
+    switch (state.side) {
+        case 'right':
+        case 'left':
+            sideLen = window.visualViewport.height
+            break
+        case 'bottom':
+        case 'top':
+            sideLen = window.visualViewport.width
+    }
+
+    return Math.floor((sideLen - 500) / 60)
+}

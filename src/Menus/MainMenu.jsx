@@ -24,8 +24,10 @@ import { GoMirror } from "react-icons/go";
 import { BsGrid3X3GapFill } from "react-icons/bs";
 import { MdOutlineTabUnselected } from "react-icons/md";
 import {ClipboardMenu, DeleteMenu, SelectMenu} from "./MiniControlsMenu";
-import {useContext} from "react";
+import {useContext, useState} from "react";
 import {StateContext} from "../Contexts";
+import {ExtraButton} from "./MenuUtils";
+import {extraSlots as _extraSlots} from "../utils";
 
 var tapHolding = false
 var touchHoldTimer = null
@@ -96,6 +98,8 @@ function DesktopMainMenu(){
 function MobileMainMenu(){
     const [state, dispatch] = useContext(StateContext)
     const {side} = state
+    const [, doReload] = useState()
+
     function undoOnTouchHold(){
         if (tapHolding){
             redid = true
@@ -118,6 +122,9 @@ function MobileMainMenu(){
         redid = false
     }
 
+    // Reload this component when the window resizes, so extraSlots updates
+    window.addEventListener('resize', doReload)
+
     let style = {}
     switch (side) {
         case 'right': style = {right: '0px'}
@@ -135,9 +142,11 @@ function MobileMainMenu(){
             }
     }
 
+    const extraSlots = _extraSlots(state)
+
     return <>
         <div id='menu-selector-mobile' style={style}>
-            <> {/*extra */}
+            {extraSlots < 5 && <> {/*extra */}
                 <button onClick={() => {dispatch({action: "menu", toggle: "extra"})}}
                     className="menu-toggle-button-mobile"
                     id="extra-menu-button"
@@ -148,7 +157,45 @@ function MobileMainMenu(){
                 > <BsGrid3X3GapFill className="main-menu-icon" />
                 </button>
                 {state.openMenus.extra && <ExtraMenu align="extra-menu-button"/>}
-            </>
+            </>}
+            {extraSlots >= 5 && <> {/*help */}
+                <button onClick={() => {dispatch({action: "menu", toggle: "help", close: "extra"})}}
+                    className="menu-toggle-button-mobile extra-button"
+                    style={{visibility: state.openMenus.main ? 'visible': "hidden"}}
+                > <MdHelp className="main-menu-icon"/>
+                </button>
+            </>}
+            {extraSlots >= 5 && <> {/*settings */}
+                <button onClick={() => {dispatch({action: "menu", toggle: "settings", close: "extra"})}}
+                    className="menu-toggle-button-mobile extra-button"
+                    style={{visibility: state.openMenus.main ? 'visible': "hidden"}}
+                > <IoMdSettings className="main-menu-icon"/>
+                </button>
+            </>}
+            {extraSlots >= 4 && <> {/*file */}
+                <button onClick={() => {dispatch({action: "menu", toggle: "file", close: "extra"})}}
+                    className="menu-toggle-button-mobile extra-button"
+                    style={{visibility: state.openMenus.main ? 'visible': "hidden"}}
+                > <FaSave className="main-menu-icon"/>
+                </button>
+            </>}
+            {extraSlots >= 3 && <> {/*extra button */}
+                <ExtraButton mainMenu={true}/>
+            </>}
+            {extraSlots >= 2 && <> {/*navigation */}
+                <button onClick={() => {dispatch({action: "menu", toggle: "navigation", close: "extra"})}}
+                    className="menu-toggle-button-mobile extra-button"
+                    style={{visibility: state.openMenus.main ? 'visible': "hidden"}}
+                > <RiNavigationFill className="main-menu-icon"/>
+                </button>
+            </>}
+            {extraSlots >= 1 && <> {/*repeat */}
+                <button onClick={() => {dispatch({action: "menu", toggle: "repeat", close: "extra"})}}
+                    className="menu-toggle-button-mobile extra-button"
+                    style={{visibility: state.openMenus.main ? 'visible': "hidden"}}
+                >   <MdDashboard className="main-menu-icon"/>
+                </button>
+            </>}
             <> {/*color */}
                 <button onClick={() => {dispatch({action: "menu", toggle: "color"})}}
                     className="menu-toggle-button-mobile"
