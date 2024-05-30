@@ -1,7 +1,6 @@
 import Paper from "./Paper";
 import tour from './Menus/tour.jsx';
 import Tour from "reactour";
-import {mobileAndTabletCheck} from "./utils";
 import {useState} from "react";
 import {localStorageTourTakenName} from "./globals";
 import {InTourContext} from "./Contexts.jsx";
@@ -14,7 +13,7 @@ window.oncontextmenu = () => false
 var steps
 var dispatch
 const setDispatch = to => {
-    steps = tour(to)[mobileAndTabletCheck() ? 'mobile' : 'desktop']
+    steps = tour(to)
     dispatch = to
 }
 

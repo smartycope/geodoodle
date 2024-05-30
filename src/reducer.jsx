@@ -502,6 +502,7 @@ export default function reducer(state, data){
                     help: false,
                     mirror: false,
                 },
+                side: 'top',
                 bounds: [
                     [6.05, 13.05],
                     [4.05, 9.05],
@@ -509,8 +510,8 @@ export default function reducer(state, data){
                 curLine: null,
                 dash: ['0', "20, 10", '0', '0', '0'],
                 colorProfile: 1,
-                mobile: true,
-                stroke: ['#000000', '#000000', '#ffddab', '#ff784b', '#1a31ff'],
+                // mobile: true,
+                stroke: ['#000000', '#000000', '#ddddab', '#ff784b', '#1a31ff'],
                 lines: [
                     <line key='dashed-line' id="dashed-line" {...{
                         "x1": 5.05 + 4,
