@@ -138,14 +138,15 @@ export function MirrorMethodIcon({mirrorMethod}){
     }
 }
 
-export function ExtraButton({mainMenu=false}){
+export function ExtraButton({mainMenu=false, style}){
     const [state, dispatch] = useContext(StateContext)
 
     switch (state.extraButton) {
         case 'copy image':
             return <button onClick={() => dispatch({action: 'copy image'})}
                 className="menu-toggle-button-mobile extra-button bonus-button"
-                id='copy-button-extra'>
+                id='copy-button-extra'
+                style={style}>
                 <MdOutlineFileCopy className={mainMenu ? "main-menu-icon" : 'main-menu-icon extra-icon'} />
                 {!mainMenu && <>Copy as<br/> Image</>}
             </button>
@@ -154,7 +155,8 @@ export function ExtraButton({mainMenu=false}){
             return <button id='home-button-extra'
                 onClick={() => dispatch({action: "go home"})}
                 className="menu-toggle-button-mobile extra-button bonus-button"
-                title="Reset position and scale">
+                title="Reset position and scale"
+                style={style}>
                 <MdHome className={mainMenu ? "main-menu-icon" : 'main-menu-icon extra-icon'}/> {!mainMenu && 'Home'}
             </button>
     }

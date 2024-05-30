@@ -158,6 +158,9 @@ function MobileMainMenu(){
                 </button>
                 {state.openMenus.extra && <ExtraMenu align="extra-menu-button"/>}
             </>}
+            {extraSlots >= 3 && <> {/*extra button */}
+                <ExtraButton mainMenu={true} style={{visibility: state.openMenus.main ? 'visible': "hidden"}}/>
+            </>}
             {extraSlots >= 5 && <> {/*help */}
                 <button onClick={() => {dispatch({action: "menu", toggle: "help", close: "extra"})}}
                     className="menu-toggle-button-mobile extra-button"
@@ -178,9 +181,6 @@ function MobileMainMenu(){
                     style={{visibility: state.openMenus.main ? 'visible': "hidden"}}
                 > <FaSave className="main-menu-icon"/>
                 </button>
-            </>}
-            {extraSlots >= 3 && <> {/*extra button */}
-                <ExtraButton mainMenu={true}/>
             </>}
             {extraSlots >= 2 && <> {/*navigation */}
                 <button onClick={() => {dispatch({action: "menu", toggle: "navigation", close: "extra"})}}

@@ -1,4 +1,4 @@
-export const version = '1.5.1'
+export const version = '1.6.0'
 export const MIRROR_AXIS = {
     NONE_0: 0,
     VERT_90: 90,
