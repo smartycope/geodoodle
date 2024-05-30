@@ -187,7 +187,8 @@ function DesktopRepeatMenu(){
     </div>
 }
 
-function MobileRepeatMenu({dispatch, state}){
+function MobileRepeatMenu(){
+    const [state, dispatch] = useContext(StateContext)
     const [leftOpen, setLeftOpen] = useState({
         Offset: false,
         Skip: false,
@@ -343,8 +344,9 @@ function MobileRepeatMenu({dispatch, state}){
     </div>
 }
 
-export default function RepeatMenu({dispatch, state}){
+export default function RepeatMenu(){
+    const [state, ] = useContext(StateContext)
     return state.mobile
-        ? <MobileRepeatMenu dispatch={dispatch} state={state}/>
-        : <DesktopRepeatMenu dispatch={dispatch} state={state}/>
+        ? <MobileRepeatMenu/>
+        : <DesktopRepeatMenu/>
 }
