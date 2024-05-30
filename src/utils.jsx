@@ -313,5 +313,9 @@ export function extraSlots(state){
             sideLen = window.visualViewport.width
     }
 
+    // Because the repeat menu is on the sides, if the repeat menu is open, make sure we're not on the side so we can close it again
+    if (state.openMenus.repeat && state.mobile && ['left', 'right'].includes(state.side))
+        sideLen = window.visualViewport.width
+
     return Math.floor((sideLen - 500) / 60)
 }

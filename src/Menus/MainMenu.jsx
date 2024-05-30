@@ -144,6 +144,13 @@ function MobileMainMenu(){
 
     const extraSlots = _extraSlots(state)
 
+    // Because the repeat menu is on the sides, if the repeat menu is open, make sure we're not on the side so we can close it again
+    if (state.openMenus.repeat && state.mobile && ['left', 'right'].includes(side))
+        style = {
+            flexDirection: 'row',
+            width: '93%',
+        }
+
     return <>
         <div id='menu-selector-mobile' style={style}>
             {extraSlots < 5 && <> {/*extra */}

@@ -1,6 +1,5 @@
 import "../styling/ExtraMenu.css"
 import { FaSave } from "react-icons/fa";
-import { MdHome, MdOutlineFileCopy } from "react-icons/md";
 import { MdDashboard } from "react-icons/md";
 import { MdHelp } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
@@ -11,16 +10,28 @@ import {useAlignWithElement} from "./MenuHooks";
 import {ExtraButton} from "./MenuUtils";
 import {extraSlots as _extraSlots} from "../utils";
 
-// Only made for mobile
 export default function ExtraMenu({align}){
     const [state, dispatch] = useContext(StateContext)
-    const style = useAlignWithElement(align)
 
+    let alignStyle = useAlignWithElement(align)
     const extraSlots = _extraSlots(state)
 
-    return <div id='extra-menu' style={{...style,
-            transform: (['left', 'right'].includes(state.side) && extraSlots < 3) ? 'translate(0px, -50%)': undefined,
-        }}>
+    let style = alignStyle
+
+    if (['left', 'right'].includes(state.side) && extraSlots < 3)
+        style = {...alignStyle,
+            transform: 'translateY(-50%)'
+        }
+
+    // Because the repeat menu is on the sides, if the repeat menu is open, make sure we're not on the side so we can close it again
+    // I'm not entirely sure why it's 25%, but it works
+    if (state.openMenus.repeat && state.mobile && ['left', 'right'].includes(state.side))
+        style = {...alignStyle,
+            transform: 'translateY(25%)',
+            left: 0,
+        }
+
+    return <div id='extra-menu' style={style}>
         {extraSlots < 2 && <button onClick={() => {dispatch({action: "menu", toggle: "navigation", close: "extra"})}}
             className="menu-toggle-button-mobile extra-button"
             style={{visibility: state.openMenus.main ? 'visible': "hidden"}}
