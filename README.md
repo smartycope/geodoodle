@@ -17,6 +17,9 @@ This project is an attempt to recreate the experience of doodling on graph paper
 - To deploy: `npm run deploy`.
 - To run tests: `npm test`.
 
+## Documentation
+For developer documentation, see the [dev_docs folder](dev_docs).
+
 ## History
 I've always liked doodling on graph paper. I like making interesting patterns by drawing lines between the intersections. This is basically automated graph paper.
 
