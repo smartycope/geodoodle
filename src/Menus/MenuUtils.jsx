@@ -119,14 +119,14 @@ export function MirrorAxisIcon({mirrorAxis, mirrorMethod}){
     }
 }
 
-export function MirrorTypeIcon({mirrorType}){
-    switch(mirrorType){
-        case MIRROR_TYPE.CURSOR: return <><RiCursorFill /> Cursor</>
-        case MIRROR_TYPE.PAGE:   return <><MdInsertPageBreak /> Page</>
-        case MIRROR_TYPE.NONE:   return "Off"
-        default: console.error(mirrorType, 'is not a valid mirror type');
-    }
-}
+// export function MirrorTypeIcon({mirrorType}){
+//     switch(mirrorType){
+//         case MIRROR_TYPE.CURSOR: return <><RiCursorFill /> Cursor</>
+//         case MIRROR_TYPE.PAGE:   return <><MdInsertPageBreak /> Page</>
+//         case MIRROR_TYPE.NONE:   return "Off"
+//         default: console.error(mirrorType, 'is not a valid mirror type');
+//     }
+// }
 
 export function MirrorMethodIcon({mirrorMethod}){
     switch(mirrorMethod){

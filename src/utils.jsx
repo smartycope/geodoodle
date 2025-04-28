@@ -144,7 +144,7 @@ export function createLine(state, props, translate=true, scale=true, exact=false
 
 // This calculates commonly used values that shouldn't be in the state because they can be derived from values in the state.
 export function calc(state){
-    const {scalex, scaley, translationx, translationy, bounds, cursorPos, mirrorType, curLine} = state
+    const {scalex, scaley, translationx, translationy, bounds, cursorPos, mirrorPos, curLine} = state
     const offsetx = translationx % scalex
     const offsety = translationy % scaley
 
@@ -183,13 +183,21 @@ export function calc(state){
             (cursorPos[0] - translationx) / scalex,
             (cursorPos[1] - translationy) / scaley,
         ],
+        // A list of [x, y]
+        // Coord: relative, scaled
+        relMirrorPos: mirrorPos ? [
+            (mirrorPos[0] - translationx) / scalex,
+            (mirrorPos[1] - translationy) / scaley,
+        ] : null,
         // Numbers
         // Coord: relative, scaled
         scaledTranslationx: scaledTranslationx,
         scaledTranslationy: scaledTranslationy,
         // Coord: absolute, not scaled
-        mirrorOriginx: mirrorType === MIRROR_TYPE.PAGE ? alignedHalf[0] : curLine?.x1,
-        mirrorOriginy: mirrorType === MIRROR_TYPE.PAGE ? alignedHalf[1] : curLine?.y1,
+        // mirrorOriginx: mirrorType === MIRROR_TYPE.PAGE ? alignedHalf[0] : curLine?.x1,
+        // mirrorOriginy: mirrorType === MIRROR_TYPE.PAGE ? alignedHalf[1] : curLine?.y1,
+        mirrorOriginx: mirrorPos ? mirrorPos[0] : null,
+        mirrorOriginy: mirrorPos ? mirrorPos[1] : null,
         // Because the cursor is at the center (ish) of the clipboard, instead of the top left
         // Coord: absolute, not scaled
         clipx: bounds.length > 1 ? cursorPos[0] - Math.floor((right-left) / 2) * scalex : null,
@@ -262,13 +270,13 @@ export function incrementMirrorAxis(mirrorAxis, none=false){
     }
 }
 
-export function incrementMirrorType(mirrorType, none=false){
-    switch (mirrorType){
-        case MIRROR_TYPE.PAGE:  return MIRROR_TYPE.CURSOR
-        case MIRROR_TYPE.CURSOR: return none ? MIRROR_TYPE.NONE : MIRROR_TYPE.PAGE
-        default: return MIRROR_TYPE.PAGE
-    }
-}
+// export function incrementMirrorType(mirrorType, none=false){
+//     switch (mirrorType){
+//         case MIRROR_TYPE.PAGE:  return MIRROR_TYPE.CURSOR
+//         case MIRROR_TYPE.CURSOR: return none ? MIRROR_TYPE.NONE : MIRROR_TYPE.PAGE
+//         default: return MIRROR_TYPE.PAGE
+//     }
+// }
 
 export function incrementMirrorMethod(mirrorMethod, none=false){
     switch (mirrorMethod){

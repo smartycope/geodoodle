@@ -48,10 +48,9 @@ export default function reducer(state, data){
         lines,
         curLine,
         bounds,
-        mirroring,
+        mirrorPos,
         mirrorAxis,
         mirrorAxis2,
-        mirrorType,
         hideDots,
         mirrorMethod,
         eraser,
@@ -96,7 +95,12 @@ export default function reducer(state, data){
             const newPos = align(state, data.x, data.y)
             if (JSON.stringify(newPos) !== JSON.stringify(cursorPos))
                 setTapHolding(false)
-            return {...state, cursorPos: newPos, debug_rawCursorPos: [data.x, data.y]}
+            return {...state,
+                cursorPos: newPos,
+                debug_rawCursorPos: [data.x, data.y],
+                // If the mirror menu is open, set the mirrorPos to the cursorPos
+                mirrorPos: openMenus.mirror ? newPos : mirrorPos,
+            }
         case 'key press': // args: event
             // If it's just a modifier key, don't do anything (it'll falsely trigger things)
             if (['Shift', 'Meta', 'Control', 'Alt'].includes(data.event.key))
@@ -166,7 +170,7 @@ export default function reducer(state, data){
         case 'up':              return {...state, cursorPos: [cursorPos[0], cursorPos[1] - scaley]}
         case 'down':            return {...state, cursorPos: [cursorPos[0], cursorPos[1] + scaley]}
         // Destruction Actions
-        case 'clear':           return {...state, lines: [], bounds: [], openMenus: {...openMenus, delete: false}}
+        case 'clear':           return {...state, lines: [], bounds: [], openMenus: {...openMenus, delete: false}, mirrorPos: null}
         case 'clear bounds':    return {...state, bounds: []}
         case 'delete selected':
             return {...state,
@@ -185,6 +189,8 @@ export default function reducer(state, data){
                 return {...state, bounds: removePoint(bounds, relCursorPos)}
             else if (curLine)
                 return {...state, curLine: null}
+            else if (relCursorPos === mirrorPos)
+                return {...state, mirrorPos: null}
              else
                 return {...state,
                     lines: eraser ? (lines.filter(i => !((
@@ -205,21 +211,24 @@ export default function reducer(state, data){
                 return {...state, curLine: null}
             else if (clipboard)
                 return {...state, clipboard: null, clipboardMirrorAxis: null, clipboardRotation: 0}
+            else if (relCursorPos === mirrorPos)
+                return {...state, mirrorPos: null}
             // else if (bounds.length >= 2)
             //     return reducer(state, {action: 'delete selected'})
             else {
                 var points = []
-                if (mirroring || openMenus.mirror){
+                // if (mirroring || openMenus.mirror){
+                if (mirrorPos){
                     // points = getStateMirrored(state, () => ({x: cursorPos[0], y: cursorPos[1]}), true)
                     // TODO: the 0 here doesn't work, I don't know why.
-                    const originx = mirrorType === MIRROR_TYPE.PAGE ? halfx : cursorPos[0]
-                    const originy = mirrorType === MIRROR_TYPE.PAGE ? halfy : cursorPos[1]
+                    // const originx = mirrorType === MIRROR_TYPE.PAGE ? halfx : cursorPos[0]
+                    // const originy = mirrorType === MIRROR_TYPE.PAGE ? halfy : cursorPos[1]
                     points = getMirrored(
                         mirrorMethod,
                         mirrorAxis,
                         mirrorAxis2,
-                        originx,
-                        originy,
+                        mirrorPos[0],
+                        mirrorPos[1],
                         () => ({x: cursorPos[0], y: cursorPos[1]}),
                         applyManualRotation,
                         applyManualFlip,
@@ -250,7 +259,10 @@ export default function reducer(state, data){
 
         // Creation actions
         case 'add line':
-            if (clipboard && !mobile)
+            if (openMenus.mirror){
+                return reducer(state, {action: 'menu', close: 'mirror'})
+            }
+            else if (clipboard && !mobile)
                 return {...reducer(state, {action: 'paste'}),
                     clipboard:           data.continue ? clipboard           : null,
                     clipboardMirrorAxis: data.continue ? clipboardMirrorAxis : null,
@@ -263,7 +275,8 @@ export default function reducer(state, data){
 
                 var newLines = []
                 if (curLine != null){
-                    if (mirroring || openMenus.mirror){
+                    // if (mirroring || openMenus.mirror){
+                    if (mirrorPos){
                         const start = getStateMirrored(state, () => ({x: curLine.x1, y: curLine.y1}), true)
                         const end = getStateMirrored(state, () => ({x: cursorPos[0], y: cursorPos[1]}), true)
                         for (let i = 0; i < start.length; i++){
@@ -600,6 +613,8 @@ export default function reducer(state, data){
                 openMenus: {...copy},
                 // If we close the repeat menu, and we have dots turned off, turn them back on
                 hideDots: !(openMenus.repeat && !copy.repeat) && hideDots,
+                // If we open the mirror menu, cancel any current line
+                curLine: copy.mirror ? null : curLine,
             }
         }
         case "debug":

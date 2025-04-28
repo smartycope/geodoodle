@@ -115,11 +115,13 @@ export default function Paper({setDispatch}) {
         trellisRotate: defaultTrellisControl(MIRROR_AXIS.NONE_0),
         hideDots: false,
 
-        mirroring: false,
+        // [x, y] or null
+        // Coord: relative, scaled
+        mirrorPos: null,
         mirrorAxis: MIRROR_AXIS.VERT_90,
         // The second one is only used when mirrorMethod == BOTH, and it used for the Rotation one
         mirrorAxis2: MIRROR_AXIS.BOTH_360,
-        mirrorType: MIRROR_TYPE.PAGE,
+        // mirrorType: MIRROR_TYPE.PAGE,
         mirrorMethod: MIRROR_METHOD.FLIP,
 
         // Coord: absolute, not scaled
@@ -190,15 +192,14 @@ export default function Paper({setDispatch}) {
         bounds,
         clipboardRotation,
         clipboardMirrorAxis,
+        mirrorPos,
         mirrorAxis,
-        mirrorType,
         mirrorMethod,
         trellis,
         eraser,
         clipboard,
         translationx,
         translationy,
-        mirroring,
         scalex,
         scaley,
         debug,
@@ -214,6 +215,7 @@ export default function Paper({setDispatch}) {
         halfy,
         boundRect,
         relCursorPos,
+        relMirrorPos,
         clipx, clipy,
     } = calc(state)
 
@@ -472,7 +474,8 @@ export default function Paper({setDispatch}) {
     // Get the mirrored current lines
     var curLines = []
     var clip = []
-    if (mirroring || openMenus.mirror){
+    // if (mirroring || openMenus.mirror){
+    if (mirrorPos){
         const trellisTransformations = getStateMirrored(state, () => '', false)
         curLines = trellisTransformations.map((transformation, i) => <line
             x1={curLine?.x1}
@@ -521,15 +524,16 @@ export default function Paper({setDispatch}) {
     // Get the mirror guide lines
     let mirrorLines = []
 
-    if (mirrorType === MIRROR_TYPE.PAGE && (mirroring || openMenus.mirror)){
+    // if (mirrorType === MIRROR_TYPE.PAGE && (mirroring || openMenus.mirror)){
+    if (mirrorPos){
         if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH){
             if ((mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360))
-                mirrorLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
+                mirrorLines.push(<line x1={mirrorPos[0]} y1={0} x2={mirrorPos[0]} y2="100%" stroke={options.mirrorColor}/>)
             if ((mirrorAxis === MIRROR_AXIS.HORZ_180 || mirrorAxis === MIRROR_AXIS.BOTH_360))
-                mirrorLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor}/>)
+                mirrorLines.push(<line x1={0} y1={mirrorPos[1]} x2="100%" y2={mirrorPos[1]} stroke={options.mirrorColor}/>)
         }
         if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
-            mirrorLines.push(<circle cx={halfx} cy={halfy} r={scalex/3} fill={options.mirrorColor} opacity={.8} strokeOpacity="0"/>)
+            mirrorLines.push(<circle cx={mirrorPos[0]} cy={mirrorPos[1]} r={scalex/3} fill={options.mirrorColor} opacity={.8} strokeOpacity="0"/>)
     }
 
     // Drawing the currently selecting bound rect (when theres only 1 bound)
@@ -541,38 +545,45 @@ export default function Paper({setDispatch}) {
     } : boundRect
 
     // Construct the cursor (internal mirror lines, etc)
-    let cursor = [<circle
-            cx={cursorPos[0]}
-            cy={cursorPos[1]}
-            r={scalex / 3}
-            stroke={options.cursorColor}
-            fill={options.mirrorColor}
-            // Make it filled if we're cursor rotating
-            fillOpacity={Number(
-                (mirroring || openMenus.mirror) &&
-                mirrorType === MIRROR_TYPE.CURSOR &&
-                [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
-            }
-            key='cursor'
-        />,
-        // To add a shadow to the cursor
-        // <circle
-        //     cx={cursorPos[0]+3}
-        //     cy={cursorPos[1]+2}
-        //     r={scalex / 3}
-        //     stroke={'gray'}
-        //     alpha=".8"
-        //     fill={options.mirrorColor}
-        //     // Make it filled if we're cursor rotating
-        //     fillOpacity={Number(
-        //         (mirroring || openMenus.mirror) &&
-        //         mirrorType === MIRROR_TYPE.CURSOR &&
-        //         [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
-        //     }
-        //     key='cursor-shadow'
-        // />]
-    ]
-    if ((mirroring || openMenus.mirror) && mirrorType === MIRROR_TYPE.CURSOR){
+    let cursor
+    if (openMenus.mirror){
+        cursor = []
+    }
+    else{
+        cursor = [<circle
+                cx={cursorPos[0]}
+                cy={cursorPos[1]}
+                r={scalex / 3}
+                stroke={options.cursorColor}
+                fill={options.mirrorColor}
+                // Make it filled if we're cursor rotating
+                fillOpacity={Number(
+                    mirrorPos &&
+                    // mirrorType === MIRROR_TYPE.CURSOR &&
+                    [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
+                }
+                key='cursor'
+            />,
+            // To add a shadow to the cursor
+            // <circle
+            //     cx={cursorPos[0]+3}
+            //     cy={cursorPos[1]+2}
+            //     r={scalex / 3}
+            //     stroke={'gray'}
+            //     alpha=".8"
+            //     fill={options.mirrorColor}
+            //     // Make it filled if we're cursor rotating
+            //     fillOpacity={Number(
+            //         (mirroring || openMenus.mirror) &&
+            //         mirrorType === MIRROR_TYPE.CURSOR &&
+            //         [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
+            //     }
+            //     key='cursor-shadow'
+            // />]
+        ]
+    }
+    // if ((mirroring || openMenus.mirror) && mirrorType === MIRROR_TYPE.CURSOR){
+    if (mirrorPos){
         if ([MIRROR_METHOD.FLIP, MIRROR_METHOD.BOTH].includes(mirrorMethod)){
             if ([MIRROR_AXIS.HORZ_180, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
                 cursor.push(<line
@@ -746,7 +757,13 @@ export default function Paper({setDispatch}) {
                 </foreignObject>}
 
                 {/* Draw the mirror lines */}
-                {mirrorType === MIRROR_TYPE.PAGE && mirrorLines}
+                {/* {mirrorType === MIRROR_TYPE.PAGE && mirrorLines} */}
+                <g transform={`
+                    translate(${translationx}, ${translationy})
+                    scale(${scalex}, ${scaley})
+                `}>
+                    {mirrorPos && mirrorLines}
+                </g>
 
                 {/* Draw the eraser placeholder */}
                 {eraser && [

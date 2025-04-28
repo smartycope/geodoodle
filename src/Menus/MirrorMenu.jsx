@@ -1,8 +1,8 @@
 import {useContext, useEffect} from "react";
 import { MIRROR_METHOD } from "../globals";
 import { FaGripLinesVertical } from "react-icons/fa6";
-import {incrementMirrorAxis, incrementMirrorMethod, incrementMirrorType} from "../utils";
-import {Checkbox, MirrorAxisIcon, MirrorMethodIcon, MirrorTypeIcon} from "./MenuUtils";
+import {incrementMirrorAxis, incrementMirrorMethod} from "../utils";
+import {Checkbox, MirrorAxisIcon, MirrorMethodIcon} from "./MenuUtils";
 import "../styling/MirrorMenu.css"
 import {StateContext} from "../Contexts";
 import {useAlignWithElement} from "./MenuHooks";
@@ -83,16 +83,16 @@ function DesktopMirrorMenu(){
         }
     }, [])
 
-    const {mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2} = state
+    const {mirrorMethod, mirrorAxis, mirrorAxis2} = state
 
     return <span id="mirror-menu-desktop" className="button-group">
-        <button
+        {/* <button
             id='mirror-type'
             title='Toggle mirror type'
             onClick={() => dispatch({mirrorType: incrementMirrorType(mirrorType)})}
         >
             <MirrorTypeIcon mirrorType={state.mirrorType}/>
-        </button>
+        </button> */}
         <button
             id='mirror-method'
             title='Toggle mirror method'
@@ -126,19 +126,19 @@ function DesktopMirrorMenu(){
 function MobileMirrorMenu({align}){
     const [state, dispatch] = useContext(StateContext)
     const style = useAlignWithElement(align)
-    const {mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2, mirroring} = state
+    const {mirrorPos, mirrorMethod, mirrorAxis, mirrorAxis2} = state
 
     return <span id="mirror-menu-mobile" className="main-mobile-sub-menu" style={style}>
         {/* Enabled */}
-        <Checkbox id='mirror-enabled' checked={mirroring} onChange={() => dispatch({mirroring: !mirroring})} label={"Enabled:"} backwards={true}/>
-        Type
+        {/* <Checkbox id='mirror-enabled' checked={mirroring} onChange={() => dispatch({mirroring: !mirroring})} label={"Enabled:"} backwards={true}/> */}
+        {/* Type
         <button
             id='mirror-type'
             title='Toggle mirror type'
             onClick={() => dispatch({mirrorType: incrementMirrorType(mirrorType)})}
         >
             <MirrorTypeIcon mirrorType={state.mirrorType}/>
-        </button>
+        </button> */}
         Method
         <button
             id='mirror-method'

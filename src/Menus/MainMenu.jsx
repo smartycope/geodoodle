@@ -235,7 +235,7 @@ function MobileMainMenu(){
                     style={{
                         visibility: state.openMenus.main ? 'visible': "hidden",
                         pointerEvents: state.openMenus.main ? 'all' : 'none',
-                        backgroundColor: state.mirroring ? "gray" : "transparent"
+                        backgroundColor: state.mirrorPos ? "gray" : "transparent"
                     }}
                 >   <MdUndo className="main-menu-icon"/>
                 </button>
@@ -247,7 +247,7 @@ function MobileMainMenu(){
                     style={{
                         visibility: state.openMenus.main ? 'visible': "hidden",
                         pointerEvents: state.openMenus.main ? 'all' : 'none',
-                        backgroundColor: state.mirroring ? "gray" : "transparent"
+                        backgroundColor: state.mirrorPos ? "gray" : "transparent"
                     }}
                 > <GoMirror className="main-menu-icon"/>
                 </button>

@@ -169,7 +169,7 @@ export const preservable = [
     "bounds",
     "mirrorAxis",
     "mirrorAxis2",
-    "mirrorType",
+    // "mirrorType",
     "mirrorMethod",
     "trellis",
     "translationx",
