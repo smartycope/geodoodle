@@ -11,6 +11,7 @@ This project is hosted at [https://smartycope.org/geodoodle](https://smartycope.
 This project is an attempt to recreate the experience of doodling on graph paper. Unlike a traditional drawing program, you can't draw whatever lines you want, it's intentionally constrainted to only allow drawing lines between the intersections of the graph paper.
 
 ## Running
+- To install dependancies and setup locally: `npm install`.
 - To run normally: `npm start`.
 - To run in development mode: `npm run dev`.
 - To build: `npm run build`.

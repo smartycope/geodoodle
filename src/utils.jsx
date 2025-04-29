@@ -2,10 +2,16 @@ import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE} from "./globals";
 import { selected } from "./globals";
 
 export const hashPoint = ([x, y]) => `${x}${y}`
+export const pointIn = (points, point) => points.map(hashPoint).includes(hashPoint(point))
+export const removePoint = (points, point) => points.filter(i => hashPoint(i) !== hashPoint(point))
+export const hashLine = line => JSON.stringify(line.props)
+export const lineIn = (lines, line) => lines.map(hashLine).includes(hashLine(line))
+export const removeLine = (lines, line) => lines.filter(i => hashLine(i) !== hashLine(line))
 // If the visual viewport is not available, assume we're in a testing environment
 export const viewportWidth = () => window.visualViewport?.width || 1024
 export const viewportHeight = () => window.visualViewport?.height || 768
 
+// Returns true if the two points are within thresh of each other
 export function pointEq({scalex, scaley}, pointa, pointb, thresh=undefined, rescalea=false){
     if (!thresh)
         thresh = scalex / 3
@@ -20,14 +26,8 @@ export function pointEq({scalex, scaley}, pointa, pointb, thresh=undefined, resc
 
 }
 
-export const hashLine = line => JSON.stringify(line.props)
-export function lineIn(lines, line){
-    return lines.map(hashLine).includes(hashLine(line))
-}
-export function removeLine(lines, line){
-    return lines.filter(i => hashLine(i) !== hashLine(line))
-}
-
+// Returns the point aligned to the grid
+// TODO: Specify the coordinate system here
 export function align(state, x, y){
     const {scalex, scaley, translationx, translationy} = state
     return [
@@ -35,7 +35,6 @@ export function align(state, x, y){
         (Math.round((y - translationy) / scaley) * scaley) + translationy + 1,
     ]
 }
-
 
 // This holds the "pure" lines of the selection: When repeating, it's rather difficult to get the lines, so instead we
 // remember the lines used to make the pattern, don't update them while we're repeating, and add to them as we make more
@@ -108,12 +107,16 @@ export function getSelected(state, filter=null){
 }
 
 // *All* permenant lines are made using this funciton
+// props: additional properties to pass to <line>
+// translate: whether to translate the line
+// scale: whether to scale the line
+// exact: whether to automatically add colors and strokes and such, or to only use the props given
 export function createLine(state, props, translate=true, scale=true, exact=false){
     const {translationx, translationy, stroke, strokeWidth, dash, scalex, scaley, lineCap, lineJoin, colorProfile} = state
 
     // TODO: figure how to avoid this
-    // TODO: and also not create duplicate lines
-    // If it doesn't have any length, don't make a new line, just skip it
+    // TODO: and also not create duplicate lines - maybe
+    // If it doesn't have any Containslength, don't make a new line, just skip it
     if (props.x1 === props.x2 && props.y1 === props.y2)
         return <line />
 
@@ -246,7 +249,7 @@ export const multMat = (A, B) =>
         )
     )
 
-    export function toRadians (angle) {
+export function toRadians (angle) {
     return angle * (Math.PI / 180);
 }
 
