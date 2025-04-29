@@ -232,7 +232,8 @@ export default function reducer(state, data){
                 points = points.map(i => [(i.x - translationx) / scalex, (i.y - translationy) / scaley])
 
                 return {...state, lines: (lines.filter(i =>
-                    !(pointIn(points, [i.props.x1, i.props.y1]) || pointIn(points, [i.props.x2, i.props.y2]))
+                    // thresh is 0.5 because the points are scaled
+                    !(pointIn(points, [i.props.x1, i.props.y1], .5) || pointIn(points, [i.props.x2, i.props.y2], .5))
                 )), deleteme: points}
             }
 
@@ -602,8 +603,13 @@ export default function reducer(state, data){
                 hideDots: !(openMenus.repeat && !copy.repeat) && hideDots,
             }
         }
-        case "debug":
+        case "debug": {
+            console.log('cursorPos', cursorPos)
+            console.log('relCursorPos', relCursorPos)
+            console.log('lines', lines)
+            // console.log('curLine', curLine)
             return state
+        }
         default:
             console.warn(`Unknown action: ${data.action}`)
             return state

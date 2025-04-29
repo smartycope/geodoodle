@@ -1,14 +1,15 @@
 import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE} from "./globals";
 import { selected } from "./globals";
 
-export const hashPoint = ([x, y]) => `${x}${y}`
-export const pointIn = (points, point) => points.map(hashPoint).includes(hashPoint(point))
+export const hashPoint   = ([x, y])        => `${x}${y}`
+export const pointIn     = (points, point, thresh=0) => points.map(i => pointEq({scalex: null, scaley: null}, i, point, thresh)).includes(true)
 export const removePoint = (points, point) => points.filter(i => hashPoint(i) !== hashPoint(point))
-export const hashLine = line => JSON.stringify(line.props)
-export const lineIn = (lines, line) => lines.map(hashLine).includes(hashLine(line))
-export const removeLine = (lines, line) => lines.filter(i => hashLine(i) !== hashLine(line))
+export const hashLine    = line            => JSON.stringify(line.props)
+// export const hashLine    = line            => `${hashPoint([line.props.x1, line.props.y1])}${hashPoint([line.props.x2, line.props.y2])}`
+export const lineIn      = (lines, line)   => lines.map(hashLine).includes(hashLine(line))
+export const removeLine  = (lines, line)   => lines.filter(i => hashLine(i) !== hashLine(line))
 // If the visual viewport is not available, assume we're in a testing environment
-export const viewportWidth = () => window.visualViewport?.width || 1024
+export const viewportWidth  = () => window.visualViewport?.width || 1024
 export const viewportHeight = () => window.visualViewport?.height || 768
 
 // Returns true if the two points are within thresh of each other
@@ -106,7 +107,7 @@ export function getSelected(state, filter=null){
     }
 }
 
-// *All* permenant lines are made using this funciton
+// *All* permanent lines are made using this function
 // props: additional properties to pass to <line>
 // translate: whether to translate the line
 // scale: whether to scale the line
@@ -118,7 +119,7 @@ export function createLine(state, props, translate=true, scale=true, exact=false
     // TODO: and also not create duplicate lines - maybe
     // If it doesn't have any Containslength, don't make a new line, just skip it
     if (props.x1 === props.x2 && props.y1 === props.y2)
-        return <line />
+        return <line key={`${props.x1}${props.y1}`}/>
 
     const adjProps = {
         ...props,
