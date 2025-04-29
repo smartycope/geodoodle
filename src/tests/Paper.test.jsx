@@ -55,16 +55,40 @@ describe('Paper interactions', () => {
   });
   
   // This works... I don't think it should?...
-  test('can delete line after scaling', () => {
+  test('can delete line after scaling in', () => {
     const { container, paper } = renderPaper();
     createLine(paper);
+    // Make sure the lines right next to it still exists
+    createLine(paper, 120, 100, 200, 200);
+    createLine(paper, 100, 120, 200, 200);
+    createLine(paper, 100, 80, 300, 200);
+    createLine(paper, 80, 100, 300, 200);
+    // Make sure we scale about the right point
+    mouseMove(paper, 100, 100);
     // Sanity check
-    expect(getLines(container).length).toBe(1);
-    
-    scroll(paper, -100, 0, {ctrlKey: true});
+    expect(getLines(container).length).toBe(5);
+    scroll(paper, -300, 0, {ctrlKey: true});
     // Delete the line
     mouseClick(getLines(container)[0], 0, 0, 1);
-    expect(getLines(container).length).toBe(0);
+    expect(getLines(container).length).toBe(4);
+  });
+
+  test('can delete line after scaling out', () => {
+    const { container, paper } = renderPaper();
+    createLine(paper);
+    // Make sure the lines right next to it still exists
+    createLine(paper, 120, 100, 200, 200);
+    createLine(paper, 100, 120, 200, 200);
+    createLine(paper, 100, 80, 300, 200);
+    createLine(paper, 80, 100, 300, 200);
+    // Make sure we scale about the right point
+    mouseMove(paper, 100, 100);
+    // Sanity check
+    expect(getLines(container).length).toBe(5);
+    scroll(paper, 300, 0, {ctrlKey: true});
+    // Delete the line
+    mouseClick(getLines(container)[0], 0, 0, 1);
+    expect(getLines(container).length).toBe(4);
   });
 
   // Test that using right click continues making new lines
