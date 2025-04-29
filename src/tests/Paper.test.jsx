@@ -1,67 +1,26 @@
-import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import Paper from '../Paper';
-import fs from 'fs';
+import defaultOptions from '../options';
+
 // import "../styling/App.css"
 import "../styling/index.css"
 import "../utils"
-
-// Helper to find SVG lines
-function getLines(container) {
-  return container.querySelectorAll('#lines > line');
-}
-
-// Helper to simulate ctrl+scroll (wheel event)
-function ctrlScroll(target, deltaY = -100) {
-  fireEvent.wheel(target, { ctrlKey: true, deltaY });
-}
-
-// These should be 1 function with a parameter, but parameters stopped working???
-function mouseMove(paper, x, y, props={}) {
-  const rect = paper.getBoundingClientRect();
-  fireEvent.mouseMove(paper, { clientX: x + rect.left, clientY: y + rect.top, ...props});
-}
-
-function mouseDown(paper, x, y, button=0, props={}) {
-  const rect = paper.getBoundingClientRect();
-  fireEvent.mouseDown(paper, { clientX: x + rect.left, clientY: y + rect.top, button, ...props });
-}
-
-function mouseUp(paper, x, y, button=0, props={}) {
-  const rect = paper.getBoundingClientRect();
-  fireEvent.mouseUp(paper, { clientX: x + rect.left, clientY: y + rect.top, button, ...props });
-}
-
-function mouseClick(paper, x, y, button=0, props={}) {
-  mouseDown(paper, x, y, button, props);
-  mouseUp(paper, x, y, button, props);
-}
-
-function createLine(paper, x1=100, y1=100, x2=200, y2=200) {
-  mouseMove(paper, x1, y1);
-  mouseClick(paper, x1, y1);
-  mouseMove(paper, x2, y2);
-  mouseClick(paper, x2, y2);
-}
-
-// For debugging tests, so I can just *look* at it and see what's going on
-function saveHtml(container) {
-  const fullHtml = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rendered Component</title>
-    <link rel="stylesheet" href="src/styling/index.css">
-</head>
-<body>
-    <div id="root">${container.innerHTML}</div>
-</body>
-</html>
-`;
-  fs.writeFileSync('test.html', fullHtml);
-}
+import { getLines, 
+  getCurLines, 
+  getBounds, 
+  scroll, 
+  mouseMove, 
+  mouseDown, 
+  mouseUp, 
+  getMatrixValues,
+  mouseClick, 
+  createLine, 
+  press, 
+  mouseClickOn,
+  saveHtml, 
+  renderPaper, 
+  getSelectionRect,
+} from "../tests/testUtils.js"
 
 // In between each tests, reset the localStorage
 beforeEach(() => {
@@ -70,10 +29,7 @@ beforeEach(() => {
 
 describe('Paper interactions', () => {
   test('creates line by clicking two points', () => {
-    const { container } = render(<Paper setDispatch={() => {}} />);
-    const paper = container.querySelector('#paper');
-
-    mouseMove(paper, 100, 100);
+    const { container, paper } = renderPaper();
     mouseClick(paper, 100, 100)
     mouseMove(paper, 200, 200);
     mouseClick(paper, 200, 200)
@@ -82,10 +38,8 @@ describe('Paper interactions', () => {
   });
 
   test('creates line by click and drag', () => {
-    const { container } = render(<Paper setDispatch={() => {}} />);
-    const paper = container.querySelector('#paper');
+    const { container, paper } = renderPaper();
     // Click and drag from (100,100) to (200,200)
-    mouseMove(paper, 100, 100);
     mouseDown(paper, 100, 100);
     mouseMove(paper, 150, 150, {buttons: 1});
     mouseUp(paper, 200, 200);
@@ -95,23 +49,92 @@ describe('Paper interactions', () => {
   });
   
   test('Ensure localstorage is cleared', () => {
-    const { container } = render(<Paper setDispatch={() => {}} />);
-    const paper = container.querySelector('#paper');
+    const { container } = renderPaper();
     createLine(paper);
     expect(getLines(container).length).toBe(1);
   });
   
   // This works... I don't think it should?...
   test('can delete line after scaling', () => {
-    const { container } = render(<Paper setDispatch={() => {}} />);
-    const paper = container.querySelector('#paper');
+    const { container, paper } = renderPaper();
     createLine(paper);
     // Sanity check
     expect(getLines(container).length).toBe(1);
     
-    ctrlScroll(paper);
+    scroll(paper, -100, 0, {ctrlKey: true});
     // Delete the line
     mouseClick(getLines(container)[0], 0, 0, 1);
     expect(getLines(container).length).toBe(0);
   });
+
+  // Test that using right click continues making new lines
+  test('right click continues lines', () => {
+    const { container, paper } = renderPaper();
+    mouseClick(paper, 100, 100)
+    mouseMove(paper, 200, 200);
+    mouseClick(paper, 200, 200, 2)
+    expect(getLines(container).length).toBe(1);
+    expect(getCurLines(container).length).toBe(1);
+    mouseMove(paper, 200, 300);
+    mouseClick(paper, 200, 300)
+    expect(getLines(container).length).toBe(2);
+  });
+
+  // Test that pressing b adds a bound
+  test('b adds a bound', () => {
+    const { container, paper } = renderPaper();
+    press(paper, 'b')
+    expect(getBounds(container).length).toBe(1);
+  });
+
+  // Test that making multiple bounds creates a selection rect
+  test('multiple bounds create a selection rect', () => {
+    const { container, paper } = renderPaper();
+    press(paper, 'b')
+    mouseMove(paper, 350, 300)
+    press(paper, 'b')
+    expect(getBounds(container).length).toBe(2);
+    expect(getSelectionRect(container)).not.toBeNull();
+  });
+
+  // Test all the scroll events (regular translates vertically, shift translates horizontally, ctrl scales)
+  test('scroll translates vertically', () => {
+    const { container, paper } = renderPaper();
+    const {x, y} = getMatrixValues(container);
+    scroll(paper);
+    const {x: x2, y: y2} = getMatrixValues(container);
+    expect(Number(x2)).toBe(Number(x));
+    expect(Number(y2)).toBe(Number(y + 100 * defaultOptions.scrollSensitivity));
+  });
+  test('shift+scroll translates horizontally', () => {
+    const { container, paper } = renderPaper();
+    const {x, y} = getMatrixValues(container);
+    scroll(paper, -100, 0, {shiftKey: true});
+    const {x: x2, y: y2} = getMatrixValues(container);
+    expect(Number(x2)).toBe(Number(x + 100 * defaultOptions.scrollSensitivity));
+    expect(Number(y2)).toBe(Number(y));
+  });
+  test('horizontal scroll translates horizontally', () => {
+    const { container, paper } = renderPaper();
+    const {x, y} = getMatrixValues(container);
+    scroll(paper, 0, -100);
+    const {x: x2, y: y2} = getMatrixValues(container);
+    expect(Number(x2)).toBe(Number(x + 100 * defaultOptions.scrollSensitivity));
+    expect(Number(y2)).toBe(Number(y));
+  });
+  test('ctrl+scroll scales', () => {
+    const { container, paper } = renderPaper();
+    const {width, height} = getMatrixValues(container);
+    scroll(paper, -100 * defaultOptions.scrollSensitivity, 0, {ctrlKey: true});
+    const {width: width2, height: height2} = getMatrixValues(container);
+    // The precise amount it scales is complicated, so just check that it's not the same
+    expect(Number(width2)).not.toBe(Number(width));
+    expect(Number(height2)).not.toBe(Number(height));
+  });
+  // test('clicking on the main menu opens it', () => {
+  //   const { container, paper } = renderPaper();
+  //   // mouseClickOn(paper, document.getElementById('menu-selector-mobile'))
+  //   mouseClickOn(paper, container.querySelector('#menu-selector-mobile'))
+  //   saveHtml(container)
+  // });
 });

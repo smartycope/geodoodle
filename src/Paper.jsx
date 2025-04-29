@@ -627,7 +627,7 @@ export default function Paper({setDispatch}) {
             >
                 {/* Draw the dots */}
                 {!hideDots && <>
-                    <pattern id="dot"
+                    <pattern id="dots"
                         x={translationx}
                         y={translationy}
                         width={scalex}
@@ -644,7 +644,7 @@ export default function Paper({setDispatch}) {
                             fill={options.dotColor}
                         />
                     </pattern>
-                    <rect fill="url(#dot)" stroke="black" width="100%" height="100%" />
+                    <rect fill="url(#dots)" stroke="black" width="100%" height="100%" />
                 </>}
 
                 {/* Draw the debug info */}
@@ -680,7 +680,7 @@ export default function Paper({setDispatch}) {
                 </g>
 
                 {/* Draw the current line */}
-                {curLine && <g style={{backgroundColor: "green"}}>{curLines}</g>}
+                {curLine && <g id='cur-lines' style={{backgroundColor: "green"}}>{curLines}</g>}
 
                 {/* Draw the bounds */}
                 <g id='bounds' ref={boundsGroup}>
@@ -703,6 +703,7 @@ export default function Paper({setDispatch}) {
                     // If selected exists, that means we're repeating currently, in which case ignore the actual
                     // selection, and make our own
                     ? <rect
+                        id='selection-rect'
                         width={(selectedRect?.width)}
                         height={(selectedRect?.height)}
                         x={selectedRect?.x}
@@ -715,6 +716,7 @@ export default function Paper({setDispatch}) {
                     />
                     // Otherwise, just draw the usual selection rect, assuming there's bounds to do so
                     : (boundRect && <rect
+                        id='selection-rect'
                         width={(drawBoundRect.width)}
                         height={(drawBoundRect.height)}
                         x={drawBoundRect.left}
