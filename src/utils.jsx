@@ -2,12 +2,9 @@ import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE} from "./globals";
 import { selected } from "./globals";
 
 export const hashPoint = ([x, y]) => `${x}${y}`
-export function pointIn(points, point){
-    return points.map(hashPoint).includes(hashPoint(point))
-}
-export function removePoint(points, point){
-    return points.filter(i => hashPoint(i) !== hashPoint(point))
-}
+// If the visual viewport is not available, assume we're in a testing environment
+export const viewportWidth = () => window.visualViewport?.width || 1024
+export const viewportHeight = () => window.visualViewport?.height || 768
 
 export function pointEq({scalex, scaley}, pointa, pointb, thresh=undefined, rescalea=false){
     if (!thresh)
@@ -151,7 +148,7 @@ export function calc(state){
     const scaledTranslationx = translationx / scalex
     const scaledTranslationy = translationy / scaley
 
-    const alignedHalf = align(state, window.visualViewport.width  / 2, window.visualViewport.height / 2)
+    const alignedHalf = align(state, viewportWidth() / 2, viewportHeight() / 2)
 
     const left   = Math.min(...bounds.map(i => i[0]))
     const right  = Math.max(...bounds.map(i => i[0]))
@@ -306,11 +303,11 @@ export function extraSlots(state){
     switch (state.side) {
         case 'right':
         case 'left':
-            sideLen = window.visualViewport.height
+            sideLen = viewportHeight()  
             break
         case 'bottom':
         case 'top':
-            sideLen = window.visualViewport.width
+            sideLen = viewportWidth()
     }
 
     // Because the repeat menu is on the sides, if the repeat menu is open, make sure we're not on the side so we can close it again
