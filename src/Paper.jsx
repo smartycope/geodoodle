@@ -21,6 +21,7 @@ import { RxRotateCounterClockwise } from "react-icons/rx";
 import { GoMirror } from "react-icons/go";
 import {FaCheck} from 'react-icons/fa6';
 import {StateContext} from './Contexts';
+import {viewportWidth, viewportHeight} from './utils';
 
 /*
  * Coordinate systems:
@@ -78,7 +79,7 @@ export default function Paper({setDispatch}) {
         lineJoin: options.lineJoin,
         filename: "",
         // The side of page we have the menu bound to: left, right, top, or bottom
-        side: window.visualViewport.width < window.visualViewport.height ? 'top' : 'right',
+        side: viewportWidth() < viewportHeight() ? 'top' : 'right',
 
         // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
         // Coord: absolute, not scaled
@@ -601,7 +602,7 @@ export default function Paper({setDispatch}) {
 
     const selectedRect = selected?.getBoundingClientRect()
 
-    const debugBox_xy = align(state, window.visualViewport.width / 4, window.visualViewport.height / 4)
+    const debugBox_xy = align(state, viewportWidth() / 4, viewportHeight() / 4)
 
 
     return <StateContext.Provider value={[state, dispatch]}>
@@ -657,7 +658,7 @@ export default function Paper({setDispatch}) {
                     <circle cx={debug_rawCursorPos[0]} cy={debug_rawCursorPos[1]} fill="grey" r='5'/>
                     {/* Repeat box */}
                     {openMenus.repeat && <rect x={debugBox_xy[0]} y={debugBox_xy[1]}
-                        width={window.visualViewport.width / 2} height={window.visualViewport.height / 2}
+                        width={viewportWidth() / 2} height={viewportHeight() / 2}
                         stroke='green' strokeWidth={2} fillOpacity={0}
                     />}
                 </g>}

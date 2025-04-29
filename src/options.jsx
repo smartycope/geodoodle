@@ -1,3 +1,5 @@
+import {viewportWidth, viewportHeight} from "./utils"
+
 const defaultOptions = {
     cursorColor: "black",
     scalex: 20,
@@ -31,7 +33,7 @@ const defaultOptions = {
     lineCap: 'round',
     lineJoin: 'round',
     maxUndoAmt: 20,
-    maxScale: Math.min(window.visualViewport.width, window.visualViewport.height) / 2,
+    maxScale: Math.min(viewportWidth(), viewportHeight()) / 2,
     minScale: 4,
 }
 export default defaultOptions

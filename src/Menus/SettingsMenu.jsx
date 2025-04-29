@@ -7,7 +7,9 @@ import { IoClose } from "react-icons/io5";
 import {localStorageSettingsName} from '../globals';
 
 import { ColorPicker, ColorService } from "react-color-palette";
-import "react-color-palette/css";
+// This works, but not in the tests for whatever reason
+// import "react-color-palette/css";
+import "react-color-palette/dist/css/rcp.css";
 import {extraButtons} from "../options";
 import {StateContext} from '../Contexts';
 

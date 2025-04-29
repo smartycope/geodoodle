@@ -1,14 +1,16 @@
 import {useContext, useEffect, useRef, useState} from "react";
 import "../styling/ColorMenu.css"
 import { ColorPicker, ColorService } from "react-color-palette";
-import "react-color-palette/css";
+// This works, but not in the tests for whatever reason
+// import "react-color-palette/css";
+import "react-color-palette/dist/css/rcp.css";
 import options from "../options";
 import {Number} from "./MenuUtils";
 import {useAlignWithElement} from "./MenuHooks";
 
 import { FaGripLinesVertical } from "react-icons/fa6";
 import {StateContext} from "../Contexts";
-
+import {viewportWidth, viewportHeight} from '../utils'
 
 let offsetX, offsetY;
 let isDragging = false;
@@ -61,10 +63,10 @@ function DesktopColorMenu(){
             // Update the element's position based on mouse movement
             // Had to modify it a little to get it to snap to the bottom instead of the top
             draggableElement.style.left = `${x - offsetX}px`
-            draggableElement.style.bottom  = `${window.visualViewport.height - (y - offsetY)-draggableElement.getBoundingClientRect().height}px`
+            draggableElement.style.bottom  = `${viewportHeight() - (y - offsetY)-draggableElement.getBoundingClientRect().height}px`
             // Make the color picker move with the menu
             colorPicker.style.left = draggableElement.style.left
-            colorPicker.style.bottom = `${window.visualViewport.height - draggableElement.getBoundingClientRect().top}px`
+            colorPicker.style.bottom = `${viewportHeight() - draggableElement.getBoundingClientRect().top}px`
             event.stopPropagation()
             // event.preventDefault()
         }
@@ -100,7 +102,7 @@ function DesktopColorMenu(){
         <div id='color-picker-desktop' ref={colorMenu}
             style={{
                 left: colorMenu.current?.getBoundingClientRect().left,
-                bottom:  window.visualViewport.height -colorMenu.current?.getBoundingClientRect().top,
+                bottom:  viewportHeight() -colorMenu.current?.getBoundingClientRect().top,
             }}
         >
             {palletteVisible && <ColorPicker color={ColorService.convert('hex', state.stroke)} onChange={(clr) => {
