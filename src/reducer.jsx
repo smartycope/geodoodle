@@ -16,7 +16,7 @@ import defaultOptions, { keybindings, reversible, reversibleActions, saveSetting
 import {deserialize, download, image, serialize, serializeState} from './fileUtils';
 import {applyManualFlip, applyManualRotation, getMirrored, getStateMirrored} from './mirrorEngine';
 import {setTapHolding} from './globals';
-
+import {viewportWidth, viewportHeight} from './utils';
 
 var undoStack = []
 var redoStack = []
@@ -157,8 +157,8 @@ export default function reducer(state, data){
                 return state
             else
                 return {...state,
-                    translationx: boundRect.left - (window.visualViewport.width / 2) / scalex,
-                    translationy: boundRect.top - (window.visualViewport.height / 2) / scaley
+                    translationx: boundRect.left - (viewportWidth() / 2) / scalex,
+                    translationy: boundRect.top - (viewportHeight() / 2) / scaley
                 }
         // Direction actions
         case 'left':            return {...state, cursorPos: [cursorPos[0] - scalex, cursorPos[1]]}

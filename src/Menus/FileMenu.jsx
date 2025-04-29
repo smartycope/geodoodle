@@ -12,6 +12,7 @@ import {GiNuclear} from 'react-icons/gi';
 import { MdOutlineFileCopy } from "react-icons/md";
 import { FaMobileScreenButton } from "react-icons/fa6";
 import {StateContext} from '../Contexts.jsx';
+import {viewportWidth, viewportHeight} from '../utils'
 
 export function FileMenu(){
     const [state, dispatch] = useContext(StateContext)
@@ -21,8 +22,8 @@ export function FileMenu(){
     const [loadName, setLoadName] = useState('');
     const [downloadName, ] = useState('');
     const [format, setFormat] = useState('svg');
-    const [width, setWidth] = useState(window.visualViewport.width);
-    const [height, setHeight] = useState(window.visualViewport.height);
+    const [width, setWidth] = useState(viewportWidth());
+    const [height, setHeight] = useState(viewportHeight());
     const [x, setx] = useState(0);
     const [y, sety] = useState(0);
     const [selectedOnly, setSelectedOnly] = useState(true);
@@ -74,8 +75,8 @@ export function FileMenu(){
                 <Number label="Height:" value={height} onChange={val => setHeight(val)}/>
                 <Number label="Y:" value={y} onChange={val => sety(val)}/>
                 <button className='fit-button' onClick={() => {
-                    setWidth(window.visualViewport.width)
-                    setHeight(window.visualViewport.height)
+                    setWidth(viewportWidth())
+                    setHeight(viewportHeight())
                     setx(0)
                     sety(0)
                 }}><FaMobileScreenButton /> Screen</button>

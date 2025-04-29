@@ -4,6 +4,7 @@
 [![logo](logo192.png)](logo192.png)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://github.com/smartycope/GeoDoodle/actions/workflows/test.yml/badge.svg)](https://github.com/smartycope/GeoDoodle/actions/workflows/test.yml)
 
 This project is hosted at [https://smartycope.org/geodoodle](https://smartycope.org/geodoodle).
 
@@ -11,6 +12,7 @@ This project is hosted at [https://smartycope.org/geodoodle](https://smartycope.
 This project is an attempt to recreate the experience of doodling on graph paper. Unlike a traditional drawing program, you can't draw whatever lines you want, it's intentionally constrainted to only allow drawing lines between the intersections of the graph paper.
 
 ## Running
+- To install dependancies and setup locally: `npm install`.
 - To run normally: `npm start`.
 - To run in development mode: `npm run dev`.
 - To build: `npm run build`.

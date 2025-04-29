@@ -98,7 +98,6 @@ export function Collapsible({summary, children}){
     </details>
 }
 
-
 export function MirrorAxisIcon({mirrorAxis, mirrorMethod}){
     switch(mirrorAxis){
         case MIRROR_AXIS.VERT_90:

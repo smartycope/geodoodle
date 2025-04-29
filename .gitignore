@@ -46,3 +46,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# The testing html file
+test.html
