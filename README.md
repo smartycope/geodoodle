@@ -4,6 +4,7 @@
 [![logo](logo192.png)](logo192.png)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://github.com/smartycope/GeoDoodle/actions/workflows/test.yml/badge.svg)](https://github.com/smartycope/GeoDoodle/actions/workflows/test.yml)
 
 This project is hosted at [https://smartycope.org/geodoodle](https://smartycope.org/geodoodle).
 
