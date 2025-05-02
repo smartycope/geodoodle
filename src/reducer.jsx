@@ -67,6 +67,7 @@ export default function reducer(state, data){
         defaultScalex,
         defaultScaley,
         debug,
+        trellis,
     } = state
 
     const {
@@ -74,6 +75,7 @@ export default function reducer(state, data){
         halfy,
         clipx, clipy,
         boundRect,
+        absBoundRect,
         relCursorPos,
     } = calc(state)
 
@@ -112,6 +114,16 @@ export default function reducer(state, data){
 
         // Transformation Actions
         case 'translate': { // args: x, y (delta values)
+            // If we're repeating, don't let the selection move out of the viewport
+            // I think this is how we check if we're currently repeating
+            if (trellis || openMenus.repeat){
+                if ((boundRect.left * scalex) + translationx + data.x < 0 || 
+                    (boundRect.right * scalex) + translationx + data.x > viewportWidth() || 
+                    (boundRect.top * scaley) + translationy + data.y < 0 || 
+                    (boundRect.bottom * scaley) + translationy + data.y > viewportHeight()
+                )
+                    return state
+            }
             const newState = {...state,
                 translationx: translationx + data.x,
                 translationy: translationy + data.y,
