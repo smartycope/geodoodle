@@ -699,37 +699,21 @@ export default function Paper({setDispatch}) {
                 </g>
 
                 {/* Draw the selection rect */}
-                {openMenus.repeat
-                    // If selected exists, that means we're repeating currently, in which case ignore the actual
-                    // selection, and make our own
-                    ? <rect
-                        width={(selectedRect?.width)}
-                        height={(selectedRect?.height)}
-                        x={selectedRect?.x}
-                        y={selectedRect?.y}
-                        stroke={options.selectionBorderColor}
-                        fillOpacity={options.selectionOpacity}
-                        fill={options.selectionColor}
-                        rx={partials ? 4 : 0}
-                        strokeWidth={1}
-                    />
-                    // Otherwise, just draw the usual selection rect, assuming there's bounds to do so
-                    : (boundRect && <rect
-                        width={(drawBoundRect.width)}
-                        height={(drawBoundRect.height)}
-                        x={drawBoundRect.left}
-                        y={drawBoundRect.top}
-                        stroke={options.selectionBorderColor}
-                        fillOpacity={options.selectionOpacity}
-                        fill={options.selectionColor}
-                        rx={partials ? 4/scalex : 0}
-                        strokeWidth={1/scalex}
-                        transform={`
-                            translate(${translationx}, ${translationy})
-                            scale(${scalex}, ${scaley})
-                        `}
-                    />)
-                }
+                {(boundRect && <rect
+                    width={(drawBoundRect.width)}
+                    height={(drawBoundRect.height)}
+                    x={drawBoundRect.left}
+                    y={drawBoundRect.top}
+                    stroke={options.selectionBorderColor}
+                    fillOpacity={options.selectionOpacity}
+                    fill={options.selectionColor}
+                    rx={partials ? 4/scalex : 0}
+                    strokeWidth={1/scalex}
+                    transform={`
+                        translate(${translationx}, ${translationy})
+                        scale(${scalex}, ${scaley})
+                    `}
+                />)}
 
                 {/* Draw the rotate & flip buttons when there's a clipboard */}
                 {mobile && clipboard?.length && <foreignObject
