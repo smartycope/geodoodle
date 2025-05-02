@@ -66,6 +66,7 @@ export default function reducer(state, data){
         openMenus,
         defaultScalex,
         defaultScaley,
+        debug,
     } = state
 
     const {
@@ -609,6 +610,9 @@ export default function reducer(state, data){
             console.log('lines', lines)
             // console.log('curLine', curLine)
             return state
+        }
+        case "toggle debugging": {
+            return {...state, debug: !debug}
         }
         default:
             console.warn(`Unknown action: ${data.action}`)
