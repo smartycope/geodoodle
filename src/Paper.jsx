@@ -627,7 +627,7 @@ export default function Paper({setDispatch}) {
             >
                 {/* Draw the dots */}
                 {!hideDots && <>
-                    <pattern id="dot"
+                    <pattern id="dots"
                         x={translationx}
                         y={translationy}
                         width={scalex}
@@ -644,7 +644,7 @@ export default function Paper({setDispatch}) {
                             fill={options.dotColor}
                         />
                     </pattern>
-                    <rect fill="url(#dot)" stroke="black" width="100%" height="100%" />
+                    <rect fill="url(#dots)" stroke="black" width="100%" height="100%" />
                 </>}
 
                 {/* Draw the debug info */}
@@ -680,7 +680,7 @@ export default function Paper({setDispatch}) {
                 </g>
 
                 {/* Draw the current line */}
-                {curLine && <g style={{backgroundColor: "green"}}>{curLines}</g>}
+                {curLine && <g id='cur-lines' style={{backgroundColor: "green"}}>{curLines}</g>}
 
                 {/* Draw the bounds */}
                 <g id='bounds' ref={boundsGroup}>
@@ -700,6 +700,7 @@ export default function Paper({setDispatch}) {
 
                 {/* Draw the selection rect */}
                 {(boundRect && <rect
+                    id='selection-rect'
                     width={(drawBoundRect.width)}
                     height={(drawBoundRect.height)}
                     x={drawBoundRect.left}
