@@ -37,7 +37,7 @@ const miniMenus = ['extra', 'color', 'mirror', 'select', 'clipboard', 'delete']
 // {foo: "bar"} -> {action: "set manual", foo: "bar"}
 export default function reducer(state, data){
     // Some convenience parameter handling
-    if (typeof data === String)
+    if (typeof data === 'string')
         data = {action: data}
     if (data?.action === undefined)
         data = {action: "set manual", ...data}
@@ -87,6 +87,9 @@ export default function reducer(state, data){
         relCursorPos,
     } = calc(state)
 
+    if (debug && data.action !== 'cursor moved')
+        console.debug(data)
+    
     if (saveNext){
         localStorage.setItem(localStorageSettingsName, serializeState(state))
         saveNext = false
@@ -541,6 +544,7 @@ export default function reducer(state, data){
         case "toggle debugging": return {...state, debug: !debug}
         case 'toggle fill mode': {
             let polys = null
+            // If we're transitioning to fill mode, we need to polygonize the lines
             if (!fillMode){
                 const {lines} = state
                 const turfLines = turf.multiLineString(lines.filter(line => line?.props).map(line => [[line.props.x1, line.props.y1], [line.props.x2, line.props.y2]]))
