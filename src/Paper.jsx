@@ -52,6 +52,61 @@ var lastTapPos = [-10,-10]
 var _state = {}
 var touchHoldTimer = null
 
+function constructCursor(state){
+    const {cursorPos, scalex, mirroring, openMenus, mirrorType, mirrorMethod, mirrorAxis} = state
+    let cursor = [
+        <circle
+            cx={cursorPos[0]}
+            cy={cursorPos[1]}
+            r={scalex / 3}
+            stroke={options.cursorColor}
+            fill={options.mirrorColor}
+            // Make it filled if we're cursor rotating
+            fillOpacity={Number(
+                (mirroring || openMenus.mirror) &&
+                mirrorType === MIRROR_TYPE.CURSOR &&
+                [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
+            }
+            key='cursor'
+        />
+        // To add a shadow to the cursor
+        // <circle
+            // cx={cursorPos[0]+3}
+            // cy={cursorPos[1]+2}
+            // r={scalex / 3}
+            // stroke={'gray'}
+            // alpha=".8"
+            // fill={options.mirrorColor}
+            // // Make it filled if we're cursor rotating
+            // fillOpacity={Number(
+            //     (mirroring || openMenus.mirror) &&
+            //     mirrorType === MIRROR_TYPE.CURSOR &&
+            //     [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
+            // }
+            // key='cursor-shadow'
+        // />]
+    ]
+    if ((mirroring || openMenus.mirror) && mirrorType === MIRROR_TYPE.CURSOR){
+        if ([MIRROR_METHOD.FLIP, MIRROR_METHOD.BOTH].includes(mirrorMethod)){
+            if ([MIRROR_AXIS.HORZ_180, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
+                cursor.push(<line
+                    x1={cursorPos[0] + scalex/3} y1={cursorPos[1]}
+                    x2={cursorPos[0] - scalex/3} y2={cursorPos[1]}
+                    stroke={options.mirrorColor}
+                    key='cursor-horz'
+                />)
+            if ([MIRROR_AXIS.VERT_90, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
+                cursor.push(<line
+                    x1={cursorPos[0]} y1={cursorPos[1] + scalex/3}
+                    x2={cursorPos[0]} y2={cursorPos[1] - scalex/3}
+                    stroke={options.mirrorColor}
+                    key="cursor-vert"
+                />)
+        }
+    }    
+    return cursor
+}
+
 export default function Paper({setDispatch}) {
     const boundsGroup = useRef()
     const paper = useRef()
@@ -541,57 +596,6 @@ export default function Paper({setDispatch}) {
         bottom: Math.max(boundRect?.bottom, relCursorPos[1]),
     } : boundRect
 
-    // Construct the cursor (internal mirror lines, etc)
-    let cursor = [<circle
-            cx={cursorPos[0]}
-            cy={cursorPos[1]}
-            r={scalex / 3}
-            stroke={options.cursorColor}
-            fill={options.mirrorColor}
-            // Make it filled if we're cursor rotating
-            fillOpacity={Number(
-                (mirroring || openMenus.mirror) &&
-                mirrorType === MIRROR_TYPE.CURSOR &&
-                [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
-            }
-            key='cursor'
-        />,
-        // To add a shadow to the cursor
-        // <circle
-        //     cx={cursorPos[0]+3}
-        //     cy={cursorPos[1]+2}
-        //     r={scalex / 3}
-        //     stroke={'gray'}
-        //     alpha=".8"
-        //     fill={options.mirrorColor}
-        //     // Make it filled if we're cursor rotating
-        //     fillOpacity={Number(
-        //         (mirroring || openMenus.mirror) &&
-        //         mirrorType === MIRROR_TYPE.CURSOR &&
-        //         [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
-        //     }
-        //     key='cursor-shadow'
-        // />]
-    ]
-    if ((mirroring || openMenus.mirror) && mirrorType === MIRROR_TYPE.CURSOR){
-        if ([MIRROR_METHOD.FLIP, MIRROR_METHOD.BOTH].includes(mirrorMethod)){
-            if ([MIRROR_AXIS.HORZ_180, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
-                cursor.push(<line
-                    x1={cursorPos[0] + scalex/3} y1={cursorPos[1]}
-                    x2={cursorPos[0] - scalex/3} y2={cursorPos[1]}
-                    stroke={options.mirrorColor}
-                    key='cursor-horz'
-                />)
-            if ([MIRROR_AXIS.VERT_90, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
-                cursor.push(<line
-                    x1={cursorPos[0]} y1={cursorPos[1] + scalex/3}
-                    x2={cursorPos[0]} y2={cursorPos[1] - scalex/3}
-                    stroke={options.mirrorColor}
-                    key="cursor-vert"
-                />)
-        }
-    }
-
     // For explanation, see the declaration of prevSelectedRect
     const _selected = document.querySelector('#selected-trellis-pattern')
     if (_selected)
@@ -669,7 +673,7 @@ export default function Paper({setDispatch}) {
                 </g>
 
                 {/* Draw the cursor */}
-                <g key="cursor-group">{cursor}</g>
+                {!fillMode && <g key="cursor-group">{constructCursor(state)}</g>}
 
                 {/* Draw the lines */}
                 <g id='lines' transform={`
