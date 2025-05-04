@@ -1,7 +1,7 @@
 import "../styling/HelpMenu.css"
 
 import { IoClose } from "react-icons/io5";
-import {version} from '../globals';
+import { version } from "../../package.json"
 import {InTourContext, StateContext} from "../Contexts";
 import {useContext} from "react";
 

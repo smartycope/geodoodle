@@ -1,4 +1,4 @@
-import {version} from "./globals";
+import { version } from "../package.json"
 import {preservable, saveable} from "./options";
 import {filterObjectByKeys, getSelected} from "./utils";
 import { Parser as HtmlToReactParser } from "html-to-react";

@@ -98,6 +98,7 @@ export const keybindings = {
 
     '`': {action: 'debug'},
     'shift+`': {action: 'toggle debugging'},
+    'f': {action: 'toggle fill mode'},
 }
 
 // Things which can go in the extra button slot
