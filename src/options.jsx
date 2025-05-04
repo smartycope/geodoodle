@@ -5,6 +5,7 @@ const defaultOptions = {
     scalex: 20,
     scaley: 20,
     stroke: "#000000",
+    fill: "#ffffff",
     commonColorAmt: 5,
     strokeWidth: .05,
     boundColor: "black",
@@ -123,6 +124,7 @@ export const reversibleActions = [
     'load local',
     'add common color',
     'set to common color',
+    'fill',
 ]
 
 // Only save the state to be preserved when these actions happen
@@ -145,6 +147,7 @@ export const saveSettingActions = [
     `set to common color`,
     'toggle partials',
     "toggle dark mode",
+    'fill',
 ]
 
 // When undoing an action, only these parts of the state get undone

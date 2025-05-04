@@ -10,13 +10,15 @@ import {
     pointEq,
     toggleDarkMode,
     align,
-    filterObjectByKeys
+    filterObjectByKeys,
+    getPolygonContainingPoint
 } from './utils'
 import defaultOptions, { keybindings, reversible, reversibleActions, saveSettingActions } from './options'
 import {deserialize, download, image, serialize, serializeState} from './fileUtils';
 import {applyManualFlip, applyManualRotation, getMirrored, getStateMirrored} from './mirrorEngine';
 import {setTapHolding} from './globals';
 import {viewportWidth, viewportHeight} from './utils';
+import * as turf from '@turf/turf';
 
 var undoStack = []
 var redoStack = []
@@ -42,6 +44,8 @@ export default function reducer(state, data){
 
     const {
         mobile,
+        fill,
+        currentFillColorProfileIndex,
         cursorPos,
         rotate,
         partials,
@@ -68,6 +72,10 @@ export default function reducer(state, data){
         defaultScaley,
         debug,
         trellis,
+        fillMode,
+        polygons,
+        intersectingPolygon,
+        filledPolys,
     } = state
 
     const {
@@ -99,7 +107,12 @@ export default function reducer(state, data){
             const newPos = align(state, data.x, data.y)
             if (JSON.stringify(newPos) !== JSON.stringify(cursorPos))
                 setTapHolding(false)
-            return {...state, cursorPos: newPos, debug_rawCursorPos: [data.x, data.y]}
+
+            var poly = null
+            if (fillMode)
+                poly = getPolygonContainingPoint([(data.x - translationx) / scalex, (data.y - translationy) / scaley], polygons)
+
+            return {...state, cursorPos: newPos, debug_rawCursorPos: [data.x, data.y], intersectingPolygon: poly}
         case 'key press': // args: event
             // If it's just a modifier key, don't do anything (it'll falsely trigger things)
             if (['Shift', 'Meta', 'Control', 'Alt'].includes(data.event.key))
@@ -179,8 +192,22 @@ export default function reducer(state, data){
         case 'up':              return {...state, cursorPos: [cursorPos[0], cursorPos[1] - scaley]}
         case 'down':            return {...state, cursorPos: [cursorPos[0], cursorPos[1] + scaley]}
         // Destruction Actions
-        case 'clear':           return {...state, lines: [], bounds: [], openMenus: {...openMenus, delete: false}}
         case 'clear bounds':    return {...state, bounds: []}
+        case 'clear':
+            return {...reducer(state, {action: 'go home'}), 
+                lines: [],
+                bounds: [],
+                openMenus: {...openMenus, delete: false, repeat: false, mirroring: false},
+                filledPolys: [],
+                polygons: [],
+                fillMode: false,
+                clipboard: null,
+                clipboardMirrorAxis: null,
+                clipboardRotation: 0,
+                eraser: null,
+                curLine: null,
+                selection: [],
+            }
         case 'delete selected':
             return {...state,
                 lines: getSelected(state, 'remove'),
@@ -214,7 +241,9 @@ export default function reducer(state, data){
         case 'delete':
             if (pointIn(bounds, relCursorPos))
                 return {...state, bounds: removePoint(bounds, relCursorPos)}
-             else if (curLine)
+            else if (fillMode)
+                return reducer(state, {action: 'clear fill'})
+            else if (curLine)
                 return {...state, curLine: null}
             else if (clipboard)
                 return {...state, clipboard: null, clipboardMirrorAxis: null, clipboardRotation: 0}
@@ -320,6 +349,21 @@ export default function reducer(state, data){
                 : [...bounds, relCursorPos],
             }
 
+        case 'fill':{
+            if (!fillMode || !intersectingPolygon)
+                return state
+             
+            return {...state, filledPolys: [...state.filledPolys, <polygon
+                points={intersectingPolygon.geometry.coordinates[0].map(i => `${i[0]} ${i[1]}`).join(' ')}
+                fill={fill[currentFillColorProfileIndex]}
+                stroke="none"
+                strokeWidth="0"
+                key={`poly-${state.filledPolys.length}`}
+            />]}
+        }
+
+        case 'clear fill': return {...state, filledPolys: filledPolys.filter(i => i.key !== intersectingPolygon?.key)}
+
         // Undo Actions
         case 'undo':
             const prevState = undoStack.pop()
@@ -340,7 +384,6 @@ export default function reducer(state, data){
         case 'copy':            return {...state, clipboard: getSelected(state), curLine: null}
         case 'paste':
             if (clipboard){
-                console.log('pasting');
                 const clipboardx = (clipx - translationx) / scalex
                 const clipboardy = (clipy - translationy) / scaley
                 function transform({x1, y1, x2, y2}){
@@ -495,6 +538,17 @@ export default function reducer(state, data){
         // Misc Actions
         // TODO: remove toggle partials
         case 'toggle partials': return {...state, partials: !partials}
+        case "toggle debugging": return {...state, debug: !debug}
+        case 'toggle fill mode': {
+            let polys = null
+            if (!fillMode){
+                const {lines} = state
+                const turfLines = turf.multiLineString(lines.filter(line => line?.props).map(line => [[line.props.x1, line.props.y1], [line.props.x2, line.props.y2]]))
+                polys = turf.polygonize(turfLines)
+            }
+
+            return {...state, polygons: polys, fillMode: !fillMode, curLine: null, clipboard: null}
+        }
         case "toggle dark mode":
             console.log("toggling dark mode");
             toggleDarkMode()
@@ -523,7 +577,7 @@ export default function reducer(state, data){
                 ],
                 curLine: null,
                 dash: ['0', "20, 10", '0', '0', '0'],
-                colorProfile: 1,
+                currentLineColorProfileIndex: 1,
                 // mobile: true,
                 stroke: ['#000000', '#000000', '#ddddab', '#ff784b', '#1a31ff'],
                 lines: [
@@ -619,12 +673,14 @@ export default function reducer(state, data){
         case "debug": {
             console.log('cursorPos', cursorPos)
             console.log('relCursorPos', relCursorPos)
-            console.log('lines', lines)
+            // console.log('bounds', bounds)
+            console.log('polygons', polygons)
+            console.log('intersectingPolygon', intersectingPolygon)
+            console.log('filledPolys', filledPolys)
+            // console.log('lines', lines)
             // console.log('curLine', curLine)
+            // console.log('fillMode', fillMode)
             return state
-        }
-        case "toggle debugging": {
-            return {...state, debug: !debug}
         }
         default:
             console.warn(`Unknown action: ${data.action}`)

@@ -11,7 +11,8 @@ html{
     /* background-color: #E4C699; */
     /* background-color: #ffddab; */
     /* background-color: BlanchedAlmond; */
-    cursor: none;
+    /* This is handled in paper itself now */
+    /* cursor: none; */
 }
 
 .checkbox{

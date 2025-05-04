@@ -114,13 +114,15 @@ export default function Paper({setDispatch}) {
     const [dragging, setDragging] = useState(false)
     const [boundDragging, setBoundDragging] = useState(false)
 
-
+    const isMobile = mobileAndTabletCheck()
     const [state, dispatch] = useReducer(reducer, {
-        mobile: mobileAndTabletCheck(),
-        defaultScalex: mobileAndTabletCheck() ? 30 : 20,
-        defaultScaley: mobileAndTabletCheck() ? 30 : 20,
+        mobile: isMobile,
+        defaultScalex: isMobile ? 30 : 20,
+        defaultScaley: isMobile ? 30 : 20,
+        
+        // The index of the currently selected color to draw lines in (and also dash and width)
         // 0 indexed
-        colorProfile: 0,
+        currentLineColorProfileIndex: 0,
         // A list of hex color string
         stroke: Array(options.commonColorAmt).fill(options.stroke),
         // Coord: Scalar, not scaled
@@ -130,8 +132,25 @@ export default function Paper({setDispatch}) {
         // "a series of comma and/or whitespace separated numbers"
         // The numbers are scaled
         dash: Array(options.commonColorAmt).fill('0'),
-        lineCap: options.lineCap,
-        lineJoin: options.lineJoin,
+        
+        // The index of the currently selected color to fill polygons in with
+        // 0 indexed
+        currentFillColorProfileIndex: 0,
+        // A list of hex color string
+        fill: Array(options.commonColorAmt).fill(options.fill),
+
+        fillMode: false,
+        // Constructed when we transition into fillMode, null otherwise
+        // FeatureCollection<Polygon>
+        // Coord: relative, scaled
+        polygons: null,
+        // The polygon that the mouse is over currently
+        // Coord: relative, scaled
+        intersectingPolygon: null,
+        // A list of polygons (as svg polygon objects) that have been filled. We draw these
+        // Coord: relative, scaled
+        filledPolys: [],
+        
         filename: "",
         // The side of page we have the menu bound to: left, right, top, or bottom
         side: viewportWidth() < viewportHeight() ? 'top' : 'right',
@@ -181,8 +200,8 @@ export default function Paper({setDispatch}) {
         // Coord: absolute, not scaled
         translationx: 0,
         translationy: 0,
-        scalex: mobileAndTabletCheck() ? 30 : 20,
-        scaley: mobileAndTabletCheck() ? 30 : 20,
+        scalex: isMobile ? 30 : 20,
+        scaley: isMobile ? 30 : 20,
         // In degrees
         rotate: 0,
         shearx: 0,
@@ -235,7 +254,9 @@ export default function Paper({setDispatch}) {
         cursorPos,
         stroke,
         dash,
-        colorProfile,
+        currentLineColorProfileIndex,
+        currentFillColorProfileIndex,
+        fill,
         rotate,
         lineCap,
         lineJoin,
@@ -263,6 +284,10 @@ export default function Paper({setDispatch}) {
         paperColor,
         hideDots,
         deleteme,
+        fillMode,
+        polygons,
+        intersectingPolygon,
+        filledPolys,
     } = state
 
     const {
@@ -282,7 +307,7 @@ export default function Paper({setDispatch}) {
     function onMouseMove(e){
         // console.log('mouse moved')
         if (e.buttons !== 0)
-            setDragging(true)
+            setDragging(!fillMode)
         setBoundDragging(true)
         dispatch({
             action: 'cursor moved',
@@ -295,11 +320,11 @@ export default function Paper({setDispatch}) {
         // console.log('mouse down')
         switch (e.button){
             // Left click
-            case 0: dispatch({action: 'add line'}); break;
+            case 0: dispatch(fillMode ? 'fill' : 'add line'); break;
             // Middle click
-            case 1: dispatch({action: 'delete'}); break;
+            case 1: dispatch('delete'); break;
             // Right click
-            case 2: dispatch({action: 'continue line'}); break;
+            case 2: fillMode ? null : dispatch('continue line'); break;
         }
     }
 
@@ -318,7 +343,7 @@ export default function Paper({setDispatch}) {
 
     function onTouchHold(){
         // This also only applies to touch events, not mouse events
-        if (tapHolding){
+        if (tapHolding && !fillMode){
             if (_state.clipboard?.length)
                 dispatch({action: "paste"})
             else
@@ -450,14 +475,13 @@ export default function Paper({setDispatch}) {
                 }
             }
 
-
             dispatch({
                 action: 'cursor moved',
                 x: touch.pageX,
                 y: touch.pageY,
             })
             if (!_state.clipboard?.length)
-                dispatch({action: 'add line'})
+                dispatch(fillMode ? 'fill' : 'add line')
 
             // We have to wait until the state updates and the cursor moves, before we compare to new cursor positions
             setTimeout(() => setTapHolding(true), 10)
@@ -535,11 +559,11 @@ export default function Paper({setDispatch}) {
             y1={curLine?.y1}
             x2={cursorPos[0]}
             y2={cursorPos[1]}
-            stroke={stroke[colorProfile]}
-            strokeWidth={strokeWidth[colorProfile] * scalex}
+            stroke={stroke[currentLineColorProfileIndex]}
+            strokeWidth={strokeWidth[currentLineColorProfileIndex] * scalex}
             strokeLinecap={lineCap}
             strokeLinejoin={lineJoin}
-            strokeDasharray={dash[colorProfile]}
+            strokeDasharray={dash[currentLineColorProfileIndex]}
             transform={transformation}
             key={`mirror-${i}`}
         />)
@@ -558,11 +582,11 @@ export default function Paper({setDispatch}) {
             y1={curLine?.y1}
             x2={cursorPos[0]}
             y2={cursorPos[1]}
-            stroke={stroke[colorProfile]}
-            strokeWidth={strokeWidth[colorProfile] * scalex}
+            stroke={stroke[currentLineColorProfileIndex]}
+            strokeWidth={strokeWidth[currentLineColorProfileIndex] * scalex}
             strokeLinecap={lineCap}
             strokeLinejoin={lineJoin}
-            strokeDasharray={dash[colorProfile]}
+            strokeDasharray={dash[currentLineColorProfileIndex]}
             key='mirror0'
         />)
         if (clipboard)
@@ -609,10 +633,10 @@ export default function Paper({setDispatch}) {
     const debugBox_xy = align(state, viewportWidth() / 4, viewportHeight() / 4)
 
 
+    // The order in which we draw the elements is important, they're drawn in the order they're added to the svg
     return <StateContext.Provider value={[state, dispatch]}>
         <div>
             <MainMenu/>
-            {/* <samp><kbd>Shift</kbd></samp> */}
             <svg id='paper'
                 width="100%"
                 height="101vh"
@@ -627,8 +651,12 @@ export default function Paper({setDispatch}) {
                 // onPaste={e => dispatch({action: 'paste'})}
                 // onCut={e => dispatch({action: 'cut'})}
                 ref={paper}
-                style={{backgroundColor: paperColor}}
+                style={{
+                    backgroundColor: paperColor,
+                    cursor: fillMode ? 'pointer' : 'none',
+                }}
             >
+                {/* The dots are on the very bottom */}
                 {/* Draw the dots */}
                 {!hideDots && <>
                     <pattern id="dot"
@@ -651,26 +679,25 @@ export default function Paper({setDispatch}) {
                     <rect fill="url(#dot)" stroke="black" width="100%" height="100%" />
                 </>}
 
-                {/* Draw the debug info */}
-                {debug && <g>
-                    <circle cx={translationx} cy={translationy} r='8' fill='blue'/>
-                    <text x="80%" y='20'>{`Translation: ${Math.round(translationx)}, ${Math.round(translationy)}`}</text>
-                    <text x="80%" y='40'>{`Scale: ${Math.round(scalex)}, ${Math.round(scaley)}`}</text>
-                    {deleteme && <g transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}>
-                        {deleteme.map((i, cnt) => <circle cx={i[0]} cy={i[1]} r={4/scalex} fill='blue' key={`debug-${cnt}`}/>)}
-                    </g>}
-                    <circle cx={debug_rawCursorPos[0]} cy={debug_rawCursorPos[1]} fill="grey" r='5'/>
-                    {/* Repeat box */}
-                    {openMenus.repeat && <rect x={debugBox_xy[0]} y={debugBox_xy[1]}
-                        width={viewportWidth() / 2} height={viewportHeight() / 2}
-                        stroke='green' strokeWidth={2} fillOpacity={0}
-                    />}
-                </g>}
+                {/* Draw the filled polygons */}
+                <g id='filled-polys' transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}>
+                    {filledPolys}
+                </g>
 
                 {/* Draw the trellis */}
                 <g transform={`scale(${scalex} ${scaley})`}>
                     {((trellis || openMenus.repeat) && bounds.length > 1) && trellisActual}
                 </g>
+
+                {/* Draw the intersecting polygon */}
+                {intersectingPolygon && <polygon
+                    points={intersectingPolygon.geometry.coordinates[0].map(i => `${i[0]} ${i[1]}`).join(' ')}
+                    fill={fill[currentFillColorProfileIndex]}
+                    stroke="none"
+                    strokeWidth="0"
+                    transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}
+                    key={`poly-${state.filledPolys.length}`}
+                />}
 
                 {/* Draw the cursor */}
                 {!fillMode && <g key="cursor-group">{constructCursor(state)}</g>}
@@ -761,7 +788,25 @@ export default function Paper({setDispatch}) {
 
                 {/* Draw the clipboard */}
                 {clip}
+
+                {/* Draw the debug info */}
+                {debug && <g>
+                    <circle cx={translationx} cy={translationy} r='8' fill='blue'/>
+                    <text x="80%" y='20'>{`Translation: ${Math.round(translationx)}, ${Math.round(translationy)}`}</text>
+                    <text x="80%" y='40'>{`Scale: ${Math.round(scalex)}, ${Math.round(scaley)}`}</text>
+                    {deleteme && <g transform={`translate(${translationx} ${translationy}) scale(${scalex} ${scaley})`}>
+                        {deleteme.map((i, cnt) => <circle cx={i[0]} cy={i[1]} r={4/scalex} fill='blue' key={`debug-${cnt}`}/>)}
+                    </g>}
+                    <circle cx={debug_rawCursorPos[0]} cy={debug_rawCursorPos[1]} fill="grey" r='5'/>
+                    {/* Repeat box */}
+                    {openMenus.repeat && <rect x={debugBox_xy[0]} y={debugBox_xy[1]}
+                        width={viewportWidth() / 2} height={viewportHeight() / 2}
+                        stroke='green' strokeWidth={2} fillOpacity={0}
+                    />}
+                </g>}                
+                {/* Debug info is on the very top */}
             </svg>
+
             {/* For exporting to images */}
             <canvas id="canvas"></canvas>
         </div>

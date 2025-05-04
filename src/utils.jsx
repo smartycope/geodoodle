@@ -27,7 +27,7 @@ export function pointEq({scalex, scaley}, pointa, pointb, thresh=undefined, resc
            Math.abs(pointa[1] - pointb[1]) < thresh
 
 }
-
+ 
 // Returns the point aligned to the grid
 // TODO: Specify the coordinate system here
 export function align(state, x, y){
@@ -114,7 +114,7 @@ export function getSelected(state, filter=null){
 // scale: whether to scale the line
 // exact: whether to automatically add colors and strokes and such, or to only use the props given
 export function createLine(state, props, translate=true, scale=true, exact=false){
-    const {translationx, translationy, stroke, strokeWidth, dash, scalex, scaley, lineCap, lineJoin, colorProfile} = state
+    const {translationx, translationy, stroke, strokeWidth, dash, scalex, scaley, lineCap, lineJoin, currentLineColorProfileIndex} = state
 
     // TODO: figure how to avoid this
     // TODO: and also not create duplicate lines - maybe
@@ -131,9 +131,9 @@ export function createLine(state, props, translate=true, scale=true, exact=false
     }
 
     const aes = {
-        stroke: stroke[colorProfile],
-        strokeWidth: strokeWidth[colorProfile],
-        strokeDasharray: dash[colorProfile].replace(/\s/, '').split(',').map(i => i/scalex).join(','),
+        stroke: stroke[currentLineColorProfileIndex],
+        strokeWidth: strokeWidth[currentLineColorProfileIndex],
+        strokeDasharray: dash[currentLineColorProfileIndex].replace(/\s/, '').split(',').map(i => i/scalex).join(','),
         strokeLinecap: lineCap,
         strokeLinejoin: lineJoin,
     }
@@ -333,3 +333,11 @@ export function getShowableStroke(color){
     return brightness > 128 ? 'black' : 'white';
 }
 
+export function getPolygonContainingPoint(point, polygons) {
+    // polygons is a FeatureCollection<Polygon>
+    for (const polygon of polygons.features) {
+        if (inside(point, polygon.geometry.coordinates[0])) 
+            return polygon
+    }
+    return null
+}
