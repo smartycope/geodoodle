@@ -96,7 +96,8 @@ export const keybindings = {
     'ctrl+y': {action: 'redo'},
     'ctrl+shift+z': {action: 'redo'},
 
-    '`': {action: 'debug'}
+    '`': {action: 'debug'},
+    'shift+`': {action: 'toggle debugging'},
 }
 
 // Things which can go in the extra button slot
