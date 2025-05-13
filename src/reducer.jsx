@@ -179,7 +179,18 @@ export default function reducer(state, data){
         case 'up':              return {...state, cursorPos: [cursorPos[0], cursorPos[1] - scaley]}
         case 'down':            return {...state, cursorPos: [cursorPos[0], cursorPos[1] + scaley]}
         // Destruction Actions
-        case 'clear':           return {...state, lines: [], bounds: [], openMenus: {...openMenus, delete: false}}
+        case 'clear':           
+            return {...state, 
+                lines: [], 
+                bounds: [], 
+                openMenus: {...openMenus, delete: false},
+                translationx: 0,
+                translationy: 0,
+                scalex: defaultScalex,
+                scaley: defaultScaley,
+                rotate: 0,
+                curLine: null,
+            }
         case 'clear bounds':    return {...state, bounds: []}
         case 'delete selected':
             return {...state,
