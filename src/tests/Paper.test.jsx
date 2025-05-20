@@ -1,11 +1,12 @@
 import { render, fireEvent, act } from '@testing-library/react';
+import { test, it, expect, beforeEach, describe } from 'vitest';
 import Paper from '../Paper';
 import defaultOptions from '../options';
 
 // import "../styling/App.css"
 import "../styling/index.css"
 import "../utils"
-import { getLines,
+import {getLines,
   getCurLines,
   getBounds,
   scroll,
@@ -20,7 +21,8 @@ import { getLines,
   saveHtml,
   renderPaper,
   getSelectionRect,
-} from "../tests/testUtils.js"
+} from "../tests/testUtils"
+
 
 // In between each tests, reset the localStorage
 beforeEach(() => {
@@ -49,7 +51,7 @@ describe('Paper interactions', () => {
   });
 
   test('Ensure localstorage is cleared', () => {
-    const { container } = renderPaper();
+    const { paper, container } = renderPaper();
     createLine(paper);
     expect(getLines(container).length).toBe(1);
   });

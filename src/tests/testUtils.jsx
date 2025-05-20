@@ -4,6 +4,7 @@ import Paper from '../Paper';
 import "../styling/index.css";
 import getInitialState from '../states';
 
+
 export function renderPaper(startPoint=[100, 100]) {
   const rendered = render(<Paper setDispatch={() => {}} />);
   const paper = rendered.container.querySelector('#paper');
@@ -107,4 +108,3 @@ export function saveHtml(container) {
 export function getState() {
   return getInitialState();
 }
-

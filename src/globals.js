@@ -31,8 +31,8 @@ export var tapHolding = false
 export const setTapHolding = to => tapHolding = to
 
 // If the visual viewport is not available, assume we're in a testing environment
-export const viewportWidth  = () => window.visualViewport?.width || 1024
-export const viewportHeight = () => window.visualViewport?.height || 768
+export const viewportWidth  = () => window ? window.visualViewport?.width || 1024 : 1024
+export const viewportHeight = () => window ? window.visualViewport?.height || 768 : 768
 
 
 // These are used in reducer.jsx (which saves the current state for the undoStack) and in actions.jsx (which does stuff with them)
