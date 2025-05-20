@@ -183,6 +183,7 @@ export function SelectionRect(){
 
     return <>
         <rect
+            id='selection-rect'
             width={width}
             height={height}
             x={left}
@@ -225,7 +226,7 @@ export function CurrentLines(){
     if (!curLinePos)
         return null
     const line = new Line(state, curLinePos, cursorPos)
-    return <g style={{backgroundColor: "green"}} transform={`
+    return <g id='cur-lines' style={{backgroundColor: "green"}} transform={`
                 translate(${translation.asInflated(state).x} ${translation.asInflated(state).y})
                 scale(${scalex} ${scaley})
             `}>
@@ -312,7 +313,7 @@ export function Dots(){
     const {translation, scalex, scaley, rotate, hideDots} = state
     const {x: transx, y: transy} = translation.asInflated(state)
     return !hideDots && <>
-        <pattern id="dot"
+        <pattern id="dots"
             // This makes it line up with everything else just a little better. I don't know why
             x={transx-1}
             y={transy-1}
@@ -328,6 +329,6 @@ export function Dots(){
                 fill={options.dotColor}
             />
         </pattern>
-        <rect fill="url(#dot)" stroke="black" width="100%" height="100%" />
+        <rect fill="url(#dots)" stroke="black" width="100%" height="100%" />
     </>
 }
