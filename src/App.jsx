@@ -27,7 +27,7 @@ export default function App() {
         localStorage.setItem(localStorageTourTakenName, '1')
         setTimeout(() => {
             if (window.confirm("It looks like this is your first time. Would you like to take a guided tour?")){
-                dispatch({action: 'start tour'})
+                dispatch('start_tour')
                 setInTour(true)
             }
         // Wait a little bit for everything to load
@@ -41,7 +41,7 @@ export default function App() {
                 steps={steps}
                 isOpen={inTour}
                 onRequestClose={() => {
-                    dispatch({action: 'end tour'})
+                    dispatch('end_tour')
                     setInTour(false)
                 }}
                 accentColor='#ffddab'

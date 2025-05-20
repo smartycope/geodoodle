@@ -30,10 +30,17 @@ export const localStorageTourTakenName = "GeoDoodleTourTaken"
 export var tapHolding = false
 export const setTapHolding = to => tapHolding = to
 
-// Explanation:
-// We use the bounding rect to get the selection while repeating, so we can select something that's guarenteed to be a
-// pattern. Because of that, we have to get the rect *after* it's been displayed. This means we're always 1 render behind.
-// Because of that, every other render it's null, because the selection is null. This stablizes that.
-// The same thing also happens in utils for getSelected()
-export var selected = null
-export const setSelected = to => selected = to
+// If the visual viewport is not available, assume we're in a testing environment
+export const viewportWidth  = () => window.visualViewport?.width || 1024
+export const viewportHeight = () => window.visualViewport?.height || 768
+
+
+// These are used in reducer.jsx (which saves the current state for the undoStack) and in actions.jsx (which does stuff with them)
+export var undoStack = []
+export var redoStack = []
+
+// For debugging
+// ChatGPT said this works
+// eslint-disable-next-line no-undef
+export const START_DEBUGGING = process.env.NODE_ENV === 'development'
+export const PREVENT_LOADING_STATE = START_DEBUGGING

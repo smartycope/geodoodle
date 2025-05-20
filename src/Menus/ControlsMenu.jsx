@@ -93,7 +93,7 @@ export default function ControlsMenu({dispatch, state}){
 
         {/* Selection buttons */}
         <span className='selection-group' style={{width: state.bounds.length > 1 ? '100%' : 'auto'}}>
-            {state.mobile && <button title="Add selection bound" onClick={() => dispatch({action: 'add bound'})} id='add-bound'>
+            {state.mobile && <button title="Add selection bound" onClick={() => dispatch('add_bound')} id='add-bound'>
                 <PiSelectionPlusDuotone />
             </button>}
             {state.bounds.length > 1 && <>
@@ -107,7 +107,7 @@ export default function ControlsMenu({dispatch, state}){
                     <input
                         type="checkbox"
                         name="partial-picker"
-                        onChange={() => dispatch({action: "toggle partials"})}
+                        onChange={() => dispatch('toggle_partials')}
                         checked={state.partials}
                         title="Include lines that only have one end in the selected area"
                     ></input>
@@ -119,7 +119,7 @@ export default function ControlsMenu({dispatch, state}){
 
         {/* Clear all button */}
         <button
-            onClick={() => window.confirm("Are you sure you want to delete everything?") ? dispatch({action: "clear"}) : undefined}
+            onClick={() => window.confirm("Are you sure you want to delete everything?") ? dispatch('clear') : undefined}
             title="Clear all"
             id='clear-all'
         >
@@ -128,39 +128,39 @@ export default function ControlsMenu({dispatch, state}){
 
         {/* Clipboard buttons */}
         <span className='button-group' id='copy-buttons'>
-            <button onClick={() => dispatch({action: "copy"})} title="Copy">
+            <button onClick={() => dispatch('copy')} title="Copy">
                 <MdContentCopy />
             </button>
-            <button onClick={() => dispatch({action: "cut"})} title="Cut">
+            <button onClick={() => dispatch('cut')} title="Cut">
                 <MdOutlineContentCut />
             </button>
-            <button onClick={() => dispatch({action: "paste"})} title="Paste">
+            <button onClick={() => dispatch('paste')} title="Paste">
                 <MdContentPaste />
             </button>
         </span>
 
         {/* Delete buttons */}
         {state.mobile && <span className="button-group">
-            <button id="delete-lines" onClick={() => dispatch({action: "delete"})} title="Delete all lines attached to a point">
+            <button id="delete-lines" onClick={() => dispatch('delete_lines')} title="Delete all lines attached to a point">
                 <MdDelete />
             </button>
-            <button id="delete-line" onClick={() => dispatch({action: "delete line"})} title="Delete a specific line">
+            <button id="delete-line" onClick={() => dispatch('delete_line')} title="Delete a specific line">
                 <MdDeleteForever />
             </button>
         </span>}
 
         {/* Undo/Redo buttons */}
         <span className="button-group" id='undo-buttons'>
-            <button onClick={() => dispatch({action: "undo"})} title="Undo">
+            <button onClick={() => dispatch('undo')} title="Undo">
                 <MdUndo />
             </button>
-            <button onClick={() => dispatch({action: "redo"})} title="Redo">
+            <button onClick={() => dispatch('redo')} title="Redo">
                 <MdRedo />
             </button>
         </span>
 
         {/* Home button */}
-        <button id='home-button' onClick={() => dispatch({action: "go home"})} title="Reset position and scale">
+        <button id='home-button' onClick={() => dispatch('go_home')} title="Reset position and scale">
             <MdHome />
         </button>
 

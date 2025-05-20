@@ -14,7 +14,7 @@ import {extraButtons} from "../options";
 import {StateContext} from '../Contexts';
 
 export function SettingsMenu(){
-    const [state, dispatch] = useContext(StateContext)
+    const {state, dispatch} = useContext(StateContext)
     const [palletteVisible, setPalletteVisible] = useState(false);
     const colorMenu = useRef()
 
@@ -116,7 +116,7 @@ export function SettingsMenu(){
             />
             <Checkbox label="Debug Mode"
                 title="Adds some visual aids useful for debugging"
-                onChange={() => dispatch({debug: !debug})}
+                onChange={() => dispatch('toggle_debugging')}
                 checked={debug}
             />
             <button onClick={() => {

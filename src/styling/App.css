@@ -145,6 +145,15 @@ select{
     padding: 8px;
 }
 
+svg {
+    overflow: visible;
+}
+
+/* Make links lighter in color */
+a{
+    color: rgb(187, 193, 255);
+}
+
 #mirror-buttons{
     > button > svg{
         margin-right: 5px;

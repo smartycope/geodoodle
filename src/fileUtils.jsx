@@ -1,48 +1,40 @@
 import {version} from "./globals";
 import {preservable, saveable} from "./options";
 import {filterObjectByKeys, getSelected} from "./utils";
-import { Parser as HtmlToReactParser } from "html-to-react";
 import { renderToStaticMarkup } from 'react-dom/server';
+import Line from "./helper/Line";
+import Point from "./helper/Point";
+import Dist from "./helper/Dist";
 
-
-export function serialize(state, selectedOnly=false, transform=''){
+export function serializePattern(state, selectedOnly=false, transform=''){
     const {scalex, scaley, lines} = state
 
-    const _lines = lines.filter(i => i !== undefined && i.props.x1 && i.props.x2 && i.props.y1 && i.props.y2)
-
-    const left   = Math.min(..._lines.map(i => i.props.x1), ..._lines.map(i => i.props.x2))
-    const top    = Math.min(..._lines.map(i => i.props.y1), ..._lines.map(i => i.props.y2))
-
-    const rescaleFunc = i => <line
-        // Remove the translation (so it's absolutely positioned with respect to the cursor)
-        {...i.props}
-        x1={i.props.x1 - left}
-        x2={i.props.x2 - left}
-        y1={i.props.y1 - top}
-        y2={i.props.y2 - top}
-    />
+    const left = Math.min(...lines.map(i => (i.a._x, i.b._x)).flat())
+    const top  = Math.min(...lines.map(i => (i.a._y, i.b._y)).flat())
+    const origin = new Point(left, top)
 
     let saveme = Object.fromEntries(Object.entries(state).filter(([key]) => saveable.includes(key)));
-    saveme['repeating'] = state.openMenus.repeat
+    saveme.repeating = state.openMenus.repeat
+    saveme.bounds = state.bounds.map(i => i.relativeTo(origin))
 
     const svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' +
         '<!-- ' + JSON.stringify(saveme) + ' -->\n' +
         `<svg width="100%" height="100%" transform="${transform}" xmlns="http://www.w3.org/2000/svg">\n` +
         `<g id='lines' transform="scale(${scalex} ${scaley})">\n` +
-            renderToStaticMarkup(selectedOnly
-                ? getSelected(state)
-                : _lines.map(rescaleFunc)
-            ) +
+            renderToStaticMarkup((selectedOnly
+                ? getSelected(state, 'topLeft')
+                : lines.map(i => i.relativeTo(origin))
+            ).map(i => i.render(state))) +
         "\n</g>" +
         '\n</svg>'
     return svg
 }
 
-export function deserialize(str){
-    console.error('here');
+// This will overwrite part of the state with the data from the svg, but not the entire state
+export function deserializePattern(str){
     // First, check if there's a script element in it. If it is, red flag that it's a hacking attempt
     if (str.includes('/script')){
-        window.alert('The uploaded file may be trying to run malitious code. To continue, remove any script tags in the file.')
+        window.alert('The uploaded file may be trying to run malicious code. To continue, remove any script tags in the file.')
         return {}
     }
 
@@ -50,23 +42,26 @@ export function deserialize(str){
     const match = /<!-- (.+) -->/.exec(str)
     // TODO: This won't auto-enable repeating until "repeating" state is implemented
     let state = JSON.parse(match[1])
+    state.bounds = state.bounds.map(i => Point.fromJSON(i))
+    state.translation = Dist.fromJSON(state.translation)
 
-    const htmlToReactParser = new HtmlToReactParser()
-    const parsed = htmlToReactParser.parse(str.replace('\n', ''))
-    state.lines = parsed[parsed.length-1].props.children.filter(i => i !== '\n')[0].props.children
+    const parser = new DOMParser();
+    const parsed = parser.parseFromString(str.replace('\n', ''), 'text/html');
+    const lines = Array.from(parsed.querySelector('#lines').children)
+    state.lines = lines.map(i => Line.fromHTML(i))
     return state
 }
 
 // format is one of: 'png', 'jpeg', 'svg', 'blob'
 // `func` gets passed the dataUrl or blob (if format == 'blob')
-// Coords: width, height: scalar, scaled
-// Coords: x, y: relative?, scaled
+// Coords: width, height: Dist, scaled
 // eslint-disable-next-line no-unused-vars
-export function image(state, format='png', width, height, x, y, dots=false, selectedOnly, func, blob=false, margin=10){
+export function image(state, format='png', rect, dots=false, selectedOnly, func, blob=false, margin=10){
+    const {left, top, width, height} = rect.asSvg(state)
     // This serializes the state (with the function above), then creates a canvas, draws the serialized svg onto the
     // canvas, creates an image from the canvas
-    const svgBlob = new Blob([serialize(state, selectedOnly, `translate(${x} ${y})`)], {
-    type: 'image/svg+xml;charset=utf-8'
+    const svgBlob = new Blob([serializePattern(state, selectedOnly, `translate(${left} ${top})`)], {
+        type: 'image/svg+xml;charset=utf-8'
     });
 
     const DOMURL = window.URL || window.webkitURL || window;
@@ -115,7 +110,7 @@ export function download(name, mime, {str, blob, url}){
 }
 
 export function serializeState(state){
-    return JSON.stringify({...filterObjectByKeys(state, preservable), lines: state.lines.map(i => i.props), version: version})
+    return JSON.stringify({...filterObjectByKeys(state, preservable), lines: state.lines, version: version})
 }
 
 // Returns {} if it can't deserialize properly (like if there's a version mismatch)
@@ -125,9 +120,14 @@ export function deserializeState(str){
         console.log(`Current version == ${version}, but preserved state had ${parsed.version}, abandoning state`);
         return {}
     }
-    return {...parsed, lines: parsed.lines.map((i, cnt) => <line key={`loaded-line-${cnt}`} {...i}/>)}
+
+    parsed.bounds = parsed.bounds.map(i => Point.fromJSON(i))
+    parsed.translation = Dist.fromJSON(parsed.translation)
+
+    return {...parsed, lines: parsed.lines.map(i => Line.fromJSON(i))}
 }
 
+// TODO
 // Currently unused
 // eslint-disable-next-line no-unused-vars
 export function getFileName(state){

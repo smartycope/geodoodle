@@ -22,7 +22,7 @@ const defaultTrellisControl = {
 }
 */
 function DesktopRepeatMenu(){
-    const [state, dispatch] = useContext(StateContext)
+    const {state, dispatch} = useContext(StateContext)
     const {side} = state
 
     function TrellisControl({verb, value, extra='', input}){
@@ -188,7 +188,7 @@ function DesktopRepeatMenu(){
 }
 
 function MobileRepeatMenu(){
-    const [state, dispatch] = useContext(StateContext)
+    const {state, dispatch} = useContext(StateContext)
     const [leftOpen, setLeftOpen] = useState({
         Offset: false,
         Skip: false,
@@ -345,7 +345,7 @@ function MobileRepeatMenu(){
 }
 
 export default function RepeatMenu(){
-    const [state, ] = useContext(StateContext)
+    const {state} = useContext(StateContext)
     return state.mobile
         ? <MobileRepeatMenu/>
         : <DesktopRepeatMenu/>

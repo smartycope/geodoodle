@@ -6,13 +6,13 @@ import { MdHome } from "react-icons/md";
 import { PiSelectionAll } from "react-icons/pi";
 import defaultOptions from "../options";
 import {StateContext} from "../Contexts";
-
+import Dist from "../helper/Dist";
 
 export default function NavMenu(){
-    const [state, dispatch] = useContext(StateContext)
-    const {side} = state
+    const {state, dispatch} = useContext(StateContext)
 
-    const {scalex, scaley} = state
+    const {scalex, scaley, translation, side} = state
+    const {x: translationx, y: translationy} = translation.asDeflated(state)
 
     let style
     if (side === 'bottom')
@@ -28,20 +28,22 @@ export default function NavMenu(){
             bottom: '0px',
         }
 
-    return <>
+        return <>
         <div id='nav-menu' style={style}>
             <span id='pos-nav-menu'>
                 Position
                 <Number
                     label="x:"
-                    onChange={val => dispatch({translationx: val})}
-                    value={state.translationx}
+                    // TODO: this doesn't work
+                    onChange={val => dispatch({action: "translate", amt: Dist.fromDeflated(state, translationx-val, 0)})}
+                    value={translationx}
                     step={scalex}
-                />
+                    />
                 <Number
                     label='y:'
-                    onChange={val => dispatch({translationy: val})}
-                    value={state.translationy}
+                    // TODO: this doesn't work
+                    onChange={val => dispatch({action: "translate", amt: Dist.fromDeflated(state, 0, translationy-val)})}
+                    value={translationy}
                     step={scaley}
                 />
             </span>
@@ -49,8 +51,9 @@ export default function NavMenu(){
              <span id='scale-nav-menu'>
                 Scale
                 <Number
-                    onChange={val => dispatch({scalex: val, scaley: val})}
-                    value={state.scalex}
+                    // TODO: this doesn't work
+                    onChange={val => dispatch({action: "scale", amtx: val, amty: val})}
+                    value={scalex}
                     onMinus={prev => prev * 2}
                     onPlus={prev => prev / 2}
                     // See also: "scale" action in the reducer
@@ -69,10 +72,10 @@ export default function NavMenu(){
 
             {/* Home button */}
             <span id='sub-sub-grid'>
-            <button id='home-button' onClick={() => dispatch({action: "go home"})} title="Reset position and scale">
+            <button id='home-button' onClick={() => dispatch('go_home')} title="Reset position and scale">
                 <MdHome />
             </button>
-            <button id='nav-selection-button' onClick={() => dispatch({action: 'go to selection'})} title="Go to the current selection">
+            <button id='nav-selection-button' onClick={() => dispatch('go_to_selection')} title="Go to the current selection">
                 <PiSelectionAll />
             </button>
             </span>

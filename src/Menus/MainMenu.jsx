@@ -34,7 +34,7 @@ var touchHoldTimer = null
 var redid = false
 
 function DesktopMainMenu(){
-    const [state, dispatch] = useContext(StateContext)
+    const {state, dispatch} = useContext(StateContext)
     return <>
         {/* The menu button in the corner */}
         <button onClick={() => dispatch({action: "menu", toggle: "main"})} id='menu-button'>
@@ -96,14 +96,14 @@ function DesktopMainMenu(){
 }
 
 function MobileMainMenu(){
-    const [state, dispatch] = useContext(StateContext)
+    const {state, dispatch} = useContext(StateContext)
     const {side} = state
     const [, doReload] = useState()
 
     function undoOnTouchHold(){
         if (tapHolding){
             redid = true
-            dispatch({action: 'redo'})
+            dispatch('redo')
             tapHolding = false
         }
     }
@@ -117,7 +117,7 @@ function MobileMainMenu(){
         clearTimeout(touchHoldTimer)
         tapHolding = false
         if (!redid){
-            dispatch({action: 'undo'})
+            dispatch('undo')
         }
         redid = false
     }
@@ -230,6 +230,8 @@ function MobileMainMenu(){
                 {/* Undo button */}
                 <button onTouchStart={undoOnTouchStart}
                     onTouchEnd={undoOnTouchEnd}
+                    // So it works in desktop mode as well
+                    onClick={() => dispatch({action: "undo"})}
                     id="undo-button"
                     className="menu-toggle-button-mobile"
                     style={{
