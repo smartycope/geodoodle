@@ -1,4 +1,4 @@
-// import { describe, it, expect } from 'vitest';
+import { test, it, expect, describe } from 'vitest';
 import Point from '../helper/Point';
 import Dist from '../helper/Dist';
 import Pair from '../helper/Pair';
@@ -8,13 +8,13 @@ import {getState} from './testUtils';
 import { MIRROR_AXIS } from '../globals';
 
 describe('Pair', () => {
-  it('should create a new Pair with x and y coordinates', () => {
+  test('should create a new Pair with x and y coordinates', () => {
     const pair = new Pair(10, 20);
     expect(pair._x).toBe(10);
     expect(pair._y).toBe(20);
   });
 
-  it('should create a copy of itself', () => {
+  test('should create a copy of itself', () => {
     const pair1 = new Pair(5, 10);
     const pair2 = pair1.copy();
     expect(pair2).not.toBe(pair1); // Should be a new instance
@@ -22,7 +22,7 @@ describe('Pair', () => {
     expect(pair2._y).toBe(10);
   });
 
-  it('should check if two Pairs are equal', () => {
+  test('should check if two Pairs are equal', () => {
     const pair1 = new Pair(3, 4);
     const pair2 = new Pair(3, 4);
     const pair3 = new Pair(3, 5);
@@ -31,7 +31,7 @@ describe('Pair', () => {
     expect(pair1.eq(pair3)).toBe(false);
   });
 
-  it('should add two Pairs', () => {
+  test('should add two Pairs', () => {
     const pair1 = new Pair(1, 2);
     const pair2 = new Pair(3, 4);
     const result = pair1.add(pair2);
@@ -40,7 +40,7 @@ describe('Pair', () => {
     expect(result._y).toBe(6);
   });
 
-  it('should subtract two Pairs', () => {
+  test('should subtract two Pairs', () => {
     const pair1 = new Pair(5, 5);
     const pair2 = new Pair(2, 3);
     const result = pair1.sub(pair2);
@@ -49,7 +49,7 @@ describe('Pair', () => {
     expect(result._y).toBe(2);
   });
 
-  it('should multiply two Pairs', () => {
+  test('should multiply two Pairs', () => {
     const pair1 = new Pair(2, 3);
     const pair2 = new Pair(4, 5);
     const result = pair1.mul(pair2);
@@ -58,7 +58,7 @@ describe('Pair', () => {
     expect(result._y).toBe(15);
   });
 
-  it('should divide two Pairs', () => {
+  test('should divide two Pairs', () => {
     const pair1 = new Pair(10, 20);
     const pair2 = new Pair(2, 4);
     const result = pair1.div(pair2);
@@ -67,7 +67,7 @@ describe('Pair', () => {
     expect(result._y).toBe(5);
   });
 
-  it('should round coordinates', () => {
+  test('should round coordinates', () => {
     const pair = new Pair(1.4, 2.6);
     const rounded = pair.round();
 
@@ -75,7 +75,7 @@ describe('Pair', () => {
     expect(rounded._y).toBe(3);
   });
 
-  it('should round coordinates to specified decimal places', () => {
+  test('should round coordinates to specified decimal places', () => {
     const pair = new Pair(1.2345, 2.5678);
     const rounded = pair.round(2);
 
@@ -83,7 +83,7 @@ describe('Pair', () => {
     expect(rounded._y).toBeCloseTo(2.57);
   });
 
-  it('should check if a point is close to another point within threshold', () => {
+  test('should check if a point is close to another point within threshold', () => {
     const pair1 = new Pair(1, 1);
     const pair2 = new Pair(1.5, 1.5);
 
@@ -91,7 +91,7 @@ describe('Pair', () => {
     expect(pair1.closeTo(pair2, 0.4)).toBe(false);
   });
 
-  it('should check if a point is in an array of points', () => {
+  test('should check if a point is in an array of points', () => {
     const points = [new Pair(1, 1), new Pair(2, 2), new Pair(3, 3)];
     const point = new Pair(2, 2);
 
@@ -99,7 +99,7 @@ describe('Pair', () => {
     expect(new Pair(4, 4).in(points)).toBe(false);
   });
 
-  it('should remove a point from an array of points', () => {
+  test('should remove a point from an array of points', () => {
     const points = [new Pair(1, 1), new Pair(2, 2), new Pair(3, 3)];
     const point = new Pair(2, 2);
     const filtered = point.remove(points);
@@ -108,7 +108,7 @@ describe('Pair', () => {
     expect(filtered.some(p => p.eq(point))).toBe(false);
   });
 
-  it('should handle clipping to bounds', () => {
+  test('should handle clipping to bounds', () => {
     const point = new Pair(15, 25);
     const bounds = { xlow: 10, xhigh: 20, ylow: 20, yhigh: 30 };
     const clipped = point.clip(bounds);
@@ -124,7 +124,7 @@ describe('Pair', () => {
 });
 
 describe('Point', () => {
-  it('should create a point from viewport coordinates', () => {
+  test('should create a point from viewport coordinates', () => {
     const state = {
       translation: new Dist(10, 20),
       scalex: 2,
@@ -142,7 +142,7 @@ describe('Point', () => {
     expect(point2._y).toBe(40);  // 60 - 20
   });
 
-  it('should convert to viewport coordinates', () => {
+  test('should convert to viewport coordinates', () => {
     const state = {
       translation: new Dist(10, 20),
       scalex: 2,
@@ -162,7 +162,7 @@ describe('Point', () => {
     expect(viewport2.y).toBe(30);  // 10 + 20
   });
 
-  it('should convert to SVG coordinates', () => {
+  test('should convert to SVG coordinates', () => {
     const state = {
       scalex: 2,
       scaley: 3
@@ -181,7 +181,7 @@ describe('Point', () => {
     expect(svg2.y).toBe(10);
   });
 
-  it('should rotate a point around an origin', () => {
+  test('should rotate a point around an origin', () => {
     const point = new Point(10, 10);
     const origin = new Point(5, 5);
 
@@ -196,7 +196,7 @@ describe('Point', () => {
     expect(rotated180._y).toBeCloseTo(0, 5);
   });
 
-  it('should flip a point across an axis', () => {
+  test('should flip a point across an axis', () => {
     const point = new Point(10, 10);
     const origin = new Point(5, 5);
 
@@ -211,7 +211,7 @@ describe('Point', () => {
     expect(flippedHorz._y).toBe(0);  // 5 - (10 - 5)
   });
 
-  it('should check if a point is within a rectangle', () => {
+  test('should check if a point is within a rectangle', () => {
     const rect = {
       topLeft: new Point(0, 0),
       bottomRight: new Point(10, 10)
@@ -228,33 +228,33 @@ describe('Point', () => {
 });
 
 describe('Dist', () => {
-  it('should create a zero distance', () => {
+  test('should create a zero distance', () => {
     const zero = Dist.zero();
     expect(zero._x).toBe(0);
     expect(zero._y).toBe(0);
   });
 
-  it('should create a distance from deflated values', () => {
+  test('should create a distance from deflated values', () => {
     const dist = Dist.fromDeflated(10, 20);
     expect(dist._x).toBe(10);
     expect(dist._y).toBe(20);
   });
 
-  it('should create a distance from inflated values', () => {
+  test('should create a distance from inflated values', () => {
     const state = { scalex: 2, scaley: 3 };
     const dist = Dist.fromInflated(state, 20, 30);
     expect(dist._x).toBe(10);  // 20 / 2
     expect(dist._y).toBe(10);  // 30 / 3
   });
 
-  it('should convert to deflated values', () => {
+  test('should convert to deflated values', () => {
     const dist = new Dist(10, 20);
     const deflated = dist.asDeflated();
     expect(deflated.x).toBe(10);
     expect(deflated.y).toBe(20);
   });
 
-  it('should convert to inflated values', () => {
+  test('should convert to inflated values', () => {
     const state = { scalex: 2, scaley: 3 };
     const dist = new Dist(10, 20);
     const inflated = dist.asInflated(state);
@@ -264,7 +264,7 @@ describe('Dist', () => {
 });
 
 describe('Line', () => {
-  it('should create a valid line between two points', () => {
+  test('should create a valid line between two points', () => {
     const state = getState();
     const a = new Point(0, 0);
     const b = new Point(10, 10);
@@ -275,14 +275,14 @@ describe('Line', () => {
     expect(line.b).toEqual(b);
   });
 
-  it('should create an invalid line when points are the same', () => {
+  test('should create an invalid line when points are the same', () => {
     const state = getState();
     const a = new Point(5, 5);
     const line = new Line(state, a, a, {}, {}, true);
     expect(line.valid).toBe(false);
   });
 
-  it('should check if two lines are equal', () => {
+  test('should check if two lines are equal', () => {
     const state = getState();
     const line1 = new Line(state, new Point(0, 0), new Point(10, 10), {}, {}, true);
     const line2 = new Line(state, new Point(0, 0), new Point(10, 10), {}, {}, true);
@@ -292,7 +292,7 @@ describe('Line', () => {
     expect(line1.eq(line3)).toBe(false);
   });
 
-  it('should check if a line is in an array of lines', () => {
+  test('should check if a line is in an array of lines', () => {
     const state = getState();
     const lines = [
       new Line(state, new Point(0, 0), new Point(10, 10), {}, {}, true),
@@ -304,7 +304,7 @@ describe('Line', () => {
     expect(new Line(state, new Point(5, 5), new Point(15, 15), {}, {}, true).in(lines)).toBe(false);
   });
 
-  it('should create a copy of a line with optional modifications', () => {
+  test('should create a copy of a line with optional modifications', () => {
     const state = getState();
     const line = new Line(state, new Point(0, 0), new Point(10, 10), { stroke: 'red' }, { id: 1 }, true);
     const newA = new Point(5, 5);
@@ -322,7 +322,7 @@ describe('Line', () => {
 });
 
 describe('Rect', () => {
-  it('should create a rectangle from two points', () => {
+  test('should create a rectangle from two points', () => {
     const topLeft = new Point(0, 0);
     const bottomRight = new Point(10, 20);
     const rect = new Rect(topLeft, bottomRight);
@@ -331,7 +331,7 @@ describe('Rect', () => {
     expect(rect.bottomRight).toEqual(bottomRight);
   });
 
-  it('should create a rectangle from multiple points', () => {
+  test('should create a rectangle from multiple points', () => {
     const points = [
       new Point(10, 20),
       new Point(0, 30),
@@ -347,13 +347,13 @@ describe('Rect', () => {
     expect(rect.bottomRight._y).toBe(30);
   });
 
-  it('should calculate width and height', () => {
+  test('should calculate width and height', () => {
     const rect = new Rect(new Point(0, 0), new Point(10, 20));
     expect(rect.wh._x).toBe(10);
     expect(rect.wh._y).toBe(20);
   });
 
-  it('should calculate center point', () => {
+  test('should calculate center point', () => {
     const rect = new Rect(new Point(0, 0), new Point(10, 20));
     const center = rect.center;
 
@@ -361,7 +361,7 @@ describe('Rect', () => {
     expect(center._y).toBe(10);
   });
 
-  it('should check if a point is within the rectangle', () => {
+  test('should check if a point is within the rectangle', () => {
     const rect = new Rect(new Point(0, 0), new Point(10, 10));
     const inside = new Point(5, 5);
     const outside = new Point(15, 15);
@@ -372,7 +372,7 @@ describe('Rect', () => {
     expect(rect.within(onEdge)).toBe(true);
   });
 
-  it('should grow and shrink the rectangle', () => {
+  test('should grow and shrink the rectangle', () => {
     const rect = new Rect(new Point(5, 5), new Point(15, 15));
 
     // Grow by 2 units
