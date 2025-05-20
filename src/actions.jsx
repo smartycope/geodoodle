@@ -110,7 +110,12 @@ export const up    = state => ({cursorPos: state.cursorPos.add(Dist.fromDeflated
 export const down  = state => ({cursorPos: state.cursorPos.add(Dist.fromDeflated(state,  0,  1))})
 
 // Destruction Actions
-export const clear = state => ({...state, lines: [], bounds: [], openMenus: {...state.openMenus, delete: false, repeat: false}})
+export const clear = state => ({
+    ...go_home(state),
+    lines: [],
+    bounds: [],
+    openMenus: {...state.openMenus, delete: false, repeat: false}
+})
 export const clear_bounds = state => ({...cancel_clipboard(state), bounds: []})
 export const delete_selected = state => {
     const boundRect = getBoundRect(state)
