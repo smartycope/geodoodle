@@ -1,7 +1,8 @@
 import fs from 'fs';
 import { render, fireEvent } from '@testing-library/react';
 import Paper from '../Paper';
-import "../styling/index.css"
+import "../styling/index.css";
+import getInitialState from '../states';
 
 export function renderPaper(startPoint=[100, 100]) {
   const rendered = render(<Paper setDispatch={() => {}} />);
@@ -31,10 +32,10 @@ export function getSelectionRect(container) {
 export function getMatrixValues(container) {
   const dots = container.querySelector('#dots')
   return {
-    x: dots.getAttribute('x'),
-    y: dots.getAttribute('y'),
-    width: dots.getAttribute('width'),
-    height: dots.getAttribute('height'),
+    x: Number(dots.getAttribute('x')),
+    y: Number(dots.getAttribute('y')),
+    width: Number(dots.getAttribute('width')),
+    height: Number(dots.getAttribute('height')),
     // rotation: dots.getAttribute('transform').match(/\d+/g).map(Number)
   }
 }
@@ -101,3 +102,9 @@ export function saveHtml(container) {
 `;
   fs.writeFileSync('test.html', fullHtml);
 }
+
+// A standard function for whenever we need just an average state
+export function getState() {
+  return getInitialState();
+}
+

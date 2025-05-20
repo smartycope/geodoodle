@@ -5,20 +5,20 @@ import defaultOptions from '../options';
 // import "../styling/App.css"
 import "../styling/index.css"
 import "../utils"
-import { getLines, 
-  getCurLines, 
-  getBounds, 
-  scroll, 
-  mouseMove, 
-  mouseDown, 
-  mouseUp, 
+import { getLines,
+  getCurLines,
+  getBounds,
+  scroll,
+  mouseMove,
+  mouseDown,
+  mouseUp,
   getMatrixValues,
-  mouseClick, 
-  createLine, 
-  press, 
+  mouseClick,
+  createLine,
+  press,
   mouseClickOn,
-  saveHtml, 
-  renderPaper, 
+  saveHtml,
+  renderPaper,
   getSelectionRect,
 } from "../tests/testUtils.js"
 
@@ -44,16 +44,16 @@ describe('Paper interactions', () => {
     mouseMove(paper, 150, 150, {buttons: 1});
     mouseUp(paper, 200, 200);
     mouseMove(paper, 200, 300);
-    
+
     expect(getLines(container).length).toBe(1);
   });
-  
+
   test('Ensure localstorage is cleared', () => {
     const { container } = renderPaper();
     createLine(paper);
     expect(getLines(container).length).toBe(1);
   });
-  
+
   // This works... I don't think it should?...
   test('can delete line after scaling in', () => {
     const { container, paper } = renderPaper();
@@ -97,6 +97,7 @@ describe('Paper interactions', () => {
     mouseClick(paper, 100, 100)
     mouseMove(paper, 200, 200);
     mouseClick(paper, 200, 200, 2)
+    mouseMove(paper, 200, 300)
     expect(getLines(container).length).toBe(1);
     expect(getCurLines(container).length).toBe(1);
     mouseMove(paper, 200, 300);

@@ -28,7 +28,7 @@ export default class Line {
     copy(a=this.a, b=this.b, aes=this.aes, props=this.props){
         // Mock the scale here so the constructor can unscale the points, even though it doesn't have to (since it's
         // just a copy, we already did that when *this* line was constructed)
-        return new Line({}, a, b, aes, props)
+        return new Line({}, a, b, {...this.aes, ...aes}, {...this.props, ...props})
     }
 
     isSelected(state, boundRect=null){
