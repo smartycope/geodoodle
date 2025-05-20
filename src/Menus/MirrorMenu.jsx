@@ -12,7 +12,7 @@ let isDragging = false;
 
 
 function DesktopMirrorMenu(){
-    const [state, dispatch] = useContext(StateContext)
+    const {state, dispatch} = useContext(StateContext)
 
     // Enable dragging - mostly copied from ChatGPT
     useEffect(() =>{
@@ -124,7 +124,7 @@ function DesktopMirrorMenu(){
 }
 
 function MobileMirrorMenu({align}){
-    const [state, dispatch] = useContext(StateContext)
+    const {state, dispatch} = useContext(StateContext)
     const style = useAlignWithElement(align)
     const {mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2, mirroring} = state
 
@@ -137,7 +137,7 @@ function MobileMirrorMenu({align}){
             title='Toggle mirror type'
             onClick={() => dispatch({mirrorType: incrementMirrorType(mirrorType)})}
         >
-            <MirrorTypeIcon mirrorType={state.mirrorType}/>
+            <MirrorTypeIcon mirrorType={mirrorType}/>
         </button>
         Method
         <button
@@ -145,9 +145,9 @@ function MobileMirrorMenu({align}){
             title='Toggle mirror method'
             onClick={() => dispatch({mirrorMethod: incrementMirrorMethod(mirrorMethod)})}
         >
-            <MirrorMethodIcon mirrorMethod={state.mirrorMethod}/>
+            <MirrorMethodIcon mirrorMethod={mirrorMethod}/>
         </button>
-        {[MIRROR_METHOD.BOTH, MIRROR_METHOD.FLIP].includes(state.mirrorMethod) &&
+        {[MIRROR_METHOD.BOTH, MIRROR_METHOD.FLIP].includes(mirrorMethod) &&
             <span>
                 Flip
                 <button
@@ -155,11 +155,11 @@ function MobileMirrorMenu({align}){
                     title='Toggle mirror axis'
                     onClick={() => dispatch({mirrorAxis: incrementMirrorAxis(mirrorAxis)})}
                 >
-                    <MirrorAxisIcon mirrorAxis={state.mirrorAxis} mirrorMethod={MIRROR_METHOD.FLIP}/>
+                    <MirrorAxisIcon mirrorAxis={mirrorAxis} mirrorMethod={MIRROR_METHOD.FLIP}/>
                 </button>
             </span>
         }
-        {[MIRROR_METHOD.BOTH, MIRROR_METHOD.ROTATE].includes(state.mirrorMethod) &&
+        {[MIRROR_METHOD.BOTH, MIRROR_METHOD.ROTATE].includes(mirrorMethod) &&
             <span>
                 Rotate
                 <button
@@ -167,7 +167,7 @@ function MobileMirrorMenu({align}){
                     title='Toggle mirror rotation angle'
                     onClick={() => dispatch({mirrorAxis2: incrementMirrorAxis(mirrorAxis2)})}
                 >
-                    <MirrorAxisIcon mirrorAxis={state.mirrorAxis2} mirrorMethod={MIRROR_METHOD.ROTATE}/>
+                    <MirrorAxisIcon mirrorAxis={mirrorAxis2} mirrorMethod={MIRROR_METHOD.ROTATE}/>
                 </button>
             </span>
         }
@@ -175,7 +175,7 @@ function MobileMirrorMenu({align}){
 }
 
 export default function MirrorMenu({align}){
-    // const [state, dispatch] = useContext(StateContext)
+    // const {state, dispatch} = useContext(StateContext)
     // const {side} = state
 
     // return state.mobile

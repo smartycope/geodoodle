@@ -1,5 +1,7 @@
-import {viewportWidth, viewportHeight} from "./utils"
+import {viewportWidth, viewportHeight} from "./globals"
+import Point from "./helper/Point"
 
+// TODO a lot (maybe all) of this should be moved to CSS
 const defaultOptions = {
     cursorColor: "black",
     scalex: 20,
@@ -9,9 +11,10 @@ const defaultOptions = {
     strokeWidth: .05,
     boundColor: "black",
     mirrorColor: 'green',
-    selectionBorderColor: 'black',
-    selectionOpacity: .5,
+    selectionBorderColor: '#2a56ad',
+    selectionOpacity: .15,
     selectionColor: '#3367D1',
+    glowColor: 'blue',
     partials: true,
     dotOffsetx: 0,
     dotOffsety: 0,
@@ -35,6 +38,11 @@ const defaultOptions = {
     maxUndoAmt: 20,
     maxScale: Math.min(viewportWidth(), viewportHeight()) / 2,
     minScale: 4,
+    // color of the clipboard lines, before they're added as permanent lines
+    clipColor: 'grey80',
+    clipboardButtonWidth: 35,
+    clipboardButtonHeight: 40,
+    clipboardButtonGap: 5,
 }
 export default defaultOptions
 
@@ -58,36 +66,36 @@ export const keybindings = {
     "w": {action: "up"},
     "s": {action: "down"},
 
-    'ctrl+arrowup': {action: "increase scale"},
-    'ctrl+arrowdown': {action: "decrease scale"},
+    'ctrl+arrowup': {action: "increase_scale"},
+    'ctrl+arrowdown': {action: "decrease_scale"},
 
-    'delete': {action: "delete"},
-    'backspace': {action: "delete line"},
+    'delete': {action: "delete_at_cursor"},
+    'backspace': {action: "delete_line"},
     // 'ctrl+q': {action: "clear"},
-    ' ': {action: "add line"},
-    'c': {action: "continue line"},
-    'b': {action: "add bound"},
-    'shift+b': {action: "clear bounds"},
+    ' ': {action: "add_line"},
+    'c': {action: "continue_line"},
+    'b': {action: "add_bound"},
+    'shift+b': {action: "clear_bounds"},
     'escape': {action: "nevermind"},
-    'p': {action: "toggle partials"},
-    'home': {action: 'go home'},
-    'h': {action: 'go home'},
-    'x': {action: 'increment clipboard rotation'},
-    'z': {action: 'increment clipboard mirror axis'},
+    'p': {action: "toggle_partials"},
+    'home': {action: 'go_home'},
+    'h': {action: 'go_home'},
+    'x': {action: 'increment_clipboard_rotation'},
+    'z': {action: 'increment_clipboard_mirror_axis'},
 
     'm': {action: "menu", toggle: 'mirror'},
     'r': {action: "menu", toggle: 'repeat'},
     'ctrl+s': {action: "menu", toggle: 'settings'},
 
-    '1': {action: `set to common color`, index: 1},
-    '2': {action: `set to common color`, index: 2},
-    '3': {action: `set to common color`, index: 3},
-    '4': {action: `set to common color`, index: 4},
-    '5': {action: `set to common color`, index: 5},
-    '6': {action: `set to common color`, index: 6},
-    '7': {action: `set to common color`, index: 7},
-    '8': {action: `set to common color`, index: 8},
-    '9': {action: `set to common color`, index: 9},
+    '1': {action: `set_to_common_color`, index: 1},
+    '2': {action: `set_to_common_color`, index: 2},
+    '3': {action: `set_to_common_color`, index: 3},
+    '4': {action: `set_to_common_color`, index: 4},
+    '5': {action: `set_to_common_color`, index: 5},
+    '6': {action: `set_to_common_color`, index: 6},
+    '7': {action: `set_to_common_color`, index: 7},
+    '8': {action: `set_to_common_color`, index: 8},
+    '9': {action: `set_to_common_color`, index: 9},
 
     'ctrl+c': {action: "copy"},
     'ctrl+v': {action: "paste"},
@@ -97,7 +105,7 @@ export const keybindings = {
     'ctrl+shift+z': {action: 'redo'},
 
     '`': {action: 'debug'},
-    'shift+`': {action: 'toggle debugging'},
+    'shift+`': {action: 'toggle_debugging'},
 }
 
 // Things which can go in the extra button slot
@@ -108,48 +116,48 @@ export const extraButtons = [
 
 // Only these can be undone, all other actions are ignored by undo/redo
 export const reversibleActions = [
-    'go home',
+    'go_home',
     'clear',
-    'clear bounds',
+    'clear_bounds',
     'paste',
-    'delete selected',
-    'delete line',
+    'delete_selected',
+    'delete_line',
     'delete',
-    'add line',
-    'continue line',
-    'add bound',
+    'add_line',
+    'continue_line',
+    'add_bound',
     'upload',
-    'load local',
-    'add common color',
-    'set to common color',
+    'load_local',
+    'add_common_color',
+    'set_to_common_color',
 ]
 
 // Only save the state to be preserved when these actions happen
 export const saveSettingActions = [
-    'increase scale',
-    'decrease scale',
-    'go home',
+    'increase_scale',
+    'decrease_scale',
+    'go_home',
     'clear',
-    'clear bounds',
-    'delete selected',
-    'delete line',
+    'clear_bounds',
+    'delete_selected',
+    'delete_line',
     'delete',
-    'add line',
-    'continue line',
-    'add bound',
+    'add_line',
+    'continue_line',
+    'add_bound',
     'undo',
     'redo',
     'paste',
-    'add common color',
-    `set to common color`,
+    'add_common_color',
+    `set_to_common_color`,
     'toggle partials',
-    "toggle dark mode",
+    "toggle_dark_mode",
 ]
 
 // When undoing an action, only these parts of the state get undone
 export const reversible = [
     'lines',
-    'curLine',
+    'curLinePos',
     'bounds',
     'trellis',
     'eraser',
@@ -166,7 +174,6 @@ export const preservable = [
     "commonColors",
     'extraButton',
     "strokeWidth",
-    'rotate',
     "partials",
     "lines",
     "bounds",
@@ -175,12 +182,10 @@ export const preservable = [
     "mirrorType",
     "mirrorMethod",
     "trellis",
-    "translationx",
-    "translationy",
+    "translation",
     "scalex",
     "scaley",
-    "rotatex",
-    "rotatey",
+    "rotate",
     "shearx",
     "sheary",
     "invertedScroll",
@@ -197,11 +202,11 @@ export const saveable = [
     // This is handeled seperately
     // 'lines',
     'bounds',
-    'translationx',
-    'translationy',
+    'translation',
     "scalex",
     "scaley",
     "rotate",
     "shearx",
     "sheary"
 ]
+

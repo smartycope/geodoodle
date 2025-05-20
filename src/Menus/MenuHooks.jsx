@@ -2,7 +2,7 @@ import {useContext} from "react";
 import {StateContext} from "../Contexts";
 
 export function useAlignWithElement(id){
-    const [state, ] = useContext(StateContext)
+    const {state} = useContext(StateContext)
 
     const to = document.querySelector("#" + id)?.getBoundingClientRect()
     if (!to) return {}

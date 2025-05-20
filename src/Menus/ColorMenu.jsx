@@ -10,13 +10,13 @@ import {useAlignWithElement} from "./MenuHooks";
 
 import { FaGripLinesVertical } from "react-icons/fa6";
 import {StateContext} from "../Contexts";
-import {viewportWidth, viewportHeight} from '../utils'
+import {viewportHeight} from "../globals";
 
 let offsetX, offsetY;
 let isDragging = false;
 
 function DesktopColorMenu(){
-    const [state, dispatch] = useContext(StateContext)
+    const {state, dispatch} = useContext(StateContext)
     const {side} = state
 
     // const [color, setColor] = useColor(state.stroke);
@@ -106,7 +106,7 @@ function DesktopColorMenu(){
             }}
         >
             {palletteVisible && <ColorPicker color={ColorService.convert('hex', state.stroke)} onChange={(clr) => {
-                dispatch({action: 'set manual', stroke: clr.hex});
+                dispatch({stroke: clr.hex});
                 // setColor(clr)
             }} hideInput={['hsv', state.hideHexColor ? 'hex' : '']}/>}
         </div>
@@ -114,7 +114,7 @@ function DesktopColorMenu(){
             <button id='color-picker-button'
                 onClick={() => {
                     if (palletteVisible)
-                        dispatch({action: 'add common color', color: state.stroke})
+                        dispatch({action: 'add_common_color', color: state.stroke})
                     setPalletteVisible(!palletteVisible)
                 }}
                 style={{backgroundColor: state.stroke}}
@@ -126,7 +126,7 @@ function DesktopColorMenu(){
             <span className='button-group' id="recent-color-buttons">
                 {JSON.parse(JSON.stringify(state.commonColors)).reverse().map((commonColor, i) =>
                     <button
-                        onClick={() => dispatch({action: 'set manual', stroke: commonColor})}
+                        onClick={() => dispatch({stroke: commonColor})}
                         style={{backgroundColor: commonColor}}
                         key={`colorButton${i}`}
                     >{i+1}</button>
@@ -149,7 +149,7 @@ function DesktopColorMenu(){
                     type="text"
                     value={state.dash}
                     style={{width: state.dash.length * 5 + 10}}
-                    onChange={(val) => dispatch({action: 'set manual', dash: val.target.value})}
+                    onChange={(val) => dispatch({dash: val.target.value})}
                 ></input>
             </span>
             {/* Grip */}
@@ -159,15 +159,15 @@ function DesktopColorMenu(){
 }
 
 function MobileColorMenu({align}){
-    const [state, dispatch] = useContext(StateContext)
+    const {state, dispatch} = useContext(StateContext)
     const style = useAlignWithElement(align)
 
-    const {stroke, strokeWidth, dash, colorProfile, scalex} = state
+    const {stroke, strokeWidth, dash, colorProfile, scalex, side} = state
 
     return <div id="color-menu-mobile" style={{...style,
-            top: ['left', 'right'].includes(state.side) ? undefined : style.top,
+            top: ['left', 'right'].includes(side) ? undefined : style.top,
             // Custom style to make it look better
-            transform: state.side === 'left' ? 'translate(10px, 0)' : undefined,
+            transform: side === 'left' ? 'translate(10px, 0)' : undefined,
         }}>
         {/* The full screen color menu */}
         <div id="color-picker-mobile-actual">

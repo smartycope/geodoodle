@@ -7,8 +7,7 @@ import {StateContext} from "../Contexts";
 
 // eslint-disable-next-line no-unused-vars
 export function KeyMenu(){
-    const [state, dispatch] = useContext(StateContext)
-    const {side} = state
+    const {dispatch} = useContext(StateContext)
     return <div id='key-menu'>
         <button id='close-button' onClick={() => dispatch({action: "menu", close: "key", open: 'help'})}><IoClose /></button>
         <h3>Keyboard Shortcuts</h3>

@@ -138,11 +138,11 @@ export function MirrorMethodIcon({mirrorMethod}){
 }
 
 export function ExtraButton({mainMenu=false, style}){
-    const [state, dispatch] = useContext(StateContext)
+    const {state, dispatch} = useContext(StateContext)
 
     switch (state.extraButton) {
         case 'copy image':
-            return <button onClick={() => dispatch({action: 'copy image'})}
+            return <button onClick={() => dispatch('copy_image')}
                 className="menu-toggle-button-mobile extra-button bonus-button"
                 id='copy-button-extra'
                 style={style}>
@@ -152,7 +152,7 @@ export function ExtraButton({mainMenu=false, style}){
         // Home is the default
         default:
             return <button id='home-button-extra'
-                onClick={() => dispatch({action: "go home"})}
+                onClick={() => dispatch('go_home')}
                 className="menu-toggle-button-mobile extra-button bonus-button"
                 title="Reset position and scale"
                 style={style}>

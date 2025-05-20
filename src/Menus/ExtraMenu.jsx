@@ -11,7 +11,7 @@ import {ExtraButton} from "./MenuUtils";
 import {extraSlots as _extraSlots} from "../utils";
 
 export default function ExtraMenu({align}){
-    const [state, dispatch] = useContext(StateContext)
+    const {state, dispatch} = useContext(StateContext)
 
     let alignStyle = useAlignWithElement(align)
     const extraSlots = _extraSlots(state)

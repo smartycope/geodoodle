@@ -1,7 +1,5 @@
 import {useContext, useState} from 'react';
 import "../styling/FileMenu.css"
-import {localStorageName} from '../globals.js'
-
 import { IoClose } from "react-icons/io5";
 import { IoMdDownload } from "react-icons/io";
 import { MdOutlineTabUnselected, MdUpload } from "react-icons/md";
@@ -12,15 +10,17 @@ import {GiNuclear} from 'react-icons/gi';
 import { MdOutlineFileCopy } from "react-icons/md";
 import { FaMobileScreenButton } from "react-icons/fa6";
 import {StateContext} from '../Contexts.jsx';
-import {viewportWidth, viewportHeight} from '../utils'
+import {viewportWidth, viewportHeight, localStorageName} from '../globals'
+import Rect from '../helper/Rect'
+import Point from '../helper/Point'
 
 export function FileMenu(){
-    const [state, dispatch] = useContext(StateContext)
-    const {side} = state
+    const {state, dispatch} = useContext(StateContext)
+    const {filename, bounds} = state
 
     const [saveName, setSaveName] = useState('');
     const [loadName, setLoadName] = useState('');
-    const [downloadName, ] = useState('');
+    const [downloadName, ] = useState('pattern');
     const [format, setFormat] = useState('svg');
     const [width, setWidth] = useState(viewportWidth());
     const [height, setHeight] = useState(viewportHeight());
@@ -32,7 +32,7 @@ export function FileMenu(){
         if (e.target.files.length > 0) {
             var reader = new FileReader()
             reader.onload = function(e) {
-                dispatch({action: 'upload', str: e.target.result})
+                dispatch({action: 'upload_file', str: e.target.result})
             }
             dispatch({filename: /(.+)\./.exec(e.target.files[0].name)[1]})
             reader.readAsText(e.target.files[0]);
@@ -43,14 +43,14 @@ export function FileMenu(){
     const saves = localStorage.getItem(localStorageName)
 
     return <div id='file-menu'>
-        <button id='copy-button' onClick={() => dispatch({action: 'copy image'})}><MdOutlineFileCopy />Copy</button>
+        <button id='copy-button' onClick={() => dispatch('copy_image')}><MdOutlineFileCopy />Copy</button>
         <button id='close-button' onClick={() => dispatch({action: "menu", close: "file"})}><IoClose /></button>
         <h3>Files</h3>
 
         <details open id='first-details'><summary><IoMdDownload />Download</summary>
             <span className='group'>
                 <p>Pattern Name: </p>
-                <input type="text" value={state.filename} onChange={(e) => dispatch({filename: e.target.value})}></input>
+                <input type="text" value={filename} onChange={(e) => dispatch({filename: e.target.value})}></input>
             </span>
             <span className='group' id='download-buttons'>
                 <select onChange={e => setFormat(e.target.value)}>
@@ -58,13 +58,16 @@ export function FileMenu(){
                     <option value='png'>PNG</option>
                     <option value='jpeg'>JPEG</option>
                 </select>
-                <button onClick={() => dispatch({action: "download",
-                    name: downloadName, format, width, height, selectedOnly: selectedOnly && state.bounds.length > 1
+                <button onClick={() => dispatch({action: "download_file",
+                    name: downloadName, format, rect: new Rect(
+                        Point.fromViewport(state, x, y),
+                        Point.fromViewport(state, x + width, y + height)
+                    ), selectedOnly: selectedOnly && bounds.length > 1
                 })}>
                     <IoMdDownload /> Download
                 </button>
             </span>
-            {state.bounds.length > 1 && <Checkbox
+            {bounds.length > 1 && <Checkbox
                 checked={selectedOnly}
                 onChange={() => setSelectedOnly(!selectedOnly)}
                 label="Only inlucde selection"
@@ -101,7 +104,7 @@ export function FileMenu(){
         <details><summary><FaSave/> Save</summary>
             <span className='group'>
                 <input type="text" onChange={(e) => setSaveName(e.target.value)}></input>
-                <button onClick={() => dispatch({action: 'save local', name: saveName})}><FaSave /> Save</button>
+                <button onClick={() => dispatch({action: 'save_local', name: saveName})}><FaSave /> Save</button>
             </span>
             <span>
                 {/* <input type="text" onChange={(e) => setLoadName(e.target.value)}></input> */}
@@ -117,7 +120,7 @@ export function FileMenu(){
                 </span>
                 <span className='group'>
                     {/* Somehow this doesn't work */}
-                    <button onClick={() => {dispatch({action: 'load local', name: loadName}); setTimeout(() => document.querySelector('#paper').click(), 200)}}>
+                    <button onClick={() => {dispatch({action: 'load_local', name: loadName}); setTimeout(() => document.querySelector('#paper').dispatchEvent(new MouseEvent('click', {bubbles: true})), 200)}}>
                         <IoIosDownload /> Load
                     </button>
                     <button onClick={() =>
