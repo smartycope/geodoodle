@@ -193,3 +193,15 @@ export function extraSlots(state){
 
     return Math.floor((sideLen - 500) / 60)
 }
+
+// Return a color that shows up well on the given color so you can read text
+export function getShowableStroke(color){
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+
+    // Calculate perceived brightness (YIQ formula)
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 128 ? 'black' : 'white';
+}
+

@@ -10,7 +10,7 @@ import {useAlignWithElement} from "./MenuHooks";
 
 import { FaGripLinesVertical } from "react-icons/fa6";
 import {StateContext} from "../Contexts";
-import {viewportHeight} from "../globals";
+import {viewportHeight, getShowableStroke} from "../globals";
 
 let offsetX, offsetY;
 let isDragging = false;
@@ -162,22 +162,24 @@ function MobileColorMenu({align}){
     const {state, dispatch} = useContext(StateContext)
     const style = useAlignWithElement(align)
 
-    const {stroke, strokeWidth, dash, colorProfile, scalex, side} = state
+    const {stroke, strokeWidth, dash, currentLineColorProfileIndex, scalex, fillMode, fill, currentFillColorProfileIndex} = state
+    const currentIndex = fillMode ? currentFillColorProfileIndex : currentLineColorProfileIndex
+    const colors = fillMode ? fill : stroke
 
     return <div id="color-menu-mobile" style={{...style,
-            top: ['left', 'right'].includes(side) ? undefined : style.top,
+            top: ['left', 'right'].includes(state.side) ? undefined : style.top,
             // Custom style to make it look better
-            transform: side === 'left' ? 'translate(10px, 0)' : undefined,
+            transform: state.side === 'left' ? 'translate(10px, 0)' : undefined,
         }}>
         {/* The full screen color menu */}
         <div id="color-picker-mobile-actual">
             <ColorPicker
-                color={ColorService.convert('hex', stroke[colorProfile])}
+                color={ColorService.convert('hex', colors[currentIndex])}
                 hideInput={['hsv', state.hideHexColor ? 'hex' : '']}
                 onChange={(clr) => {
-                    let copy = JSON.parse(JSON.stringify(stroke))
-                    copy[colorProfile] = clr.hex
-                    dispatch({stroke: copy})
+                    let copy = JSON.parse(JSON.stringify(colors))
+                    copy[currentIndex] = clr.hex
+                    dispatch(fillMode ? {fill: copy} : {stroke: copy})
                 }}
             />
         </div>
@@ -186,16 +188,16 @@ function MobileColorMenu({align}){
         <span className='button-group' id="color-profile-buttons">
             {Array(options.commonColorAmt).fill().map((_, i) =>
                 <button
-                    onClick={() => dispatch({colorProfile: i})}
-                    // // style={{backgroundColor: stroke[i]}}
-                    // style={{backgroundColor: i === colorProfile ? "rgb(100,100,100)" : "rgb(60,60,60)"}}
-                    style={{backgroundColor: i === colorProfile ? "#aa9578" : state.paperColor}}
+                    onClick={() => dispatch(fillMode ? {currentFillColorProfileIndex: i} : {currentLineColorProfileIndex: i})}
+                    style={{
+                        backgroundColor: fillMode ? fill[i] : (i === currentIndex ? "#aa9578" : state.paperColor),
+                        color: getShowableStroke(fillMode ? fill[i] : state.paperColor)
+                    }}
                     key={`colorButton${i}`}
                     className="common-color-button"
                 >{i+1}<svg width="30" height='20'><line
                     x1={0} x2="90%" y1={10} y2={10}
-                    // stroke="black"
-                    stroke={stroke[i]}
+                    stroke={fillMode ? 'black' : stroke[i]}
                     strokeWidth={strokeWidth[i] * scalex}
                     strokeDasharray={dash[i].replace(/\s/, '').split(',').map(k => k/3).join(',')}
                     strokeLinecap="round"
@@ -204,32 +206,42 @@ function MobileColorMenu({align}){
         </span>
 
         {/* Stroke input */}
-        <Number
+        {!fillMode && <Number
             id='stroke-input'
             label="Stroke:"
-            value={strokeWidth[colorProfile] * 100}
+            value={strokeWidth[currentLineColorProfileIndex] * 100}
             onChange={val => {
                 let copy = JSON.parse(JSON.stringify(strokeWidth))
-                copy[colorProfile] = val / 100
+                copy[currentLineColorProfileIndex] = val / 100
                 dispatch({strokeWidth: copy})
             }}
-        />
+        />}
 
         {/* Dash code */}
-        <span id="dash-input-area">
+        {!fillMode && <span id="dash-input-area">
             <label htmlFor="dash-input">Dash Code: </label>
             <input
                 id="dash-input"
                 type="text"
-                value={dash[colorProfile]}
+                value={dash[currentLineColorProfileIndex]}
                 style={{width: dash.length * 5 + 10}}
                 onChange={e => {
                     let copy = JSON.parse(JSON.stringify(dash))
-                    copy[colorProfile] = e.target.value
+                    copy[currentLineColorProfileIndex] = e.target.value
                     dispatch({dash: copy})
                 }}
             ></input>
-        </span>
+        </span>}
+
+        {/* Toggle fill mode button */}
+        {/* TODO: I don't like this here, but I don't know where else to put it yet */}
+        <button id='color-menu-fill-button'
+            onClick={() => dispatch('toggle fill mode')}
+            // I also don't love this
+            style={{backgroundColor: fillMode ? "green" : "red"}}
+        >
+            Fill {fillMode ? "On" : "Off"}
+        </button>
 
         {/* The set button */}
         <button id='color-menu-close-button'
@@ -242,14 +254,15 @@ function MobileColorMenu({align}){
             Close
         <svg width="90%" height='10'><line
             x1='0' x2="90%" y1={5} y2={5}
-            stroke={stroke[colorProfile]}
-            strokeWidth={strokeWidth[colorProfile] * scalex}
-            strokeDasharray={dash[colorProfile]}
+            stroke={fillMode ? 'black' : stroke[currentLineColorProfileIndex]}
+            strokeWidth={strokeWidth[currentLineColorProfileIndex] * scalex}
+            strokeDasharray={dash[currentLineColorProfileIndex]}
             strokeLinecap="round"
         /></svg>
         </button>
     </div>
 }
+
 
 export default function ColorMenu({align}){
     // const [state, ] = useContext(StateContext)
