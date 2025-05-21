@@ -31,6 +31,25 @@ export default function getInitialState(){
         dash: Array(options.commonColorAmt).fill('0'),
         lineCap: options.lineCap,
         lineJoin: options.lineJoin,
+
+        // The index of the currently selected color to fill polygons in with
+        // 0 indexed
+        // currentFillColorProfileIndex: 0,
+        // A list of hex color string
+        fill: Array(options.commonColorAmt).fill(options.fill),
+
+        fillMode: false,
+        // Constructed when we transition into fillMode, null otherwise
+        // FeatureCollection<Polygon>
+        // Coord: relative, scaled
+        polygons: null,
+        // The polygon that the mouse is over currently
+        // Coord: relative, scaled
+        intersectingPolygon: null,
+        // A list of polygons (as svg polygon objects) that have been filled. We draw these
+        // Coord: relative, scaled
+        filledPolys: [],
+
         filename: "",
         // The side of page we have the menu bound to: left, right, top, or bottom
         side: viewportWidth() < viewportHeight() ? 'top' : 'right',
@@ -104,6 +123,7 @@ export default function getInitialState(){
         gestureTranslateSensitivity: 1,
         gestureScaleSensitivity: .3,
         smoothGestureScale: false,
+        dotsAbovefill: true,
         // One of options.extraButtons
         extraButton: 'home',
         hideHexColor: options.hideHexColor,

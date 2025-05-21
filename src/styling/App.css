@@ -11,7 +11,8 @@ html{
     /* background-color: #E4C699; */
     /* background-color: #ffddab; */
     /* background-color: BlanchedAlmond; */
-    cursor: none;
+    /* This is handled in paper itself now */
+    /* cursor: none; */
 }
 
 .checkbox{
@@ -87,7 +88,7 @@ input[type="number"]::-webkit-outer-spin-button {
     transform: scaleY(1.5);
     position: absolute;
     right: 5px;
-    height: max-content;
+ k   height: max-content;
     display: flex;
     flex-direction: column;
 }

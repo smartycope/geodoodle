@@ -86,7 +86,7 @@ export function DebugInfo(){
 
         <DebugPoint name="Translation" point={origin} inflated={false} color='green'/>
         <DebugPoint name="Scale" point={{x: scalex, y: scaley}} omitCircle inflated/>
-        <DebugPoint name="Cursor" point={state.cursorPos} yoff={40} fill='transparent'/>
+        {!state.fillMode && <DebugPoint name="Cursor" point={state.cursorPos} yoff={40} fill='transparent'/>}
         {/* <DebugPoint name="SVG Origin" point={Point.svgOrigin(state)} omit/> */}
         {debugDrawPoints && Object.entries(debugDrawPoints).map(([name, spec]) => <DebugPoint key={name} name={name} {...spec} />)}
     </g>
@@ -266,7 +266,7 @@ export function Clipboard(){
 
 export function Cursor(){
     const {state} = useContext(StateContext)
-    const {cursorPos, scalex, mirroring, openMenus, mirrorType, mirrorMethod, mirrorAxis} = state
+    const {cursorPos, scalex, mirroring, openMenus, mirrorType, mirrorMethod, mirrorAxis, fillMode} = state
     const cursorPosViewport = cursorPos.asViewport(state)
     // Construct the cursor (internal mirror lines, etc)
     let cursor = [
@@ -305,7 +305,7 @@ export function Cursor(){
         }
     }
 
-    return <g id="cursor-group">{cursor}</g>
+    return !fillMode && <g id="cursor-group">{cursor}</g>
 }
 
 export function Dots(){
@@ -331,4 +331,28 @@ export function Dots(){
         </pattern>
         <rect fill="url(#dots)" stroke="black" width="100%" height="100%" />
     </>
+}
+
+export function Polygons(){
+    const {state} = useContext(StateContext)
+    const {filledPolys, translation, scalex, scaley} = state
+    const {x: transx, y: transy} = translation.asInflated(state)
+    return <g id='filled-polys' transform={`translate(${transx} ${transy}) scale(${scalex} ${scaley})`}>
+        {filledPolys}
+    </g>
+}
+
+export function IntersectingPolygon(){
+    const {state} = useContext(StateContext)
+    const {intersectingPolygon, translation, scalex, scaley, colorProfile, fill, filledPolys} = state
+    const {x: transx, y: transy} = translation.asInflated(state)
+    {/* return <g id='intersecting-poly' transform={`translate(${transx} ${transy}) scale(${scalex} ${scaley})`}> */}
+    return intersectingPolygon && <polygon
+        points={intersectingPolygon.geometry.coordinates[0].map(i => `${i[0]} ${i[1]}`).join(' ')}
+        fill={fill[colorProfile]}
+        stroke="none"
+        strokeWidth="0"
+        transform={`translate(${transx} ${transy}) scale(${scalex} ${scaley})`}
+        key={`poly-${filledPolys.length}`}
+    />
 }

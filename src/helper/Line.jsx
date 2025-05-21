@@ -1,5 +1,6 @@
 import {getBoundRect} from "../utils";
 import Point from "./Point";
+import * as turf from "@turf/turf";
 
 export default class Line {
     // if state is not specified, aes must be specified
@@ -113,4 +114,5 @@ export default class Line {
     slope(){ return (this.b.y - this.a.y) / (this.b.x - this.a.x) }
     relativeTo(newOrigin){ return this.copy(this.a.relativeTo(newOrigin), this.b.relativeTo(newOrigin)) }
     translate(...args){ return this.copy(this.a.translate(...args), this.b.translate(...args)) }
+    asGeoJson(){ return turf.lineString([this.a.xy(), this.b.xy()]) }
 }
