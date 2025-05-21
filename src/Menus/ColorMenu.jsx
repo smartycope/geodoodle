@@ -10,7 +10,8 @@ import {useAlignWithElement} from "./MenuHooks";
 
 import { FaGripLinesVertical } from "react-icons/fa6";
 import {StateContext} from "../Contexts";
-import {viewportHeight, getShowableStroke} from "../globals";
+import {viewportHeight} from "../globals";
+import {getShowableStroke} from "../utils";
 
 let offsetX, offsetY;
 let isDragging = false;
@@ -162,8 +163,8 @@ function MobileColorMenu({align}){
     const {state, dispatch} = useContext(StateContext)
     const style = useAlignWithElement(align)
 
-    const {stroke, strokeWidth, dash, currentLineColorProfileIndex, scalex, fillMode, fill, currentFillColorProfileIndex} = state
-    const currentIndex = fillMode ? currentFillColorProfileIndex : currentLineColorProfileIndex
+    const {stroke, strokeWidth, dash, colorProfile, scalex, fillMode, fill} = state
+    const currentIndex = fillMode ? colorProfile : colorProfile
     const colors = fillMode ? fill : stroke
 
     return <div id="color-menu-mobile" style={{...style,
@@ -188,7 +189,7 @@ function MobileColorMenu({align}){
         <span className='button-group' id="color-profile-buttons">
             {Array(options.commonColorAmt).fill().map((_, i) =>
                 <button
-                    onClick={() => dispatch(fillMode ? {currentFillColorProfileIndex: i} : {currentLineColorProfileIndex: i})}
+                    onClick={() => dispatch(fillMode ? {colorProfile: i} : {colorProfile: i})}
                     style={{
                         backgroundColor: fillMode ? fill[i] : (i === currentIndex ? "#aa9578" : state.paperColor),
                         color: getShowableStroke(fillMode ? fill[i] : state.paperColor)
@@ -209,10 +210,10 @@ function MobileColorMenu({align}){
         {!fillMode && <Number
             id='stroke-input'
             label="Stroke:"
-            value={strokeWidth[currentLineColorProfileIndex] * 100}
+            value={strokeWidth[colorProfile] * 100}
             onChange={val => {
                 let copy = JSON.parse(JSON.stringify(strokeWidth))
-                copy[currentLineColorProfileIndex] = val / 100
+                copy[colorProfile] = val / 100
                 dispatch({strokeWidth: copy})
             }}
         />}
@@ -223,11 +224,11 @@ function MobileColorMenu({align}){
             <input
                 id="dash-input"
                 type="text"
-                value={dash[currentLineColorProfileIndex]}
+                value={dash[colorProfile]}
                 style={{width: dash.length * 5 + 10}}
                 onChange={e => {
                     let copy = JSON.parse(JSON.stringify(dash))
-                    copy[currentLineColorProfileIndex] = e.target.value
+                    copy[colorProfile] = e.target.value
                     dispatch({dash: copy})
                 }}
             ></input>
@@ -236,7 +237,7 @@ function MobileColorMenu({align}){
         {/* Toggle fill mode button */}
         {/* TODO: I don't like this here, but I don't know where else to put it yet */}
         <button id='color-menu-fill-button'
-            onClick={() => dispatch('toggle fill mode')}
+            onClick={() => dispatch('toggle_fill_mode')}
             // I also don't love this
             style={{backgroundColor: fillMode ? "green" : "red"}}
         >
@@ -254,9 +255,9 @@ function MobileColorMenu({align}){
             Close
         <svg width="90%" height='10'><line
             x1='0' x2="90%" y1={5} y2={5}
-            stroke={fillMode ? 'black' : stroke[currentLineColorProfileIndex]}
-            strokeWidth={strokeWidth[currentLineColorProfileIndex] * scalex}
-            strokeDasharray={dash[currentLineColorProfileIndex]}
+            stroke={fillMode ? 'black' : stroke[colorProfile]}
+            strokeWidth={strokeWidth[colorProfile] * scalex}
+            strokeDasharray={dash[colorProfile]}
             strokeLinecap="round"
         /></svg>
         </button>

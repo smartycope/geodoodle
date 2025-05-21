@@ -9,6 +9,7 @@ import {
     toggleDarkMode,
     getAllClipboardLines,
     incrementMirrorAxis,
+    getPolygonContainingPoint,
 } from './utils'
 import defaultOptions from './options'
 import {deserializePattern, download, image, serializePattern} from './fileUtils';
@@ -18,19 +19,26 @@ import Dist from './helper/Dist';
 import Line from './helper/Line';
 import Rect from './helper/Rect';
 import {tourState} from './states';
+import * as turf from '@turf/turf';
 
 
 export const cursor_moved = (state, {point}) => {
-    const { cursorPos, debugDrawPoints } = state
+    const { cursorPos, debugDrawPoints, fillMode, polygons } = state
     // This is here so when a touch is being held, and has moved enough to move the cursor, it disables the hold action
     const newPos = point.align(state)
     if (!cursorPos.eq(newPos))
         setTapHolding(false)
 
+
+    var poly = null
+    if (fillMode)
+        poly = getPolygonContainingPoint(point, polygons)
+
     return {
         cursorPos: newPos,
         boundDragging: true,
-        debugDrawPoints: {...debugDrawPoints, "Mouse": {point: point, color: 'grey', yoff: -10, inflated: true}}
+        intersectingPolygon: poly,
+        debugDrawPoints: {...debugDrawPoints, "Mouse": {point: point, color: 'grey', yoff: -10, inflated: true, fill: fillMode ? 'transparent' : 'grey'}}
     }
 }
 
@@ -114,7 +122,15 @@ export const clear = state => ({
     ...go_home(state),
     lines: [],
     bounds: [],
-    openMenus: {...state.openMenus, delete: false, repeat: false}
+    openMenus: {...state.openMenus, delete: false, repeat: false},
+    filledPolys: [],
+    polygons: [],
+    fillMode: false,
+    clipboard: null,
+    clipboardMirrorAxis: null,
+    clipboardRotation: 0,
+    eraser: null,
+    curLinePos: null,
 })
 export const clear_bounds = state => ({...cancel_clipboard(state), bounds: []})
 export const delete_selected = state => {
@@ -148,14 +164,19 @@ export const delete_line = state => {
 }
 
 export const delete_at_cursor = state => {
-    const {cursorPos, bounds, curLinePos, clipboard, lines} = state
-    // First, if we're over a bound, delete it
-    if (cursorPos.in(bounds))
+    const {cursorPos, bounds, curLinePos, clipboard, lines, eraser} = state
+    // If we're over the eraser, delete it
+    if (cursorPos.eq(eraser))
+        return {eraser: null}
+    else if (fillMode)
+        return clear_fill(state)
+    // If we're over a bound, delete it
+    else if (cursorPos.in(bounds))
         return {bounds: cursorPos.remove(bounds)}
-    // otherwise, if we are halfway done drawing a line, delete it
+    // If we are halfway done drawing a line, delete it
     else if (curLinePos)
         return {curLinePos: null}
-    // otherwise, if we have a clipboard, clear it
+    // If we have a clipboard, clear it
     else if (clipboard)
         return cancel_clipboard(state)
     else
@@ -221,6 +242,39 @@ export const add_bound = state => {
         bounds: newBounds.filter(p => newBoundRect.onEdge(p)),
         curLinePos: null
     }
+}
+
+// Fill actions
+export const fill = state => {
+    const {fillMode, intersectingPolygon, fill, colorProfile} = state
+    if (fillMode && intersectingPolygon)
+        return {filledPolys: [
+            ...state.filledPolys,
+            <polygon
+                points={intersectingPolygon.geometry.coordinates[0].map(i => `${i[0]} ${i[1]}`).join(' ')}
+                fill={fill[colorProfile]}
+                stroke="none"
+                strokeWidth="0"
+                key={`poly-${state.filledPolys.length}`}
+            />
+        ]}
+}
+
+export const clear_fill = state => ({filledPolys: state.filledPolys.filter(i => i.key !== intersectingPolygon?.key)})
+
+export const toggle_fill_mode = state => {
+    const {fillMode, lines} = state
+    let polys = null
+    if (!fillMode){
+        const turfLines = turf.multiLineString(lines.map(line => [line.a.xy(), line.b.xy()]))
+        polys = turf.polygonize(turfLines)
+        // This doesn't work and I'm unsure why
+        // const turfIntersect = turf.intersect(polys)
+        // if (turfIntersect)
+        //     polys = {type: 'FeatureCollection', features: [...polys.features, ...turf.flatten(turfIntersect).features]}
+    }
+
+    return {polygons: polys, fillMode: !fillMode, curLine: null, clipboard: null}
 }
 
 // Undo Actions

@@ -21,7 +21,7 @@ import {getLines,
   saveHtml,
   renderPaper,
   getSelectionRect,
-} from "../tests/testUtils"
+} from "../tests/tesUtils"
 
 
 // In between each tests, reset the localStorage

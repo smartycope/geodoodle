@@ -7,6 +7,7 @@ const defaultOptions = {
     scalex: 20,
     scaley: 20,
     stroke: "#000000",
+    fill: "#ffffff",
     commonColorAmt: 5,
     strokeWidth: .05,
     boundColor: "black",
@@ -103,6 +104,7 @@ export const keybindings = {
     'ctrl+z': {action: 'undo'},
     'ctrl+y': {action: 'redo'},
     'ctrl+shift+z': {action: 'redo'},
+    'f': {action: 'toggle_fill_mode'},
 
     '`': {action: 'debug'},
     'shift+`': {action: 'toggle_debugging'},
@@ -130,6 +132,7 @@ export const reversibleActions = [
     'load_local',
     'add_common_color',
     'set_to_common_color',
+    'fill',
 ]
 
 // Only save the state to be preserved when these actions happen
@@ -152,6 +155,7 @@ export const saveSettingActions = [
     `set_to_common_color`,
     'toggle partials',
     "toggle_dark_mode",
+    'fill',
 ]
 
 // When undoing an action, only these parts of the state get undone

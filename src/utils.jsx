@@ -2,6 +2,7 @@ import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, viewportWidth, viewportHeight} 
 import Point from "./helper/Point";
 import Rect from "./helper/Rect";
 import options from "./options";
+import inside from "point-in-polygon";
 
 export function getClipboardButtonsPos(state){
     const {cursorPos, scalex} = state
@@ -205,3 +206,11 @@ export function getShowableStroke(color){
     return brightness > 128 ? 'black' : 'white';
 }
 
+export function getPolygonContainingPoint(point, polygons) {
+    // polygons is a FeatureCollection<Polygon>
+    for (const polygon of polygons.features) {
+        if (inside(point.xy(), polygon.geometry.coordinates[0]))
+            return polygon
+    }
+    return null
+}
