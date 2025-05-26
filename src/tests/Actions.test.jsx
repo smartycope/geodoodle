@@ -33,7 +33,7 @@ import { MIRROR_AXIS } from '../globals';
 import defaultOptions from '../options';
 import * as utils from '../utils.jsx';
 import { tourState } from '../states';
-
+import { download } from '../fileUtils';
 
 vi.spyOn(utils, 'toggleDarkMode');
 
@@ -629,32 +629,121 @@ describe('Clipboard Actions', () => {
     });
   });
 });
-
-// TODO: file action tests
 /*
 describe('File Actions', () => {
   let state;
 
   beforeEach(() => {
     state = getState();
-    vi.clearAllMocks();
+    // vi.stubGlobal('URL', {
+    //   createObjectURL: vi.fn(() => 'blob://mock-url'),
+    //   revokeObjectURL: vi.fn(),
+    // })
+    vi.stubGlobal('URL', {
+      ...URL,
+      createObjectURL: vi.fn(() => {
+        return {
+          download: '',
+          href: '',
+          click: vi.fn(),
+        }
+      }),
+      revokeObjectURL: vi.fn(),
+    })
+
+    // vi.clearAllMocks();
   });
 
   describe('download_file', () => {
-    test('should call appropriate download function based on format', () => {
-      const { download } = require('../fileUtils');
+    test('downloads an SVG file', () => {
+      const createElementSpy = vi.spyOn(document, 'createElement')
+      const appendChildSpy = vi.spyOn(document.body, 'appendChild')
+      const removeChildSpy = vi.spyOn(document.body, 'removeChild')
+
+      const mockAnchor = {
+        href: '',
+        download: '',
+        click: vi.fn(),
+      }
+
+      createElementSpy.mockReturnValue(mockAnchor)
 
       // Test SVG format
-      download_file(state, { format: 'svg', name: 'test' });
-      expect(download).toHaveBeenCalledWith('test', 'image/svg+xml', { str: 'mocked-serialized-pattern' });
+      // download_file(state, { format: 'svg', name: 'test' });
+      const str = 'hello world'
+      // const blob = new Blob([str], { type: 'image/svg+xml' })
+      // const url = URL.createObjectURL(blob)
+      download('test', 'image/svg+xml', { str })
+      // expect(download).toHaveBeenCalledWith('test', 'image/svg+xml', { str: 'mocked-serialized-pattern' });
 
       // Test PNG format
-      download_file(state, { format: 'png', name: 'test' });
+      // download_file(state, { format: 'png', name: 'test' });
       // The image function is mocked to call the callback with 'mocked-blob'
       // and the download function is called with that blob
-      expect(download).toHaveBeenCalledWith('test.png', 'image/png', { url: 'mocked-blob' });
+      // expect(download).toHaveBeenCalledWith('test.png', 'image/png', { url: 'mocked-blob' });
+
+      // console.log(mockAnchor)
+      expect(mockAnchor.click).toHaveBeenCalled()
+      expect(mockAnchor.href).toBeTruthy()
+      expect(mockAnchor.download).toBe('test.svg')
+
+      // Cleanup
+      // URL.revokeObjectURL(url)
     });
   });
+
+  describe('download()', () => {
+    let createElementSpy
+    let appendChildSpy
+    let removeChildSpy
+    let createObjectURLSpy
+    let anchorMock
+
+    beforeEach(() => {
+      anchorMock = {
+        download: '',
+        href: '',
+        click: vi.fn(),
+      }
+
+      // createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue(anchorMock)
+      // appendChildSpy = vi.spyOn(document.body, 'appendChild')
+      // removeChildSpy = vi.spyOn(document.body, 'removeChild')
+      // createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob://mock-url')
+    })
+
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    it('creates a Blob from string and triggers download with correct name and href', () => {
+      download('test.txt', 'text/plain', { str: 'hello world' })
+
+      expect(anchorMock.download).toBe('test.txt')
+      expect(createObjectURLSpy).toHaveBeenCalled()
+      expect(anchorMock.href).toBe('blob://mock-url')
+      expect(anchorMock.click).toHaveBeenCalled()
+      expect(appendChildSpy).toHaveBeenCalledWith(anchorMock)
+      expect(removeChildSpy).toHaveBeenCalledWith(anchorMock)
+    })
+
+    it('uses provided blob and skips string->blob conversion', () => {
+      const testBlob = new Blob(['test'], { type: 'text/plain' })
+      download('blob.txt', 'text/plain', { blob: testBlob })
+
+      expect(createObjectURLSpy).toHaveBeenCalledWith(testBlob)
+      expect(anchorMock.download).toBe('blob.txt')
+      expect(anchorMock.click).toHaveBeenCalled()
+    })
+
+    it('uses provided URL if given', () => {
+      download('url.txt', 'text/plain', { url: 'https://example.com/file.txt' })
+
+      expect(anchorMock.href).toBe('https://example.com/file.txt')
+      expect(createObjectURLSpy).not.toHaveBeenCalled()
+    })
+  })
+
 
   describe('upload_file', () => {
     test('should deserialize the uploaded file content', () => {
@@ -731,8 +820,7 @@ describe('File Actions', () => {
     });
   });
 });
-*/
-
+ */
 describe('UI Actions', () => {
   let state;
 
