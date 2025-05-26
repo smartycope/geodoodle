@@ -11,22 +11,6 @@ import * as actions from './actions'
 // movement or something, so it should work pretty well
 var saveNext = false
 
-// This has to be here because it needs to be able to dynamically access the actions
-const key_press = (state, {event}) => {
-    // If it's just a modifier key, don't do anything (it'll falsely trigger things)
-    if (['Shift', 'Meta', 'Control', 'Alt'].includes(event.key))
-        return
-
-    var take = null
-    for (const [shortcut, action] of Object.entries(keybindings)){
-        if (eventMatchesKeycode(event, shortcut)){
-            take = action
-            break
-        }
-    }
-    if (take) return reducer(state, take)
-}
-
 // Can accept any of 3 parameters to dispatch:
 //                 {action: "...", foo: "bar"}
 // "..."        -> {action: "..."}
@@ -55,14 +39,9 @@ export default function reducer(state, data){
         }
     }
 
-    // Special case for key_press, because it needs to be able to dynamically access the actions
-    if (data.action === 'key_press')
-        return {...state, ...key_press(state, data)}
-
     try {
         return {...state, ...actions[data.action](state, data)}
     } catch (e) {
-        console.log('action:', actions[data.action])
         console.error(`Failed to run action "${data.action}"`, e)
         return state
     }
