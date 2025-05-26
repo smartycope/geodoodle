@@ -344,7 +344,7 @@ export const save_local = (state, {name}) => {
     setTimeout(() => cursor_moved(state, {point: state.cursorPos}), 100)
 }
 
-export const load_local = (state, {name}) => ({...deserializePattern(JSON.parse(localStorage.getItem(localStorageName))[name.trim()])})
+export const load_local = (state, {name}) => deserializePattern(JSON.parse(localStorage.getItem(localStorageName))[name.trim()])
 
 export const copy_image = state => {
     const linesBBox = document.querySelector('#lines').getBBox()
