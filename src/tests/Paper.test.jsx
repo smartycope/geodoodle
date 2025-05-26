@@ -66,12 +66,14 @@ describe('Paper interactions', () => {
     createLine(paper, 100, 80, 300, 200);
     createLine(paper, 80, 100, 300, 200);
     // Make sure we scale about the right point
-    mouseMove(paper, 100, 100);
+    mouseMove(paper, 100, 120);
+    saveHtml(container);
     // Sanity check
     expect(getLines(container).length).toBe(5);
     scroll(paper, -300, 0, {ctrlKey: true});
     // Delete the line
-    mouseClick(getLines(container)[0], 0, 0, 1);
+    // mouseClick(getLines(container)[0], 0, 0, 1);
+    press(paper, 'delete');
     expect(getLines(container).length).toBe(4);
   });
 
@@ -89,7 +91,8 @@ describe('Paper interactions', () => {
     expect(getLines(container).length).toBe(5);
     scroll(paper, 300, 0, {ctrlKey: true});
     // Delete the line
-    mouseClick(getLines(container)[0], 0, 0, 1);
+    // mouseClick(getLines(container)[0], 0, 0, 1);
+    press(paper, 'delete');
     expect(getLines(container).length).toBe(4);
   });
 

@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   cursor_moved,
+  fill,
+  clear_fill,
+  toggle_fill_mode,
   translate,
   scale,
   rotate,
@@ -25,7 +28,7 @@ import Point from '../helper/Point';
 import Dist from '../helper/Dist';
 import Line from '../helper/Line';
 import Rect from '../helper/Rect';
-import { getState } from './testUtils';
+import { getDefaultTestingState, getState } from './testUtils';
 import { MIRROR_AXIS } from '../globals';
 import defaultOptions from '../options';
 import * as utils from '../utils.jsx';
@@ -828,3 +831,33 @@ describe('Tour Actions', () => {
     });
   });
 });
+
+
+// TODO come back to these
+describe('Fill Actions', () => {
+  describe('fill', () => {
+    test('should fill the line', () => {
+      const state = getDefaultTestingState();
+      const newState = fill({...state, ...toggle_fill_mode(state)});
+      expect(newState.filledPolys).toHaveLength(1);
+    });
+  });
+
+  describe('toggle_fill_mode', () => {
+    test('should toggle fill mode', () => {
+      const state = getDefaultTestingState();
+      const newState = toggle_fill_mode(state);
+      expect(newState.fillMode).toBe(!state.fillMode);
+      expect(newState.curPolys).toHaveLength(1);
+      expect(newState.tempPolys).toHaveLength(1);
+    });
+  })
+
+  describe('clear_fill', () => {
+    test('should clear the fill', () => {
+      const state = getDefaultTestingState();
+      const newState = clear_fill({...state, ...fill({...state, ...toggle_fill_mode(state)})})
+      expect(newState.filledPolys).toHaveLength(0);
+    });
+  })
+})

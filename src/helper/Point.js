@@ -188,4 +188,8 @@ export default class Point extends Pair{
 
     relativeTo(newOrigin){ return new Point(this._x - newOrigin._x, this._y - newOrigin._y) }
     asDist(){ return new Dist(this._x, this._y) }
+    asGeoJson(){ return turf.point([this._x, this._y]) }
+    static fromGeoJson(geoJson){ return new Point(geoJson.geometry.coordinates[0], geoJson.geometry.coordinates[1]) }
+    // The distance from this point to the given point, nothing to do with Dist
+    dist(point){ return Math.sqrt((this._x - point._x)**2 + (this._y - point._y)**2) }
 }

@@ -3,9 +3,8 @@ import options from './options';
 import { RxRotateCounterClockwise } from "react-icons/rx";
 import { GoMirror } from "react-icons/go";
 import {FaCheck, FaTrash, FaXmark} from 'react-icons/fa6';
-import {getHalf, getDebugBox, getBoundRect, getAllClipboardLines, getClipboardButtonsPos} from './utils';
+import {getHalf, getDebugBox, getBoundRect, splitAllLines, getAllClipboardLines, getAllIntersections, getClipboardButtonsPos} from './utils';
 import Line from './helper/Line';
-import Rect from './helper/Rect';
 import Point from './helper/Point';
 import { useContext, useEffect } from "react";
 import { StateContext } from "./Contexts";
@@ -38,12 +37,11 @@ export function DebugPoint({name, point, decimals=undefined, yoff=0, color='blac
             y = point.y
         }
 
-
         // const {x: dispx, y: dispy} = Point.fromViewport(state, x, y, inflated).asViewport(state, inflated)
         if (inflated)
-            label = `${name}: (${x.toFixed(decimals || 0)}, ${y.toFixed(decimals || 0)})`
+            label = `${name}: (${x.toFixed(decimals ?? 0)}, ${y.toFixed(decimals ?? 0)})`
         else
-            label = `${name}: [${x.toFixed(decimals || 1)/state.scalex}, ${y.toFixed(decimals || 1)/state.scaley}]`
+            label = `${name}: [${x.toFixed(decimals ?? 1)/state.scalex}, ${y.toFixed(decimals ?? 1)/state.scaley}]`
         // console.log(label)
     } catch (e){
         label = `${name}: ${typeof point}: ${JSON.stringify(point)}`
@@ -52,7 +50,7 @@ export function DebugPoint({name, point, decimals=undefined, yoff=0, color='blac
     return state.debug && <>
         {!omitText && <text x='75%' y={debugTextOffset} fill={color} fontWeight="bold">{label}</text>}
         {!omitCircle && <g key={`point-${name}`}>
-            <text x={x-label.length*4} y={y-10+yoff} fill={color} fontWeight="bold">{label}</text>
+            {!omitText && <text x={x-label.length*4} y={y-10+yoff} fill={color} fontWeight="bold">{label}</text>}
             <circle cx={x} cy={y} {...props} r={r} fill={fill || color}/>
         </g>}
     </>
@@ -79,6 +77,7 @@ export function DebugInfo(){
     const {debug, debugDrawPoints, translation, scalex, scaley, openMenus} = state
     const debugBox = getDebugBox(state)
     const origin = Point.fromViewport(state, translation._x, translation._y, false)
+    const intersectcions = getAllIntersections(state.lines)
 
     return debug && <g>
         {/* Repeat box */}
@@ -86,9 +85,13 @@ export function DebugInfo(){
 
         <DebugPoint name="Translation" point={origin} inflated={false} color='green'/>
         <DebugPoint name="Scale" point={{x: scalex, y: scaley}} omitCircle inflated/>
-        <DebugPoint name="Cursor" point={state.cursorPos} yoff={40} fill='transparent'/>
+        {!state.fillMode && <DebugPoint name="Cursor" point={state.cursorPos} yoff={40} fill='transparent'/>}
         {/* <DebugPoint name="SVG Origin" point={Point.svgOrigin(state)} omit/> */}
         {debugDrawPoints && Object.entries(debugDrawPoints).map(([name, spec]) => <DebugPoint key={name} name={name} {...spec} />)}
+        {/* Draw intersections */}
+        {intersectcions.map((point, i) => <DebugPoint key={i} name={`Intersection ${i}`} point={point} decimals={0} omitText/>)}
+        {/* Draw intersections exclusively on the current line */}
+        {Line.getCurrentLine(state)?.findIntersections(state.lines).map((point, i) => <DebugPoint key={i} name={`Intersection ${i}`} point={point} decimals={0} omitText/>)}
     </g>
 }
 
@@ -102,12 +105,12 @@ export function MirrorMetaLines(){
     if (mirrorType === MIRROR_TYPE.PAGE && (mirroring || openMenus.mirror)){
         if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH){
             if ((mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360))
-                mirrorMetaLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor}/>)
+                mirrorMetaLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor} key="mirror-horz"/>)
             if ((mirrorAxis === MIRROR_AXIS.HORZ_180 || mirrorAxis === MIRROR_AXIS.BOTH_360))
-                mirrorMetaLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor}/>)
+                mirrorMetaLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor} key="mirror-vert"/>)
         }
         if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
-            mirrorMetaLines.push(<circle cx={halfx} cy={halfy} r={scalex/3} fill={options.mirrorColor} opacity={.8} strokeOpacity="0"/>)
+            mirrorMetaLines.push(<circle cx={halfx} cy={halfy} r={scalex/3} fill={options.mirrorColor} opacity={.8} strokeOpacity="0" key="mirror-center"/>)
     }
     return mirrorMetaLines
 }
@@ -231,6 +234,8 @@ export function CurrentLines(){
                 scale(${scalex} ${scaley})
             `}>
         {line.mirror(state).map((line, i) => line.render(state, `curLine-${i}`))}
+        {/* Make the current line visible */}
+        {/* {debug && curLines.map((line, i) => line.render(state, `curLine-${i}`, {stroke: `hsl(${i*360/10}, 100%, 50%)`, strokeWidth: 3/scalex}))} */}
     </g>
 }
 
@@ -242,7 +247,10 @@ export function Lines(){
             translate(${transx} ${transy})
             scale(${scalex} ${scaley})
         `}>
+        {/* Make all the individual lines visible */}
         {lines.map((line, i) => line.render(state, `line-${i}`))}
+        {/* Show each line as separate lines, for debugging */}
+        {/* {debug && splitAllLines(lines).map((line, i) => line.render(state, `line-${i}`, {strokeWidth: 3/scalex, stroke: `hsl(${i*360/lines.length}, 100%, 50%)`}))} */}
     </g>
 }
 
@@ -266,7 +274,7 @@ export function Clipboard(){
 
 export function Cursor(){
     const {state} = useContext(StateContext)
-    const {cursorPos, scalex, mirroring, openMenus, mirrorType, mirrorMethod, mirrorAxis} = state
+    const {cursorPos, scalex, mirroring, openMenus, mirrorType, mirrorMethod, mirrorAxis, fillMode} = state
     const cursorPosViewport = cursorPos.asViewport(state)
     // Construct the cursor (internal mirror lines, etc)
     let cursor = [
@@ -305,7 +313,7 @@ export function Cursor(){
         }
     }
 
-    return <g id="cursor-group">{cursor}</g>
+    return !fillMode && <g id="cursor-group">{cursor}</g>
 }
 
 export function Dots(){
@@ -331,4 +339,22 @@ export function Dots(){
         </pattern>
         <rect fill="url(#dots)" stroke="black" width="100%" height="100%" />
     </>
+}
+
+export function Polygons(){
+    const {state} = useContext(StateContext)
+    const {filledPolys, translation, scalex, scaley} = state
+    const {x: transx, y: transy} = translation.asInflated(state)
+    return <g id='filled-polys' transform={`translate(${transx} ${transy}) scale(${scalex} ${scaley})`}>
+        {filledPolys.map((poly, i) => poly.render(state, `filled-poly-${i}`))}
+    </g>
+}
+
+export function CurrentPolys(){
+    const {state} = useContext(StateContext)
+    const {curPolys, translation, scalex, scaley} = state
+    const {x: transx, y: transy} = translation.asInflated(state)
+    return curPolys && <g id='cur-polys' transform={`translate(${transx} ${transy}) scale(${scalex} ${scaley})`}>
+        {curPolys.map((poly, i) => poly.render(state, `cur-poly-${i}`))}
+    </g>
 }

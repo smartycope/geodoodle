@@ -37,7 +37,7 @@ export default function Trellis(){
     var rtn = new Set()
     // First, calculate all the variables we need
     // A list of Line objects, or null
-    const pattern = getSelected(state, 'topLeft').map(line => line.render(state, undefined, debug ? {stroke: 'red', strokeWidth: 2/scalex} : {}, false))
+    const pattern = getSelected(state, 'topLeft', true).map(line => line.render(state, undefined, debug ? {stroke: 'red', strokeWidth: 2/scalex} : {}, false))
     const {x: width, y: height} = boundRect.wh.asDeflated(state)
 
     // TODO: this could use some refinement, though I think it's alright for now

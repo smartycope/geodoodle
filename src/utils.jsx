@@ -2,6 +2,7 @@ import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, viewportWidth, viewportHeight} 
 import Point from "./helper/Point";
 import Rect from "./helper/Rect";
 import options from "./options";
+import inside from "point-in-polygon";
 
 export function getClipboardButtonsPos(state){
     const {cursorPos, scalex} = state
@@ -33,17 +34,19 @@ export function getAllClipboardLines(state, translate){
 // If retranslated is 'center', the lines will be retranslated to be relative to the center of the selection
 // If retranslated is 'topLeft', the lines will be retranslated to be relative to the top left of the selection
 // If retranslated is falsey, the lines will be returned as they are
-export function getSelected(state, retranslated){
+export function getSelected(state, retranslated, polygons=false){
     const boundRect = getBoundRect(state)
     if (!boundRect)
         return []
 
-    const selected = state.lines.filter(line => line.isSelected(state, boundRect))
+    let selected = state.lines.filter(obj => obj.isSelected(state, boundRect))
+    if (polygons)
+        selected = selected.concat(state.filledPolys.filter(obj => obj.isSelected(state, boundRect)))
 
     if (retranslated === 'center')
-        return selected.map(line => line.relativeTo(boundRect.center))
+        return selected.map(obj => obj.relativeTo(boundRect.center))
     else if (retranslated === 'topLeft')
-        return selected.map(line => line.relativeTo(boundRect.topLeft))
+        return selected.map(obj => obj.relativeTo(boundRect.topLeft))
     else
         return selected
 }
@@ -192,4 +195,43 @@ export function extraSlots(state){
         sideLen = window.visualViewport.width
 
     return Math.floor((sideLen - 500) / 60)
+}
+
+// Return a color that shows up well on the given color so you can read text
+export function getShowableStroke(color){
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+
+    // Calculate perceived brightness (YIQ formula)
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 128 ? 'black' : 'white';
+}
+
+
+// Returns the lines, but removes any duplicates, lines with null values, and invalid lines
+export function normalizeLines(lines){
+    const seen = new Set()
+
+    return lines.filter(line => {
+        const hash = line.hash()
+        if (!line || !line.valid || seen.has(hash))
+            return false
+        seen.add(hash)
+        return true
+    })
+}
+
+export function splitAllLines(lines){
+    return lines.flatMap(line => line.split(lines))
+}
+
+export function unique(arr){
+    // I don't understand why Sets stopped working suddenly
+    // return Array.from(new Set(arr))
+    return arr.filter((point, index, self) => self.findIndex(p => p.eq(point)) === index)
+}
+
+export function getAllIntersections(lines){
+    return unique(lines.flatMap(line => line.findIntersections(lines)))
 }

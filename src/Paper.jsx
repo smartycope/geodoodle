@@ -22,6 +22,8 @@ import {
     Clipboard,
     Cursor,
     Dots,
+    Polygons,
+    CurrentPolys,
 } from './drawing';
 import Trellis from './Trellis';
 import {tapHolding, setTapHolding} from './globals'
@@ -48,7 +50,7 @@ export default function Paper({setDispatch}) {
     const paper = useRef()
     const [dragging, setDragging] = useState(false)
     const [state, dispatch] = useReducer(reducer, getInitialState())
-    const {openMenus, paperColor} = state
+    const {dotsAbovefill, paperColor, fillMode} = state
 
     // Forcibly disallow scrolling
     window.scrollX = 0
@@ -58,7 +60,7 @@ export default function Paper({setDispatch}) {
 
     function onMouseMove(e){
         if (e.buttons !== 0)
-            setDragging(true)
+            setDragging(!fillMode)
         dispatch({
             action: 'cursor_moved',
             point: Point.fromViewport(state, e.clientX, e.clientY),
@@ -68,11 +70,11 @@ export default function Paper({setDispatch}) {
     function onMouseDown(e){
         switch (e.button){
             // Left click
-            case 0: dispatch('add_line'); break;
+            case 0: dispatch(fillMode ? 'fill' : 'add_line'); break;
             // Middle click
-            case 1: dispatch('delete_at_cursor'); break;
+            case 1: dispatch('delete'); break;
             // Right click
-            case 2: dispatch('continue_line'); break;
+            case 2: fillMode ? null : dispatch('continue_line'); break;
         }
     }
 
@@ -90,7 +92,7 @@ export default function Paper({setDispatch}) {
 
     function onTouchHold(){
         // This also only applies to touch events, not mouse events
-        if (tapHolding){
+        if (tapHolding && !fillMode){
             if (_state.clipboard?.length)
                 dispatch("paste")
             else
@@ -241,7 +243,7 @@ export default function Paper({setDispatch}) {
                 point: Point.fromViewport(_state, touch.pageX, touch.pageY),
             })
             if (!_state.clipboard?.length)
-                dispatch('add_line')
+                dispatch(fillMode ? 'fill' : 'add_line')
 
             // We have to wait until the _state updates and the cursor moves, before we compare to new cursor positions
             setTimeout(() => setTapHolding(true), 10)
@@ -317,13 +319,19 @@ export default function Paper({setDispatch}) {
                 onMouseUp={onMouseUp}
                 onBlur={onBlur}
                 ref={paper}
-                style={{backgroundColor: paperColor}}
+                style={{
+                    backgroundColor: paperColor,
+                    cursor: fillMode ? 'pointer' : 'none',
+                }}
             >
                 {/* This order is intentional */}
                 <GlowEffect/>
-                <Dots/>
-                <DebugInfo/>
+                {!dotsAbovefill && <Dots/>}
                 <Trellis/>
+                <Polygons/>
+                <CurrentPolys/>
+                {dotsAbovefill && <Dots/>}
+                <DebugInfo/>
                 <Cursor/>
                 <Lines/>
                 <CurrentLines/>

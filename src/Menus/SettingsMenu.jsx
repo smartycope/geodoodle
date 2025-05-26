@@ -32,6 +32,7 @@ export function SettingsMenu(){
         gestureTranslateSensitivity,
         gestureScaleSensitivity,
         smoothGestureScale,
+        dotsAbovefill,
     } = state
 
     return <>
@@ -107,6 +108,11 @@ export function SettingsMenu(){
                 title="Controls if the hex color is displayed in the color menu"
                 onChange={() => dispatch({hideHexColor: !hideHexColor})}
                 checked={hideHexColor}
+            />
+            <Checkbox label="Dots above fill"
+                title="Controls if the dots are displayed above the filled areas or not"
+                onChange={() => dispatch({dotsAbovefill: !dotsAbovefill})}
+                checked={dotsAbovefill}
             />
             <Number label="Max Undo Amount"
                 title="Controls how many consecutive undos you can do at once"
