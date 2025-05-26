@@ -23,7 +23,7 @@ import {
     Cursor,
     Dots,
     Polygons,
-    IntersectingPolygon,
+    CurrentPolys,
 } from './drawing';
 import Trellis from './Trellis';
 import {tapHolding, setTapHolding} from './globals'
@@ -326,12 +326,12 @@ export default function Paper({setDispatch}) {
             >
                 {/* This order is intentional */}
                 <GlowEffect/>
-                {dotsAbovefill && <Dots/>}
-                <Polygons/>
-                <IntersectingPolygon/>
                 {!dotsAbovefill && <Dots/>}
-                <DebugInfo/>
                 <Trellis/>
+                <Polygons/>
+                <CurrentPolys/>
+                {dotsAbovefill && <Dots/>}
+                <DebugInfo/>
                 <Cursor/>
                 <Lines/>
                 <CurrentLines/>

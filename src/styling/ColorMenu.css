@@ -65,6 +65,9 @@
 #color-profile-buttons{
     margin-left: 0;
     width: 100%;
+    > :hover{
+        outline: 2px solid rgb(0, 132, 176);
+    }
 }
 
 .common-color-button{

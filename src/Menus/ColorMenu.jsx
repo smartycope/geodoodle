@@ -191,7 +191,8 @@ function MobileColorMenu({align}){
                 <button
                     onClick={() => dispatch(fillMode ? {colorProfile: i} : {colorProfile: i})}
                     style={{
-                        backgroundColor: fillMode ? fill[i] : (i === currentIndex ? "#aa9578" : state.paperColor),
+                        backgroundColor: fillMode ? fill[i] : state.paperColor,
+                        outline: i === currentIndex ? "2px solid rgb(0, 132, 176)" : "none",
                         color: getShowableStroke(fillMode ? fill[i] : state.paperColor)
                     }}
                     key={`colorButton${i}`}

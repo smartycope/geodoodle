@@ -133,6 +133,7 @@ export const reversibleActions = [
     'add_common_color',
     'set_to_common_color',
     'fill',
+    'clear_fill',
 ]
 
 // Only save the state to be preserved when these actions happen
@@ -156,6 +157,7 @@ export const saveSettingActions = [
     'toggle partials',
     "toggle_dark_mode",
     'fill',
+    'clear_fill',
 ]
 
 // When undoing an action, only these parts of the state get undone
@@ -166,6 +168,7 @@ export const reversible = [
     'trellis',
     'eraser',
     'clipboard',
+    'filledPolys',
 ]
 
 // Only preserve these parts of the state across loads (*not* when saving to a file)
@@ -199,6 +202,7 @@ export const preservable = [
     "openMenus",
     "paperColor",
     "doubleTapTimeMS",
+    'filledPolys',
 ]
 
 // The parts of the state that get serialized to the svg file

@@ -3,7 +3,10 @@ import { render, fireEvent } from '@testing-library/react';
 import Paper from '../Paper';
 import "../styling/index.css";
 import getInitialState from '../states';
-
+import Line from '../helper/Line';
+import Poly from '../helper/Poly';
+import Point from '../helper/Point';
+import Dist from '../helper/Dist';
 
 export function renderPaper(startPoint=[100, 100]) {
   const rendered = render(<Paper setDispatch={() => {}} />);
@@ -107,4 +110,65 @@ export function saveHtml(container) {
 // A standard function for whenever we need just an average state
 export function getState() {
   return getInitialState();
+}
+
+export function getDefaultTestingState() {
+  const aes = {
+    stroke: 'black',
+    width: .05,
+    dash: '0',
+    lineCap: 'butt',
+    lineJoin: 'miter',
+  }
+  return {
+    ...getState(),
+    lines: [
+      new Line({}, new Point(5, 13), new Point(6, 11), aes),
+      new Line({}, new Point(5, 13), new Point(4, 11), aes),
+      new Line({}, new Point(6, 11), new Point(5, 9), aes),
+      new Line({}, new Point(5, 9), new Point(4, 11), aes),
+    ],
+    // Center of the pattern
+    cursorPos: new Point(5, 11),
+    bounds: [
+      new Point(4, 9),
+      new Point(6, 13),
+    ]
+  }
+}
+
+export function setUpDefaultTestingState(paper) {
+  const scale = 20
+  // Create the pattern
+  mouseMove(paper, 5*scale, 13*scale);
+  mouseClick(paper, 5*scale, 13*scale);
+  mouseMove(paper, 6*scale, 11*scale);
+  mouseClick(paper, 6*scale, 11*scale);
+  mouseMove(paper, 5*scale, 13*scale);
+  mouseClick(paper, 5*scale, 13*scale);
+  mouseMove(paper, 4*scale, 11*scale);
+  mouseClick(paper, 4*scale, 11*scale);
+  mouseMove(paper, 6*scale, 11*scale);
+  mouseClick(paper, 6*scale, 11*scale);
+  mouseMove(paper, 5*scale, 9*scale);
+  mouseClick(paper, 5*scale, 9*scale);
+  mouseClick(paper, 5*scale, 9*scale);
+  mouseMove(paper, 4*scale, 11*scale);
+  mouseClick(paper, 4*scale, 11*scale)
+  // Add bounds
+  mouseMove(paper, 4*scale, 9*scale);
+  press(paper, 'b')
+  mouseMove(paper, 6*scale, 13*scale);
+  press(paper, 'b')
+  // Move mouse to the center of the pattern
+  mouseMove(paper, 5*scale, 11*scale)
+}
+
+
+export function getFilledPolys(container) {
+  return container.querySelectorAll('#filled-polys > polygon');
+}
+
+export function getCurPolys(container) {
+  return container.querySelectorAll('#cur-polys > polygon');
 }

@@ -22,7 +22,7 @@ export default function getInitialState(){
         colorProfile: 0,
         // A list of hex color string
         stroke: Array(options.commonColorAmt).fill(options.stroke),
-        // Coord: Dist, deflated
+        // Coords: Dist, deflated
         strokeWidth: Array(options.commonColorAmt).fill(.05),
         // A list of hex color strings that gets shifted
         // commonColors: Array(options.commonColorAmt).fill(options.stroke),
@@ -39,15 +39,13 @@ export default function getInitialState(){
         fill: Array(options.commonColorAmt).fill(options.fill),
 
         fillMode: false,
-        // Constructed when we transition into fillMode, null otherwise
-        // FeatureCollection<Polygon>
-        // Coord: relative, scaled
-        polygons: null,
-        // The polygon that the mouse is over currently
-        // Coord: relative, scaled
-        intersectingPolygon: null,
-        // A list of polygons (as svg polygon objects) that have been filled. We draw these
-        // Coord: relative, scaled
+        // Constructed when we transition into fillMode, null otherwise. Returns to null after we exit fillMode.
+        // A list of Poly objects.
+        tempPolys: null,
+        // The polygons that the mouse is over currently (as a list, because there might be multiple due to mirroring)
+        // A list of Poly objects
+        curPolys: [],
+        // A list of Poly objects that have been filled. We draw these
         filledPolys: [],
 
         filename: "",
@@ -58,10 +56,10 @@ export default function getInitialState(){
         cursorPos: Point.svgOrigin(),
         // A list of Line objects, or an empty list
         lines: START_DEBUGGING ? [
-            new Line({}, new Point(5.05, 13.05), new Point(6.05, 11.05), debug_aes),
-            new Line({}, new Point(5.05, 13.05), new Point(4.05, 11.05), debug_aes),
-            new Line({}, new Point(6.05, 11.05), new Point(5.05, 9.05), debug_aes),
-            new Line({}, new Point(5.05, 9.05), new Point(4.05, 11.05), debug_aes),
+            new Line({}, new Point(5, 13), new Point(6, 11), debug_aes),
+            new Line({}, new Point(5, 13), new Point(4, 11), debug_aes),
+            new Line({}, new Point(6, 11), new Point(5, 9), debug_aes),
+            new Line({}, new Point(5, 9), new Point(4, 11), debug_aes),
         ] : [],
         // The starting point of the current line, or null
         curLinePos: null,

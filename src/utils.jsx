@@ -34,17 +34,19 @@ export function getAllClipboardLines(state, translate){
 // If retranslated is 'center', the lines will be retranslated to be relative to the center of the selection
 // If retranslated is 'topLeft', the lines will be retranslated to be relative to the top left of the selection
 // If retranslated is falsey, the lines will be returned as they are
-export function getSelected(state, retranslated){
+export function getSelected(state, retranslated, polygons=false){
     const boundRect = getBoundRect(state)
     if (!boundRect)
         return []
 
-    const selected = state.lines.filter(line => line.isSelected(state, boundRect))
+    let selected = state.lines.filter(obj => obj.isSelected(state, boundRect))
+    if (polygons)
+        selected = selected.concat(state.filledPolys.filter(obj => obj.isSelected(state, boundRect)))
 
     if (retranslated === 'center')
-        return selected.map(line => line.relativeTo(boundRect.center))
+        return selected.map(obj => obj.relativeTo(boundRect.center))
     else if (retranslated === 'topLeft')
-        return selected.map(line => line.relativeTo(boundRect.topLeft))
+        return selected.map(obj => obj.relativeTo(boundRect.topLeft))
     else
         return selected
 }
@@ -206,11 +208,30 @@ export function getShowableStroke(color){
     return brightness > 128 ? 'black' : 'white';
 }
 
-export function getPolygonContainingPoint(point, polygons) {
-    // polygons is a FeatureCollection<Polygon>
-    for (const polygon of polygons.features) {
-        if (inside(point.xy(), polygon.geometry.coordinates[0]))
-            return polygon
-    }
-    return null
+
+// Returns the lines, but removes any duplicates, lines with null values, and invalid lines
+export function normalizeLines(lines){
+    const seen = new Set()
+
+    return lines.filter(line => {
+        const hash = line.hash()
+        if (!line || !line.valid || seen.has(hash))
+            return false
+        seen.add(hash)
+        return true
+    })
+}
+
+export function splitAllLines(lines){
+    return lines.flatMap(line => line.split(lines))
+}
+
+export function unique(arr){
+    // I don't understand why Sets stopped working suddenly
+    // return Array.from(new Set(arr))
+    return arr.filter((point, index, self) => self.findIndex(p => p.eq(point)) === index)
+}
+
+export function getAllIntersections(lines){
+    return unique(lines.flatMap(line => line.findIntersections(lines)))
 }

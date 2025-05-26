@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import Line from "./helper/Line";
 import Point from "./helper/Point";
 import Dist from "./helper/Dist";
+import Poly from "./helper/Poly";
 
 export function serializePattern(state, selectedOnly=false, transform=''){
     const {scalex, scaley, lines} = state
@@ -30,6 +31,15 @@ export function serializePattern(state, selectedOnly=false, transform=''){
     return svg
 }
 
+// Deserialize parts of the state that can't be done with JSON.parse
+function customDeserialize(state){
+    console.log(state)
+    state.bounds = state?.bounds?.map(i => Point.fromJSON(i)) || []
+    state.translation = Dist.fromJSON(state?.translation || {x: 0, y: 0})
+    state.filledPolys = state?.filledPolys?.map(i => Poly.fromJSON(i)) || []
+    return state
+}
+
 // This will overwrite part of the state with the data from the svg, but not the entire state
 export function deserializePattern(str){
     // First, check if there's a script element in it. If it is, red flag that it's a hacking attempt
@@ -41,9 +51,9 @@ export function deserializePattern(str){
     // Parse the comment and get the data from it
     const match = /<!-- (.+) -->/.exec(str)
     // TODO: This won't auto-enable repeating until "repeating" state is implemented
-    let state = JSON.parse(match[1])
-    state.bounds = state.bounds.map(i => Point.fromJSON(i))
-    state.translation = Dist.fromJSON(state.translation)
+    let state = JSON.parse(match[1]) || {}
+    if (state)
+        state = customDeserialize(state)
 
     const parser = new DOMParser();
     const parsed = parser.parseFromString(str.replace('\n', ''), 'text/html');
@@ -121,10 +131,11 @@ export function deserializeState(str){
         return {}
     }
 
-    parsed.bounds = parsed.bounds.map(i => Point.fromJSON(i))
-    parsed.translation = Dist.fromJSON(parsed.translation)
-
-    return {...parsed, lines: parsed.lines.map(i => Line.fromJSON(i))}
+    return {
+        ...customDeserialize({...parsed, lines: parsed.lines.map(i => Line.fromJSON(i))}),
+        // Because all the lines have their translation reset
+        translation: Dist.zero()
+    }
 }
 
 // TODO
