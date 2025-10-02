@@ -1,10 +1,28 @@
+<div align="center">
+
+<!-- [![logo](logo192.png)](logo192.png) -->
+<img src="logo192.png" alt="Logo">
+
+<!-- [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) -->
+<br>
+<br>
+<img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
+
+<!-- [![Tests](https://github.com/smartycope/GeoDoodle/actions/workflows/test.yml/badge.svg)](https://github.com/smartycope/GeoDoodle/actions/workflows/test.yml) -->
+<img src="https://github.com/smartycope/GeoDoodle/actions/workflows/test.yml/badge.svg" alt="Tests">
+
+</div>
+
 # GeoDoodle
 ###### "Geometry Doodle"
 
-[![logo](logo192.png)](logo192.png)
+## Table of Contents
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/smartycope/GeoDoodle/actions/workflows/test.yml/badge.svg)](https://github.com/smartycope/GeoDoodle/actions/workflows/test.yml)
+- [About](#about)
+- [Running](#running)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [History](#history)
 
 This project is hosted at [https://smartycope.org/geodoodle](https://smartycope.org/geodoodle).
 
@@ -32,7 +50,7 @@ There's also a "good first issue" label on issues that are easy to get started w
 ## History
 I've always liked doodling on graph paper. I like making interesting patterns by drawing lines between the intersections. This is basically automated graph paper.
 
-This is the 6th ish iteration of this project. It was my first real programming project, and every time I learn more I end up getting excited and rewriting the project using my new knowledge. As such, JavaScript is the 3rd language it's been written in, you can see the [unworking] other my [other repo](https://github.com/smartycope/GeoDoodle).
+This is the 6th ish iteration of this project. It was my first real programming project, and every time I learn more I end up getting excited and rewriting the project using my new knowledge. As such, JavaScript is the 3rd language it's been written in, you can see the other [unworking] versions in my [other repo](https://github.com/smartycope/GeoDoodle).
 
 Honestly, this is mostly for my own enjoyment. I've tried to fine-tune it and make it as detailed as possible, so feel free to play with it and have fun. But really this is just a hobby project, so if you're looking for actually *useful* software, this probably isn't what you're looking for.
 
