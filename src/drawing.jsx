@@ -1,3 +1,4 @@
+// Stuff which gets called by Paper to draw parts of the paper
 import { MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE } from './globals'
 import options from './options';
 import { RxRotateCounterClockwise } from "react-icons/rx";

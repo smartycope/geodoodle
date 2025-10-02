@@ -4,7 +4,8 @@ import Tour from "reactour";
 import {useState} from "react";
 import {localStorageTourTakenName} from "./globals";
 import {InTourContext} from "./Contexts.jsx";
-
+import {ThemeProvider} from "@mui/material/styles";
+import {theme} from "./styling/theme";
 
 // Disable the default right click menu
 window.oncontextmenu = () => false
@@ -35,6 +36,7 @@ export default function App() {
     }
 
     return <div className="App">
+        <ThemeProvider theme={theme}>
         <InTourContext.Provider value={setInTour}>
             <Paper setInTour={setInTour} setDispatch={setDispatch}/>
             <Tour
@@ -52,5 +54,6 @@ export default function App() {
                 showNavigation={false}
             />
         </InTourContext.Provider>
+        </ThemeProvider>
     </div>
 }

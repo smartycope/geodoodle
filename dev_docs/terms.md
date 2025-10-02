@@ -16,3 +16,9 @@ There are many terms I throw around because I've been working on this by myself 
     * If a line is halfway drawn, it's the point at which the line starts. Otherwise, it's null. The current line is between curLinePos and the cursor.
 * Permanent lines
     * Lines that are added to the state permanently, not the metalines. Basically, the value of state.lines
+
+## Some code terms
+* Menu
+    * UI elements which are part of the main control bar, which popup when their button is pressed
+* Page
+    * A full screen UI element, like a modal dialog
