@@ -82,7 +82,7 @@ export function onTouchMove(state, dispatch, e){
         clearTimeout(touchHoldTimer)
         withinDoubleTapTime = false
         // For good measure
-        lastTapPos = [-10,-10]
+        lastTapPos = [-10, -10]
         dispatch({curLinePos: null})
 
         if (gestureTouches !== null){

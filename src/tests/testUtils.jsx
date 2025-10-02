@@ -15,10 +15,23 @@ export function renderPaper(startPoint=[100, 100]) {
   return { paper, ...rendered };
 }
 
+export function createTouchEvent(paper, xfrom, yfrom, xto, yto) {
+  fireEvent.touchStart(paper, { clientX: xfrom, clientY: yfrom });
+  fireEvent.touchMove(paper, { clientX: xto, clientY: yto });
+  fireEvent.touchEnd(paper, { clientX: xto, clientY: yto });
+}
 
 // Helpers to get parts of the Paper
 export function getLines(container) {
   return container.querySelectorAll('#lines > line');
+}
+
+export function getCursorPos(container) {
+  const cursor = container.querySelector('#cursor');
+  return {
+    x: Number(cursor.getAttribute('cx')),
+    y: Number(cursor.getAttribute('cy')),
+  }
 }
 
 export function getCurLines(container) {
@@ -41,6 +54,45 @@ export function getMatrixValues(container) {
     width: Number(dots.getAttribute('width')),
     height: Number(dots.getAttribute('height')),
     // rotation: dots.getAttribute('transform').match(/\d+/g).map(Number)
+  }
+}
+
+// Gets a rough estimation of a good chunk of the current state
+export function state(container) {
+  const dots = container.querySelector('#dots')
+  const curLine = container.querySelector('#cur-lines')
+  const cursor = container.querySelector('#cursor')
+  // Pretty sure the initial (unmirrored) one is always gonna be first (by coincidence, for now)
+  let curLinePos = null
+  const scalex = Number(dots.getAttribute('width'))
+  const scaley = Number(dots.getAttribute('height'))
+  if (curLine){
+    const line = curLine.children[0]
+    if (line){
+      curLinePos = Point.fromSvg({scalex, scaley}, Number(line.getAttribute('x1')), Number(line.getAttribute('y1')))
+    }
+  }
+
+  return {
+    translation: Point.fromSvg({scalex, scaley}, Number(dots.getAttribute('x')), Number(dots.getAttribute('y'))),
+    scalex, scaley,
+    fill: container.querySelector('#color-menu-fill-button')?.style?.backgroundColor == 'green',
+    tempPolys: container.querySelector('#temp-polys'),
+    curPolys: container.querySelector('#cur-polys'),
+    filledPolys: container.querySelector('#filled-polys'),
+    lines: container.querySelector('#lines'),
+    curLinePos: curLinePos,
+    cursorPos: Point.fromSvg({scalex, scaley}, Number(cursor.getAttribute('cx')), Number(cursor.getAttribute('cy'))),
+    // eraser: container.querySelector('#eraser').getAttribute('points').split(' ').map(Number),
+    clipboard: container.querySelector('#clipboard'),
+    // clipboardRotation: Number(container.querySelector('#clipboard').getAttribute('transform').match(/rotate\((\d+)\)/)[1]),
+    // clipboardMirrorAxis: container.querySelector('#clipboard').getAttribute('transform').match(/mirror\((\d+)\)/)[1],
+    // clipboardOffset: container.querySelector('#clipboard').getAttribute('transform').match(/offset\((\d+)\)/)[1],
+
+    bounds: getBounds(container),
+    trellis: container.querySelector('#trellis'),
+    hideDots: container.querySelector('#dots').style.display == 'none',
+    // mirroring: container.querySelector('#mirroring').style.display == 'none',
   }
 }
 
@@ -137,7 +189,7 @@ export function getDefaultTestingState() {
   }
 }
 
-export function setUpDefaultTestingState(paper) {
+export function setUpDefaultTestingState(paper, addBounds=true) {
   const scale = 20
   // Create the pattern
   mouseMove(paper, 5*scale, 13*scale);
@@ -156,10 +208,12 @@ export function setUpDefaultTestingState(paper) {
   mouseMove(paper, 4*scale, 11*scale);
   mouseClick(paper, 4*scale, 11*scale)
   // Add bounds
-  mouseMove(paper, 4*scale, 9*scale);
-  press(paper, 'b')
-  mouseMove(paper, 6*scale, 13*scale);
-  press(paper, 'b')
+  if (addBounds) {
+    mouseMove(paper, 4*scale, 9*scale);
+    press(paper, 'b')
+    mouseMove(paper, 6*scale, 13*scale);
+    press(paper, 'b')
+  }
   // Move mouse to the center of the pattern
   mouseMove(paper, 5*scale, 11*scale)
 }

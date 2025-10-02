@@ -291,6 +291,7 @@ export function Cursor(){
                 [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
             }
             key='cursor'
+            id='cursor'
         />,
     ]
 
