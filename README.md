@@ -15,6 +15,7 @@
 
 # GeoDoodle
 ###### "Geometry Doodle"
+This project is hosted at [https://smartycope.org/geodoodle](https://smartycope.org/geodoodle).
 
 ## Table of Contents
 
@@ -24,7 +25,6 @@
 - [Contributing](#contributing)
 - [History](#history)
 
-This project is hosted at [https://smartycope.org/geodoodle](https://smartycope.org/geodoodle).
 
 ## About
 This project is an attempt to recreate the experience of doodling on graph paper. Unlike a traditional drawing program, you can't draw whatever lines you want, it's intentionally constrainted to only allow drawing lines between the intersections of the graph paper.
