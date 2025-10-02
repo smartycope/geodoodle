@@ -2,7 +2,7 @@ import './styling/App.css';
 import {useEffect, useReducer, useRef} from 'react';
 import { localStorageSettingsName, PREVENT_LOADING_STATE } from './globals'
 import reducer from './reducer';
-import MainMenu from './Menus/MainMenu';
+import Toolbar from './Menus/Toolbar';
 import {deserializeState} from './fileUtils';
 import {StateContext} from './Contexts';
 import {
@@ -77,7 +77,7 @@ export default function Paper({setDispatch}) {
 
     return <StateContext.Provider value={{state, dispatch}}>
         <div>
-            <MainMenu/>
+            <Toolbar/>
             {/* onCopy, onPaste, and onCut are implemented with keyboard shortcuts instead of here, so they can be changed */}
             <svg id='paper'
                 width="100%"

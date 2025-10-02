@@ -11,23 +11,23 @@
     zoom: 1.5;
 }
 
-#menu-selector-mobile{
+/* #menu-selector-mobile{
     /* top:0px; */
-    padding: 2%;
+    /* padding: 2%; */
     /* padding-left: 0px; */
     /* right: 10px; */
     /* width: 96%; */
-    position: absolute;
+    /* position: absolute; */
     /* border-radius: 5px; */
     /* background-color: rgba(20, 20, 20, .65); */
-    display: flex;
+    /* display: flex; */
     /* flex-direction: row; */
     /* align-items: center; */
-    justify-content: space-between;
-    pointer-events: none;
+    /* justify-content: space-between; */
+    /* pointer-events: none; */
     /* zoom: 2; */
     /* scale: 3; */
-}
+/* } */
 
 .menu-toggle-button-desktop{
     background-color: rgba(0, 0, 0, 0);
