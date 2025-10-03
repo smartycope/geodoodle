@@ -8,7 +8,18 @@ import { TbArrowsUpRight, TbArrowsVertical, TbArrowsMaximize, TbArrowsRandom } f
 import { GoMirror } from "react-icons/go";
 import {useContext} from "react";
 import {StateContext} from "../Contexts";
-
+import FlipIcon from '@mui/icons-material/Flip';
+import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
+import VerticalAlignCenterIcon from '@mui/icons-material/VerticalAlignCenter';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import SwapVertIcon from '@mui/icons-material/SwapVert';
+import OpenWithIcon from '@mui/icons-material/OpenWith';
+import AllOutIcon from '@mui/icons-material/AllOut';
+import InsertPageBreakIcon from '@mui/icons-material/InsertPageBreak';
+import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
+import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 
 export function Checkbox({label, onChange, checked, title, id, inputId, backwards=false}){
     const lab = <label htmlFor={label}>{label}</label>
@@ -43,7 +54,7 @@ export function Input({label, onChange, type, value, inputProps, title, id, inpu
     </span>
 }
 
-export function Number({label='', onChange, value, min=-Infinity, max=Infinity, step=1, inputProps,
+function Number({label='', onChange, value, min=-Infinity, max=Infinity, step=1, inputProps,
     title, id, inputId, backwards=false, onPlus, onMinus, round,
 }){
     // Make sure everything is a number before adding to it
@@ -90,6 +101,176 @@ export function Number({label='', onChange, value, min=-Infinity, max=Infinity, 
         {backwards && lab}
     </span>
 }
+
+import { Box, IconButton, TextField, Tooltip, Typography, useTheme } from "@mui/material";
+import { Add, Remove } from "@mui/icons-material";
+
+function NumberMui({
+    onChange,
+    value,
+    min = -Infinity,
+    max = Infinity,
+    step = 1,
+    labelLeft = "",
+    labelTop = undefined,
+    labelBottom = undefined,
+    labelRight = "",
+    icon,
+    inputProps,
+    title,
+    id,
+    inputId,
+    onPlus,
+    onMinus,
+    round,
+}) {
+    if (!value) value = 0
+    if (round === undefined) round = !(step >= 1)
+
+    min = +min;
+    max = +max;
+    step = +step;
+    value = +value;
+
+    const handleMinus = () => onChange(Math.min(max, onPlus ? onPlus(value) : value - step));
+    const handlePlus = () => onChange(Math.max(min, onMinus ? onMinus(value) : value + step));
+
+    const buttonStyle = {
+        padding: '8px',
+        // outline: '1px solid',
+        borderRadius: '5px',
+        // border: 'none',
+    }
+    const rounded = value.toFixed(round)
+    console.log({value, rounded})
+    return (
+        <Box
+        id={id}
+        title={title}
+        display="flex"
+        alignItems="center"
+        gap={1}
+        >
+        {labelLeft && (
+            <Typography variant="body2" sx={{ minWidth: "4ch" }}>{labelLeft}</Typography>
+        )}
+
+        <IconButton
+            size="small"
+            color="primary"
+            variant='contained'
+            onClick={handleMinus}
+            sx={{...buttonStyle, marginLeft: '0px'}}
+        >
+            <Remove fontSize="small" />
+        </IconButton>
+
+        <TextField
+            type="number"
+            variant="filled"
+            label={labelTop}
+            helperText={labelBottom}
+            margin="dense"
+            size="small"
+            value={rounded}
+            onChange={(e) => onChange(Number(e.target.value))}
+            slotProps={{
+                htmlInput: {
+                    min,
+                    max,
+                    step,
+                    style: { textAlign: "center" },
+                    ...inputProps,
+                },
+                // InputLabel: {
+                //     shrink: true,
+                // },
+            }}
+            id={inputId}
+            sx={{
+                width: `${String(rounded).length + 3}ch`,
+                p: 0,
+                mx: 1,
+                ml: -1,
+                mr: -1,
+            }}
+            />
+
+        <IconButton
+            size="small"
+            color="primary"
+            onClick={handlePlus}
+            sx={{...buttonStyle, marginRight: '0px'}}
+        >
+            <Add fontSize="small" />
+        </IconButton>
+
+        {labelRight && (
+            <Typography variant="body2">{labelRight}</Typography>
+        )}
+        </Box>
+    );
+}
+
+// Modified from
+// https://base-ui.com/react/components/number-field
+
+import * as React from 'react';
+import { NumberField } from '@base-ui-components/react/number-field';
+import styles from '../styling/number-field.module.css';
+import ToolButton from "./ToolButton";
+
+// See for allowed props:
+// https://base-ui.com/react/components/number-field#api-reference
+function NumberBase({
+    label,
+    id,
+    title,
+    color,
+    inputId,
+    onPlus,
+    onMinus,
+    scrubDirection='horizontal',
+    ...props
+}){
+    id = id || React.useId();
+    inputId = inputId || React.useId();
+    const theme = useTheme()
+    if (color === undefined) color = theme.palette.primary.contrastText
+
+    if (props.snapOnStep && props.value && props.step)
+        props.value = Math.round(props.value * 10**props.step) / 10**props.step
+
+    return (
+        <Tooltip title={title}>
+        <NumberField.Root
+            id={id}
+            className={styles.Field}
+            {...props}
+        >
+            <label htmlFor={id} className={styles.Label} style={{color: color}}>
+            {label}
+            </label>
+
+        <NumberField.Group className={styles.Group}>
+            <NumberField.Decrement className={styles.Decrement} onClick={onMinus}>
+            <Remove fontSize="small" />
+            </NumberField.Decrement>
+            {/* TODO: scrub direction doens't work */}
+            {/* <NumberField.ScrubArea className={styles.ScrubArea} scrubDirection={scrubDirection}> */}
+            <NumberField.ScrubArea className={styles.ScrubArea}>
+                <NumberField.Input className={styles.Input} id={inputId} style={{color: color}}/>
+            </NumberField.ScrubArea>
+            <NumberField.Increment className={styles.Increment} onClick={onPlus}>
+            <Add fontSize="small" />
+            </NumberField.Increment>
+        </NumberField.Group>
+        </NumberField.Root>
+        </Tooltip>
+    );
+}
+
+export {NumberBase as Number}
 
 export function Collapsible({summary, children}){
     return <details>
