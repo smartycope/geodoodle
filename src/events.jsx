@@ -29,10 +29,10 @@ export function onMouseMove(state, dispatch, e){
 }
 
 export function onMouseDown(state, dispatch, e){
-    const {fillMode} = state
+    const {fillMode, bounds} = state
     switch (e.button){
         // Left click
-        case 0: dispatch(fillMode ? 'fill' : 'add_line'); break;
+        case 0: dispatch(fillMode ? 'fill' : (bounds.length === 1 ? 'add_bound' : 'add_line')); break;
         // Middle click
         case 1: dispatch('delete'); break;
         // Right click

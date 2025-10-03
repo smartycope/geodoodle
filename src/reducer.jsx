@@ -14,7 +14,7 @@ var saveNext = false
 // Can accept any of 3 parameters to dispatch:
 //                 {action: "...", foo: "bar"}
 // "..."        -> {action: "..."}
-// {foo: "bar"} -> {action: "set manual", foo: "bar"}
+// {foo: "bar"} -> {action: "set_manual", foo: "bar"}
 export default function reducer(state, data){
     // Some convenience parameter handling
     if (typeof data === "string")
