@@ -1,20 +1,24 @@
-import {useContext, useRef, useState} from 'react';
+import { useContext, useRef, useState } from 'react';
 import "../styling/SettingsMenu.css"
-import {Checkbox, Number} from "./MenuUtils"
+import { Number } from "./MenuUtils"
 import { KeyMenu } from './KeyMenu';
 
 import { IoClose } from "react-icons/io5";
-import {localStorageSettingsName} from '../globals';
+import { localStorageSettingsName } from '../globals';
 
 import { ColorPicker, ColorService } from "react-color-palette";
 // This works, but not in the tests for whatever reason
 // import "react-color-palette/css";
 import "react-color-palette/dist/css/rcp.css";
-import {extraButtons} from "../options";
-import {StateContext} from '../Contexts';
+import { extraButtons } from "../options";
+import { StateContext } from '../Contexts';
+import Page from "./Page";
+import { Box, Button, Checkbox, FormControlLabel, FormHelperText, List, ListItem, ListItemText, ListSubheader, MenuItem, Popover, Select, Stack, Switch, useTheme } from '@mui/material';
+import { Helper } from './Helper';
+import styled from '@emotion/styled';
 
-export function SettingsMenu(){
-    const {state, dispatch} = useContext(StateContext)
+function SettingsMenu() {
+    const { state, dispatch } = useContext(StateContext)
     const [palletteVisible, setPalletteVisible] = useState(false);
     const colorMenu = useRef()
 
@@ -38,85 +42,85 @@ export function SettingsMenu(){
     return <>
         <div id='settings-menu'> {/*onAbort={() => dispatch({action: "menu", close: "settings"})}>*/}
             <h3>Settings</h3>
-            <button id='close-button' onClick={() => dispatch({action: "menu", close: "settings"})}><IoClose /></button>
+            <button id='close-button' onClick={() => dispatch({ action: "menu", close: "settings" })}><IoClose /></button>
             {/* removeSelectionAfterDelete */}
             <Checkbox label="Invert Scroll"
                 title="Controls the scroll direction"
-                onChange={() => dispatch({invertedScroll: !invertedScroll})}
+                onChange={() => dispatch({ invertedScroll: !invertedScroll })}
                 checked={invertedScroll}
             />
             <Number label="Scroll Sensitivity"
                 title="Controls how fast scroll translates"
-                onChange={val => dispatch({scrollSensitivity: val})}
+                onChange={val => dispatch({ scrollSensitivity: val })}
                 value={scrollSensitivity}
                 step={.1}
             />
             <Number label="2 Finger Move Sensitivity"
                 // title="Controls how 2 finger scroll translates"
-                onChange={val => dispatch({gestureTranslateSensitivity: val})}
+                onChange={val => dispatch({ gestureTranslateSensitivity: val })}
                 value={gestureTranslateSensitivity}
                 step={.1}
             />
             <Number label="2 Finger Scale Sensitivity"
                 // title="Controls how fast scroll translates"
-                onChange={val => dispatch({gestureScaleSensitivity: val})}
+                onChange={val => dispatch({ gestureScaleSensitivity: val })}
                 value={gestureScaleSensitivity}
                 step={.1}
             />
             <Checkbox label="Smooth Scale Gesture"
                 title="Can help smooth out 2 finger gestures"
-                onChange={() => dispatch({smoothGestureScale: !smoothGestureScale})}
+                onChange={() => dispatch({ smoothGestureScale: !smoothGestureScale })}
                 checked={smoothGestureScale}
             />
             <Checkbox label="Scale with 2 Finger Spread"
                 title="Controls whether the 2 finger spread gesture scales the page or not"
-                onChange={() => dispatch({enableGestureScale: !enableGestureScale})}
+                onChange={() => dispatch({ enableGestureScale: !enableGestureScale })}
                 checked={enableGestureScale}
             />
             <Checkbox label="Remove Selection after Cut"
                 title="Controls if the bounds get removed after the selection gets deleted, whether from cutting or by deleting"
-                onChange={() => dispatch({removeSelectionAfterDelete: !removeSelectionAfterDelete})}
+                onChange={() => dispatch({ removeSelectionAfterDelete: !removeSelectionAfterDelete })}
                 checked={removeSelectionAfterDelete}
             />
 
-            Extra Button: <select required onChange={e => dispatch({extraButton: e.target.value })} value={extraButton}>
+            Extra Button: <select required onChange={e => dispatch({ extraButton: e.target.value })} value={extraButton}>
                 {extraButtons.map(i => <option value={i} key={i}>{i}</option>)}
             </select>
-            <br/>
+            <br />
 
-            Menu Side: <select required onChange={e => dispatch({side: e.target.value})} value={side}>
+            Menu Side: <select required onChange={e => dispatch({ side: e.target.value })} value={side}>
                 {['top', 'left', 'right', 'bottom'].map(i => <option value={i} key={i}>{i}</option>)}
             </select>
             {/* The color picker */}
             <div ref={colorMenu}>
                 {palletteVisible && <ColorPicker color={ColorService.convert('hex', state.paperColor)} onChange={(clr) => {
-                    dispatch({paperColor: clr.hex});
-                }} hideInput={['hsv', state.hideHexColor ? 'hex' : '']}/>}
+                    dispatch({ paperColor: clr.hex });
+                }} hideInput={['hsv', state.hideHexColor ? 'hex' : '']} />}
             </div>
             <div ref={colorMenu}>
                 <button id='color-picker-button'
                     onClick={() => setPalletteVisible(!palletteVisible)}
-                    style={{backgroundColor: state.paperColor, color: 'black'}}
+                    style={{ backgroundColor: state.paperColor, color: 'black' }}
                 >
                     {palletteVisible ? "Set" : "Pick Background Color"}
                 </button>
             </div>
-            <button onClick={() => dispatch({hideDots: !state.hideDots})}>{hideDots ? "Show" : "Hide"} dots</button>
+            <button onClick={() => dispatch({ hideDots: !state.hideDots })}>{hideDots ? "Show" : "Hide"} dots</button>
 
             <h4>Advanced</h4>
             <Checkbox label="Hide Hex Color"
                 title="Controls if the hex color is displayed in the color menu"
-                onChange={() => dispatch({hideHexColor: !hideHexColor})}
+                onChange={() => dispatch({ hideHexColor: !hideHexColor })}
                 checked={hideHexColor}
             />
             <Checkbox label="Dots above fill"
                 title="Controls if the dots are displayed above the filled areas or not"
-                onChange={() => dispatch({dotsAbovefill: !dotsAbovefill})}
+                onChange={() => dispatch({ dotsAbovefill: !dotsAbovefill })}
                 checked={dotsAbovefill}
             />
             <Number label="Max Undo Amount"
                 title="Controls how many consecutive undos you can do at once"
-                onChange={val => dispatch({maxUndoAmt: val})}
+                onChange={val => dispatch({ maxUndoAmt: val })}
                 value={maxUndoAmt}
                 min={2}
             />
@@ -126,16 +130,17 @@ export function SettingsMenu(){
                 checked={debug}
             />
             <button onClick={() => {
-                if (window.confirm("Reset all settings to default? This will clear the current pattern.")){
+                if (window.confirm("Reset all settings to default? This will clear the current pattern.")) {
                     localStorage.removeItem(localStorageSettingsName)
                     window.location.reload()
-                }}} title="Clears the settings cache">
+                }
+            }} title="Clears the settings cache">
                 Reset to Defaults
             </button>
 
             {!state.mobile && <button
                 className='footer'
-                onClick={() => dispatch({action: 'menu', open: 'key', close: 'settings'})}
+                onClick={() => dispatch({ action: 'menu', open: 'key', close: 'settings' })}
             >
                 Keyboard Shortcuts
             </button>}
@@ -143,3 +148,208 @@ export function SettingsMenu(){
         {state.openMenus.key && <KeyMenu />}
     </>
 }
+
+
+const StyledSubheader = styled(ListSubheader)(({ theme }) => ({
+    backgroundColor: theme.palette.primary.main,
+    width: '100%',
+    borderRadius: theme.shape.borderRadius,
+}));
+
+function SettingsMenuMui() {
+    const { state, dispatch } = useContext(StateContext)
+    const [palletteVisible, setPalletteVisible] = useState(false);
+    const colorMenuButton = useRef()
+    const [showHelp, setShowHelp] = useState(true)
+    const theme = useTheme()
+
+    function Setting({ label, help, children, mobileOnly, desktopOnly }) {
+        if (mobileOnly && !state.mobile) return null
+        if (desktopOnly && state.mobile) return null
+        return <ListItem>
+            <ListItemText primary={label} secondary={showHelp ? help : undefined} />
+            {children}
+        </ListItem>
+    }
+
+    const {
+        removeSelectionAfterDelete,
+        side,
+        invertedScroll,
+        scrollSensitivity,
+        hideHexColor,
+        enableGestureScale,
+        extraButton,
+        hideDots,
+        maxUndoAmt,
+        debug,
+        gestureTranslateSensitivity,
+        gestureScaleSensitivity,
+        smoothGestureScale,
+        dotsAbovefill,
+        paperColor,
+    } = state
+
+    return <Page menu="settings">
+        {/* <Stack spacing={2}> */}
+        <FormControlLabel label="Show Help" disableTypography sx={{ fontSize: '.9em', color: 'primary.contrastText', ml: 1 }} control={
+            <Switch checked={showHelp} onChange={() => setShowHelp(!showHelp)} />
+        } />
+        <List subheader={<StyledSubheader>General</StyledSubheader>}>
+            {/* General */}
+            <Setting label="Remove Selection after Cut" help="Controls if the bounds get removed after the selection gets deleted, whether from cutting or by deleting">
+                <Checkbox
+                    checked={removeSelectionAfterDelete}
+                    onChange={() => dispatch({ removeSelectionAfterDelete: !removeSelectionAfterDelete })}
+                />
+            </Setting>
+
+            <Setting label="Extra Button" help="Controls the extra button">
+                <Select required onChange={e => dispatch({ extraButton: e.target.value })} value={extraButton}>
+                    {extraButtons.map(i => <MenuItem sx={{width: '100%'}} value={i} key={i}>{i}</MenuItem>)}
+                </Select>
+            </Setting>
+
+            <Setting label="Menu Side" help="Controls the side of the screen the menu is on">
+                <Select required onChange={e => dispatch({ side: e.target.value })} value={side}>
+                    {['top', 'left', 'right', 'bottom'].map(i => <MenuItem sx={{width: '100%'}} value={i} key={i}>{i}</MenuItem>)}
+                </Select>
+            </Setting>
+
+            {/* Color Menu */}
+            {/* TODO: this should work, but it doesn't, I suspect an internal color picker error */}
+            {/* TODO: also, once it does work, have it modify the current theme */}
+            <Setting label="Background Color">
+                <Button ref={colorMenuButton} id='color-picker-button'
+                    onClick={() => setPalletteVisible(!palletteVisible)}
+                    sx={{ backgroundColor: paperColor, color: 'black' }}
+                >
+                    {/* {palletteVisible ? "Set" : "Pick Background Color"} */}
+                    Pick Background Color
+                </Button>
+                <Popover
+                    open={palletteVisible}
+                    onClose={() => {
+                        setPalletteVisible(false)
+                        colorMenuButton.current.focus()
+                    }}
+                    // anchorEl={colorMenuButton.current}
+                    anchorEl={document.getElementById('color-picker-button')}
+                    anchorOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left',
+                    }}
+                    transformOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                    }}
+                >
+                    <ColorPicker
+                        color={ColorService.convert('hex', paperColor)}
+                        onChangeComplete={(clr) => dispatch({ paperColor: clr.hex })}
+                        hideInput={['hsv', hideHexColor ? 'hex' : '']}
+                    />
+                </Popover>
+            </Setting>
+
+            <Setting label="Hide Dots" help="Useful for saving images or admiring your creation">
+                <Checkbox
+                    checked={hideDots}
+                    onChange={() => dispatch({ hideDots: !hideDots })}
+                />
+            </Setting>
+
+
+            {/* Controls */}
+            <StyledSubheader>Controls</StyledSubheader>
+            <Setting desktopOnly label="Invert Scroll" help="Controls if the scroll is inverted">
+                <Checkbox
+                    checked={invertedScroll}
+                    onChange={() => dispatch({ invertedScroll: !invertedScroll })}
+                />
+            </Setting>
+
+            <Setting desktopOnly label="Scroll Sensitivity" help="Controls how fast scroll translates">
+                <Number
+                    onValueChange={val => dispatch({ scrollSensitivity: val })}
+                    value={scrollSensitivity}
+                    step={.1}
+                    snapOnStep={true}
+                />
+            </Setting>
+            <Setting label="Two Finger Move Sensitivity" help="Controls how two finger scroll translates">
+                <Number
+                    onValueChange={val => dispatch({ gestureTranslateSensitivity: val })}
+                    value={gestureTranslateSensitivity}
+                    step={.1}
+                    snapOnStep={true}
+                />
+            </Setting>
+            <Setting label="Two Finger Scale Sensitivity" help="Controls how fast scroll translates">
+                <Number
+                    onValueChange={val => dispatch({ gestureScaleSensitivity: val })}
+                    value={gestureScaleSensitivity}
+                    step={.1}
+                    snapOnStep={true}
+                />
+            </Setting>
+            <Setting label="Smooth Scale Gesture" help="Can help smooth out two finger gestures">
+                <Checkbox
+                    checked={smoothGestureScale}
+                    onChange={() => dispatch({ smoothGestureScale: !smoothGestureScale })}
+                />
+            </Setting>
+            <Setting label="Two Finger Spread Gesture Scales Page" help="Controls whether the two finger spread gesture scales the page or not">
+                <Checkbox
+                    checked={enableGestureScale}
+                    onChange={() => dispatch({ enableGestureScale: !enableGestureScale })}
+                />
+            </Setting>
+
+            <StyledSubheader>Advanced</StyledSubheader>
+            <Setting label="Hide Hex Color" help="Controls if the hex color is displayed in the color menu">
+                <Checkbox
+                    checked={hideHexColor}
+                    onChange={() => dispatch({ hideHexColor: !hideHexColor })}
+                />
+            </Setting>
+            <Setting label="Dots above fill" help="Controls if the dots are displayed above the filled areas or not">
+                <Checkbox
+                    checked={dotsAbovefill}
+                    onChange={() => dispatch({ dotsAbovefill: !dotsAbovefill })}
+                />
+            </Setting>
+            <Setting label="Max Undo Amount" help="Controls how many consecutive undos you can do at once">
+                <Number
+                    onValueChange={val => dispatch({ maxUndoAmt: val })}
+                    value={maxUndoAmt}
+                    min={2}
+                />
+            </Setting>
+            <Setting label="Debug Mode" help="Adds some visual aids useful for debugging">
+                <Checkbox
+                    checked={debug}
+                    onChange={() => dispatch('toggle_debugging')}
+                />
+            </Setting>
+            <Setting label="Reset to Defaults" help="Clear the settings cache">
+                <Button sx={{color: 'primary.contrastText'}} onClick={() => {
+                    if (window.confirm("Reset all settings to default? This will clear the current pattern.")) {
+                        localStorage.removeItem(localStorageSettingsName)
+                        window.location.reload()
+                    }
+                }}>
+                    Reset to Defaults
+                </Button>
+            </Setting>
+
+            <Setting desktopOnly label="Keyboard Shortcuts" help="View the keyboard shortcuts">
+                <Button sx={{color: 'primary.contrastText'}} onClick={() => dispatch({ action: 'menu', open: 'key', close: 'settings' })}>
+                    Keyboard Shortcuts
+                </Button>
+            </Setting>
+        </List>
+    </Page>
+}
+
+export default SettingsMenuMui
