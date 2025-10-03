@@ -418,15 +418,19 @@ export const menu = (state, {toggle, open, close}) => {
         })
     }
 
-    // Don't allow the repeat menu to be opened if we don't have a selection
-    if (copy.repeat && !getBoundRect(state))
+    let repeatToast = false
+    // Don't allow the repeat menu to be opened if we don't have a *finished* selection
+    if (copy.repeat && state.bounds.length < 2){
         copy.repeat = false
+        repeatToast = true
+    }
 
     return {
         openMenus: {...copy},
         curLinePos: null,
         // If we close the repeat menu, and we have dots turned off, turn them back on
         hideDots: !(openMenus.repeat && !copy.repeat) && hideDots,
+        toast: repeatToast ? "Please select an area to repeat" : null,
     }
 }
 

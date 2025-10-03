@@ -154,6 +154,9 @@ export default function getInitialState(){
         doubleTapTimeMS: options.doubleTapTimeMS,
         holdTapTimeMS: options.holdTapTimeMS,
 
+        // Set to a string to show a toast. It will hide itself after options.toastDuration ms
+        toast: null,
+
         openMenus: {
             main: true,
             controls: true,

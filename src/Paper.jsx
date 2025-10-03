@@ -20,6 +20,7 @@ import {
     Dots,
     Polygons,
     CurrentPolys,
+    Toast,
 } from './drawing';
 import Trellis from './Trellis';
 import getInitialState from './states';
@@ -77,6 +78,7 @@ export default function Paper({setDispatch}) {
 
     return <StateContext.Provider value={{state, dispatch}}>
         <div>
+            <Toast/>
             <Toolbar/>
             {/* onCopy, onPaste, and onCut are implemented with keyboard shortcuts instead of here, so they can be changed */}
             <svg id='paper'

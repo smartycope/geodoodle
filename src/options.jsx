@@ -39,11 +39,13 @@ const defaultOptions = {
     maxUndoAmt: 20,
     maxScale: Math.min(viewportWidth(), viewportHeight()) / 2,
     minScale: 4,
-    // color of the clipboard lines, before they're added as permanent lines
+    // Color of the clipboard lines, before they're added as permanent lines
     clipColor: 'grey80',
     clipboardButtonWidth: 35,
     clipboardButtonHeight: 40,
     clipboardButtonGap: 5,
+    // In ms
+    toastDuration: 6000,
 }
 export default defaultOptions
 

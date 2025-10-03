@@ -9,6 +9,7 @@ import Line from './helper/Line';
 import Point from './helper/Point';
 import { useContext, useEffect } from "react";
 import { StateContext } from "./Contexts";
+import { Snackbar } from '@mui/material';
 
 
 var debugTextOffset = 20
@@ -358,4 +359,16 @@ export function CurrentPolys(){
     return curPolys && <g id='cur-polys' transform={`translate(${transx} ${transy}) scale(${scalex} ${scaley})`}>
         {curPolys.map((poly, i) => poly.render(state, `cur-poly-${i}`))}
     </g>
+}
+
+export function Toast(){
+    const {state, dispatch} = useContext(StateContext)
+
+    return <Snackbar
+        open={Boolean(state.toast)}
+        autoHideDuration={options.toastDuration}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        onClose={() => {dispatch({toast: null})}}
+        message={state.toast}
+    />
 }
