@@ -9,9 +9,14 @@ import {useContext} from "react";
 import {useAlignWithElement} from "./MenuHooks";
 import {ExtraButton} from "./MenuUtils";
 import {extraSlots as _extraSlots} from "../utils";
+import { useTheme } from "@mui/material/styles";
+import MiniMenu from "./MiniMenu";
+import { Grid } from "@mui/material";
+import ToolButton from "./ToolButton";
 
-export default function ExtraMenu({align}){
+function ExtraMenu({align}){
     const {state, dispatch} = useContext(StateContext)
+    const theme = useTheme()
 
     let alignStyle = useAlignWithElement(align)
     const extraSlots = _extraSlots(state)
@@ -60,3 +65,36 @@ export default function ExtraMenu({align}){
         {extraSlots < 3 && <ExtraButton/>}
     </div>
 }
+
+function ExtraMenuMui(){
+    const {state, dispatch} = useContext(StateContext)
+    const theme = useTheme()
+
+    const extraSlots = _extraSlots(state)
+
+    // if (['left', 'right'].includes(state.side) && extraSlots < 3)
+    //     style = {
+    //         transform: 'translateY(-50%)'
+    //     }
+
+    // // Because the repeat menu is on the sides, if the repeat menu is open, make sure we're not on the side so we can close it again
+    // // I'm not entirely sure why it's 25%, but it works
+    // if (state.openMenus.repeat && state.mobile && ['left', 'right'].includes(state.side))
+    //     style = {
+    //         transform: 'translateY(25%)',
+    //         left: 0,
+        // }
+
+    return <MiniMenu menu="extra">
+        <Grid container spacing={1} >
+            {extraSlots < 2 && <Grid size={4}><ToolButton toggleMenu="navigation" icon={<RiNavigationFill/>}/></Grid>}
+            {extraSlots < 1 && <Grid size={4}><ToolButton toggleMenu="repeat" icon={<MdDashboard/>}/></Grid>}
+            {extraSlots < 4 && <Grid size={4}><ToolButton toggleMenu="file" icon={<FaSave/>}/></Grid>}
+            {extraSlots < 5 && <Grid size={4}><ToolButton toggleMenu="settings" icon={<IoMdSettings/>}/></Grid>}
+            {extraSlots < 6 && <Grid size={4}><ToolButton toggleMenu="help" icon={<MdHelp/>}/></Grid>}
+            {extraSlots < 3 && <Grid size={4}><ExtraButton/></Grid>}
+        </Grid>
+    </MiniMenu>
+}
+
+export default ExtraMenuMui

@@ -6,7 +6,23 @@ import {Checkbox, MirrorAxisIcon, MirrorMethodIcon, MirrorTypeIcon} from "./Menu
 import "../styling/MirrorMenu.css"
 import {StateContext} from "../Contexts";
 import {useAlignWithElement} from "./MenuHooks";
+import MiniMenu from "./MiniMenu";
+import { ListItemIcon, MenuItem } from "@mui/material";
 
+import { MdContentCopy } from "react-icons/md"
+import { MdOutlineContentCut } from "react-icons/md";
+import { MdContentPaste } from "react-icons/md";
+import { MdUndo } from "react-icons/md";
+import { MdRedo } from "react-icons/md";
+import { GiNuclear } from "react-icons/gi";
+import { PiSelectionPlusDuotone } from "react-icons/pi";
+import { PiSelectionSlashDuotone } from "react-icons/pi";
+import { MdDelete } from "react-icons/md";
+import { MdDeleteForever } from "react-icons/md";
+import { BiArea } from "react-icons/bi";
+import { BiSolidArea } from "react-icons/bi";
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
 let offsetX, offsetY;
 let isDragging = false;
 
@@ -119,7 +135,7 @@ function DesktopMirrorMenu(){
             </button>
         }
         {/* Grip */}
-        <FaGripLinesVertical id="grip" color='darkgray'/>
+        <FaGripLinesVertical id="grip"/>
     </span>
 }
 
@@ -174,11 +190,59 @@ function MobileMirrorMenu({align}){
     </span>
 }
 
-export default function MirrorMenu({align}){
-    // const {state, dispatch} = useContext(StateContext)
-    // const {side} = state
 
-    // return state.mobile
-    return <MobileMirrorMenu align={align}/>
-        // : <DesktopMirrorMenu/>
+function MirrorMenuMui({align}){
+    const {state, dispatch} = useContext(StateContext)
+    const {mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2, mirroring} = state
+
+    return <MiniMenu menu="mirror" id="mirror-menu-mobile">
+            <MenuItem onClick={() => dispatch({mirroring: !mirroring})}>
+                <ListItemIcon>
+                    {mirroring ? <CheckBoxIcon/> : <CheckBoxOutlineBlankIcon/>}
+                </ListItemIcon>
+                Enabled
+            </MenuItem>
+        <MenuItem onClick={() => dispatch({mirrorType: incrementMirrorType(mirrorType)})}>
+            <ListItemIcon>
+                <MirrorTypeIcon mirrorType={mirrorType}/>
+            </ListItemIcon>
+            Type
+        </MenuItem>
+        <MenuItem onClick={() => dispatch({mirrorMethod: incrementMirrorMethod(mirrorMethod)})}>
+            <ListItemIcon>
+                <MirrorMethodIcon mirrorMethod={mirrorMethod}/>
+            </ListItemIcon>
+            Method
+        </MenuItem>
+        {state.bounds.length > 1 && <>
+            <MenuItem onClick={() => dispatch("clear_bounds")}>
+                <ListItemIcon>
+                    <PiSelectionSlashDuotone/>
+                </ListItemIcon>
+                Remove<br/> Selection
+            </MenuItem>
+
+        </>}
+
+
+        {[MIRROR_METHOD.BOTH, MIRROR_METHOD.FLIP].includes(mirrorMethod) &&
+            <MenuItem onClick={() => dispatch({mirrorAxis: incrementMirrorAxis(mirrorAxis)})}>
+                <ListItemIcon>
+                    <MirrorAxisIcon mirrorAxis={mirrorAxis} mirrorMethod={MIRROR_METHOD.FLIP}/>
+                </ListItemIcon>
+                Flip
+            </MenuItem>
+        }
+        {[MIRROR_METHOD.BOTH, MIRROR_METHOD.ROTATE].includes(mirrorMethod) &&
+            <MenuItem onClick={() => dispatch({mirrorAxis2: incrementMirrorAxis(mirrorAxis2)})}>
+                <ListItemIcon>
+                    <MirrorAxisIcon mirrorAxis={mirrorAxis2} mirrorMethod={MIRROR_METHOD.ROTATE}/>
+                </ListItemIcon>
+                Rotate
+            </MenuItem>
+        }
+    </MiniMenu>
 }
+
+// export {MobileMirrorMenu as MirrorMenu}
+export default MirrorMenuMui
