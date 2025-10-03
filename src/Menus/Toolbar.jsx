@@ -1,6 +1,6 @@
 import "../styling/MainMenu.css"
 import ControlsMenu from "./ControlsMenu";
-import {HelpMenu} from "./HelpMenu"
+import HelpMenu from "./HelpMenu"
 import ColorMenu from "./ColorMenu";
 import {FileMenu} from "./FileMenu";
 import SettingsMenu from "./SettingsMenu";
