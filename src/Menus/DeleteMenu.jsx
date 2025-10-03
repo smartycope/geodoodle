@@ -16,6 +16,11 @@ import {useContext} from "react";
 import {StateContext} from "../Contexts";
 import {useAlignWithElement} from "./MenuHooks";
 import MiniMenu from "./MiniMenu";
+import { ListItemIcon, MenuItem } from "@mui/material";
+import CancelPresentationIcon from '@mui/icons-material/CancelPresentation';
+import CancelPresentationTwoToneIcon from '@mui/icons-material/CancelPresentationTwoTone';
+import SelectAllIcon from '@mui/icons-material/SelectAll';
+import DeselectIcon from '@mui/icons-material/Deselect';
 
 function DeleteMenu({align}){
     const {state, dispatch} = useContext(StateContext)
@@ -59,27 +64,36 @@ function DeleteMenu({align}){
 }
 
 function DeleteMenuMui(){
-    const {dispatch} = useContext(StateContext)
+    const {dispatch, state} = useContext(StateContext)
+
     return <MiniMenu menu="delete">
-        <MenuItem onClick={() => dispatch("delete_at_cursor")}>
-            <ListItemIcon>
-                <MdDelete/>
-            </ListItemIcon>
-            Delete Lines
-        </MenuItem>
-        <MenuItem onClick={() => dispatch("delete_line")}>
-            <ListItemIcon>
-                <MdDeleteForever/>
-            </ListItemIcon>
-            Delete Line
-        </MenuItem>
+        {/* We can't click the button and move the cursor to the current position on desktop */}
+        {state.mobile && <>
+            <MenuItem onClick={() => dispatch("delete_at_cursor")}>
+                <ListItemIcon>
+                    <MdDelete/>
+                </ListItemIcon>
+                Delete Lines
+            </MenuItem>
+            <MenuItem onClick={() => dispatch("delete_line")}>
+                <ListItemIcon>
+                    <MdDeleteForever/>
+                </ListItemIcon>
+                Delete Line
+            </MenuItem>
+            </>
+        }
         {state.bounds.length > 1 && <span>
             <MenuItem onClick={() => dispatch("delete_selected")}>
-                <BiSolidArea/>
+                {/* <BiSolidArea/> */}
+                <CancelPresentationTwoToneIcon sx={{mr: 1}}/>
+                {/* <DeselectIcon/> */}
                 Delete Selected
             </MenuItem>
             <MenuItem onClick={() => dispatch("delete_unselected")}>
-                <BiArea/>
+                {/* <BiArea/> */}
+                <CancelPresentationIcon sx={{mr: 1}}/>
+                {/* <SelectAllIcon/> */}
                 Delete Unselected
             </MenuItem>
         </span>}

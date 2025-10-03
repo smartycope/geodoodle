@@ -19,6 +19,7 @@ import MiniMenu from "./MiniMenu";
 import {MenuItem, ListItemIcon, Typography} from "@mui/material";
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import DeselectIcon from '@mui/icons-material/Deselect';
 
 function SelectMenu({align}){
     const {state, dispatch} = useContext(StateContext)
@@ -66,7 +67,7 @@ function SelectMenuMui(){
         {state.bounds.length > 1 && <>
             <MenuItem onClick={() => dispatch("clear_bounds")}>
                 <ListItemIcon>
-                    <PiSelectionSlashDuotone/>
+                    <DeselectIcon/>
                 </ListItemIcon>
                 Remove<br/> Selection
             </MenuItem>
