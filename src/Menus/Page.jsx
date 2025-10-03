@@ -15,7 +15,7 @@ import { useTheme } from "@mui/material/styles";
 
 
 
-export default function Page({menu, title, children}){
+export default function Page({menu, title, children, sx}){
     const {state, dispatch} = useContext(StateContext)
     const {side} = state
     if (title === undefined) title = menu.charAt(0).toUpperCase() + menu.slice(1)
@@ -25,15 +25,32 @@ export default function Page({menu, title, children}){
         <Dialog
             open={state.openMenus[menu]}
             onClose={() => dispatch({action: "menu", close: menu})}
-            fullWidth
+            // fullWidth
             maxWidth="lg"
             // fullScreen
             scroll="paper"
+            // slotProps={{
+            //     paper: {
+            //         sx: {
+            //             position: "absolute",
+            //             top: "50%",
+            //             left: "50%",
+            //             transform: "translate(-50%, -50%)",
+            //             m: 0, // remove default margin if needed
+            //         },
+            //     },
+            // }}
             sx={{
-            //   width: '90%',
-            //   maxWidth: '90%',
-            //   height: '90%',
-            //   maxHeight: '90%',
+                ...sx,
+                // '& .MuiDialog-container': {
+                //     alignItems: 'center',
+                //     justifyContent: 'center',
+                // },
+                // '& .MuiPaper-root': {
+                //     margin: 2,
+                //     width: '100%',
+                //     maxWidth: '90vw',
+                // }
             }}
         >
             <IconButton

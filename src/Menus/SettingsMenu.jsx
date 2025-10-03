@@ -160,14 +160,13 @@ function SettingsMenuMui() {
     const { state, dispatch } = useContext(StateContext)
     const [palletteVisible, setPalletteVisible] = useState(false);
     const colorMenuButton = useRef()
-    const [showHelp, setShowHelp] = useState(true)
     const theme = useTheme()
 
     function Setting({ label, help, children, mobileOnly, desktopOnly }) {
         if (mobileOnly && !state.mobile) return null
         if (desktopOnly && state.mobile) return null
         return <ListItem>
-            <ListItemText primary={label} secondary={showHelp ? help : undefined} />
+            <ListItemText primary={label} secondary={help} />
             {children}
         </ListItem>
     }
@@ -192,9 +191,6 @@ function SettingsMenuMui() {
 
     return <Page menu="settings">
         {/* <Stack spacing={2}> */}
-        <FormControlLabel label="Show Help" disableTypography sx={{ fontSize: '.9em', color: 'primary.contrastText', ml: 1 }} control={
-            <Switch checked={showHelp} onChange={() => setShowHelp(!showHelp)} />
-        } />
         <List subheader={<StyledSubheader>General</StyledSubheader>}>
             {/* General */}
             <Setting label="Remove Selection after Cut" help="Controls if the bounds get removed after the selection gets deleted, whether from cutting or by deleting">
@@ -206,13 +202,13 @@ function SettingsMenuMui() {
 
             <Setting label="Extra Button" help="Controls the extra button">
                 <Select required onChange={e => dispatch({ extraButton: e.target.value })} value={extraButton}>
-                    {extraButtons.map(i => <MenuItem sx={{width: '100%'}} value={i} key={i}>{i}</MenuItem>)}
+                    {extraButtons.map(i => <MenuItem sx={{width: '100%'}} value={i} key={i}>{i.charAt(0).toUpperCase() + i.slice(1)}</MenuItem>)}
                 </Select>
             </Setting>
 
             <Setting label="Menu Side" help="Controls the side of the screen the menu is on">
                 <Select required onChange={e => dispatch({ side: e.target.value })} value={side}>
-                    {['top', 'left', 'right', 'bottom'].map(i => <MenuItem sx={{width: '100%'}} value={i} key={i}>{i}</MenuItem>)}
+                    {['Top', 'Left', 'Right', 'Bottom'].map(i => <MenuItem sx={{width: '100%'}} value={i.toLowerCase()} key={i}>{i}</MenuItem>)}
                 </Select>
             </Setting>
 
@@ -273,8 +269,9 @@ function SettingsMenuMui() {
                 <Number
                     onValueChange={val => dispatch({ scrollSensitivity: val })}
                     value={scrollSensitivity}
+                    min={0}
+                    max={10}
                     step={.1}
-                    snapOnStep={true}
                 />
             </Setting>
             <Setting label="Two Finger Move Sensitivity" help="Controls how two finger scroll translates">
@@ -282,7 +279,8 @@ function SettingsMenuMui() {
                     onValueChange={val => dispatch({ gestureTranslateSensitivity: val })}
                     value={gestureTranslateSensitivity}
                     step={.1}
-                    snapOnStep={true}
+                    min={0}
+                    max={10}
                 />
             </Setting>
             <Setting label="Two Finger Scale Sensitivity" help="Controls how fast scroll translates">
@@ -290,7 +288,8 @@ function SettingsMenuMui() {
                     onValueChange={val => dispatch({ gestureScaleSensitivity: val })}
                     value={gestureScaleSensitivity}
                     step={.1}
-                    snapOnStep={true}
+                    min={0}
+                    max={10}
                 />
             </Setting>
             <Setting label="Smooth Scale Gesture" help="Can help smooth out two finger gestures">
