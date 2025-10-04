@@ -1,11 +1,11 @@
-import "../styling/HelpMenu.css"
+// import "../styling/HelpMenu.css"
 
 import { IoClose } from "react-icons/io5";
 import {version} from '../globals';
 import {InTourContext, StateContext} from "../Contexts";
 import {useContext} from "react";
 import Page from "./Page";
-import { Typography } from "@mui/material";
+import { Box, Button, Link, Typography } from "@mui/material";
 
 
 // eslint-disable-next-line no-unused-vars
@@ -84,15 +84,22 @@ function HelpMenuMui(){
         </ul>
         This is a passion project of Copeland Carter.
         To see one of the other things he&apos;s really proud of,
-        check out <a href='http://ezregex.org/'>EZRegex.org</a>! <br/>
+        check out <Link href='http://ezregex.org/'>EZRegex.org</Link>! <br/>
         This project is entirely open source, and the code is available
-        on <a href='https://github.com/smartycope/geodoodle'>GitHub</a>
-        <span>
-            <button id='tour-button' onClick={() => {dispatch('start_tour'); setInTour(true)}}>
+        on <Link href='https://github.com/smartycope/geodoodle'>GitHub</Link>
+        <Box>
+            <Button
+                variant='outlined'
+                onClick={() => {dispatch('start_tour'); setInTour(true)}}
+                sx={{
+                    bottom: 10,
+                    alignSelf: 'center',
+                    position: 'absolute',
+                }}
+            >
                 Start full tour
-            </button>
-        </span>
-        <footer id='version'>v{version}</footer>
+            </Button>
+        </Box>
     </Page>
 }
 

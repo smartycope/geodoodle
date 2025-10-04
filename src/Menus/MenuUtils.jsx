@@ -323,25 +323,3 @@ export function MirrorMethodIcon({mirrorMethod}){
         default: console.error(mirrorMethod, 'is not a valid mirror method');
     }
 }
-
-export function ExtraButton({mainMenu=false, style}){
-    const {state, dispatch} = useContext(StateContext)
-
-    switch (state.extraButton) {
-        case 'copy image':
-            return <ToolButton
-                onClick={() => dispatch('copy_image')}
-                icon={<MdOutlineFileCopy/>}
-                title="Copy as Image"
-                style={style}
-            />
-        // Home is the default
-        default:
-            return <ToolButton
-                onClick={() => dispatch('go_home')}
-                icon={<MdHome/>}
-                title="Reset position and scale"
-                style={style}
-            />
-    }
-}

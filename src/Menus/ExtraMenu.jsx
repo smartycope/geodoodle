@@ -7,7 +7,7 @@ import { RiNavigationFill } from "react-icons/ri";
 import {StateContext} from "../Contexts";
 import {useContext} from "react";
 import {useAlignWithElement} from "./MenuHooks";
-import {ExtraButton} from "./MenuUtils";
+import ExtraButton from "./ExtraButton";
 import {extraSlots as _extraSlots} from "../utils";
 import { useTheme } from "@mui/material/styles";
 import MiniMenu from "./MiniMenu";
@@ -70,29 +70,25 @@ function ExtraMenuMui(){
     const {state, dispatch} = useContext(StateContext)
     const theme = useTheme()
 
-    const extraSlots = _extraSlots(state)
+    const extraSlots = Math.max(_extraSlots(state), 0)
 
-    // if (['left', 'right'].includes(state.side) && extraSlots < 3)
-    //     style = {
-    //         transform: 'translateY(-50%)'
-    //     }
-
-    // // Because the repeat menu is on the sides, if the repeat menu is open, make sure we're not on the side so we can close it again
-    // // I'm not entirely sure why it's 25%, but it works
-    // if (state.openMenus.repeat && state.mobile && ['left', 'right'].includes(state.side))
-    //     style = {
-    //         transform: 'translateY(25%)',
-    //         left: 0,
-        // }
+    // TODO: I want these 2 be in 2 columns, instead of 1 row
+    const gridProps = {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        size: "auto",
+        // size: 6,
+    }
 
     return <MiniMenu menu="extra">
-        <Grid container spacing={1} >
-            {extraSlots < 2 && <Grid size={4}><ToolButton toggleMenu="navigation" icon={<RiNavigationFill/>}/></Grid>}
-            {extraSlots < 1 && <Grid size={4}><ToolButton toggleMenu="repeat" icon={<MdDashboard/>}/></Grid>}
-            {extraSlots < 4 && <Grid size={4}><ToolButton toggleMenu="file" icon={<FaSave/>}/></Grid>}
-            {extraSlots < 5 && <Grid size={4}><ToolButton toggleMenu="settings" icon={<IoMdSettings/>}/></Grid>}
-            {extraSlots < 6 && <Grid size={4}><ToolButton toggleMenu="help" icon={<MdHelp/>}/></Grid>}
-            {extraSlots < 3 && <Grid size={4}><ExtraButton/></Grid>}
+        <Grid container spacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+            {extraSlots < 2 && <Grid {...gridProps}><ToolButton inExtraMenu menu="navigation"/></Grid>}
+            {extraSlots < 1 && <Grid {...gridProps}><ToolButton inExtraMenu menu="repeat"/></Grid>}
+            {extraSlots < 4 && <Grid {...gridProps}><ToolButton inExtraMenu menu="file"/></Grid>}
+            {extraSlots < 5 && <Grid {...gridProps}><ToolButton inExtraMenu menu="settings"/></Grid>}
+            {extraSlots < 6 && <Grid {...gridProps}><ToolButton inExtraMenu menu="help"/></Grid>}
+            {extraSlots < 3 && <Grid {...gridProps}><ExtraButton/></Grid>}
         </Grid>
     </MiniMenu>
 }

@@ -58,13 +58,17 @@ export default function MiniMenu({menu, children}){
     //   right: { top: 'right-start', center: 'right', bottom: 'right-end' },
     // };
 
-    // const placement = placementMap[anchorOrigin.vertical]?.[anchorOrigin.horizontal] ?? 'bottom';
-
+    const el = document.getElementById(`${menu}-tool-button`)
+    // Don't render the menu if the button doesn't exist (it defaults to top left corner)
+    if (!el){
+        return null
+    }
     return <Popper
         open={state.openMenus[menu]}
-        anchorEl={document.getElementById(`${menu}-tool-button`) || null}
+        anchorEl={el}
         onClose={() => dispatch({action: "menu", close: menu})}
         placement={placement}
+        sx={{zIndex: 2}}
         modifiers={[
           {
             name: 'transformOrigin',

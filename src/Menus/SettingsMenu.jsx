@@ -10,13 +10,14 @@ import { ColorPicker, ColorService } from "react-color-palette";
 // This works, but not in the tests for whatever reason
 // import "react-color-palette/css";
 import "react-color-palette/dist/css/rcp.css";
-import { extraButtons } from "../options";
+import {version} from '../globals';
 import { StateContext } from '../Contexts';
 import Page from "./Page";
 import { Box, Button, Checkbox, FormControlLabel, FormHelperText, List, ListItem, ListItemText, ListSubheader, MenuItem, Popover, Select, Stack, Switch, useTheme } from '@mui/material';
 import { Helper } from './Helper';
 import styled from '@emotion/styled';
 // import useMediaQuery from '@mui/material/useMediaQuery';
+import { extraButtons } from './ExtraButton';
 
 function SettingsMenu() {
     const { state, dispatch } = useContext(StateContext)
@@ -152,7 +153,7 @@ function SettingsMenu() {
 
 
 const StyledSubheader = styled(ListSubheader)(({ theme }) => ({
-    // backgroundColor: theme.palette.primary.main,
+    backgroundColor: theme.palette.mode === 'dark' ? undefined : theme.palette.primary.light,
     width: '100%',
     borderRadius: theme.shape.borderRadius,
 }));
@@ -190,15 +191,16 @@ function SettingsMenuMui() {
         dotsAbovefill,
         paperColor,
         darkMode,
+        beginnerMode,
     } = state
 
     return <Page menu="settings">
         {/* <Stack spacing={2}> */}
         <List subheader={<StyledSubheader>General</StyledSubheader>}>
             {/* General */}
-            <Setting label="Extra Button" help="Controls the extra button">
+            <Setting label="Extra Button" help="Defines the functionality of the customizable button">
                 <Select required onChange={e => dispatch({ extraButton: e.target.value })} value={extraButton}>
-                    {extraButtons.map(i => <MenuItem sx={{width: '100%'}} value={i} key={i}>{i.charAt(0).toUpperCase() + i.slice(1)}</MenuItem>)}
+                    {Object.keys(extraButtons).map(i => <MenuItem sx={{width: '100%'}} value={i} key={i}>{(i.charAt(0).toUpperCase() + i.slice(1)).replace(/_/g, ' ')}</MenuItem>)}
                 </Select>
             </Setting>
 
@@ -269,7 +271,6 @@ function SettingsMenuMui() {
                 </Select>
             </Setting>
 
-
             {/* Controls */}
             <StyledSubheader>Controls</StyledSubheader>
             <Setting desktopOnly label="Invert Scroll" help="Controls if the scroll is inverted">
@@ -320,6 +321,13 @@ function SettingsMenuMui() {
             </Setting>
 
             <StyledSubheader>Advanced</StyledSubheader>
+            <Setting label="Beginner Mode" help="Shows extra tooltips and other beginner-friendly features">
+                <Checkbox
+                    checked={beginnerMode}
+                    onChange={() => dispatch({ beginnerMode: !beginnerMode })}
+                />
+            </Setting>
+
             <Setting label="Hide Hex Color" help="Controls if the hex color is displayed in the color menu">
                 <Checkbox
                     checked={hideHexColor}
@@ -361,6 +369,8 @@ function SettingsMenuMui() {
                     Keyboard Shortcuts
                 </Button>
             </Setting>
+            <br/>
+            <footer>v{version}</footer>
         </List>
     </Page>
 }

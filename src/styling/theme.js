@@ -91,16 +91,19 @@ function RGB2HEX(r, g, b) {
 }
 */
 function colorIsVisible(color, background) {
-    return Math.abs(color.hsl.l - background.hsl.l) > 30
+    return Math.abs(color.hsl.l - background.hsl.l) > 25
 }
 
 export default (paperColor, darkMode) => {
+    // This white was not randomly chosen
+    const paperMain = darkMode ? '#272727' : '#f7f7f7'
+
     // Evenly darken or lighten paperColor until it can be seen against the background, based on darkMode
     let main = new Color(paperColor)
     let i = 0
-    const base = new Color(darkMode ? '#000000' : '#FFFFFF')
+    const base = new Color(paperMain)
     while (!colorIsVisible(main, base)) {
-        main.hsl.l += darkMode ? 1 : -1
+        main.hsv.v += darkMode ? 1 : -1
         // An infinite loop *shouldn't* be a problem, but just in case
         i++
         if (i > 100) break
@@ -126,6 +129,10 @@ export default (paperColor, darkMode) => {
                 // active: {
                 //     backgroundColor: 'primary.main',
                 // },
+            },
+            background: {
+                default: paperMain,
+                paper: paperMain,
             },
         },
         shape: {
@@ -153,7 +160,7 @@ export default (paperColor, darkMode) => {
             // ListSubheader: {
             //     styleOverrides: {
             //         root: {
-            //             bgcolor: 'primary.main',
+            //             bgcolor: 'red',
             //             width: '100%',
             //         },
             //     },

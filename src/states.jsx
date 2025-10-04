@@ -130,6 +130,7 @@ export default function getInitialState(systemDarkMode){
         enableGestureScale: options.enableGestureScale,
         inTour: false,
 
+        beginnerMode: options.beginnerMode,
         debug: START_DEBUGGING,
         /* debugDrawPoints looks like this:
         {

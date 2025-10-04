@@ -46,6 +46,7 @@ const defaultOptions = {
     clipboardButtonGap: 5,
     // In ms
     toastDuration: 6000,
+    beginnerMode: true,
 }
 export default defaultOptions
 
@@ -111,12 +112,6 @@ export const keybindings = {
     '`': {action: 'debug'},
     'shift+`': {action: 'toggle_debugging'},
 }
-
-// Things which can go in the extra button slot
-export const extraButtons = [
-    'home',
-    'copy image',
-]
 
 // Only these can be undone, all other actions are ignored by undo/redo
 export const reversibleActions = [
@@ -205,6 +200,7 @@ export const preservable = [
     "paperColor",
     "doubleTapTimeMS",
     'filledPolys',
+    "beginnerMode",
 ]
 
 // The parts of the state that get serialized to the svg file

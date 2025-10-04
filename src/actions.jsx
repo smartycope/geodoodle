@@ -390,6 +390,7 @@ export const set_manual = (state, data) => {
 }
 
 const miniMenus = ['extra', 'color', 'mirror', 'select', 'clipboard', 'delete']
+var savedMiniMenus = {}
 export const menu = (state, {toggle, open, close}) => {
     const {openMenus, mobile, hideDots} = state
 
@@ -411,11 +412,31 @@ export const menu = (state, {toggle, open, close}) => {
         })
     }
 
-    // If we close the main menu, close the mini menus as well
-    if ((close === 'main' || (toggle === 'main' && !copy[toggle])) && mobile){
+    // If we close the toolbar (main), save the state of the mini menus and reopen them when we open the toolbar again
+    if (close === 'main' || (toggle === 'main' && !copy[toggle])){
+        savedMiniMenus = {...copy}
         Object.keys(copy).forEach(key => {
-            copy[key] = miniMenus.includes(key) ? false : copy[key]
+            copy[key] = false
         })
+    }
+    // Reopen the mini menus when we open the toolbar
+    // This maaay cause bugs if we issue multiple menu actions at once
+    if (open === 'main' || (toggle === 'main' && copy[toggle])){
+        console.log({copy, savedMiniMenus})
+
+        // It should be
+        // copy = {...copy, ...savedMiniMenus}
+        // But it doesn't work. For some reason
+        // copy = {...savedMiniMenus}
+        // Acts differently than
+        copy = savedMiniMenus
+        // I have no idea why.
+        savedMiniMenus['main'] = true
+
+        // The toolbar renders before the menus, so we have to do this to make sure the menus are open
+        // Fake an event that would trigger a re-render
+        // This is hacky, but it works surprisingly well
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 10)
     }
 
     let repeatToast = false

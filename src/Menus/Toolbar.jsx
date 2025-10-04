@@ -2,7 +2,7 @@ import "../styling/MainMenu.css"
 import ControlsMenu from "./ControlsMenu";
 import HelpMenu from "./HelpMenu"
 import ColorMenu from "./ColorMenu";
-import {FileMenu} from "./FileMenu";
+import { FileMenu } from "./FileMenu";
 import SettingsMenu from "./SettingsMenu";
 import NavMenu from "./NavMenu";
 import RepeatMenu from "./RepeatMenu";
@@ -26,16 +26,16 @@ import { MdOutlineTabUnselected } from "react-icons/md";
 import ClipboardMenu from "./ClipboardMenu";
 import DeleteMenu from "./DeleteMenu";
 import SelectMenu from "./SelectMenu";
-import React, {useContext, useRef, useState} from "react";
-import {StateContext} from "../Contexts";
-import {ExtraButton} from "./MenuUtils";
-import {extraSlots as _extraSlots} from "../utils";
+import React, { useContext, useRef, useState } from "react";
+import { StateContext } from "../Contexts";
+import { extraSlots as _extraSlots } from "../utils";
 import PaletteIcon from '@mui/icons-material/Palette';
 import { styled, useTheme } from '@mui/material/styles';
 import Button from '@mui/material/Button';
-import { AppBar, Box, Fab, IconButton, Paper as MuiPaper } from "@mui/material";
+import { AppBar, Box, Fab, IconButton, Paper as MuiPaper, Tooltip } from "@mui/material";
 import { lighten, alpha, darken } from '@mui/material/styles';
-import ToolButton, {toolButtonStyle} from "./ToolButton";
+import ToolButton, { getTooltipSide, toolButtonStyle } from "./ToolButton";
+import ExtraButton from "./ExtraButton";
 
 // import * as React from 'react';
 // import Box from '@mui/material/Box';
@@ -58,47 +58,48 @@ import HighlightAltIcon from '@mui/icons-material/HighlightAlt';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import NearMeIcon from '@mui/icons-material/NearMe';
+import UndoIcon from '@mui/icons-material/Undo';
 
 var tapHolding = false
 var touchHoldTimer = null
 var redid = false
 
-
-function Toolbar(){
-    const {state, dispatch} = useContext(StateContext)
-    const {side} = state
+// TODO: color menu shoudl go over nav menu
+function Toolbar() {
+    const { state, dispatch } = useContext(StateContext)
+    const { side } = state
     const [, doReload] = useState()
     const theme = useTheme()
 
-    function undoOnTouchHold(){
-        if (tapHolding){
+    function undoOnTouchHold() {
+        if (tapHolding) {
             redid = true
             dispatch('redo')
             tapHolding = false
         }
     }
 
-    function undoOnTouchStart(){
+    function undoOnTouchStart() {
         setTimeout(() => tapHolding = true, 10)
         touchHoldTimer = setTimeout(undoOnTouchHold, state.holdTapTimeMS)
     }
 
-    function undoOnTouchEnd(){
+    function undoOnTouchEnd() {
         clearTimeout(touchHoldTimer)
         tapHolding = false
-        if (!redid){
+        if (!redid) {
             dispatch('undo')
         }
         redid = false
     }
 
-    function getAlignmentCoords(ref){
+    function getAlignmentCoords(ref) {
         const rect = ref.current.getBoundingClientRect()
         switch (side) {
-            case 'right': return {right: rect.right, top: rect.top}
-            case 'left': return {left: rect.left, top: rect.top}
-            case 'bottom': return {bottom: rect.bottom, left: rect.left}
-            case 'top': return {top: rect.top, left: rect.left}
+            case 'right': return { right: rect.right, top: rect.top }
+            case 'left': return { left: rect.left, top: rect.top }
+            case 'bottom': return { bottom: rect.bottom, left: rect.left }
+            case 'top': return { top: rect.top, left: rect.left }
         }
     }
 
@@ -107,21 +108,22 @@ function Toolbar(){
 
     let style = {}
     switch (side) {
-        case 'right': style = {right: '0px'}
+        case 'right': style = { right: '0px' }
         case 'left':
-            style = {...style,
+            style = {
+                ...style,
                 flexDirection: 'column-reverse',
                 height: '97%',
             }
             break
-        case 'bottom': style = {bottom: "0px",}
+        case 'bottom': style = { bottom: "0px", }
         case 'top':
-            style = {...style,
+            style = {
+                ...style,
                 flexDirection: 'row',
                 width: '97%',
             }
     }
-    console.log(theme)
     const extraSlots = _extraSlots(state)
 
     // Because the repeat menu is on the sides, if the repeat menu is open, make sure we're not on the side so we can close it again
@@ -141,79 +143,63 @@ function Toolbar(){
             borderRadius: 4,
             // backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
             backgroundColor: theme.palette.background.paper,
+            // backgroundColor: theme.palette.mode === 'dark' ? theme.darken(theme.palette.primary.dark, 0.1) : theme.lighten(theme.palette.primary.light, 0.1),
             // backgroundColor: theme.palette.primary.main,
             display: 'flex',
             justifyContent: 'space-between',
             pointerEvents: 'none',
             ...style,
         }}>
-            <Box
-                // visibility={state.openMenus.main ? 'visible': "hidden"}
-                // pointerEvents={state.openMenus.main ? 'all' : 'none'}
-                sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    // marginRight: horizontal ? 2 : undefined,
-                    // marginTop: vertical ? 2 : undefined,
-                    // marginBottom: vertical ? 2 : undefined,
-                    ...style,
-                }}
-            >
-                {extraSlots < 5 && <ToolButton toggleMenu="extra" icon={<AppsIcon/>} id="extra-tool-button"/>}
-                {/* This is the button which is dynamically set in settings */}
-                {/* TODO: not yet reviewed for Mui compatibility */}
-                {extraSlots >= 3 && <ExtraButton mainMenu={true}/>}
-                {extraSlots >= 5 && <ToolButton toggleMenu="help" icon={<HelpIcon/>} id="help-tool-button"/>}
-                {extraSlots >= 5 && <ToolButton toggleMenu="settings" icon={<SettingsIcon/>} id="settings-tool-button"/>}
-                {extraSlots >= 4 && <ToolButton toggleMenu="file" icon={<SaveIcon/>} id="file-tool-button"/>}
-                {extraSlots >= 2 && <ToolButton toggleMenu="navigation" icon={<NearMeIcon/>} id="navigation-tool-button"/>}
-                {extraSlots >= 1 && <ToolButton toggleMenu="repeat" icon={<DashboardIcon/>} id="repeat-tool-button"/>}
-                <ToolButton toggleMenu="color" icon={<PaletteIcon/>} id="color-tool-button"/>
-                {/* Undo button */}
+            {extraSlots < 5 && <ToolButton menu="extra" id="extra-tool-button" />}
+            {/* This is the button which is dynamically set in settings */}
+            {/* TODO: not yet reviewed for Mui compatibility */}
+            {extraSlots >= 3 && <ExtraButton mainMenu={true} />}
+            {extraSlots >= 5 && <ToolButton menu="help" id="help-tool-button" />}
+            {extraSlots >= 5 && <ToolButton menu="settings" id="settings-tool-button" />}
+            {extraSlots >= 4 && <ToolButton menu="file" id="file-tool-button" />}
+            {extraSlots >= 2 && <ToolButton menu="navigation" id="navigation-tool-button" />}
+            {extraSlots >= 1 && <ToolButton menu="repeat" id="repeat-tool-button" />}
+            <ToolButton menu="color" id="color-tool-button" />
+            {/* Undo button */}
+            <Tooltip title="Undo" arrow placement={getTooltipSide(state.side, false)}>
                 <IconButton onTouchStart={undoOnTouchStart}
                     onTouchEnd={undoOnTouchEnd}
                     // So it works in desktop mode as well
-                    onClick={() => dispatch({action: "undo"})}
+                    onClick={() => dispatch({ action: "undo" })}
                     id="undo-button"
                     className="menu-toggle-button-mobile"
                     sx={toolButtonStyle}
                 >
-                    <MdUndo/>
+                    <UndoIcon />
                 </IconButton>
-                <ToolButton toggleMenu="mirror" icon={<GoMirror/>} id="mirror-tool-button"/>
-                <ToolButton toggleMenu="select" icon={<HighlightAltIcon/>} id="select-tool-button"/>
-                <ToolButton toggleMenu="clipboard" icon={<ContentPasteIcon/>} id="clipboard-tool-button"/>
-                <ToolButton toggleMenu="delete" icon={<DeleteIcon/>} id="delete-tool-button"/>
-            </Box>
-
+            </Tooltip>
+            <ToolButton menu="mirror" id="mirror-tool-button" />
+            <ToolButton menu="select" id="select-tool-button" />
+            <ToolButton menu="clipboard" id="clipboard-tool-button" />
+            <ToolButton menu="delete" id="delete-tool-button" />
             {/* The menu button in the corner */}
-            <ToolButton toggleMenu="main" icon={<MenuRoundedIcon/>} sx={{
-                // marginLeft: side == horizontal ? 2 : undefined,
-                // marginRight: side == 'bottom' ? 2 : undefined,
-                // marginBottom: side == vertical ? 2 : undefined,
-                // marginTop: side == 'right' ? 2 : undefined,
-            }}/>
+            <ToolButton menu="main" />
         </MuiPaper>
     </>
 
     const menus = <React.Fragment key="menus">
         {/* Menus */}
-        {state.openMenus.select    && <SelectMenu    menu="select"/>}
-        {state.openMenus.clipboard && <ClipboardMenu menu="clipboard"/>}
-        {state.openMenus.delete    && <DeleteMenu    menu="delete"/>}
-        {state.openMenus.mirror    && <MirrorMenu    menu="mirror"/>}
-        {state.openMenus.color     && <ColorMenu     menu="color"/>}
-        {state.openMenus.extra     && <ExtraMenu     menu="extra"/>}
-        {state.openMenus.repeat    && <RepeatMenu    menu="repeat"/>}
-        {state.openMenus.file      && <FileMenu      menu="file"/>}
-        {state.openMenus.settings  && <SettingsMenu  menu="settings"/>}
-        {state.openMenus.help      && <HelpMenu      menu="help"/>}
+        {state.openMenus.select && <SelectMenu menu="select" />}
+        {state.openMenus.clipboard && <ClipboardMenu menu="clipboard" />}
+        {state.openMenus.delete && <DeleteMenu menu="delete" />}
+        {state.openMenus.mirror && <MirrorMenu menu="mirror" />}
+        {state.openMenus.color && <ColorMenu menu="color" />}
+        {state.openMenus.extra && <ExtraMenu menu="extra" />}
+        {state.openMenus.repeat && <RepeatMenu menu="repeat" />}
+        {state.openMenus.file && <FileMenu menu="file" />}
+        {state.openMenus.settings && <SettingsMenu menu="settings" />}
+        {state.openMenus.help && <HelpMenu menu="help" />}
         {/* Pages */}
-        {state.openMenus.navigation && <NavMenu/>}
-        {state.openMenus.repeat     && <RepeatMenu/>}
-        {state.openMenus.file       && <FileMenu/>}
-        {state.openMenus.settings   && <SettingsMenu/>}
-        {state.openMenus.help       && <HelpMenu/>}
+        {state.openMenus.navigation && <NavMenu />}
+        {state.openMenus.repeat && <RepeatMenu />}
+        {state.openMenus.file && <FileMenu />}
+        {state.openMenus.settings && <SettingsMenu />}
+        {state.openMenus.help && <HelpMenu />}
     </React.Fragment>
 
     const fab = <Fab
@@ -223,6 +209,9 @@ function Toolbar(){
             position: 'absolute',
             top: '1rem',
             right: '1rem',
+            opacity: 0.75,
+            // bgcolor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
+            bgcolor: theme.palette.primary.main,
             ":hover": {
                 // TODO: I don't love this, it should be the same as the hover of the ToolButtons
                 backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
@@ -230,7 +219,7 @@ function Toolbar(){
             },
 
         }}
-        onClick={() => dispatch({action: "menu", toggle: "main"})}
+        onClick={() => dispatch({ action: "menu", toggle: "main" })}
         key="menu-button"
     >
         <MenuRoundedIcon />
@@ -248,14 +237,14 @@ function Toolbar(){
 const StyledSpeedDial = styled(SpeedDial)(({ theme }) => ({
     position: 'absolute',
     '&.MuiSpeedDial-directionUp, &.MuiSpeedDial-directionLeft': {
-      bottom: theme.spacing(2),
-      right: theme.spacing(2),
+        bottom: theme.spacing(2),
+        right: theme.spacing(2),
     },
     '&.MuiSpeedDial-directionDown, &.MuiSpeedDial-directionRight': {
-      top: theme.spacing(2),
-      left: theme.spacing(2),
+        top: theme.spacing(2),
+        left: theme.spacing(2),
     },
-  }));
+}));
 
 const speedDialButtonStyle = (theme) => ({
     border: 'none',
@@ -272,9 +261,9 @@ const speedDialButtonStyle = (theme) => ({
     color: theme.palette.primary.dark,
 })
 
-function SpeedDialButton({toggleMenu, icon, ...props}){
+function SpeedDialButton({ toggleMenu, icon, ...props }) {
     const theme = useTheme()
-    const {state, dispatch} = useContext(StateContext)
+    const { state, dispatch } = useContext(StateContext)
 
     return <SpeedDialAction
         icon={icon}
@@ -283,47 +272,47 @@ function SpeedDialButton({toggleMenu, icon, ...props}){
         //         title: toggleMenu,
         //     },
         // }}
-        onClick={() => {dispatch({action: "menu", toggle: toggleMenu})}}
+        onClick={() => { dispatch({ action: "menu", toggle: toggleMenu }) }}
         {...props}
     />
 }
 
 // Unfinished, good start though
-function SpeedDialToolbar(){
-    const {state, dispatch} = useContext(StateContext)
-    const {side} = state
+function SpeedDialToolbar() {
+    const { state, dispatch } = useContext(StateContext)
+    const { side } = state
     const [, doReload] = useState()
     const theme = useTheme()
 
-    function undoOnTouchHold(){
-        if (tapHolding){
+    function undoOnTouchHold() {
+        if (tapHolding) {
             redid = true
             dispatch('redo')
             tapHolding = false
         }
     }
 
-    function undoOnTouchStart(){
+    function undoOnTouchStart() {
         setTimeout(() => tapHolding = true, 10)
         touchHoldTimer = setTimeout(undoOnTouchHold, state.holdTapTimeMS)
     }
 
-    function undoOnTouchEnd(){
+    function undoOnTouchEnd() {
         clearTimeout(touchHoldTimer)
         tapHolding = false
-        if (!redid){
+        if (!redid) {
             dispatch('undo')
         }
         redid = false
     }
 
-    function getAlignmentCoords(ref){
+    function getAlignmentCoords(ref) {
         const rect = ref.current.getBoundingClientRect()
         switch (side) {
-            case 'right': return {right: rect.right, top: rect.top}
-            case 'left': return {left: rect.left, top: rect.top}
-            case 'bottom': return {bottom: rect.bottom, left: rect.left}
-            case 'top': return {top: rect.top, left: rect.left}
+            case 'right': return { right: rect.right, top: rect.top }
+            case 'left': return { left: rect.left, top: rect.top }
+            case 'bottom': return { bottom: rect.bottom, left: rect.left }
+            case 'top': return { top: rect.top, left: rect.left }
         }
     }
 
@@ -341,22 +330,22 @@ function SpeedDialToolbar(){
 
     const menus = <React.Fragment key="menus">
         {/* Menus */}
-        {state.openMenus.select    && <SelectMenu    align={getAlignmentCoords(selectButton)}/>}
-        {state.openMenus.clipboard && <ClipboardMenu align={getAlignmentCoords(clipboardButton)}/>}
-        {state.openMenus.delete    && <DeleteMenu    align={getAlignmentCoords(deleteButton)}/>}
-        {state.openMenus.mirror    && <MirrorMenu    align={getAlignmentCoords(mirrorButton)}/>}
-        {state.openMenus.color     && <ColorMenu     align={getAlignmentCoords(colorButton)}/>}
-        {state.openMenus.extra     && <ExtraMenu     align={getAlignmentCoords(extraButton)}/>}
-        {state.openMenus.repeat    && <RepeatMenu    align={getAlignmentCoords(repeatButton)}/>}
-        {state.openMenus.file      && <FileMenu      align={getAlignmentCoords(fileButton)}/>}
-        {state.openMenus.settings  && <SettingsMenu  align={getAlignmentCoords(settingsButton)}/>}
-        {state.openMenus.help      && <HelpMenu      align={getAlignmentCoords(helpButton)}/>}
+        {state.openMenus.select && <SelectMenu align={getAlignmentCoords(selectButton)} />}
+        {state.openMenus.clipboard && <ClipboardMenu align={getAlignmentCoords(clipboardButton)} />}
+        {state.openMenus.delete && <DeleteMenu align={getAlignmentCoords(deleteButton)} />}
+        {state.openMenus.mirror && <MirrorMenu align={getAlignmentCoords(mirrorButton)} />}
+        {state.openMenus.color && <ColorMenu align={getAlignmentCoords(colorButton)} />}
+        {state.openMenus.extra && <ExtraMenu align={getAlignmentCoords(extraButton)} />}
+        {state.openMenus.repeat && <RepeatMenu align={getAlignmentCoords(repeatButton)} />}
+        {state.openMenus.file && <FileMenu align={getAlignmentCoords(fileButton)} />}
+        {state.openMenus.settings && <SettingsMenu align={getAlignmentCoords(settingsButton)} />}
+        {state.openMenus.help && <HelpMenu align={getAlignmentCoords(helpButton)} />}
         {/* Pages */}
-        {state.openMenus.navigation && <NavMenu/>}
-        {state.openMenus.repeat     && <RepeatMenu/>}
-        {state.openMenus.file       && <FileMenu/>}
-        {state.openMenus.settings   && <SettingsMenu/>}
-        {state.openMenus.help       && <HelpMenu/>}
+        {state.openMenus.navigation && <NavMenu />}
+        {state.openMenus.repeat && <RepeatMenu />}
+        {state.openMenus.file && <FileMenu />}
+        {state.openMenus.settings && <SettingsMenu />}
+        {state.openMenus.help && <HelpMenu />}
     </React.Fragment>
     console.log(state.openMenus.main)
     return <>
@@ -369,51 +358,51 @@ function SpeedDialToolbar(){
             bottom: 0,
             right: 0,
         }}> */}
-            <SpeedDial
-                ariaLabel="Toolbar"
-                sx={{
-                    flexGrow: 1,
-                    position: 'absolute',
-                    bottom: 16,
-                    right: 16,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    // flexDirection: 'column',
-                    // height: '93%',
-                }}
-                icon={<SpeedDialIcon />}
-                onClose={() => dispatch({action: "menu", close: "main"})}
-                onOpen={() => dispatch({action: "menu", open: "main"})}
-                open={state.openMenus.main}
-                // open={false}
-                direction='up'
+        <SpeedDial
+            ariaLabel="Toolbar"
+            sx={{
+                flexGrow: 1,
+                position: 'absolute',
+                bottom: 16,
+                right: 16,
+                display: 'flex',
+                justifyContent: 'space-between',
+                // flexDirection: 'column',
+                // height: '93%',
+            }}
+            icon={<SpeedDialIcon />}
+            onClose={() => dispatch({ action: "menu", close: "main" })}
+            onOpen={() => dispatch({ action: "menu", open: "main" })}
+            open={state.openMenus.main}
+            // open={false}
+            direction='up'
+        >
+            {extraSlots < 5 && <ToolButton toggleMenu="extra" icon={<BsGrid3X3GapFill />} />}
+            {/* This is the button which is dynamically set in settings */}
+            {/* TODO: not yet reviewed for Mui compatibility */}
+            {extraSlots >= 3 && <ExtraButton mainMenu={true} />}
+            {extraSlots >= 5 && <ToolButton toggleMenu="help" icon={<MdHelp />} />}
+            {extraSlots >= 5 && <ToolButton toggleMenu="settings" icon={<IoMdSettings />} />}
+            {extraSlots >= 4 && <ToolButton toggleMenu="file" icon={<FaSave />} />}
+            {extraSlots >= 2 && <ToolButton toggleMenu="navigation" icon={<RiNavigationFill />} />}
+            {extraSlots >= 1 && <ToolButton toggleMenu="repeat" icon={<MdDashboard />} />}
+            <ToolButton toggleMenu="color" icon={<MdColorLens />} />
+            {/* Undo button */}
+            <IconButton onTouchStart={undoOnTouchStart}
+                onTouchEnd={undoOnTouchEnd}
+                // So it works in desktop mode as well
+                onClick={() => dispatch({ action: "undo" })}
+                id="undo-button"
+                className="menu-toggle-button-mobile"
+                sx={toolButtonStyle}
             >
-                {extraSlots < 5 && <ToolButton toggleMenu="extra" icon={<BsGrid3X3GapFill/>}/>}
-                {/* This is the button which is dynamically set in settings */}
-                {/* TODO: not yet reviewed for Mui compatibility */}
-                {extraSlots >= 3 && <ExtraButton mainMenu={true}/>}
-                {extraSlots >= 5 && <ToolButton toggleMenu="help" icon={<MdHelp/>}/>}
-                {extraSlots >= 5 && <ToolButton toggleMenu="settings" icon={<IoMdSettings/>}/>}
-                {extraSlots >= 4 && <ToolButton toggleMenu="file" icon={<FaSave/>}/>}
-                {extraSlots >= 2 && <ToolButton toggleMenu="navigation" icon={<RiNavigationFill/>}/>}
-                {extraSlots >= 1 && <ToolButton toggleMenu="repeat" icon={<MdDashboard/>}/>}
-                <ToolButton toggleMenu="color" icon={<MdColorLens/>}/>
-                {/* Undo button */}
-                <IconButton onTouchStart={undoOnTouchStart}
-                    onTouchEnd={undoOnTouchEnd}
-                    // So it works in desktop mode as well
-                    onClick={() => dispatch({action: "undo"})}
-                    id="undo-button"
-                    className="menu-toggle-button-mobile"
-                    sx={toolButtonStyle}
-                >
-                    <MdUndo/>
-                </IconButton>
-                <ToolButton toggleMenu="mirror" icon={<GoMirror/>}/>
-                <ToolButton toggleMenu="select" icon={<MdOutlineTabUnselected/>}/>
-                <ToolButton toggleMenu="clipboard" icon={<MdContentCopy/>}/>
-                <ToolButton toggleMenu="delete" icon={<MdDelete/>}/>
-            </SpeedDial>
+                <MdUndo />
+            </IconButton>
+            <ToolButton toggleMenu="mirror" icon={<GoMirror />} />
+            <ToolButton toggleMenu="select" icon={<MdOutlineTabUnselected />} />
+            <ToolButton toggleMenu="clipboard" icon={<MdContentCopy />} />
+            <ToolButton toggleMenu="delete" icon={<MdDelete />} />
+        </SpeedDial>
         {/* </Box> */}
         {menus}
     </>

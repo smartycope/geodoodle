@@ -377,7 +377,8 @@ function ColorMenuMui() {
                     onChange={() => dispatch('toggle_fill_mode')}
                 />
             } label="Fill Mode" labelPlacement="start" sx={{
-                // color: 'primary.contrastText',
+                // Don't ask me why, I don't know
+                color: theme.palette.mode === 'light' ? 'primary.contrastText' : undefined,
             }}/>
 
 
