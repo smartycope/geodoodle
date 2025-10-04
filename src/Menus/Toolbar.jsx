@@ -30,7 +30,7 @@ import React, {useContext, useRef, useState} from "react";
 import {StateContext} from "../Contexts";
 import {ExtraButton} from "./MenuUtils";
 import {extraSlots as _extraSlots} from "../utils";
-
+import PaletteIcon from '@mui/icons-material/Palette';
 import { styled, useTheme } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import { AppBar, Box, Fab, IconButton, Paper as MuiPaper } from "@mui/material";
@@ -46,7 +46,18 @@ import SpeedDialAction from '@mui/material/SpeedDialAction';
 // import SaveIcon from '@mui/icons-material/Save';
 // import PrintIcon from '@mui/icons-material/Print';
 // import ShareIcon from '@mui/icons-material/Share';
-
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import NavigationIcon from '@mui/icons-material/Navigation';
+import SaveIcon from '@mui/icons-material/Save';
+import SettingsIcon from '@mui/icons-material/Settings';
+import HelpIcon from '@mui/icons-material/Help';
+import AppsIcon from '@mui/icons-material/Apps';
+import TabUnselectedIcon from '@mui/icons-material/TabUnselected';
+import HighlightAltIcon from '@mui/icons-material/HighlightAlt';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ContentPasteIcon from '@mui/icons-material/ContentPaste';
+import NearMeIcon from '@mui/icons-material/NearMe';
 
 var tapHolding = false
 var touchHoldTimer = null
@@ -110,7 +121,7 @@ function Toolbar(){
                 width: '97%',
             }
     }
-
+    console.log(theme)
     const extraSlots = _extraSlots(state)
 
     // Because the repeat menu is on the sides, if the repeat menu is open, make sure we're not on the side so we can close it again
@@ -121,7 +132,6 @@ function Toolbar(){
             flexDirection: 'row',
             width: '97%',
         }
-
     // Returns the Toolbar, as well as all the menus
     const toolbar = <>
         <MuiPaper id='menu-selector-mobile' elevation={4} sx={{
@@ -129,7 +139,9 @@ function Toolbar(){
             margin: 1,
             position: 'absolute',
             borderRadius: 4,
-            backgroundColor: theme.darken(theme.palette.primary.main, 0.05),
+            // backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
+            backgroundColor: theme.palette.background.paper,
+            // backgroundColor: theme.palette.primary.main,
             display: 'flex',
             justifyContent: 'space-between',
             pointerEvents: 'none',
@@ -147,16 +159,16 @@ function Toolbar(){
                     ...style,
                 }}
             >
-                {extraSlots < 5 && <ToolButton toggleMenu="extra" icon={<BsGrid3X3GapFill/>} id="extra-tool-button"/>}
+                {extraSlots < 5 && <ToolButton toggleMenu="extra" icon={<AppsIcon/>} id="extra-tool-button"/>}
                 {/* This is the button which is dynamically set in settings */}
                 {/* TODO: not yet reviewed for Mui compatibility */}
                 {extraSlots >= 3 && <ExtraButton mainMenu={true}/>}
-                {extraSlots >= 5 && <ToolButton toggleMenu="help" icon={<MdHelp/>} id="help-tool-button"/>}
-                {extraSlots >= 5 && <ToolButton toggleMenu="settings" icon={<IoMdSettings/>} id="settings-tool-button"/>}
-                {extraSlots >= 4 && <ToolButton toggleMenu="file" icon={<FaSave/>} id="file-tool-button"/>}
-                {extraSlots >= 2 && <ToolButton toggleMenu="navigation" icon={<RiNavigationFill/>} id="navigation-tool-button"/>}
-                {extraSlots >= 1 && <ToolButton toggleMenu="repeat" icon={<MdDashboard/>} id="repeat-tool-button"/>}
-                <ToolButton toggleMenu="color" icon={<MdColorLens/>} id="color-tool-button"/>
+                {extraSlots >= 5 && <ToolButton toggleMenu="help" icon={<HelpIcon/>} id="help-tool-button"/>}
+                {extraSlots >= 5 && <ToolButton toggleMenu="settings" icon={<SettingsIcon/>} id="settings-tool-button"/>}
+                {extraSlots >= 4 && <ToolButton toggleMenu="file" icon={<SaveIcon/>} id="file-tool-button"/>}
+                {extraSlots >= 2 && <ToolButton toggleMenu="navigation" icon={<NearMeIcon/>} id="navigation-tool-button"/>}
+                {extraSlots >= 1 && <ToolButton toggleMenu="repeat" icon={<DashboardIcon/>} id="repeat-tool-button"/>}
+                <ToolButton toggleMenu="color" icon={<PaletteIcon/>} id="color-tool-button"/>
                 {/* Undo button */}
                 <IconButton onTouchStart={undoOnTouchStart}
                     onTouchEnd={undoOnTouchEnd}
@@ -169,16 +181,16 @@ function Toolbar(){
                     <MdUndo/>
                 </IconButton>
                 <ToolButton toggleMenu="mirror" icon={<GoMirror/>} id="mirror-tool-button"/>
-                <ToolButton toggleMenu="select" icon={<MdOutlineTabUnselected/>} id="select-tool-button"/>
-                <ToolButton toggleMenu="clipboard" icon={<MdContentCopy/>} id="clipboard-tool-button"/>
-                <ToolButton toggleMenu="delete" icon={<MdDelete/>} id="delete-tool-button"/>
+                <ToolButton toggleMenu="select" icon={<HighlightAltIcon/>} id="select-tool-button"/>
+                <ToolButton toggleMenu="clipboard" icon={<ContentPasteIcon/>} id="clipboard-tool-button"/>
+                <ToolButton toggleMenu="delete" icon={<DeleteIcon/>} id="delete-tool-button"/>
             </Box>
 
             {/* The menu button in the corner */}
-            <ToolButton toggleMenu="main" icon={<FaBars/>} sx={{
-                marginLeft: side == horizontal ? 2 : undefined,
+            <ToolButton toggleMenu="main" icon={<MenuRoundedIcon/>} sx={{
+                // marginLeft: side == horizontal ? 2 : undefined,
                 // marginRight: side == 'bottom' ? 2 : undefined,
-                marginBottom: side == vertical ? 2 : undefined,
+                // marginBottom: side == vertical ? 2 : undefined,
                 // marginTop: side == 'right' ? 2 : undefined,
             }}/>
         </MuiPaper>
@@ -206,21 +218,22 @@ function Toolbar(){
 
     const fab = <Fab
         sx={{
-            color: theme.palette.primary.dark,
-            backgroundColor: theme.palette.primary.main,
+            // color: theme.palette.primary.dark,
+            backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
             position: 'absolute',
-            top: '20px',
-            right: '20px',
+            top: '1rem',
+            right: '1rem',
             ":hover": {
                 // TODO: I don't love this, it should be the same as the hover of the ToolButtons
-                backgroundColor: theme.palette.primary.light,
+                backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
+                // backgroundColor: theme.palette.primary.main,
             },
 
         }}
         onClick={() => dispatch({action: "menu", toggle: "main"})}
         key="menu-button"
     >
-        <FaBars style={{transform: 'scale(2)'}}/>
+        <MenuRoundedIcon />
     </Fab>
 
     return <>

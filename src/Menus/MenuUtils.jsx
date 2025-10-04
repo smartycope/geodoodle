@@ -236,7 +236,8 @@ function NumberBase({
     id = id || React.useId();
     inputId = inputId || React.useId();
     const theme = useTheme()
-    if (color === undefined) color = theme.palette.primary.contrastText
+    // It works, don't touch it.
+    if (color === undefined && theme.palette.mode === 'light') color = theme.palette.primary.contrastText
 
     if (props.snapOnStep && props.value && props.step)
         props.value = Math.round(props.value * 10**props.step) / 10**props.step

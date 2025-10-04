@@ -5,7 +5,7 @@ import {useState} from "react";
 import {localStorageTourTakenName} from "./globals";
 import {InTourContext} from "./Contexts.jsx";
 import {ThemeProvider} from "@mui/material/styles";
-import {theme} from "./styling/theme";
+import { CssBaseline } from "@mui/material";
 
 // Disable the default right click menu
 window.oncontextmenu = () => false
@@ -27,6 +27,7 @@ export default function App() {
     if (!localStorage.getItem(localStorageTourTakenName)){
         localStorage.setItem(localStorageTourTakenName, '1')
         setTimeout(() => {
+            // TODO: make this a mui dialog
             if (window.confirm("It looks like this is your first time. Would you like to take a guided tour?")){
                 dispatch('start_tour')
                 setInTour(true)
@@ -36,7 +37,7 @@ export default function App() {
     }
 
     return <div className="App">
-        <ThemeProvider theme={theme}>
+        <CssBaseline />
         <InTourContext.Provider value={setInTour}>
             <Paper setInTour={setInTour} setDispatch={setDispatch}/>
             <Tour
@@ -54,6 +55,5 @@ export default function App() {
                 showNavigation={false}
             />
         </InTourContext.Provider>
-        </ThemeProvider>
     </div>
 }

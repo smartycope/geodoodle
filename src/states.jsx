@@ -14,7 +14,8 @@ const debug_aes = {
     lineJoin: 'miter',
 }
 
-export default function getInitialState(){
+export default function getInitialState(systemDarkMode){
+    console.log('The user prefers ' + (systemDarkMode ? 'dark' : 'light'))
     const isMobile = mobileAndTabletCheck()
     return {
         mobile: isMobile,
@@ -151,6 +152,7 @@ export default function getInitialState(){
         debugDrawPoints: {},
 
         paperColor: options.paperColor,
+        darkMode: systemDarkMode,
         doubleTapTimeMS: options.doubleTapTimeMS,
         holdTapTimeMS: options.holdTapTimeMS,
 

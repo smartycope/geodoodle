@@ -16,6 +16,7 @@ import Page from "./Page";
 import { Box, Button, Checkbox, FormControlLabel, FormHelperText, List, ListItem, ListItemText, ListSubheader, MenuItem, Popover, Select, Stack, Switch, useTheme } from '@mui/material';
 import { Helper } from './Helper';
 import styled from '@emotion/styled';
+// import useMediaQuery from '@mui/material/useMediaQuery';
 
 function SettingsMenu() {
     const { state, dispatch } = useContext(StateContext)
@@ -151,7 +152,7 @@ function SettingsMenu() {
 
 
 const StyledSubheader = styled(ListSubheader)(({ theme }) => ({
-    backgroundColor: theme.palette.primary.main,
+    // backgroundColor: theme.palette.primary.main,
     width: '100%',
     borderRadius: theme.shape.borderRadius,
 }));
@@ -161,6 +162,7 @@ function SettingsMenuMui() {
     const [palletteVisible, setPalletteVisible] = useState(false);
     const colorMenuButton = useRef()
     const theme = useTheme()
+    // const systemDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
     function Setting({ label, help, children, mobileOnly, desktopOnly }) {
         if (mobileOnly && !state.mobile) return null
@@ -187,19 +189,13 @@ function SettingsMenuMui() {
         smoothGestureScale,
         dotsAbovefill,
         paperColor,
+        darkMode,
     } = state
 
     return <Page menu="settings">
         {/* <Stack spacing={2}> */}
         <List subheader={<StyledSubheader>General</StyledSubheader>}>
             {/* General */}
-            <Setting label="Remove Selection after Cut" help="Controls if the bounds get removed after the selection gets deleted, whether from cutting or by deleting">
-                <Checkbox
-                    checked={removeSelectionAfterDelete}
-                    onChange={() => dispatch({ removeSelectionAfterDelete: !removeSelectionAfterDelete })}
-                />
-            </Setting>
-
             <Setting label="Extra Button" help="Controls the extra button">
                 <Select required onChange={e => dispatch({ extraButton: e.target.value })} value={extraButton}>
                     {extraButtons.map(i => <MenuItem sx={{width: '100%'}} value={i} key={i}>{i.charAt(0).toUpperCase() + i.slice(1)}</MenuItem>)}
@@ -253,6 +249,24 @@ function SettingsMenuMui() {
                     checked={hideDots}
                     onChange={() => dispatch({ hideDots: !hideDots })}
                 />
+            </Setting>
+
+            <Setting label="Remove Selection after Cut" help="Controls if the bounds get removed after the selection gets deleted, whether from cutting or by deleting">
+                <Checkbox
+                    checked={removeSelectionAfterDelete}
+                    onChange={() => dispatch({ removeSelectionAfterDelete: !removeSelectionAfterDelete })}
+                />
+            </Setting>
+
+            <Setting label="Dark Mode" help="Controls if the app is in dark mode or not">
+                <Select
+                    value={darkMode}
+                    onChange={e => dispatch({ action: 'set_dark_mode', darkMode: e.target.value })}
+                >
+                    {/* <MenuItem value="system">System</MenuItem> */}
+                    <MenuItem value={true}>Dark</MenuItem>
+                    <MenuItem value={false}>Light</MenuItem>
+                </Select>
             </Setting>
 
 
@@ -332,7 +346,7 @@ function SettingsMenuMui() {
                 />
             </Setting>
             <Setting label="Reset to Defaults" help="Clear the settings cache">
-                <Button sx={{color: 'primary.contrastText'}} onClick={() => {
+                <Button variant="outlined" onClick={() => {
                     if (window.confirm("Reset all settings to default? This will clear the current pattern.")) {
                         localStorage.removeItem(localStorageSettingsName)
                         window.location.reload()
@@ -343,7 +357,7 @@ function SettingsMenuMui() {
             </Setting>
 
             <Setting desktopOnly label="Keyboard Shortcuts" help="View the keyboard shortcuts">
-                <Button sx={{color: 'primary.contrastText'}} onClick={() => dispatch({ action: 'menu', open: 'key', close: 'settings' })}>
+                <Button variant="outlined" onClick={() => dispatch({ action: 'menu', open: 'key', close: 'settings' })}>
                     Keyboard Shortcuts
                 </Button>
             </Setting>

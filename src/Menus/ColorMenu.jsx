@@ -160,7 +160,7 @@ function DesktopColorMenu() {
                 ></input>
             </span>
             {/* Grip */}
-            <FaGripLinesVertical id="grip" color='darkgray' />
+            <FaGripLinesVertical/>
         </div>
     </>
 }
@@ -342,7 +342,7 @@ function ColorMenuMui() {
                 label="Stroke"
                 min={1}
                 step={1}
-                color={theme.palette.primary.contrastText}
+                // color={theme.palette.primary.contrastText}
                 largeStep={5}
                 snapOnStep={true}
                 allowWheelScrub={true}
@@ -377,7 +377,7 @@ function ColorMenuMui() {
                     onChange={() => dispatch('toggle_fill_mode')}
                 />
             } label="Fill Mode" labelPlacement="start" sx={{
-                color: 'primary.contrastText',
+                // color: 'primary.contrastText',
             }}/>
 
 

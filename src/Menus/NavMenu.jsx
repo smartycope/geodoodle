@@ -111,7 +111,7 @@ function NavMenuMui() {
         }
 
     return <Paper id='nav-menu' style={style} sx={{
-        width: 350,
+        width: 370,
         height: 'min-content',
         /* To center it */
         left: '50%',
@@ -157,7 +157,7 @@ function NavMenuMui() {
                     //    color={theme.palette.primary.contrastText}
                     largeStep={10}
                     snapOnStep={true}
-                    color={theme.palette.primary.contrastText}
+                    // color={theme.palette.primary.contrastText}
                     onValueChange={val => dispatch({ action: "translate", amt: Dist.fromDeflated(state, translationx - val, 0) })}
                 />
             </Grid>
@@ -168,7 +168,7 @@ function NavMenuMui() {
                 <Number
                     value={scalex}
                     label='Scale'
-                    color={theme.palette.primary.contrastText}
+                    // color={theme.palette.primary.contrastText}
                     onMinus={() => dispatch({ action: "scale", amtx: -scalex/2, amty: -scaley/2, center: half })}
                     onPlus={() => dispatch({ action: "scale", amtx: scalex, amty: scaley, center: half })}
                     // See also: "scale" action in the reducer
@@ -184,7 +184,7 @@ function NavMenuMui() {
                     largeStep={10}
                     snapOnStep={true}
                     step={1}
-                    color={theme.palette.primary.contrastText}
+                    // color={theme.palette.primary.contrastText}
                     scrubDirection='vertical' // This doesn't work
                     onValueChange={val => dispatch({ action: "translate", amt: Dist.fromDeflated(state, 0, translationy - val) })}
                 />

@@ -103,11 +103,11 @@ export function distCenter(x1, y1, x2, y2){
     }
 }
 
-const body = document.body;
-export function toggleDarkMode() {
-    body.classList.toggle("dark-mode");
-    // body.classList
-}
+// const body = document.body;
+// export function toggleDarkMode() {
+//     body.classList.toggle("dark-mode");
+//     // body.classList
+// }
 
 export const multMat = (A, B) =>
     A.map((row, i) =>

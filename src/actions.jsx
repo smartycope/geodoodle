@@ -7,7 +7,6 @@ import {
     getSelected,
     getBoundRect,
     splitAllLines,
-    toggleDarkMode,
     getAllClipboardLines,
     incrementMirrorAxis,
     normalizeLines,
@@ -382,7 +381,8 @@ export const end_tour = state => preTourState
 
 // Misc Actions
 export const toggle_partials = state => ({partials: !state.partials})
-export const toggle_dark_mode = state => toggleDarkMode()
+// export const toggle_dark_mode = state => toggleDarkMode()
+export const set_dark_mode = (state, {darkMode}) => ({darkMode})
 
 export const set_manual = (state, data) => {
     delete data.action

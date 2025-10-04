@@ -16,7 +16,12 @@ export const toolButtonStyle = (theme) => ({
     boxShadow: 'none',
     borderColor: 'transparent',
     backgroundColor: 'transparent',
-    color: theme.palette.primary.dark,
+    color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
+    // color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
+    // color: theme.palette.primary.main,
+    // color: theme.palette.mode === 'dark' ? theme.palette.primary.contrastText : theme.palette.primary.dark,
+    // color: theme.palette.background.paper,
+    // color: theme.palette.a,
 })
 
 const ToolButton = React.forwardRef(function ({toggleMenu, onClick, icon, ...props}, ref){

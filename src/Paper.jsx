@@ -1,10 +1,13 @@
 import './styling/App.css';
-import {useEffect, useReducer, useRef} from 'react';
+import {useEffect, useReducer, useRef, useMemo} from 'react';
 import { localStorageSettingsName, PREVENT_LOADING_STATE } from './globals'
 import reducer from './reducer';
 import Toolbar from './Menus/Toolbar';
 import {deserializeState} from './fileUtils';
 import {StateContext} from './Contexts';
+import generateTheme from "./styling/theme";
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme, ThemeProvider } from '@mui/material/styles';
 import {
     GlowEffect,
     DebugInfo,
@@ -32,8 +35,11 @@ var _state = {}
 
 export default function Paper({setDispatch}) {
     const paper = useRef()
-    const [state, dispatch] = useReducer(reducer, getInitialState())
-    const {dotsAbovefill, paperColor, fillMode} = state
+    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+    const initialState = useMemo(() => getInitialState(prefersDarkMode), [prefersDarkMode])
+    const [state, dispatch] = useReducer(reducer, initialState)
+    const {dotsAbovefill, paperColor, fillMode, darkMode} = state
+    const theme = useMemo(() => generateTheme(paperColor, darkMode), [paperColor, darkMode])
 
     // Forcibly disallow scrolling
     window.scrollX = 0
@@ -76,46 +82,50 @@ export default function Paper({setDispatch}) {
     // Focus the paper element first thing
     useEffect(() => paper.current.focus(), [])
 
-    return <StateContext.Provider value={{state, dispatch}}>
-        <div>
-            <Toast/>
-            <Toolbar/>
-            {/* onCopy, onPaste, and onCut are implemented with keyboard shortcuts instead of here, so they can be changed */}
-            <svg id='paper'
-                width="100%"
-                height="101vh"
-                tabIndex={0}
-                ref={paper}
-                onKeyDown={ e => events.onKeyDown(state, dispatch, e)}
-                onMouseMove={ e => events.onMouseMove(state, dispatch, e)}
-                onMouseDown={ e => events.onMouseDown(state, dispatch, e)}
-                onMouseUp={ e => events.onMouseUp(state, dispatch, e)}
-                onBlur={ e => events.onBlur(state, dispatch, e)}
-                style={{
-                    backgroundColor: paperColor,
-                    cursor: fillMode ? 'pointer' : 'none',
-                }}
-            >
-                {/* This order is intentional */}
-                <GlowEffect/>
-                {!dotsAbovefill && <Dots/>}
-                <Trellis/>
-                <Polygons/>
-                <CurrentPolys/>
-                {dotsAbovefill && <Dots/>}
-                <DebugInfo/>
-                <Cursor/>
-                <Lines/>
-                <CurrentLines/>
-                <Bounds/>
-                <SelectionRect/>
-                <ClipboardTransformButtons/>
-                <MirrorMetaLines/>
-                <Eraser/>
-                <Clipboard/>
-            </svg>
-            {/* For exporting to images */}
-            <canvas id="canvas"></canvas>
-        </div>
-    </StateContext.Provider>
+    return (
+        <ThemeProvider theme={theme}>
+        <StateContext.Provider value={{state, dispatch}}>
+            <div>
+                <Toast/>
+                <Toolbar/>
+                {/* onCopy, onPaste, and onCut are implemented with keyboard shortcuts instead of here, so they can be changed */}
+                <svg id='paper'
+                    width="100%"
+                    height="101vh"
+                    tabIndex={0}
+                    ref={paper}
+                    onKeyDown={ e => events.onKeyDown(state, dispatch, e)}
+                    onMouseMove={ e => events.onMouseMove(state, dispatch, e)}
+                    onMouseDown={ e => events.onMouseDown(state, dispatch, e)}
+                    onMouseUp={ e => events.onMouseUp(state, dispatch, e)}
+                    onBlur={ e => events.onBlur(state, dispatch, e)}
+                    style={{
+                        backgroundColor: paperColor,
+                        cursor: fillMode ? 'pointer' : 'none',
+                    }}
+                >
+                    {/* This order is intentional */}
+                    <GlowEffect/>
+                    {!dotsAbovefill && <Dots/>}
+                    <Trellis/>
+                    <Polygons/>
+                    <CurrentPolys/>
+                    {dotsAbovefill && <Dots/>}
+                    <DebugInfo/>
+                    <Cursor/>
+                    <Lines/>
+                    <CurrentLines/>
+                    <Bounds/>
+                    <SelectionRect/>
+                    <ClipboardTransformButtons/>
+                    <MirrorMetaLines/>
+                    <Eraser/>
+                    <Clipboard/>
+                </svg>
+                {/* For exporting to images */}
+                <canvas id="canvas"></canvas>
+            </div>
+        </StateContext.Provider>
+        </ThemeProvider>
+    )
 }
