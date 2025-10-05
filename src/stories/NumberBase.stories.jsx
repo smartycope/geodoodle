@@ -3,6 +3,9 @@ import { Number as NumberBase } from '../Menus/MenuUtils';
 export default {
   title: 'Components/NumberBase',
   component: NumberBase,
+  globals: {
+    backgrounds: 'dark',
+  },
   parameters: {
     layout: 'centered',
   },
