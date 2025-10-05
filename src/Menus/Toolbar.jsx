@@ -1,9 +1,9 @@
 import "../styling/MainMenu.css"
 import ControlsMenu from "./ControlsMenu";
-import HelpMenu from "./HelpMenu"
+import HelpPage from "./HelpPage"
 import ColorMenu from "./ColorMenu";
-import { FileMenu } from "./FileMenu";
-import SettingsMenu from "./SettingsMenu";
+import FilePage from "./FilePage";
+import SettingsPage from "./SettingsPage";
 import NavMenu from "./NavMenu";
 import RepeatMenu from "./RepeatMenu";
 import MirrorMenu from "./MirrorMenu";
@@ -14,9 +14,7 @@ import { MdUndo } from "react-icons/md";
 import { MdDelete } from "react-icons/md";
 import { FaSave } from "react-icons/fa";
 import { MdColorLens } from "react-icons/md";
-import { FaSliders } from "react-icons/fa6";
 import { MdDashboard } from "react-icons/md";
-import { FaBars } from "react-icons/fa6";
 import { MdHelp } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
 import { RiNavigationFill } from "react-icons/ri";
@@ -150,7 +148,7 @@ function Toolbar() {
             pointerEvents: 'none',
             ...style,
         }}>
-            {extraSlots < 5 && <ToolButton menu="extra" id="extra-tool-button" />}
+            {extraSlots < 5 && <ToolButton menu="extra" id="extra-tool-button" disableTooltip={state.openMenus.extra} />}
             {/* This is the button which is dynamically set in settings */}
             {/* TODO: not yet reviewed for Mui compatibility */}
             {extraSlots >= 3 && <ExtraButton mainMenu={true} />}
@@ -182,26 +180,6 @@ function Toolbar() {
         </MuiPaper>
     </>
 
-    const menus = <React.Fragment key="menus">
-        {/* Menus */}
-        {state.openMenus.select && <SelectMenu menu="select" />}
-        {state.openMenus.clipboard && <ClipboardMenu menu="clipboard" />}
-        {state.openMenus.delete && <DeleteMenu menu="delete" />}
-        {state.openMenus.mirror && <MirrorMenu menu="mirror" />}
-        {state.openMenus.color && <ColorMenu menu="color" />}
-        {state.openMenus.extra && <ExtraMenu menu="extra" />}
-        {state.openMenus.repeat && <RepeatMenu menu="repeat" />}
-        {state.openMenus.file && <FileMenu menu="file" />}
-        {state.openMenus.settings && <SettingsMenu menu="settings" />}
-        {state.openMenus.help && <HelpMenu menu="help" />}
-        {/* Pages */}
-        {state.openMenus.navigation && <NavMenu />}
-        {state.openMenus.repeat && <RepeatMenu />}
-        {state.openMenus.file && <FileMenu />}
-        {state.openMenus.settings && <SettingsMenu />}
-        {state.openMenus.help && <HelpMenu />}
-    </React.Fragment>
-
     const fab = <Fab
         sx={{
             // color: theme.palette.primary.dark,
@@ -227,7 +205,6 @@ function Toolbar() {
 
     return <>
         {state.openMenus.main ? toolbar : fab}
-        {menus}
     </>
 }
 
@@ -337,15 +314,15 @@ function SpeedDialToolbar() {
         {state.openMenus.color && <ColorMenu align={getAlignmentCoords(colorButton)} />}
         {state.openMenus.extra && <ExtraMenu align={getAlignmentCoords(extraButton)} />}
         {state.openMenus.repeat && <RepeatMenu align={getAlignmentCoords(repeatButton)} />}
-        {state.openMenus.file && <FileMenu align={getAlignmentCoords(fileButton)} />}
-        {state.openMenus.settings && <SettingsMenu align={getAlignmentCoords(settingsButton)} />}
-        {state.openMenus.help && <HelpMenu align={getAlignmentCoords(helpButton)} />}
+        {state.openMenus.file && <FilePage align={getAlignmentCoords(fileButton)} />}
+        {state.openMenus.settings && <SettingsPage align={getAlignmentCoords(settingsButton)} />}
+        {state.openMenus.help && <HelpPage align={getAlignmentCoords(helpButton)} />}
         {/* Pages */}
         {state.openMenus.navigation && <NavMenu />}
         {state.openMenus.repeat && <RepeatMenu />}
-        {state.openMenus.file && <FileMenu />}
-        {state.openMenus.settings && <SettingsMenu />}
-        {state.openMenus.help && <HelpMenu />}
+        {state.openMenus.file && <FilePage />}
+        {state.openMenus.settings && <SettingsPage />}
+        {state.openMenus.help && <HelpPage />}
     </React.Fragment>
     console.log(state.openMenus.main)
     return <>

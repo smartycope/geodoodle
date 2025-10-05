@@ -6,7 +6,10 @@ import Line from "./helper/Line";
 import Point from "./helper/Point";
 import Dist from "./helper/Dist";
 import Poly from "./helper/Poly";
+import {name as nameGenerator} from "naampje";
+import {localStorageName, localStorageSettingsName} from "./globals";
 
+// Serializes the pattern into an SVG string
 export function serializePattern(state, selectedOnly=false, transform=''){
     const {scalex, scaley, lines} = state
 
@@ -31,7 +34,7 @@ export function serializePattern(state, selectedOnly=false, transform=''){
     return svg
 }
 
-// Deserialize parts of the state that can't be done with JSON.parse
+// Deserializes parts of the state that can't be done with JSON.parse
 function customDeserialize(state){
     state.bounds = state?.bounds?.map(i => Point.fromJSON(i)) || []
     state.translation = Dist.fromJSON(state?.translation || {x: 0, y: 0})
@@ -40,6 +43,7 @@ function customDeserialize(state){
 }
 
 // This will overwrite part of the state with the data from the svg, but not the entire state
+// Returns a state object from an SVG string
 export function deserializePattern(str){
     try {
         // First, check if there's a script element in it. If it is, red flag that it's a hacking attempt
@@ -124,11 +128,13 @@ export function download(name, mime, {str, blob, url}){
     document.body.removeChild(link);
 }
 
+// Serializes the preservable parts of the state into a JSON string
 export function serializeState(state){
     return JSON.stringify({...filterObjectByKeys(state, preservable), lines: state.lines, version: version})
 }
 
 // Returns {} if it can't deserialize properly (like if there's a version mismatch)
+// Deserializes the preservable parts of the state from a JSON string
 export function deserializeState(str){
     try {
         const parsed = JSON.parse(str)
@@ -148,9 +154,76 @@ export function deserializeState(str){
     }
 }
 
-// TODO
-// Currently unused
-// eslint-disable-next-line no-unused-vars
-export function getFileName(state){
-    return "pattern.svg"
+export function generateName(defaultToMemorableNames){
+    const saves = getSaves()
+    if (defaultToMemorableNames){
+        let name = nameGenerator()
+        while (saves[name])
+            name = nameGenerator()
+        return name
+    }else{
+        if (saves)
+            return `Unnamed ${Object.keys(saves).length + 1}`
+    }
+}
+
+
+// Interactions with storage
+// Preserve the state across sessions
+export function preserveState(state){
+    localStorage.setItem(localStorageSettingsName, serializeState(state))
+}
+
+// Get the preserved state
+export function loadPreservedState(){
+    return deserializeState(localStorage.getItem(localStorageSettingsName))
+}
+
+// Clear the preserved state
+export function clearPreservedState(){
+    localStorage.removeItem(localStorageSettingsName)
+    window.location.reload()
+}
+
+
+// Get all the saves in localStorage - returns an object of filename: svg string -- does not deserialize!
+export function getSaves(){
+    return JSON.parse(localStorage.getItem(localStorageName));
+}
+
+// Save the pattern to localStorage
+export function saveLocally(name, state){
+    let obj = {}
+    obj[name.trim()] = serializePattern(state)
+    localStorage.setItem(localStorageName, JSON.stringify({...JSON.parse(localStorage.getItem(localStorageName)), ...obj}))
+}
+
+// Load the pattern from localStorage
+export function loadLocally(name){
+    return deserializePattern(JSON.parse(localStorage.getItem(localStorageName))[name.trim()])
+}
+
+// Clear all the saves from localStorage
+export function clearSaves(){
+    localStorage.removeItem(localStorageName)
+}
+
+// Left off
+export function validateStorage(){
+    try {
+        if (!JSON.parse(localStorage.getItem(localStorageName))){
+            localStorage.setItem(localStorageName, JSON.stringify({}))
+        }
+    } catch (e) {
+        console.error(e)
+        localStorage.setItem(localStorageName, JSON.stringify({}))
+    }
+    try {
+        if (!JSON.parse(localStorage.getItem(localStorageSettingsName))){
+            localStorage.setItem(localStorageSettingsName, serializeState(getInitialState()))
+        }
+    } catch (e) {
+        console.error(e)
+        localStorage.setItem(localStorageSettingsName, serializeState(getInitialState()))
+    }
 }

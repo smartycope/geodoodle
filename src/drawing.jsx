@@ -11,6 +11,18 @@ import { useContext, useEffect } from "react";
 import { StateContext } from "./Contexts";
 import { Snackbar } from '@mui/material';
 
+import HelpPage from "./Menus/HelpPage"
+import ColorMenu from "./Menus/ColorMenu";
+import FilePage from "./Menus/FilePage";
+import SettingsPage from "./Menus/SettingsPage";
+import NavMenu from "./Menus/NavMenu";
+import RepeatMenu from "./Menus/RepeatMenu";
+import MirrorMenu from "./Menus/MirrorMenu";
+import ExtraMenu from "./Menus/ExtraMenu";
+
+import ClipboardMenu from "./Menus/ClipboardMenu";
+import DeleteMenu from "./Menus/DeleteMenu";
+import SelectMenu from "./Menus/SelectMenu";
 
 var debugTextOffset = 20
 
@@ -359,6 +371,34 @@ export function CurrentPolys(){
     return curPolys && <g id='cur-polys' transform={`translate(${transx} ${transy}) scale(${scalex} ${scaley})`}>
         {curPolys.map((poly, i) => poly.render(state, `cur-poly-${i}`))}
     </g>
+}
+
+
+
+export function Menus(){
+    const {state} = useContext(StateContext)
+    const {openMenus} = state
+
+    return <>
+        {/* Menus */}
+        {openMenus.select     && <SelectMenu    menu="select" />}
+        {openMenus.clipboard  && <ClipboardMenu menu="clipboard" />}
+        {openMenus.delete     && <DeleteMenu    menu="delete" />}
+        {openMenus.mirror     && <MirrorMenu    menu="mirror" />}
+        {openMenus.color      && <ColorMenu     menu="color" />}
+        {openMenus.extra      && <ExtraMenu     menu="extra" />}
+        {openMenus.repeat     && <RepeatMenu    menu="repeat" />}
+        {openMenus.file       && <FilePage      menu="file" />}
+        {openMenus.settings   && <SettingsPage  menu="settings" />}
+        {openMenus.help       && <HelpPage      menu="help" />}
+
+        {/* Pages */}
+        {openMenus.navigation && <NavMenu />}
+        {openMenus.repeat     && <RepeatMenu />}
+        {openMenus.file       && <FilePage />}
+        {openMenus.settings   && <SettingsPage />}
+        {openMenus.help       && <HelpPage />}
+    </>
 }
 
 export function Toast(){

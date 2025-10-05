@@ -54,7 +54,7 @@ function HelpMenu(){
 }
 
 // eslint-disable-next-line no-unused-vars
-function HelpMenuMui(){
+function HelpPageMui(){
     const {state, dispatch} = useContext(StateContext)
     const setInTour = useContext(InTourContext)
     const {side} = state
@@ -103,4 +103,4 @@ function HelpMenuMui(){
     </Page>
 }
 
-export default HelpMenuMui
+export default HelpPageMui

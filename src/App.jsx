@@ -1,11 +1,12 @@
 import Paper from "./Paper";
 import tour from './Menus/tour.jsx';
 import Tour from "reactour";
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import {localStorageTourTakenName} from "./globals";
 import {InTourContext} from "./Contexts.jsx";
 import {ThemeProvider} from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
+import {validateStorage} from "./fileUtils";
 
 // Disable the default right click menu
 window.oncontextmenu = () => false
@@ -18,11 +19,12 @@ const setDispatch = to => {
     dispatch = to
 }
 
+validateStorage()
+
 // The tour needs to be seperate, because when the tour modifies the state, everything re-renders, and if the tour is
 // inside Paper, the tour re-renders as well, which re-modifies the state, which causes an infinite loop.
 export default function App() {
     const [inTour, setInTour] = useState(false);
-
     // If we haven't taken the tour before, add a popup that offers it
     if (!localStorage.getItem(localStorageTourTakenName)){
         localStorage.setItem(localStorageTourTakenName, '1')

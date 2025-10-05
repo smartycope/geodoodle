@@ -5,19 +5,11 @@ import Point from "./helper/Point"
 import Line from "./helper/Line"
 import { defaultTrellisControl } from "./utils"
 import Dist from "./helper/Dist"
+import {generateName} from "./fileUtils"
 
-const debug_aes = {
-    stroke: 'black',
-    width: .05,
-    dash: '0',
-    lineCap: 'butt',
-    lineJoin: 'miter',
-}
-
-export default function getInitialState(systemDarkMode){
-    console.log('The user prefers ' + (systemDarkMode ? 'dark' : 'light'))
+export default function getInitialState(){
     const isMobile = mobileAndTabletCheck()
-    return {
+    const state = {
         mobile: isMobile,
         // 0 indexed
         colorProfile: 0,
@@ -49,19 +41,14 @@ export default function getInitialState(systemDarkMode){
         // A list of Poly objects that have been filled. We draw these
         filledPolys: [],
 
-        filename: "",
+        filename: generateName(options.defaultToMemorableNames),
         // The side of page we have the menu bound to: left, right, top, or bottom
         side: viewportWidth() < viewportHeight() ? 'top' : 'right',
 
         // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
         cursorPos: Point.svgOrigin(),
         // A list of Line objects, or an empty list
-        lines: START_DEBUGGING ? [
-            new Line({}, new Point(5, 13), new Point(6, 11), debug_aes),
-            new Line({}, new Point(5, 13), new Point(4, 11), debug_aes),
-            new Line({}, new Point(6, 11), new Point(5, 9), debug_aes),
-            new Line({}, new Point(5, 9), new Point(4, 11), debug_aes),
-        ] : [],
+        lines: [],
         // The starting point of the current line, or null
         curLinePos: null,
         // A list of points specifying the bounderies that define the selection rect
@@ -129,7 +116,19 @@ export default function getInitialState(systemDarkMode){
         maxUndoAmt: options.maxUndoAmt,
         enableGestureScale: options.enableGestureScale,
         inTour: false,
+        defaultToMemorableNames: options.defaultToMemorableNames,
 
+        // true if the current pattern has unsaved edits
+        saved: false,
+
+        // Set to true if we need to arbitrarily reload the state immediately after the next render
+        // It doesn't do anything, just triggers another reducer call
+        reloadRequired: false,
+
+        // 'system', 'light' or 'dark'.
+        // This is mostly here to allow the theme to be set from the settings page
+        // Use theme.palette.mode from useTheme() instead for most things
+        themeMode: 'system',
         beginnerMode: options.beginnerMode,
         debug: START_DEBUGGING,
         /* debugDrawPoints looks like this:
@@ -153,7 +152,6 @@ export default function getInitialState(systemDarkMode){
         debugDrawPoints: {},
 
         paperColor: options.paperColor,
-        darkMode: systemDarkMode,
         doubleTapTimeMS: options.doubleTapTimeMS,
         holdTapTimeMS: options.holdTapTimeMS,
 
@@ -161,7 +159,7 @@ export default function getInitialState(systemDarkMode){
         toast: null,
 
         openMenus: {
-            main: true,
+            main: true, // Toolbar
             controls: true,
             color: false,
             navigation: false,
@@ -176,6 +174,38 @@ export default function getInitialState(systemDarkMode){
             clipboard: false,
             delete: false,
         },
+    }
+
+    if (START_DEBUGGING)
+        return {...state, ...debugState(state)}
+    else
+        return state
+}
+
+function debugState(state){
+    const debug_aes = {
+        stroke: 'black',
+        width: .05,
+        dash: '0',
+        lineCap: 'butt',
+        lineJoin: 'miter',
+    }
+
+    return {
+        lines: [
+            new Line({}, new Point(5, 13), new Point(6, 11), debug_aes),
+            new Line({}, new Point(5, 13), new Point(4, 11), debug_aes),
+            new Line({}, new Point(6, 11), new Point(5, 9), debug_aes),
+            new Line({}, new Point(5, 9), new Point(4, 11), debug_aes),
+        ],
+        bounds: [
+            Point.fromSvg(state, 6, 13, false),
+            Point.fromSvg(state, 4, 9, false),
+        ],
+        openMenus: {
+            ...state.openMenus,
+            repeat: true
+        }
     }
 }
 
@@ -209,7 +239,7 @@ export function tourState(state){
             new Line(state, Point.fromSvg(state, 5, 13, false), Point.fromSvg(state, 6, 11, false), {stroke: 'black', strokeWidth: 0, dash: '1, .5'}, {id: 'dashed-line'}),
             new Line(state, Point.fromSvg(state, 5, 13, false), Point.fromSvg(state, 6, 11, false), {stroke: 'black', strokeWidth: 0}),
             new Line(state, Point.fromSvg(state, 6, 11, false), Point.fromSvg(state, 5, 9, false), {stroke: 'black', strokeWidth: 0}),
-            new Line(state, Point.fromSvg(state, 5, 9, false), Point.fromSvg(state, 4, 11, false), {stroke: 'black', strokeWidth: 0}),
+            new Line(state, Point.fromSvg(state, 5, 9, false),  Point.fromSvg(state, 4, 11, false), {stroke: 'black', strokeWidth: 0}),
             new Line(state, Point.fromSvg(state, 4, 11, false), Point.fromSvg(state, 5, 13, false), {stroke: 'black', strokeWidth: 0}),
         ]
     }

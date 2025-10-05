@@ -94,7 +94,8 @@ function colorIsVisible(color, background) {
     return Math.abs(color.hsl.l - background.hsl.l) > 25
 }
 
-export default (paperColor, darkMode) => {
+export default (paperColor, themeMode, systemPreferedTheme) => {
+    const darkMode = themeMode === 'dark' || (themeMode === 'system' && systemPreferedTheme === 'dark')
     // This white was not randomly chosen
     const paperMain = darkMode ? '#272727' : '#f7f7f7'
 

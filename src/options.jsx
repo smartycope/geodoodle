@@ -47,6 +47,7 @@ const defaultOptions = {
     // In ms
     toastDuration: 6000,
     beginnerMode: true,
+    defaultToMemorableNames: true,
 }
 export default defaultOptions
 

@@ -1,9 +1,9 @@
 import './styling/App.css';
 import {useEffect, useReducer, useRef, useMemo} from 'react';
-import { localStorageSettingsName, PREVENT_LOADING_STATE } from './globals'
+import { PREVENT_LOADING_STATE } from './globals'
 import reducer from './reducer';
 import Toolbar from './Menus/Toolbar';
-import {deserializeState} from './fileUtils';
+import {deserializeState, loadPreservedState, validateStorage} from './fileUtils';
 import {StateContext} from './Contexts';
 import generateTheme from "./styling/theme";
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -23,6 +23,7 @@ import {
     Dots,
     Polygons,
     CurrentPolys,
+    Menus,
     Toast,
 } from './drawing';
 import Trellis from './Trellis';
@@ -35,11 +36,11 @@ var _state = {}
 
 export default function Paper({setDispatch}) {
     const paper = useRef()
-    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
-    const initialState = useMemo(() => getInitialState(prefersDarkMode), [prefersDarkMode])
+    const initialState = useMemo(() => getInitialState(), [])
     const [state, dispatch] = useReducer(reducer, initialState)
-    const {dotsAbovefill, paperColor, fillMode, darkMode} = state
-    const theme = useMemo(() => generateTheme(paperColor, darkMode), [paperColor, darkMode])
+    const {dotsAbovefill, paperColor, fillMode, themeMode} = state
+    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+    const theme = useMemo(() => generateTheme(paperColor, themeMode, prefersDarkMode ? 'dark' : 'light'), [paperColor, themeMode, prefersDarkMode])
 
     // Forcibly disallow scrolling
     window.scrollX = 0
@@ -69,11 +70,11 @@ export default function Paper({setDispatch}) {
         }
     }, [])
 
-    // Perserve settings
+    // Perserve settings & validate storage
     useEffect(() => {
-        const local = localStorage.getItem(localStorageSettingsName)
+        const local = loadPreservedState()
         if (!PREVENT_LOADING_STATE && local)
-            dispatch(deserializeState(local))
+            dispatch({action: 'deserialize', data: local})
     }, [])
 
     // So the tour can effect state
@@ -88,6 +89,7 @@ export default function Paper({setDispatch}) {
             <div>
                 <Toast/>
                 <Toolbar/>
+                <Menus/>
                 {/* onCopy, onPaste, and onCut are implemented with keyboard shortcuts instead of here, so they can be changed */}
                 <svg id='paper'
                     width="100%"

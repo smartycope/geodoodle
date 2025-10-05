@@ -2,7 +2,7 @@
 // optionally take a 2nd parameter which is an object of anything passed to dispatch. They return modifications to the
 // existing state. Return {}, undefined or null to not modify the state.
 
-import {localStorageName, viewportWidth, viewportHeight, undoStack, redoStack} from './globals'
+import {viewportWidth, viewportHeight, undoStack, redoStack} from './globals'
 import {
     getSelected,
     getBoundRect,
@@ -12,7 +12,7 @@ import {
     normalizeLines,
 } from './utils'
 import defaultOptions from './options'
-import {deserializePattern, download, image, serializePattern} from './fileUtils';
+import {deserializePattern, download, image, serializePattern, saveLocally, loadLocally, clearSaves} from './fileUtils';
 import {setTapHolding} from './globals';
 import Point from './helper/Point';
 import Dist from './helper/Dist';
@@ -337,13 +337,17 @@ export const download_file = (state, {format, name, selectedOnly, rect}) => {
 export const upload_file = (state, {str}) => deserializePattern(str)
 
 export const save_local = (state, {name}) => {
-    let obj = {}
-    obj[name.trim()] = serializePattern(state)
-    localStorage.setItem(localStorageName, JSON.stringify({...JSON.parse(localStorage.getItem(localStorageName)), ...obj}))
-    setTimeout(() => cursor_moved(state, {point: state.cursorPos}), 100)
+    // saveLocally(name || state.filename, serializePattern(state))
+    saveLocally(name || state.filename, state)
+    // setTimeout(() => cursor_moved(state, {point: state.cursorPos}), 100)
+    // TODO: why is this required? Is it still?
+    return {reloadRequired: true}
 }
 
-export const load_local = (state, {name}) => deserializePattern(JSON.parse(localStorage.getItem(localStorageName))[name.trim()])
+export const load_local = (state, {name}) => {
+    loadLocally(name)
+    return {filename: name}
+}
 
 export const copy_image = state => {
     const linesBBox = document.querySelector('#lines').getBBox()
@@ -370,6 +374,15 @@ export const copy_image = state => {
         true
     )
 }
+
+export const deserialize = (state, {data}) => {
+    return data
+}
+
+export const clear_saves = state => {
+    clearSaves()
+    // return {reloadRequired: true}
+}
 // Tour Actions
 var preTourState = null
 export const start_tour = state => {
@@ -381,8 +394,6 @@ export const end_tour = state => preTourState
 
 // Misc Actions
 export const toggle_partials = state => ({partials: !state.partials})
-// export const toggle_dark_mode = state => toggleDarkMode()
-export const set_dark_mode = (state, {darkMode}) => ({darkMode})
 
 export const set_manual = (state, data) => {
     delete data.action
@@ -419,6 +430,8 @@ export const menu = (state, {toggle, open, close}) => {
             copy[key] = false
         })
     }
+
+    let requireReload = false
     // Reopen the mini menus when we open the toolbar
     // This maaay cause bugs if we issue multiple menu actions at once
     if (open === 'main' || (toggle === 'main' && copy[toggle])){
@@ -434,9 +447,7 @@ export const menu = (state, {toggle, open, close}) => {
         savedMiniMenus['main'] = true
 
         // The toolbar renders before the menus, so we have to do this to make sure the menus are open
-        // Fake an event that would trigger a re-render
-        // This is hacky, but it works surprisingly well
-        setTimeout(() => window.dispatchEvent(new Event('resize')), 10)
+        requireReload = true
     }
 
     let repeatToast = false
@@ -452,6 +463,7 @@ export const menu = (state, {toggle, open, close}) => {
         // If we close the repeat menu, and we have dots turned off, turn them back on
         hideDots: !(openMenus.repeat && !copy.repeat) && hideDots,
         toast: repeatToast ? "Please select an area to repeat" : null,
+        reloadRequired: requireReload,
     }
 }
 

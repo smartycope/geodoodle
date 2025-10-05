@@ -4,7 +4,6 @@ import { Number } from "./MenuUtils"
 import { KeyMenu } from './KeyMenu';
 
 import { IoClose } from "react-icons/io5";
-import { localStorageSettingsName } from '../globals';
 
 import { ColorPicker, ColorService } from "react-color-palette";
 // This works, but not in the tests for whatever reason
@@ -18,6 +17,7 @@ import { Helper } from './Helper';
 import styled from '@emotion/styled';
 // import useMediaQuery from '@mui/material/useMediaQuery';
 import { extraButtons } from './ExtraButton';
+import { clearPreservedState } from '../fileUtils';
 
 function SettingsMenu() {
     const { state, dispatch } = useContext(StateContext)
@@ -133,8 +133,7 @@ function SettingsMenu() {
             />
             <button onClick={() => {
                 if (window.confirm("Reset all settings to default? This will clear the current pattern.")) {
-                    localStorage.removeItem(localStorageSettingsName)
-                    window.location.reload()
+                    clearPreservedState()
                 }
             }} title="Clears the settings cache">
                 Reset to Defaults
@@ -158,7 +157,7 @@ const StyledSubheader = styled(ListSubheader)(({ theme }) => ({
     borderRadius: theme.shape.borderRadius,
 }));
 
-function SettingsMenuMui() {
+function SettingsPageMui() {
     const { state, dispatch } = useContext(StateContext)
     const [palletteVisible, setPalletteVisible] = useState(false);
     const colorMenuButton = useRef()
@@ -190,8 +189,9 @@ function SettingsMenuMui() {
         smoothGestureScale,
         dotsAbovefill,
         paperColor,
-        darkMode,
         beginnerMode,
+        defaultToMemorableNames,
+        themeMode,
     } = state
 
     return <Page menu="settings">
@@ -225,7 +225,7 @@ function SettingsMenuMui() {
                     open={palletteVisible}
                     onClose={() => {
                         setPalletteVisible(false)
-                        colorMenuButton.current.focus()
+                        // colorMenuButton.current.focus()
                     }}
                     // anchorEl={colorMenuButton.current}
                     anchorEl={document.getElementById('color-picker-button')}
@@ -262,13 +262,20 @@ function SettingsMenuMui() {
 
             <Setting label="Dark Mode" help="Controls if the app is in dark mode or not">
                 <Select
-                    value={darkMode}
-                    onChange={e => dispatch({ action: 'set_dark_mode', darkMode: e.target.value })}
+                    value={themeMode}
+                    onChange={e => dispatch({ themeMode: e.target.value })}
                 >
-                    {/* <MenuItem value="system">System</MenuItem> */}
-                    <MenuItem value={true}>Dark</MenuItem>
-                    <MenuItem value={false}>Light</MenuItem>
+                    <MenuItem value="system">System</MenuItem>
+                    <MenuItem value="dark">  Dark</MenuItem>
+                    <MenuItem value="light"> Light</MenuItem>
                 </Select>
+            </Setting>
+
+            <Setting label="Default to Memorable Names" help="When enabled, patterns will be named using memorable words instead of Unnamed_x">
+                <Checkbox
+                    checked={defaultToMemorableNames}
+                    onChange={() => dispatch({ defaultToMemorableNames: !defaultToMemorableNames })}
+                />
             </Setting>
 
             {/* Controls */}
@@ -327,7 +334,6 @@ function SettingsMenuMui() {
                     onChange={() => dispatch({ beginnerMode: !beginnerMode })}
                 />
             </Setting>
-
             <Setting label="Hide Hex Color" help="Controls if the hex color is displayed in the color menu">
                 <Checkbox
                     checked={hideHexColor}
@@ -347,6 +353,16 @@ function SettingsMenuMui() {
                     min={2}
                 />
             </Setting>
+            {/* TODO: I don't think this will work just like that, some things need to be recalculated */}
+            <Setting label="Device Mode" help="Controls if the app is in mobile or desktop mode (experimental)">
+                <Select
+                    value={state.mobile}
+                    onChange={e => dispatch({ mobile: e.target.value })}
+                >
+                    <MenuItem value={false}>Desktop</MenuItem>
+                    <MenuItem value={true}>Mobile</MenuItem>
+                </Select>
+            </Setting>
             <Setting label="Debug Mode" help="Adds some visual aids useful for debugging">
                 <Checkbox
                     checked={debug}
@@ -356,8 +372,7 @@ function SettingsMenuMui() {
             <Setting label="Reset to Defaults" help="Clear the settings cache">
                 <Button variant="outlined" onClick={() => {
                     if (window.confirm("Reset all settings to default? This will clear the current pattern.")) {
-                        localStorage.removeItem(localStorageSettingsName)
-                        window.location.reload()
+                        clearPreservedState()
                     }
                 }}>
                     Reset to Defaults
@@ -375,4 +390,4 @@ function SettingsMenuMui() {
     </Page>
 }
 
-export default SettingsMenuMui
+export default SettingsPageMui

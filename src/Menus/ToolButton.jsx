@@ -64,6 +64,7 @@ export const tooltipMap = {
     'copy_image': 'Copy as Image',
     'home': 'Reset position and scale',
     'redo': 'Redo',
+    'extra': 'More Tools'
 }
 
 export const getTooltipSide = (side, inExtraMenu) => {
@@ -75,7 +76,7 @@ export const getTooltipSide = (side, inExtraMenu) => {
     }
 }
 
-const ToolButton = React.forwardRef(function ({menu, onClick, inExtraMenu, ...props}, ref){
+const ToolButton = React.forwardRef(function ({menu, onClick, inExtraMenu, disableTooltip, ...props}, ref){
     const theme = useTheme()
     const {state, dispatch} = useContext(StateContext)
 
@@ -91,14 +92,26 @@ const ToolButton = React.forwardRef(function ({menu, onClick, inExtraMenu, ...pr
 
     if (state.beginnerMode)
         return <Tooltip
+            // Okay listen
+            // We *hide* the tooltip instead of not rendering it because when extra menu opens,
+            // the popover component mounts, attaches to the original button, which then
+            // gets removed from the DOM because Tooltip wraps it. So we keep it in
+            // the DOM, but hide it instead.
+            slotProps={{
+                tooltip: {
+                    sx: {
+                        visibility: disableTooltip ? 'hidden' : 'visible'
+                    }
+                }
+            }}
+            disableInteractive
             title={tooltipMap[menu] || menu.charAt(0).toUpperCase() + menu.slice(1)}
             placement={getTooltipSide(state.side, inExtraMenu)}
             arrow
         >
             {btn}
         </Tooltip>
-    else
-        return btn
+    return btn
 })
 
 export default ToolButton

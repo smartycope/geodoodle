@@ -25,8 +25,8 @@ export default function Page({menu, title, children, sx}){
         <Dialog
             open={state.openMenus[menu]}
             onClose={() => dispatch({action: "menu", close: menu})}
-            // fullWidth
-            maxWidth="lg"
+            fullWidth
+            maxWidth="md"
             // fullScreen
             scroll="paper"
             // slotProps={{

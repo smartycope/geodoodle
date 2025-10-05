@@ -1,7 +1,7 @@
-import { localStorageSettingsName, undoStack, redoStack } from './globals'
-import { filterObjectByKeys, eventMatchesKeycode } from './utils'
-import { reversible, reversibleActions, saveSettingActions, keybindings } from './options'
-import {serializeState} from './fileUtils'
+import { undoStack, redoStack } from './globals'
+import { filterObjectByKeys } from './utils'
+import { reversible, reversibleActions, saveSettingActions } from './options'
+import {preserveState} from './fileUtils'
 import * as actions from './actions'
 
 // TODO: This is a bad solution:
@@ -9,7 +9,7 @@ import * as actions from './actions'
 // the action has run, because that's what we have. Instead of catching all the return statements and refactoring
 // *everything*, instead we just remove the limit and the next state saves instead. There's usually at least a cursor
 // movement or something, so it should work pretty well
-var saveNext = false
+// var saveNext = false
 
 // Can accept any of 3 parameters to dispatch:
 //                 {action: "...", foo: "bar"}
@@ -25,13 +25,6 @@ export default function reducer(state, data){
     if (state.debug && data.action !== 'cursor_moved')
         console.debug(data.action, data, state)
 
-    if (saveNext){
-        localStorage.setItem(localStorageSettingsName, serializeState(state))
-        saveNext = false
-    }
-    if (saveSettingActions.includes(data.action))
-        saveNext = true
-
     if (reversibleActions.includes(data.action)){
         if (undoStack.push(filterObjectByKeys(state, reversible)) > state.maxUndoAmt){
             undoStack.shift()
@@ -40,7 +33,18 @@ export default function reducer(state, data){
     }
 
     try {
-        return {...state, ...actions[data.action](state, data)}
+        const newState = {...state, ...actions[data.action](state, data)}
+        if (newState.reloadRequired){
+            newState.reloadRequired = false
+            // I can't think of a way this would cause a problem, though it is suspicious
+            // This just fakes an event that doesn't do anything in order to trigger a re-render
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 1)
+        }
+
+        if (saveSettingActions.includes(data.action))
+            preserveState(newState)
+
+        return newState
     } catch (e) {
         console.error(`Failed to run action "${data.action}"`, e)
         return state
