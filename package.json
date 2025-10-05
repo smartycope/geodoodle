@@ -29,6 +29,13 @@
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
+    "@storybook/addon-docs": "^9.1.10",
+    "@storybook/addon-onboarding": "^9.1.10",
+    "@storybook/builder-vite": "^9.1.10",
+    "@storybook/preset-create-react-app": "^9.1.10",
+    "@storybook/react": "^9.1.10",
+    "@storybook/react-vite": "^9.1.10",
+    "@storybook/react-webpack5": "^9.1.10",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.2.1",
@@ -37,8 +44,12 @@
     "eslint-plugin-react": "^7.34.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
+    "eslint-plugin-storybook": "^9.1.10",
+    "prop-types": "^15.8.1",
+    "storybook": "^9.1.10",
     "vite": "^5.2.0",
-    "vitest": "^3.1.4"
+    "vitest": "^3.1.4",
+    "webpack": "^5.102.0"
   },
   "scripts": {
     "start": "vite",
@@ -50,7 +61,9 @@
     "eject": "react-scripts eject",
     "preview": "vite preview",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "dev": "vite --host"
+    "dev": "vite --host",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "eslintConfig": {
     "extends": [

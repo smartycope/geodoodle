@@ -231,10 +231,14 @@ function NumberBase({
     onPlus,
     onMinus,
     scrubDirection='horizontal',
+    compact,
+    vertical,
     ...props
 }){
-    id = id || React.useId();
-    inputId = inputId || React.useId();
+    const reactid = React.useId();
+    const reactinputid = React.useId();
+    id = id || reactid;
+    inputId = inputId || reactinputid;
     const theme = useTheme()
     // It works, don't touch it.
     if (color === undefined && theme.palette.mode === 'light') color = theme.palette.primary.contrastText
@@ -242,33 +246,35 @@ function NumberBase({
     if (props.snapOnStep && props.value && props.step)
         props.value = Math.round(props.value * 10**props.step) / 10**props.step
 
-    return (
-        <Tooltip title={title}>
-        <NumberField.Root
-            id={id}
-            className={styles.Field}
-            {...props}
-        >
-            <label htmlFor={id} className={styles.Label} style={{color: color}}>
-            {label}
-            </label>
+    const rtn = <NumberField.Root
+        id={id}
+        className={styles.Field}
+        {...props}
+    >
+        <label htmlFor={id} className={styles.Label} style={{color: color}}>
+        {label}
+        </label>
 
-        <NumberField.Group className={styles.Group}>
-            <NumberField.Decrement className={styles.Decrement} onClick={onMinus}>
-            <Remove fontSize="small" />
-            </NumberField.Decrement>
-            {/* TODO: scrub direction doens't work */}
-            {/* <NumberField.ScrubArea className={styles.ScrubArea} scrubDirection={scrubDirection}> */}
-            <NumberField.ScrubArea className={styles.ScrubArea}>
-                <NumberField.Input className={styles.Input} id={inputId} style={{color: color}}/>
-            </NumberField.ScrubArea>
-            <NumberField.Increment className={styles.Increment} onClick={onPlus}>
-            <Add fontSize="small" />
-            </NumberField.Increment>
-        </NumberField.Group>
-        </NumberField.Root>
-        </Tooltip>
-    );
+    <NumberField.Group className={styles.Group} sx={{
+        transform: vertical ? 'rotate(90deg)' : undefined,
+        transformOrigin: 'center',
+    }}>
+        <NumberField.Decrement className={styles.Decrement} onClick={onMinus}>
+        <Remove fontSize="small" />
+        </NumberField.Decrement>
+        {/* TODO: scrub direction doens't work */}
+        {/* <NumberField.ScrubArea className={styles.ScrubArea} scrubDirection={scrubDirection}> */}
+        <NumberField.ScrubArea className={styles.ScrubArea}>
+            <NumberField.Input className={styles.Input} id={inputId} style={{color: color}}/>
+        </NumberField.ScrubArea>
+        <NumberField.Increment className={styles.Increment} onClick={onPlus}>
+        <Add fontSize="small" />
+        </NumberField.Increment>
+    </NumberField.Group>
+    </NumberField.Root>
+
+    if (title) return <Tooltip title={title}>{rtn}</Tooltip>
+    else       return rtn
 }
 
 export {NumberBase as Number}
