@@ -1,5 +1,5 @@
 // Stuff which gets called by Paper to draw parts of the paper
-import { MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE } from './globals'
+import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE } from './globals'
 import options from './options';
 import { RxRotateCounterClockwise } from "react-icons/rx";
 import { GoMirror } from "react-icons/go";
@@ -112,18 +112,16 @@ export function DebugInfo(){
 export function MirrorMetaLines(){
     const {state} = useContext(StateContext)
     let mirrorMetaLines = []
-    const {mirrorType, mirroring, openMenus, mirrorMethod, mirrorAxis, scalex} = state
+    const {mirrorType, mirrorAxis, mirrorRot, scalex} = state
     const half = getHalf(state)
     const {x: halfx, y: halfy} = half.asViewport(state)
 
-    if (mirrorType === MIRROR_TYPE.PAGE && (mirroring || openMenus.mirror)){
-        if (mirrorMethod === MIRROR_METHOD.FLIP || mirrorMethod === MIRROR_METHOD.BOTH){
-            if ((mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360))
-                mirrorMetaLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor} key="mirror-horz"/>)
-            if ((mirrorAxis === MIRROR_AXIS.HORZ_180 || mirrorAxis === MIRROR_AXIS.BOTH_360))
-                mirrorMetaLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor} key="mirror-vert"/>)
-        }
-        if (mirrorMethod === MIRROR_METHOD.ROTATE || mirrorMethod === MIRROR_METHOD.BOTH)
+    if (mirrorType === MIRROR_TYPE.PAGE){
+        if ((mirrorAxis === MIRROR_AXIS.Y || mirrorAxis === MIRROR_AXIS.BOTH))
+            mirrorMetaLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor} key="mirror-horz"/>)
+        if ((mirrorAxis === MIRROR_AXIS.X || mirrorAxis === MIRROR_AXIS.BOTH))
+            mirrorMetaLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor} key="mirror-vert"/>)
+        if (mirrorRot)
             mirrorMetaLines.push(<circle cx={halfx} cy={halfy} r={scalex/3} fill={options.mirrorColor} opacity={.8} strokeOpacity="0" key="mirror-center"/>)
     }
     return mirrorMetaLines
@@ -288,7 +286,7 @@ export function Clipboard(){
 
 export function Cursor(){
     const {state} = useContext(StateContext)
-    const {cursorPos, scalex, mirroring, openMenus, mirrorType, mirrorMethod, mirrorAxis, fillMode} = state
+    const {cursorPos, scalex, openMenus, mirrorType, mirrorAxis, fillMode} = state
     const cursorPosViewport = cursorPos.asViewport(state)
     // Construct the cursor (internal mirror lines, etc)
     let cursor = [
@@ -297,35 +295,36 @@ export function Cursor(){
             cy={cursorPosViewport.y}
             r={scalex / 3}
             stroke={options.cursorColor}
-            fill={options.mirrorColor}
+            // fill={options.mirrorColor}
             // Make it filled if we're cursor rotating
-            fillOpacity={
-                (mirroring || openMenus.mirror) &&
-                mirrorType === MIRROR_TYPE.CURSOR &&
-                [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod) ? 1 : 0
-            }
+            fillOpacity={0}
+            // fillOpacity={
+            //     (mirroring || openMenus.mirror) &&
+            //     mirrorType === MIRROR_TYPE.CURSOR &&
+            //     [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod) ? 1 : 0
+            // }
             key='cursor'
         />,
     ]
 
-    if ((mirroring || openMenus.mirror) && mirrorType === MIRROR_TYPE.CURSOR){
-        if ([MIRROR_METHOD.FLIP, MIRROR_METHOD.BOTH].includes(mirrorMethod)){
-            if ([MIRROR_AXIS.HORZ_180, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
-                cursor.push(<line
-                    x1={cursorPosViewport.x + scalex/3} y1={cursorPosViewport.y}
-                    x2={cursorPosViewport.x - scalex/3} y2={cursorPosViewport.y}
-                    stroke={options.mirrorColor}
-                    key='cursor-horz'
-                />)
-            if ([MIRROR_AXIS.VERT_90, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
-                cursor.push(<line
-                    x1={cursorPosViewport.x} y1={cursorPosViewport.y + scalex/3}
-                    x2={cursorPosViewport.x} y2={cursorPosViewport.y - scalex/3}
-                    stroke={options.mirrorColor}
-                    key="cursor-vert"
-                />)
-        }
-    }
+    // if ((mirroring || openMenus.mirror) && mirrorType === MIRROR_TYPE.CURSOR){
+    //     if ([MIRROR_METHOD.FLIP, MIRROR_METHOD.BOTH].includes(mirrorMethod)){
+    //         if ([MIRROR_AXIS.HORZ_180, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
+    //             cursor.push(<line
+    //                 x1={cursorPosViewport.x + scalex/3} y1={cursorPosViewport.y}
+    //                 x2={cursorPosViewport.x - scalex/3} y2={cursorPosViewport.y}
+    //                 stroke={options.mirrorColor}
+    //                 key='cursor-horz'
+    //             />)
+    //         if ([MIRROR_AXIS.VERT_90, MIRROR_AXIS.BOTH_360].includes(mirrorAxis))
+    //             cursor.push(<line
+    //                 x1={cursorPosViewport.x} y1={cursorPosViewport.y + scalex/3}
+    //                 x2={cursorPosViewport.x} y2={cursorPosViewport.y - scalex/3}
+    //                 stroke={options.mirrorColor}
+    //                 key="cursor-vert"
+    //             />)
+    //     }
+    // }
 
     return !fillMode && <g id="cursor-group">{cursor}</g>
 }
@@ -372,8 +371,6 @@ export function CurrentPolys(){
         {curPolys.map((poly, i) => poly.render(state, `cur-poly-${i}`))}
     </g>
 }
-
-
 
 export function Menus(){
     const {state} = useContext(StateContext)

@@ -201,12 +201,12 @@ describe('Point', () => {
     const origin = new Point(5, 5);
 
     // Vertical flip
-    const flippedVert = point.flip(MIRROR_AXIS.VERT_90, origin);
+    const flippedVert = point.flip(MIRROR_AXIS.Y, origin);
     expect(flippedVert._x).toBe(0);  // 5 - (10 - 5)
     expect(flippedVert._y).toBe(10);
 
     // Horizontal flip
-    const flippedHorz = point.flip(MIRROR_AXIS.HORZ_180, origin);
+    const flippedHorz = point.flip(MIRROR_AXIS.X, origin);
     expect(flippedHorz._x).toBe(10);
     expect(flippedHorz._y).toBe(0);  // 5 - (10 - 5)
   });

@@ -46,7 +46,8 @@ export default function reducer(state, data){
 
         return newState
     } catch (e) {
-        console.error(`Failed to run action "${data.action}"`, e)
+        console.error(`Failed to run action "${data.action}". The error it gave is:`, e)
+        console.log({data, state, actions})
         return state
     }
 }

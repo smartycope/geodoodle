@@ -57,3 +57,18 @@ Honestly, this is mostly for my own enjoyment. I've tried to fine-tune it and ma
 That being said, there are potential applications for it, especially with minor adjustments. For instance, creating quilting patterns (something I eventually intend to get to), planning out floor or yard layouts, or creating dynamic screensavers.
 
 To see more about this project, see my blog post about it [here](https://smartycope.github.io/posts/GeoDoodle/)
+
+
+<!--
+## Current branch todos:
+Things I need to remember to do before merging the current branch. Don't merge this list!
+- Make the mobile icons smaller, and add text
+- A how to use/gestures/additional help/douplicate of stuff covered in tour Page -- even if just a framework
+- An FAQ page
+
+
+## Other todos that should be issues but I'm lazy:
+- Add explanatuon text as a controlled snackbox or tooltip that disapears on next touch On mobile
+-
+-
+ -->

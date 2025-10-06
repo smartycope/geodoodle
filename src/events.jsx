@@ -34,7 +34,7 @@ export function onMouseDown(state, dispatch, e){
         // Left click
         case 0: dispatch(fillMode ? 'fill' : (bounds.length === 1 ? 'add_bound' : 'add_line')); break;
         // Middle click
-        case 1: dispatch('delete'); break;
+        case 1: dispatch('delete_at_cursor'); break;
         // Right click
         case 2: fillMode ? null : dispatch('continue_line'); break;
     }

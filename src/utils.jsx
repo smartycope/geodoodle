@@ -1,8 +1,7 @@
-import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE, viewportWidth, viewportHeight} from "./globals";
+import {viewportWidth, viewportHeight} from "./globals";
 import Point from "./helper/Point";
 import Rect from "./helper/Rect";
 import options from "./options";
-import inside from "point-in-polygon";
 
 export function getClipboardButtonsPos(state){
     const {cursorPos, scalex} = state
@@ -124,27 +123,10 @@ export function toRadians (angle) {
 
 export function incrementMirrorAxis(mirrorAxis, none=false){
     switch (mirrorAxis){
-        case MIRROR_AXIS.VERT_90:  return MIRROR_AXIS.HORZ_180
-        case MIRROR_AXIS.HORZ_180: return MIRROR_AXIS.BOTH_360
-        case MIRROR_AXIS.BOTH_360: return none ? MIRROR_AXIS.NONE_0 : MIRROR_AXIS.VERT_90
-        default: return MIRROR_AXIS.VERT_90
-    }
-}
-
-export function incrementMirrorType(mirrorType, none=false){
-    switch (mirrorType){
-        case MIRROR_TYPE.PAGE:  return MIRROR_TYPE.CURSOR
-        case MIRROR_TYPE.CURSOR: return none ? MIRROR_TYPE.NONE : MIRROR_TYPE.PAGE
-        default: return MIRROR_TYPE.PAGE
-    }
-}
-
-export function incrementMirrorMethod(mirrorMethod, none=false){
-    switch (mirrorMethod){
-        case MIRROR_METHOD.FLIP:   return MIRROR_METHOD.ROTATE
-        case MIRROR_METHOD.ROTATE: return MIRROR_METHOD.BOTH
-        case MIRROR_METHOD.BOTH:   return none ? MIRROR_METHOD.NONE : MIRROR_METHOD.FLIP
-        default: return MIRROR_TYPE.FLIP
+        case MIRROR_AXIS.Y:  return MIRROR_AXIS.X
+        case MIRROR_AXIS.X: return MIRROR_AXIS.BOTH
+        case MIRROR_AXIS.BOTH: return none ? MIRROR_AXIS.NONE : MIRROR_AXIS.Y
+        default: return MIRROR_AXIS.Y
     }
 }
 

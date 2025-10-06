@@ -544,7 +544,7 @@ describe('Clipboard Actions', () => {
           new Line(state, new Point(0, 0), new Point(10, 10)),
           new Line(state, new Point(20, 20), new Point(30, 30)),
         ],
-        clipboardMirrorAxis: MIRROR_AXIS.VERT_90,
+        clipboardMirrorAxis: MIRROR_AXIS.Y,
         clipboardRotation: 90,
         clipboardOffset: new Dist(10, 10)
       };
@@ -616,16 +616,16 @@ describe('Clipboard Actions', () => {
       const withClipboard = { ...state, clipboardMirrorAxis: null };
 
       let newState = increment_clipboard_mirror_axis(withClipboard);
-      expect(newState.clipboardMirrorAxis).toBe(MIRROR_AXIS.VERT_90);
+      expect(newState.clipboardMirrorAxis).toBe(MIRROR_AXIS.Y);
 
       newState = increment_clipboard_mirror_axis(newState);
-      expect(newState.clipboardMirrorAxis).toBe(MIRROR_AXIS.HORZ_180);
+      expect(newState.clipboardMirrorAxis).toBe(MIRROR_AXIS.X);
 
       newState = increment_clipboard_mirror_axis(newState);
-      expect(newState.clipboardMirrorAxis).toBe(MIRROR_AXIS.BOTH_360);
+      expect(newState.clipboardMirrorAxis).toBe(MIRROR_AXIS.BOTH);
 
       newState = increment_clipboard_mirror_axis(newState);
-      expect(newState.clipboardMirrorAxis).toBe(MIRROR_AXIS.VERT_90); // Wraps around
+      expect(newState.clipboardMirrorAxis).toBe(MIRROR_AXIS.Y); // Wraps around
     });
   });
 });

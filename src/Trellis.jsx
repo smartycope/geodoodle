@@ -70,15 +70,15 @@ export default function Trellis(){
 
             // Flip
             if (!(col % trellisFlip.row.every)){
-                if (trellisFlip.row.val === MIRROR_AXIS.VERT_90 || trellisFlip.row.val === MIRROR_AXIS.BOTH_360)
+                if (trellisFlip.row.val === MIRROR_AXIS.Y || trellisFlip.row.val === MIRROR_AXIS.BOTH)
                     transformation += `matrix(-1, 0, 0, 1, 0, 0)`
-                if (trellisFlip.row.val === MIRROR_AXIS.HORZ_180 || trellisFlip.row.val === MIRROR_AXIS.BOTH_360)
+                if (trellisFlip.row.val === MIRROR_AXIS.X || trellisFlip.row.val === MIRROR_AXIS.BOTH)
                     transformation += `matrix(1, 0, 0, -1, 0, 0)`
             }
             if (!(row % trellisFlip.col.every)){
-                if (trellisFlip.col.val === MIRROR_AXIS.VERT_90 || trellisFlip.col.val === MIRROR_AXIS.BOTH_360)
+                if (trellisFlip.col.val === MIRROR_AXIS.Y || trellisFlip.col.val === MIRROR_AXIS.BOTH)
                     transformation += `matrix(-1, 0, 0, 1, 0, 0)`
-                if (trellisFlip.col.val === MIRROR_AXIS.HORZ_180 || trellisFlip.col.val === MIRROR_AXIS.BOTH_360)
+                if (trellisFlip.col.val === MIRROR_AXIS.X || trellisFlip.col.val === MIRROR_AXIS.BOTH)
                     transformation += `matrix(1, 0, 0, -1, 0, 0)`
             }
 

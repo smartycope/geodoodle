@@ -1,5 +1,5 @@
 import Pair from "./Pair";
-import {MIRROR_AXIS, MIRROR_METHOD, MIRROR_TYPE} from "../globals";
+import {MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE} from "../globals";
 import {getHalf, toRadians} from "../utils";
 import Dist from "./Dist";
 
@@ -93,13 +93,13 @@ export default class Point extends Pair{
     // These are basically matrix multiplication by hand
     // I don't remember why I did it this way instead of using actual matrix multiplication, but I sure ain't changin' it now
     rotate(angle, origin){
-        // Coordinates are deflated, but otherwise irrelevant here
-        const [x, y] = this.xy()
-        const [originx, originy] = origin.xy()
-
         // Optimization
         if (!angle)
             return this
+
+        // Coordinates are deflated, but otherwise irrelevant here
+        const [x, y] = this.xy()
+        const [originx, originy] = origin.xy()
 
         // For some reason, the math breaks on 180 degrees. No idea why, but this is more efficient anyway
         if (angle === 180)
@@ -123,9 +123,9 @@ export default class Point extends Pair{
         let [x, y] = this.xy()
         const [originx, originy] = origin.xy()
 
-        if (mirrorAxis === MIRROR_AXIS.VERT_90 || mirrorAxis === MIRROR_AXIS.BOTH_360)
+        if (mirrorAxis === MIRROR_AXIS.Y || mirrorAxis === MIRROR_AXIS.BOTH)
             x = x * -1 + originx*2
-        if (mirrorAxis === MIRROR_AXIS.HORZ_180 || mirrorAxis === MIRROR_AXIS.BOTH_360)
+        if (mirrorAxis === MIRROR_AXIS.X || mirrorAxis === MIRROR_AXIS.BOTH)
             y = y * -1 + originy*2
         return new Point(x, y)
     }
@@ -136,44 +136,50 @@ export default class Point extends Pair{
     // Mirror the point according to the current state
     // Returns an array of points
     // If we're not currently mirroring, just returns [this]
+    // Warning: uncommmenting all the logs can cause the console to glitch
     mirror(state){
-        const {mirrorMethod, mirrorAxis, mirrorAxis2, mirroring, openMenus, mirrorType, curLinePos, cursorPos} = state
-        const half = getHalf(state)
-        const origin = mirrorType === MIRROR_TYPE.PAGE ? half : (curLinePos || cursorPos)
+        const {mirrorAxis, mirrorRot, mirrorType, curLinePos, cursorPos} = state
+        const origin = mirrorType === MIRROR_TYPE.PAGE ? getHalf(state) : (curLinePos || cursorPos)
         var array = [this]
 
-        if (!mirroring && !openMenus.mirror)
+        if (!(mirrorAxis || mirrorRot))
             return array
 
-        // mirrorAxis controls the flip axis
-        // mirrorAxis2 controls the rotation angle
-        if ([MIRROR_METHOD.FLIP, MIRROR_METHOD.BOTH].includes(mirrorMethod)){
+        if (mirrorAxis){
+            // console.log('flipping', mirrorAxis)
             array.push(this.flip(mirrorAxis, origin))
-            if (mirrorAxis === MIRROR_AXIS.BOTH_360){
-                array.push(this.flip(MIRROR_AXIS.VERT_90, origin))
-                array.push(this.flip(MIRROR_AXIS.HORZ_180, origin))
+            if (mirrorAxis === MIRROR_AXIS.BOTH){
+                // console.log('flipping', 'MIRROR_AXIS.Y')
+                array.push(this.flip(MIRROR_AXIS.Y, origin))
+                // console.log('flipping', 'MIRROR_AXIS.X')
+                array.push(this.flip(MIRROR_AXIS.X, origin))
             }
         }
-        if ([MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod)){
+        if (mirrorRot){
             // Optimization: 180 degree rotation == flipping both vertically & horizontally: that line already exists
-            // if (mirrorAxis !== MIRROR_AXIS.BOTH_360 || (mirrorAxis2 !== MIRROR_AXIS.HORZ_180 && mirrorMethod === MIRROR_METHOD.BOTH))
-            if (!(mirrorMethod === MIRROR_METHOD.BOTH && mirrorAxis === MIRROR_AXIS.BOTH_360 && mirrorAxis2 === MIRROR_AXIS.HORZ_180))
-                array.push(this.rotate(mirrorAxis2, origin))
-            if (mirrorAxis2 === MIRROR_AXIS.BOTH_360){
-                array.push(this.rotate(MIRROR_AXIS.VERT_90, origin))
-                if (!(mirrorMethod === MIRROR_METHOD.BOTH && mirrorAxis === MIRROR_AXIS.BOTH_360 && mirrorAxis2 === MIRROR_AXIS.BOTH_360))
-                    array.push(this.rotate(MIRROR_AXIS.HORZ_180, origin))
+            if (!(mirrorAxis === MIRROR_AXIS.BOTH && (mirrorRot === MIRROR_ROT.STRAIGHT || mirrorRot === MIRROR_ROT.QUAD))){
+                // console.log('rotating', mirrorRot)
+                array.push(this.rotate(mirrorRot, origin))
+            }
+            if (mirrorRot === MIRROR_ROT.QUAD){
+                // console.log('rotating', 'MIRROR_ROT.RIGHT')
+                array.push(this.rotate(MIRROR_ROT.RIGHT, origin))
+                if (!(mirrorAxis === MIRROR_AXIS.BOTH && mirrorRot === MIRROR_ROT.QUAD)){
+                    // console.log('rotating', 'MIRROR_ROT.STRAIGHT')
+                    array.push(this.rotate(MIRROR_ROT.STRAIGHT, origin))
+                }
             }
         }
-        if (mirrorMethod === MIRROR_METHOD.BOTH){
-            if (mirrorAxis === MIRROR_AXIS.BOTH_360 && mirrorAxis2 === MIRROR_AXIS.BOTH_360){
-                array.push(this.rotate(MIRROR_AXIS.BOTH_360, origin))
-                array.push(this.flip(MIRROR_AXIS.HORZ_180, origin).rotate(MIRROR_AXIS.VERT_90, origin))
-            }
-            // The extra if here is just because when we add the extra line, it behaves identically to crossed flipping
-            else if (mirrorAxis2 !== MIRROR_AXIS.HORZ_180)
-                array.push(this.flip(mirrorAxis, origin).rotate(mirrorAxis2, origin))
+        if (mirrorAxis === MIRROR_AXIS.BOTH && mirrorRot === MIRROR_ROT.QUAD){
+            // console.log('rotating', 'MIRROR_ROT.QUAD')
+            array.push(this.rotate(MIRROR_ROT.QUAD, origin))
+            // console.log('flipping', 'MIRROR_AXIS.X')
+            array.push(this.flip(MIRROR_AXIS.X, origin).rotate(MIRROR_ROT.RIGHT, origin))
+            // console.log('flipping', 'MIRROR_AXIS.X')
+            array.push(this.flip(MIRROR_AXIS.X, origin).rotate(MIRROR_ROT.QUAD, origin))
         }
+
+        // console.log('returning', array)
 
         return array
     }

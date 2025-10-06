@@ -1,6 +1,6 @@
 import { mobileAndTabletCheck } from "./utils"
 import options from "./options"
-import { viewportWidth, viewportHeight, START_DEBUGGING, MIRROR_AXIS, MIRROR_TYPE, MIRROR_METHOD } from "./globals"
+import { viewportWidth, viewportHeight, START_DEBUGGING, MIRROR_AXIS, MIRROR_TYPE, MIRROR_ROT } from "./globals"
 import Point from "./helper/Point"
 import Line from "./helper/Line"
 import { defaultTrellisControl } from "./utils"
@@ -75,17 +75,14 @@ export default function getInitialState(){
         // Type: bool
         trellisSkip: defaultTrellisControl(false),
         // Type: MIRROR_AXIS
-        trellisFlip: defaultTrellisControl(MIRROR_AXIS.NONE_0),
+        trellisFlip: defaultTrellisControl(MIRROR_AXIS.NONE),
         // Type: MIRROR_AXIS
-        trellisRotate: defaultTrellisControl(MIRROR_AXIS.NONE_0),
+        trellisRotate: defaultTrellisControl(MIRROR_AXIS.NONE),
         hideDots: false,
 
-        mirroring: false,
-        mirrorAxis: MIRROR_AXIS.VERT_90,
-        // The second one is only used when mirrorMethod == BOTH, and it used for the Rotation one
-        mirrorAxis2: MIRROR_AXIS.BOTH_360,
-        mirrorType: MIRROR_TYPE.PAGE,
-        mirrorMethod: MIRROR_METHOD.FLIP,
+        mirrorAxis: MIRROR_AXIS.NONE,
+        mirrorRot: MIRROR_ROT.NONE,
+        mirrorType: MIRROR_TYPE.CURSOR,
 
         // Transformations
         translation: Dist.zero(),
@@ -204,10 +201,11 @@ function debugState(state){
         ],
         openMenus: {
             ...state.openMenus,
-            repeat: true,
-            main: false,
+            repeat: false,
+            main: true,
         },
-        debug: false,
+        side: 'top',
+        debug: true,
     }
 }
 

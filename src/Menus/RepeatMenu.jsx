@@ -1,6 +1,6 @@
 import {useContext, useEffect, useState} from "react";
 import "../styling/RepeatMenu.css"
-import { MIRROR_AXIS, MIRROR_METHOD } from "../globals";
+import { MIRROR_AXIS, MIRROR_ROT } from "../globals";
 import { MirrorAxisIcon } from "./MirrorIcons"
 import Number from "./Number"
 import {defaultTrellisControl, incrementMirrorAxis} from "../utils";
@@ -170,7 +170,7 @@ function DesktopRepeatMenu(){
                 obj.trellisFlip[rowCol].val = incrementMirrorAxis(state.trellisFlip[rowCol].val, true)
                 dispatch(obj)
             }}>
-                <MirrorAxisIcon mirrorAxis={state.trellisFlip[rowCol].val} mirrorMethod={MIRROR_METHOD.FLIP}/>
+                <MirrorAxisIcon val={state.trellisFlip[rowCol].val}/>
             </button>
         }/>
         <TrellisControl value='trellisRotate'  verb='Rotate' input={rowCol =>
@@ -180,7 +180,7 @@ function DesktopRepeatMenu(){
                 obj.trellisRotate[rowCol].val = incrementMirrorAxis(state.trellisRotate[rowCol].val, true)
                 dispatch(obj)
             }}>
-                <MirrorAxisIcon mirrorAxis={state.trellisRotate[rowCol].val} mirrorMethod={MIRROR_METHOD.ROTATE}/>
+                <MirrorRotIcon val={state.trellisRotate[rowCol].val}/>
             </button>
         }/>
 
@@ -281,7 +281,7 @@ function MobileRepeatMenu(){
             obj.trellisFlip[rowCol].val = incrementMirrorAxis(state.trellisFlip[rowCol].val, true)
             dispatch(obj)
         }}>
-            <MirrorAxisIcon mirrorAxis={state.trellisFlip[rowCol].val} mirrorMethod={MIRROR_METHOD.FLIP}/>
+            <MirrorAxisIcon val={state.trellisFlip[rowCol].val}/>
         </button>
 
     const rotate = rowCol =>
@@ -291,7 +291,7 @@ function MobileRepeatMenu(){
             obj.trellisRotate[rowCol].val = incrementMirrorAxis(state.trellisRotate[rowCol].val, true)
             dispatch(obj)
         }}>
-            <MirrorAxisIcon mirrorAxis={state.trellisRotate[rowCol].val} mirrorMethod={MIRROR_METHOD.ROTATE}/>
+            <MirrorRotIcon val={state.trellisRotate[rowCol].val}/>
         </button>
 
     return <div id="repeat-menu-mobile">
@@ -493,7 +493,7 @@ function DesktopRepeatMenuMui(){
                 obj.trellisFlip[rowCol].val = incrementMirrorAxis(state.trellisFlip[rowCol].val, true)
                 dispatch(obj)
             }}>
-                <MirrorAxisIcon mirrorAxis={state.trellisFlip[rowCol].val} mirrorMethod={MIRROR_METHOD.FLIP}/>
+                <MirrorAxisIcon val={state.trellisFlip[rowCol].val}/>
             </button>
         }/>
         <TrellisControl value='trellisRotate'  verb='Rotate' input={rowCol =>
@@ -503,7 +503,7 @@ function DesktopRepeatMenuMui(){
                 obj.trellisRotate[rowCol].val = incrementMirrorAxis(state.trellisRotate[rowCol].val, true)
                 dispatch(obj)
             }}>
-                <MirrorAxisIcon mirrorAxis={state.trellisRotate[rowCol].val} mirrorMethod={MIRROR_METHOD.ROTATE}/>
+                <MirrorRotIcon val={state.trellisRotate[rowCol].val}/>
             </button>
         }/>
 

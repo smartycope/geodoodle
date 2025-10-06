@@ -91,6 +91,9 @@ function RGB2HEX(r, g, b) {
 }
 */
 function colorIsVisible(color, background) {
+    // TODO: 25 was chosen arbitrarily -- read
+    // https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast-contrast.html
+    // and pick a better value
     return Math.abs(color.hsl.l - background.hsl.l) > 25
 }
 

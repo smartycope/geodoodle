@@ -1,22 +1,23 @@
 export const version = '1.6.2'
-export const MIRROR_AXIS = {
-    NONE_0: 0,
-    VERT_90: 90,
-    HORZ_180: 180,
-    BOTH_360: 270,
-}
 
 export const MIRROR_TYPE = {
-    NONE: 0,
     PAGE: 1,
     CURSOR: 2,
 }
 
-export const MIRROR_METHOD = {
+export const MIRROR_AXIS = {
+    NONE: 0b00,
+    Y: 0b01,
+    X: 0b10,
+    BOTH: 0b11,
+}
+
+// TODO: make this use radians instead, it only comes in increments of 90 degrees, there's no reason not to use radians
+export const MIRROR_ROT = {
     NONE: 0,
-    FLIP: 1,
-    ROTATE: 2,
-    BOTH: 3,
+    RIGHT: 90,
+    STRAIGHT: 180,
+    QUAD: 270,
 }
 
 export const localStorageName = 'GeoDoodleSaves'
