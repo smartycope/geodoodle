@@ -9,7 +9,7 @@ const config = {
   "addons": [
     "@storybook/preset-create-react-app",
     "@storybook/addon-docs",
-    "@storybook/addon-onboarding"
+    // '@alexgorbatchev/storybook-addon-localstorage',
   ],
   "framework": {
     "name": "@storybook/react-vite",

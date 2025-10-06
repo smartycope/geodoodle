@@ -142,7 +142,7 @@ export const LargeNumbers = {
 export const CompactMode = {
   args: {
     label: 'Compact',
-    value: 5,
+    value: 505,
     compact: true,
     min: 0,
     max: 10,

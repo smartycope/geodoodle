@@ -1,6 +1,8 @@
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import generateTheme from '../src/styling/theme';
 import CssBaseline from '@mui/material/CssBaseline';
+import getInitialState from '../src/states';
+import { StateContext } from '../src/Contexts';
 
 const colorNames = {
   paper: '#ffddab',
@@ -56,17 +58,29 @@ export const globalTypes = {
   },
 };
 
+
+const browserStorageResetDecorator = (Story) => {
+  window.localStorage.clear();
+  window.sessionStorage.clear();
+  return <Story />;
+};
+
+const themeDecorator = (Story, context) => {
+  const mode = context.globals.theme
+  const theme = generateTheme(colorNames[context.globals.backgrounds.value] || '#ffddab', mode, mode)
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Story />
+    </ThemeProvider>
+  );
+};
+
 export const decorators = [
-  (Story, context) => {
-    const mode = context.globals.theme
-    const theme = generateTheme(colorNames[context.globals.backgrounds.value] || '#ffddab', mode, mode)
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Story />
-      </ThemeProvider>
-    );
-  },
+  browserStorageResetDecorator,
+  themeDecorator,
 ];
+
+
 
 export default preview;

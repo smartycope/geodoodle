@@ -29,6 +29,7 @@
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
+    "@alexgorbatchev/storybook-addon-localstorage": "^2.0.3",
     "@storybook/addon-docs": "^9.1.10",
     "@storybook/addon-onboarding": "^9.1.10",
     "@storybook/builder-vite": "^9.1.10",
