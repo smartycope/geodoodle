@@ -26,7 +26,7 @@ These are the most relevant files in the program (these are all in /src/):
 * [styling/](../src/styling/)
     * Contains all the CSS
 * [Menus/](../src/Menus/)
-    * Contains the menus. Many of them have seperate desktop and mobile versions
+    * Contains the menus and pages
     * [Menus/MenuUtils.jsx](../src/Menus/MenuUtils.jsx)
         * A bunch of reusable components for the menus
     * [Menus/MainMenu.jsx](../src/Menus/MainMenu.jsx)

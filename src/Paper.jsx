@@ -42,7 +42,7 @@ export default function Paper({setDispatch}) {
     const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
     const theme = useMemo(() => generateTheme(paperColor, themeMode, prefersDarkMode ? 'dark' : 'light'), [paperColor, themeMode, prefersDarkMode])
 
-    // Forcibly disallow scrolling
+    // Forcibly disallow scrolling (just in case)
     window.scrollX = 0
     window.scrollY = 0
 
@@ -70,7 +70,7 @@ export default function Paper({setDispatch}) {
         }
     }, [])
 
-    // Perserve settings & validate storage
+    // Perserve state
     useEffect(() => {
         const local = loadPreservedState()
         if (!PREVENT_LOADING_STATE && local)

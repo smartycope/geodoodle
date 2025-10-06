@@ -242,6 +242,25 @@ export const add_bound = state => {
     }
 }
 
+// Color actions
+export const set_color = (state, {color}) => {
+    let copy = JSON.parse(JSON.stringify(state.fillMode ? state.fill : state.stroke))
+    copy[state.colorProfile] = color
+    return { [state.fillMode ? 'fill' : 'stroke']: copy }
+}
+
+export const set_stroke_width = (state, {strokeWidth}) => {
+    let copy = JSON.parse(JSON.stringify(state.strokeWidth))
+    copy[state.colorProfile] = strokeWidth
+    return {strokeWidth: copy}
+}
+
+export const set_dash = (state, {dash}) => {
+    let copy = JSON.parse(JSON.stringify(state.dash))
+    copy[state.colorProfile] = dash
+    return {dash: copy}
+}
+
 // Fill actions
 export const fill = state => {
     const {fillMode, curPolys, filledPolys} = state
@@ -279,19 +298,32 @@ export const toggle_fill_mode = state => {
 
 // Undo Actions
 export const undo = state => {
+    console.log('undoing...')
+    console.log('undo stack:', undoStack)
+    console.log('redo stack:', redoStack)
     const prevState = undoStack.pop()
     if (prevState !== undefined){
+        console.log('undoing')
         redoStack.push(prevState)
+        console.log('undo stack is now:', undoStack)
+        console.log('redo stack is now:', redoStack)
         // TODO: have this maintain the current state except for the undo keys
         return prevState
     }
 }
 export const redo = state => {
+    console.log('redoing...')
+    console.log('undo stack:', undoStack)
+    console.log('redo stack:', redoStack)
     const nextState = redoStack.pop()
-    if (nextState === undefined)
+    if (nextState === undefined){
+        console.log('nothing to redo, ignoring')
         return state
+    }
     undoStack.push(nextState)
-    return {...state, ...nextState}
+    console.log('undo stack is now:', undoStack)
+    console.log('redo stack is now:', redoStack)
+    return nextState //{...state, ...nextState}
 }
 // Clipboard Actions
 export const cancel_clipboard = state => ({clipboard: null, clipboardMirrorAxis: null, clipboardRotation: 0, clipboardOffset: null})

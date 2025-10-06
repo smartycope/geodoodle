@@ -54,6 +54,7 @@ export default class Line {
             stroke={this.aes.stroke}
             strokeWidth={this.aes.width}
             // This should get scaled to the current scale
+            // TODO: This scale ratio is wrong? No clue how that's possible, but it is
             strokeDasharray={this.aes.dash.replace(/\s/, '').split(',').map(i => i/state.scalex).join(',')}
             strokeLinecap={this.aes.lineCap}
             strokeLinejoin={this.aes.lineJoin}
