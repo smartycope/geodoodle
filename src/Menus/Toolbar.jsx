@@ -1,5 +1,4 @@
 import "../styling/MainMenu.css"
-import ControlsMenu from "./ControlsMenu";
 import HelpPage from "./HelpPage"
 import ColorMenu from "./ColorMenu";
 import FilePage from "./FilePage";
@@ -24,19 +23,18 @@ import { MdOutlineTabUnselected } from "react-icons/md";
 import ClipboardMenu from "./ClipboardMenu";
 import DeleteMenu from "./DeleteMenu";
 import SelectMenu from "./SelectMenu";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { StateContext } from "../Contexts";
 import { extraSlots as _extraSlots } from "../utils";
 import { styled, useTheme } from '@mui/material/styles';
-import { Fab, IconButton, Paper as MuiPaper, Tooltip } from "@mui/material";
-import ToolButton, { getTooltipSide, toolButtonStyle } from "./ToolButton";
+import { Box, Fab, IconButton, Paper as MuiPaper, Tooltip } from "@mui/material";
+import ToolButton, { getTooltipSide, toolButtonStyle, UndoButton } from "./ToolButton";
 import ExtraButton from "./ExtraButton";
 
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialIcon from '@mui/material/SpeedDialIcon';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
-import UndoIcon from '@mui/icons-material/Undo';
 
 var tapHolding = false
 var touchHoldTimer = null
@@ -47,85 +45,85 @@ function Toolbar() {
     const { side } = state
     const [, doReload] = useState()
     const theme = useTheme()
-
-    function undoOnTouchHold() {
-        if (tapHolding) {
-            redid = true
-            dispatch('redo')
-            tapHolding = false
-        }
-    }
-
-    function undoOnTouchStart() {
-        setTimeout(() => tapHolding = true, 10)
-        touchHoldTimer = setTimeout(undoOnTouchHold, state.holdTapTimeMS)
-    }
-
-    function undoOnTouchEnd() {
-        clearTimeout(touchHoldTimer)
-        tapHolding = false
-        if (!redid) {
-            dispatch('undo')
-        }
-        redid = false
-    }
-
-    function getAlignmentCoords(ref) {
-        const rect = ref.current.getBoundingClientRect()
-        switch (side) {
-            case 'right': return { right: rect.right, top: rect.top }
-            case 'left': return { left: rect.left, top: rect.top }
-            case 'bottom': return { bottom: rect.bottom, left: rect.left }
-            case 'top': return { top: rect.top, left: rect.left }
-        }
-    }
+    const numToolButtons = 13
+    const vertical = ['top', 'bottom'].includes(side)
+    const horizontal = !vertical
 
     // Reload this component when the window resizes, so extraSlots updates
-    window.addEventListener('resize', doReload)
+    useEffect(() => {
+        window.addEventListener('resize', doReload)
+        return () => window.removeEventListener('resize', doReload)
+    }, [])
 
     let style = {}
+    // This creates an empty space on the appropriate along the entire side of the screen
     switch (side) {
-        case 'right': style = { right: '0px' }
-        case 'left':
-            style = {
-                ...style,
-                flexDirection: 'column-reverse',
-                height: '97%',
-            }
-            break
-        case 'bottom': style = { bottom: "0px", }
-        case 'top':
-            style = {
-                ...style,
-                flexDirection: 'row',
-                width: '97%',
-            }
+        case 'right': style = {
+            right: 0,
+            width: 0,
+            height: '100%',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+        }; break;
+        case 'left': style = {
+            left: 0,
+            width: 0,
+            height: '100%',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+        }; break;
+        case 'bottom': style = {
+            bottom: 0,
+            width: '100%',
+            height: 0,
+            justifyContent: 'center',
+            alignItems: 'flex-end',
+        }; break;
+        case 'top': style = {
+            top: 0,
+            width: '100%',
+            height: 0,
+            justifyContent: 'center',
+            alignItems: 'flex-start',
+        }; break;
     }
     const extraSlots = _extraSlots(state)
 
     // Because the repeat menu is on the sides, if the repeat menu is open, make sure we're not on the side so we can close it again
-    const horizontal = ['left', 'right'].includes(side)
-    const vertical = !horizontal //['top', 'bottom'].includes(side)
     if (state.openMenus.repeat && state.mobile && horizontal)
         style = {
             flexDirection: 'row',
             width: '97%',
         }
     // Returns the Toolbar, as well as all the menus
-    const toolbar = <>
+    const toolbar = <Box sx={{
+        display: 'flex',
+        position: 'absolute',
+        ...style,
+    }}>
         <MuiPaper id='menu-selector-mobile' elevation={4} sx={{
-            padding: 1,
+            px: vertical ? .5 : {xs: 1, sm: 1.5, md: 2, lg: 2, xl: 2},
+            py: vertical ? {xs: 1, sm: 1.5, md: 2, lg: 2, xl: 2} : .5,
+            display: 'flex',
+            // TODO: I can't decide if this should be 'row' or 'row-reverse'
+            flexDirection: vertical ? 'row-reverse' : 'column-reverse',
             margin: 1,
+            // p: 1,
             position: 'absolute',
-            borderRadius: 4,
+            // Don't allow the user to start lines between the buttons
+            pointerEvents: 'all',
+            width: 'min-content',
+            height: 'min-content',
+            cursor: 'pointer',
+            borderRadius: theme.shape.borderRadius,
             // backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
             backgroundColor: theme.palette.background.paper,
+            '& .tool-button': {
+                mx: vertical ? 1 : 0,
+                my: vertical ? 0 : 1,
+            },
             // backgroundColor: theme.palette.mode === 'dark' ? theme.darken(theme.palette.primary.dark, 0.1) : theme.lighten(theme.palette.primary.light, 0.1),
             // backgroundColor: theme.palette.primary.main,
-            display: 'flex',
-            justifyContent: 'space-between',
-            pointerEvents: 'none',
-            ...style,
         }}>
             {extraSlots < 5 && <ToolButton menu="extra" id="extra-tool-button" disableTooltip={state.openMenus.extra} />}
             {/* This is the button which is dynamically set in settings */}
@@ -138,18 +136,7 @@ function Toolbar() {
             {extraSlots >= 1 && <ToolButton menu="repeat" id="repeat-tool-button" />}
             <ToolButton menu="color" id="color-tool-button" />
             {/* Undo button */}
-            <Tooltip title="Undo" arrow placement={getTooltipSide(state.side, false)}>
-                <IconButton onTouchStart={undoOnTouchStart}
-                    onTouchEnd={undoOnTouchEnd}
-                    // So it works in desktop mode as well
-                    onClick={() => dispatch({ action: "undo" })}
-                    id="undo-button"
-                    className="menu-toggle-button-mobile"
-                    sx={toolButtonStyle}
-                >
-                    <UndoIcon />
-                </IconButton>
-            </Tooltip>
+            <UndoButton />
             <ToolButton menu="mirror" id="mirror-tool-button" />
             <ToolButton menu="select" id="select-tool-button" />
             <ToolButton menu="clipboard" id="clipboard-tool-button" />
@@ -157,7 +144,7 @@ function Toolbar() {
             {/* The menu button in the corner */}
             <ToolButton menu="main" />
         </MuiPaper>
-    </>
+    </Box>
 
     const fab = <Fab
         sx={{

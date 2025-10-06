@@ -11,54 +11,13 @@ import { useTheme } from "@mui/material/styles";
 export default function MiniMenu({menu, children}){
     const {state, dispatch} = useContext(StateContext)
     const {side} = state
-    const theme = useTheme()
+    // const theme = useTheme()
 
-    let placement = 'bottom-start'
-    let transform = 'bottom-start'
-    switch (side) {
-        case 'right':
-            placement = 'right-start';
-            transform = 'right-start'
-            break;
-        // props = {
-        //     anchorOrigin: {vertical: "top", horizontal: "left"},
-        //     transformOrigin: {vertical: "top", horizontal: "right"}
-        // }; break;
-        case 'left':
-            placement = 'left-start';
-            transform = 'left-start'
-            break;
-        // props = {
-        //     anchorOrigin: {vertical: "top", horizontal: "right"},
-        //     transformOrigin: {vertical: "top", horizontal: "left"}
-        // }; break;
-        case 'bottom':
-            placement = 'bottom-start';
-            transform = 'bottom-start'
-            break;
-        // props = {
-        //     anchorOrigin: {vertical: "top", horizontal: "center"},
-        //     transformOrigin: {vertical: "bottom", horizontal: "center"}
-        // }; break;
-        case 'top':
-            placement = 'top-start';
-            transform = 'top-start'
-            break;
-        // props = {
-        //     anchorOrigin: {vertical: "bottom", horizontal: "center"},
-        //     transformOrigin: {vertical: "top", horizontal: "center"}
-        // }; break;
-    }
-
-    // const placementMap = {
-    //   top: { left: 'top-start', center: 'top', right: 'top-end' },
-    //   bottom: { left: 'bottom-start', center: 'bottom', right: 'bottom-end' },
-    //   left: { top: 'left-start', center: 'left', bottom: 'left-end' },
-    //   right: { top: 'right-start', center: 'right', bottom: 'right-end' },
-    // };
+    let placement = `${side}-start`
 
     const el = document.getElementById(`${menu}-tool-button`)
-    // Don't render the menu if the button doesn't exist (it defaults to top left corner)
+
+    // Don't render the menu if the button doesn't exist (it would otherwise default to top left corner)
     if (!el){
         return null
     }
@@ -68,28 +27,24 @@ export default function MiniMenu({menu, children}){
         onClose={() => dispatch({action: "menu", close: menu})}
         placement={placement}
         sx={{zIndex: 2}}
-        modifiers={[
-          {
+        modifiers={[{
             name: 'transformOrigin',
             enabled: true,
             phase: 'write',
             fn({ state }) {
-              // emulate Popover's transformOrigin
-              state.styles.popper.transformOrigin = transform;
-                // `${transform.vertical} ${transform.horizontal}`;
+                // emulate Popover's transformOrigin
+                state.styles.popper.transformOrigin = placement;
             },
-          },
-        ]}
-        // {...props}
+        }]}
       >
-        <Paper
-        sx={{
+        <Paper sx={{
             p: 1,
+            // This value relates to the Toolbar padding value
+            // I'm honestly not sure why these values work, but they do?
+            m: {xs: 1, sm: 1.5, md: .5, lg: .5, xl: .5},
             width: "max-content",
-            // color: theme.palette.secondary.contrastText,
-            // bgcolor: theme.darken(theme.alpha(theme.palette.primary.main, .95), .2),
         }}>
-          {children}
+            {children}
         </Paper>
       </Popper>
 }

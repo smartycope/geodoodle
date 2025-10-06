@@ -1,4 +1,3 @@
-import "../styling/ExtraMenu.css"
 import {StateContext} from "../Contexts";
 import {useContext} from "react";
 import ExtraButton from "./ExtraButton";

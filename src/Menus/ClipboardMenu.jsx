@@ -1,4 +1,3 @@
-import "../styling/MiniControlsMenu.css"
 import {useContext} from "react";
 import {StateContext} from "../Contexts";
 import MiniMenu from "./MiniMenu";

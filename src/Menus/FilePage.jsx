@@ -1,5 +1,4 @@
 import { useContext, useState } from 'react';
-import "../styling/FileMenu.css"
 import { IoClose } from "react-icons/io5";
 import { IoMdDownload } from "react-icons/io";
 import { MdOutlineTabUnselected, MdUpload } from "react-icons/md";
@@ -30,6 +29,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import FolderIcon from '@mui/icons-material/Folder';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { getSaves, clearSaves, generateName } from '../fileUtils.jsx';
+import { Checkbox } from '@mui/material';
 
 function FileInput({ label = "Upload File", onChange, accept, multiple }) {
     const handleChange = (e) => {

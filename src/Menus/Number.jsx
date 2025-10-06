@@ -29,14 +29,12 @@ export default function ({
 }){
     const reactid = React.useId();
     const reactinputid = React.useId();
-    id = id || reactid;
-    inputId = inputId || reactinputid;
     const theme = useTheme()
-    // It works, don't touch it.
-    if (textColor === undefined && theme.palette.mode === 'light')
-        textColor = theme.palette.primary.contrastText
-    if (numberColor === undefined)
-        numberColor = textColor
+
+    id ||= reactid
+    inputId ||= reactinputid
+    textColor ||= theme.palette.text.primary
+    numberColor ||= textColor
 
     if (props.snapOnStep && props.value && props.step)
         props.value = Math.round(props.value * 10**props.step) / 10**props.step
@@ -87,8 +85,7 @@ export default function ({
                     borderBottom: vertical ? 'none' : inputBorder,
                     borderLeft: vertical ? inputBorder : 'none',
                     borderRight: vertical ? inputBorder : 'none',
-                    backgroundColor: theme.palette.background.default,
-                    opacity: bgAlpha,
+                    backgroundColor: theme.alpha(theme.palette.background.default, bgAlpha),
                 }}/>
             </NumberField.ScrubArea>
             <NumberField.Increment className={styles.Increment} onClick={onPlus} style={{

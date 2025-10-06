@@ -1,5 +1,3 @@
-import "../styling/MiniControlsMenu.css"
-
 import { GiNuclear } from "react-icons/gi";
 import { MdDelete } from "react-icons/md";
 import { MdDeleteForever } from "react-icons/md";

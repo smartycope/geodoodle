@@ -1,4 +1,4 @@
-import {mobileAndTabletCheck} from "../utils";
+import {isMobile} from "../utils";
 
 const LOAD_DELAY = 10
 
@@ -10,7 +10,7 @@ const tour = _dispatch => {
         action: () => _dispatch(args)
     })
     const menu = args => dispatch({action: "menu", ...args})
-    const mobile = mobileAndTabletCheck()
+    const mobile = isMobile()
 
     return [
         {content: <>Welcome to GeoDoodle! This is a doodle program, but <em>not</em> a drawing program. All the lines are intended to line up with the dots. This lets you repeat patterns in interesting ways.</>},

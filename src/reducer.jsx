@@ -15,7 +15,7 @@ import * as actions from './actions'
 //                 {action: "...", foo: "bar"}
 // "..."        -> {action: "..."}
 // {foo: "bar"} -> {action: "set_manual", foo: "bar"}
-export default function reducer(state, data){
+export default function(state, data){
     // Some convenience parameter handling
     if (typeof data === "string")
         data = {action: data}
@@ -38,7 +38,11 @@ export default function reducer(state, data){
             newState.reloadRequired = false
             // I can't think of a way this would cause a problem, though it is suspicious
             // This just fakes an event that doesn't do anything in order to trigger a re-render
-            setTimeout(() => window.dispatchEvent(new Event('resize')), 1)
+            // TODO: this stopped working and I don't know why
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'))
+                console.log("reloaded")
+            }, 10)
         }
 
         if (saveSettingActions.includes(data.action))

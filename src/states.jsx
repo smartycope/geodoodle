@@ -1,14 +1,13 @@
-import { mobileAndTabletCheck } from "./utils"
 import options from "./options"
 import { viewportWidth, viewportHeight, START_DEBUGGING, MIRROR_AXIS, MIRROR_TYPE, MIRROR_ROT } from "./globals"
 import Point from "./helper/Point"
 import Line from "./helper/Line"
-import { defaultTrellisControl } from "./utils"
+import { defaultTrellisControl, isMobile as getIsMobile } from "./utils"
 import Dist from "./helper/Dist"
 import {generateName} from "./fileUtils"
 
 export default function getInitialState(){
-    const isMobile = mobileAndTabletCheck()
+    const isMobile = getIsMobile()
     const state = {
         mobile: isMobile,
         // 0 indexed
@@ -114,6 +113,9 @@ export default function getInitialState(){
         enableGestureScale: options.enableGestureScale,
         inTour: false,
         defaultToMemorableNames: options.defaultToMemorableNames,
+
+        // TODO: Not currently implemented
+        cursorColor: options.cursorColor,
 
         // true if the current pattern has unsaved edits
         saved: false,
