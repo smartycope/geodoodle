@@ -299,10 +299,10 @@ export function Cursor(){
             stroke={options.cursorColor}
             fill={options.mirrorColor}
             // Make it filled if we're cursor rotating
-            fillOpacity={Number(
+            fillOpacity={
                 (mirroring || openMenus.mirror) &&
                 mirrorType === MIRROR_TYPE.CURSOR &&
-                [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod))
+                [MIRROR_METHOD.ROTATE, MIRROR_METHOD.BOTH].includes(mirrorMethod) ? 1 : 0
             }
             key='cursor'
         />,

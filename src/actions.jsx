@@ -400,6 +400,7 @@ export const set_manual = (state, data) => {
     return data
 }
 
+// This function defines how all the menus & pages interact with each other
 const miniMenus = ['extra', 'color', 'mirror', 'select', 'clipboard', 'delete']
 var savedMiniMenus = {}
 export const menu = (state, {toggle, open, close}) => {
@@ -416,6 +417,7 @@ export const menu = (state, {toggle, open, close}) => {
     // Only allow one mini menu to be open at a time
     if (((open !== undefined && miniMenus.includes(open)) ||
         (toggle !== undefined && copy[toggle] && miniMenus.includes(toggle)))
+        // && open !== 'repeat' && toggle !== 'repeat'
     ){
         const setFalse = miniMenus.filter(i => i !== open && i !== toggle)
         Object.keys(copy).forEach(key => {
@@ -427,7 +429,9 @@ export const menu = (state, {toggle, open, close}) => {
     if (close === 'main' || (toggle === 'main' && !copy[toggle])){
         savedMiniMenus = {...copy}
         Object.keys(copy).forEach(key => {
-            copy[key] = false
+            // Toolbar and repeat menus are independent of each other
+            if (key !== 'repeat')
+                copy[key] = false
         })
     }
 

@@ -8,6 +8,7 @@ import Dist from "./helper/Dist";
 import Poly from "./helper/Poly";
 import {name as nameGenerator} from "naampje";
 import {localStorageName, localStorageSettingsName} from "./globals";
+import getInitialState from "./states";
 
 // Serializes the pattern into an SVG string
 export function serializePattern(state, selectedOnly=false, transform=''){

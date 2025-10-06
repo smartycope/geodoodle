@@ -204,8 +204,10 @@ function debugState(state){
         ],
         openMenus: {
             ...state.openMenus,
-            repeat: true
-        }
+            repeat: true,
+            main: false,
+        },
+        debug: false,
     }
 }
 
