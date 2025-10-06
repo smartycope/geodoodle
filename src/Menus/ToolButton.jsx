@@ -1,16 +1,14 @@
-import React from 'react'
+import { forwardRef } from 'react'
 import { useTheme } from '@mui/material/styles';
 import { useContext } from 'react';
 import { StateContext } from '../Contexts';
 import { IconButton, Tooltip } from '@mui/material';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import NavigationIcon from '@mui/icons-material/Navigation';
 import SaveIcon from '@mui/icons-material/Save';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HelpIcon from '@mui/icons-material/Help';
 import AppsIcon from '@mui/icons-material/Apps';
-import TabUnselectedIcon from '@mui/icons-material/TabUnselected';
 import HighlightAltIcon from '@mui/icons-material/HighlightAlt';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
@@ -38,7 +36,6 @@ export const toolButtonStyle = (theme) => ({
     // color: theme.palette.primary.main,
     // color: theme.palette.mode === 'dark' ? theme.palette.primary.contrastText : theme.palette.primary.dark,
     // color: theme.palette.background.paper,
-    // color: theme.palette.a,
 })
 
 export const iconMap = {
@@ -76,7 +73,7 @@ export const getTooltipSide = (side, inExtraMenu) => {
     }
 }
 
-const ToolButton = React.forwardRef(function ({menu, onClick, inExtraMenu, disableTooltip, ...props}, ref){
+const ToolButton = forwardRef(({menu, onClick, inExtraMenu, disableTooltip, ...props}, ref) => {
     const theme = useTheme()
     const {state, dispatch} = useContext(StateContext)
 

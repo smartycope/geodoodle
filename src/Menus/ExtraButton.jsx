@@ -9,7 +9,7 @@ export const extraButtons = {
     redo: {action: 'redo'},
 }
 
-export default function ExtraButton({mainMenu=false, style}){
+export default function ExtraButton({style}){
     const {state, dispatch} = useContext(StateContext)
 
     return <ToolButton

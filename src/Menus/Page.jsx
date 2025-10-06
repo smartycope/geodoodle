@@ -4,10 +4,8 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import {useAlignWithElement} from "./MenuHooks";
-import { Box, Menu, Popper, Paper, IconButton } from "@mui/material";
+import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { useContext } from "react";
 import { StateContext } from "../Contexts";
@@ -17,9 +15,8 @@ import { useTheme } from "@mui/material/styles";
 
 export default function Page({menu, title, children, sx}){
     const {state, dispatch} = useContext(StateContext)
-    const {side} = state
     if (title === undefined) title = menu.charAt(0).toUpperCase() + menu.slice(1)
-    const theme = useTheme()
+    // const theme = useTheme()
 
     return (
         <Dialog
@@ -29,29 +26,7 @@ export default function Page({menu, title, children, sx}){
             maxWidth="md"
             // fullScreen
             scroll="paper"
-            // slotProps={{
-            //     paper: {
-            //         sx: {
-            //             position: "absolute",
-            //             top: "50%",
-            //             left: "50%",
-            //             transform: "translate(-50%, -50%)",
-            //             m: 0, // remove default margin if needed
-            //         },
-            //     },
-            // }}
-            sx={{
-                ...sx,
-                // '& .MuiDialog-container': {
-                //     alignItems: 'center',
-                //     justifyContent: 'center',
-                // },
-                // '& .MuiPaper-root': {
-                //     margin: 2,
-                //     width: '100%',
-                //     maxWidth: '90vw',
-                // }
-            }}
+            sx={sx}
         >
             <IconButton
           aria-label="close"

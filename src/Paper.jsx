@@ -3,11 +3,11 @@ import {useEffect, useReducer, useRef, useMemo} from 'react';
 import { PREVENT_LOADING_STATE } from './globals'
 import reducer from './reducer';
 import Toolbar from './Menus/Toolbar';
-import {deserializeState, loadPreservedState, validateStorage} from './fileUtils';
+import {loadPreservedState} from './fileUtils';
 import {StateContext} from './Contexts';
 import generateTheme from "./styling/theme";
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme, ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import {
     GlowEffect,
     DebugInfo,

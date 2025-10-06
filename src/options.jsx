@@ -1,7 +1,5 @@
 import {viewportWidth, viewportHeight} from "./globals"
-import Point from "./helper/Point"
 
-// TODO a lot (maybe all) of this should be moved to CSS
 const defaultOptions = {
     cursorColor: "black",
     scalex: 20,

@@ -40,7 +40,6 @@ export var undoStack = []
 export var redoStack = []
 
 // For debugging
-// ChatGPT said this works
 // eslint-disable-next-line no-undef
 export const START_DEBUGGING = process.env.NODE_ENV === 'development'
 export const PREVENT_LOADING_STATE = START_DEBUGGING

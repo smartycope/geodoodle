@@ -3,6 +3,8 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useRef, useState } from 'react';
 import { IconButton, Popover, Stack, Typography } from '@mui/material';
 
+// NOTE: nothing actually uses this. I made it, and then decided to use something else
+// TODO: delete this once branch 220-* is merged
 export function Helper({children, helperText}){
     const [open, setOpen] = useState(false);
     const buttonRef = useRef()

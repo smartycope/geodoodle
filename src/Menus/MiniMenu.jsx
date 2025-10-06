@@ -2,7 +2,6 @@
 // by the toolbar buttons)
 
 import React from "react";
-import {useAlignWithElement} from "./MenuHooks";
 import { Box, Menu, Popper, Paper } from "@mui/material";
 import { useContext } from "react";
 import { StateContext } from "../Contexts";

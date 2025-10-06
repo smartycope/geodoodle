@@ -1,8 +1,8 @@
-import { Number as NumberBase } from '../Menus/MenuUtils';
+import Number from '../Menus/Number';
 
 export default {
-  title: 'Components/NumberBase',
-  component: NumberBase,
+  title: 'Components/Number',
+  component: Number,
   globals: {
     backgrounds: 'dark',
   },

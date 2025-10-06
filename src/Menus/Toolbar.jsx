@@ -24,45 +24,24 @@ import { MdOutlineTabUnselected } from "react-icons/md";
 import ClipboardMenu from "./ClipboardMenu";
 import DeleteMenu from "./DeleteMenu";
 import SelectMenu from "./SelectMenu";
-import React, { useContext, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import { StateContext } from "../Contexts";
 import { extraSlots as _extraSlots } from "../utils";
-import PaletteIcon from '@mui/icons-material/Palette';
 import { styled, useTheme } from '@mui/material/styles';
-import Button from '@mui/material/Button';
-import { AppBar, Box, Fab, IconButton, Paper as MuiPaper, Tooltip } from "@mui/material";
-import { lighten, alpha, darken } from '@mui/material/styles';
+import { Fab, IconButton, Paper as MuiPaper, Tooltip } from "@mui/material";
 import ToolButton, { getTooltipSide, toolButtonStyle } from "./ToolButton";
 import ExtraButton from "./ExtraButton";
 
-// import * as React from 'react';
-// import Box from '@mui/material/Box';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialIcon from '@mui/material/SpeedDialIcon';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
-// import FileCopyIcon from '@mui/icons-material/FileCopyOutlined';
-// import SaveIcon from '@mui/icons-material/Save';
-// import PrintIcon from '@mui/icons-material/Print';
-// import ShareIcon from '@mui/icons-material/Share';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import NavigationIcon from '@mui/icons-material/Navigation';
-import SaveIcon from '@mui/icons-material/Save';
-import SettingsIcon from '@mui/icons-material/Settings';
-import HelpIcon from '@mui/icons-material/Help';
-import AppsIcon from '@mui/icons-material/Apps';
-import TabUnselectedIcon from '@mui/icons-material/TabUnselected';
-import HighlightAltIcon from '@mui/icons-material/HighlightAlt';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ContentPasteIcon from '@mui/icons-material/ContentPaste';
-import NearMeIcon from '@mui/icons-material/NearMe';
 import UndoIcon from '@mui/icons-material/Undo';
 
 var tapHolding = false
 var touchHoldTimer = null
 var redid = false
 
-// TODO: color menu shoudl go over nav menu
 function Toolbar() {
     const { state, dispatch } = useContext(StateContext)
     const { side } = state
@@ -151,7 +130,7 @@ function Toolbar() {
             {extraSlots < 5 && <ToolButton menu="extra" id="extra-tool-button" disableTooltip={state.openMenus.extra} />}
             {/* This is the button which is dynamically set in settings */}
             {/* TODO: not yet reviewed for Mui compatibility */}
-            {extraSlots >= 3 && <ExtraButton mainMenu={true} />}
+            {extraSlots >= 3 && <ExtraButton />}
             {extraSlots >= 5 && <ToolButton menu="help" id="help-tool-button" />}
             {extraSlots >= 5 && <ToolButton menu="settings" id="settings-tool-button" />}
             {extraSlots >= 4 && <ToolButton menu="file" id="file-tool-button" />}
@@ -207,8 +186,6 @@ function Toolbar() {
         {state.openMenus.main ? toolbar : fab}
     </>
 }
-
-
 
 
 const StyledSpeedDial = styled(SpeedDial)(({ theme }) => ({
@@ -357,7 +334,7 @@ function SpeedDialToolbar() {
             {extraSlots < 5 && <ToolButton toggleMenu="extra" icon={<BsGrid3X3GapFill />} />}
             {/* This is the button which is dynamically set in settings */}
             {/* TODO: not yet reviewed for Mui compatibility */}
-            {extraSlots >= 3 && <ExtraButton mainMenu={true} />}
+            {extraSlots >= 3 && <ExtraButton />}
             {extraSlots >= 5 && <ToolButton toggleMenu="help" icon={<MdHelp />} />}
             {extraSlots >= 5 && <ToolButton toggleMenu="settings" icon={<IoMdSettings />} />}
             {extraSlots >= 4 && <ToolButton toggleMenu="file" icon={<FaSave />} />}
@@ -385,4 +362,4 @@ function SpeedDialToolbar() {
     </>
 }
 
-export default Toolbar;
+export default Toolbar

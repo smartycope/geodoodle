@@ -1,7 +1,8 @@
 import {useContext, useEffect, useState} from "react";
 import "../styling/RepeatMenu.css"
 import { MIRROR_AXIS, MIRROR_METHOD } from "../globals";
-import { MirrorAxisIcon, Number } from "./MenuUtils"
+import { MirrorAxisIcon } from "./MirrorIcons"
+import Number from "./Number"
 import {defaultTrellisControl, incrementMirrorAxis} from "../utils";
 
 import { FaGripLinesVertical } from "react-icons/fa6";

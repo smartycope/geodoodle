@@ -5,7 +5,7 @@ import { IoMdDownload } from "react-icons/io";
 import { MdOutlineTabUnselected, MdUpload } from "react-icons/md";
 import { FaSave } from "react-icons/fa";
 import { IoIosDownload } from "react-icons/io";
-import { Checkbox, Number } from './MenuUtils.jsx';
+import Number from './Number.jsx';
 import { GiNuclear } from 'react-icons/gi';
 import { MdOutlineFileCopy } from "react-icons/md";
 import { FaMobileScreenButton } from "react-icons/fa6";

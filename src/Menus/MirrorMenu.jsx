@@ -2,10 +2,9 @@ import {useContext, useEffect} from "react";
 import { MIRROR_METHOD } from "../globals";
 import { FaGripLinesVertical } from "react-icons/fa6";
 import {incrementMirrorAxis, incrementMirrorMethod, incrementMirrorType} from "../utils";
-import {Checkbox, MirrorAxisIcon, MirrorMethodIcon, MirrorTypeIcon} from "./MenuUtils";
+import {MirrorAxisIcon, MirrorMethodIcon, MirrorTypeIcon} from "./MirrorIcons";
 import "../styling/MirrorMenu.css"
 import {StateContext} from "../Contexts";
-import {useAlignWithElement} from "./MenuHooks";
 import MiniMenu from "./MiniMenu";
 import { ListItemIcon, MenuItem } from "@mui/material";
 
