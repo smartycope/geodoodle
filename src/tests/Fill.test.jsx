@@ -30,11 +30,13 @@ import {
 import { toggle_fill_mode } from '../actions';
 import Line from '../helper/Line';
 import Point from '../helper/Point';
-
+import { validateStorage } from '../fileUtils';
 
 // In between each tests, reset the localStorage
 beforeEach(() => {
   localStorage.clear();
+  // Then readd whatever we need
+  validateStorage();
 });
 
 describe('Fill', () => {

@@ -112,7 +112,7 @@ export const keybindings = {
     'shift+`': {action: 'toggle_debugging'},
 }
 
-// Only these can be undone, all other actions are ignored by undo/redo
+// Only these can be undone, all othellr actions are ignored by undo/redo
 export const reversibleActions = [
     'go_home',
     'clear',
@@ -120,14 +120,12 @@ export const reversibleActions = [
     'paste',
     'delete_selected',
     'delete_line',
-    'delete',
+    'delete_at_cursor',
     'add_line',
     'continue_line',
     'add_bound',
-    'upload',
+    'upload_file', // contested
     'load_local',
-    'add_common_color',
-    'set_to_common_color',
     'fill',
     'clear_fill',
 ]
@@ -141,17 +139,17 @@ export const saveSettingActions = [
     'clear_bounds',
     'delete_selected',
     'delete_line',
-    'delete',
+    'delete_at_cursor',
     'add_line',
     'continue_line',
     'add_bound',
     'undo',
     'redo',
     'paste',
-    'add_common_color',
-    `set_to_common_color`,
-    'toggle partials',
-    "toggle_dark_mode",
+    'set_stroke_width',
+    'set_dash',
+    'set_color',
+    'toggle_partials',
     'fill',
     'clear_fill',
 ]
@@ -161,7 +159,7 @@ export const reversible = [
     'lines',
     'curLinePos',
     'bounds',
-    'trellis',
+    // 'trellis', // contested
     'eraser',
     'clipboard',
     'filledPolys',
@@ -209,8 +207,5 @@ export const saveable = [
     'translation',
     "scalex",
     "scaley",
-    "rotate",
-    "shearx",
-    "sheary"
 ]
 

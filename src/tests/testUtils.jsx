@@ -7,6 +7,7 @@ import Line from '../helper/Line';
 import Poly from '../helper/Poly';
 import Point from '../helper/Point';
 import Dist from '../helper/Dist';
+import { validateStorage } from '../fileUtils';
 
 export function renderPaper(startPoint=[100, 100]) {
   const rendered = render(<Paper setDispatch={() => {}} />);
