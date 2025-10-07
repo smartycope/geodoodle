@@ -384,10 +384,6 @@ export function Menus(){
         {openMenus.mirror     && <MirrorMenu    menu="mirror" />}
         {openMenus.color      && <ColorMenu     menu="color" />}
         {openMenus.extra      && <ExtraMenu     menu="extra" />}
-        {openMenus.repeat     && <RepeatMenu    menu="repeat" />}
-        {openMenus.file       && <FilePage      menu="file" />}
-        {openMenus.settings   && <SettingsPage  menu="settings" />}
-        {openMenus.help       && <HelpPage      menu="help" />}
 
         {/* Pages */}
         {openMenus.navigation && <NavMenu />}

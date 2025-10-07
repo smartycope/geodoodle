@@ -48,6 +48,7 @@ function Toolbar() {
     const numToolButtons = 13
     const vertical = ['top', 'bottom'].includes(side)
     const horizontal = !vertical
+    const extraSlots = _extraSlots(state)
 
     // Reload this component when the window resizes, so extraSlots updates
     useEffect(() => {
@@ -56,38 +57,50 @@ function Toolbar() {
     }, [])
 
     let style = {}
+    let fabPos = {} // this entirely depends on the values of the MuiPaper flexDirection below
     // This creates an empty space on the appropriate along the entire side of the screen
     switch (side) {
-        case 'right': style = {
-            right: 0,
-            width: 0,
-            height: '100%',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-        }; break;
-        case 'left': style = {
-            left: 0,
-            width: 0,
-            height: '100%',
-            justifyContent: 'flex-start',
-            alignItems: 'center',
-        }; break;
-        case 'bottom': style = {
-            bottom: 0,
-            width: '100%',
-            height: 0,
-            justifyContent: 'center',
-            alignItems: 'flex-end',
-        }; break;
-        case 'top': style = {
-            top: 0,
-            width: '100%',
-            height: 0,
-            justifyContent: 'center',
-            alignItems: 'flex-start',
-        }; break;
+        case 'right':
+            style = {
+                right: 0,
+                width: 0,
+                height: '100%',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+            };
+            fabPos = { right: 0, top: 0 };
+            break;
+        case 'left':
+            style = {
+                left: 0,
+                width: 0,
+                height: '100%',
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+            };
+            fabPos = { left: 0, top: 0 };
+            break;
+        case 'bottom':
+            style = {
+                bottom: 0,
+                width: '100%',
+                height: 0,
+                justifyContent: 'center',
+                alignItems: 'flex-end',
+            };
+            fabPos = { right: 0, bottom: 0 };
+            break;
+        case 'top':
+            style = {
+                top: 0,
+                width: '100%',
+                height: 0,
+                justifyContent: 'center',
+                alignItems: 'flex-start',
+            };
+            fabPos = { right: 0, top: 0 };
+            break;
     }
-    const extraSlots = _extraSlots(state)
 
     // Because the repeat menu is on the sides, if the repeat menu is open, make sure we're not on the side so we can close it again
     if (state.openMenus.repeat && state.mobile && horizontal)
@@ -106,7 +119,7 @@ function Toolbar() {
             py: vertical ? {xs: 1, sm: 1.5, md: 2, lg: 2, xl: 2} : .5,
             display: 'flex',
             // TODO: I can't decide if this should be 'row' or 'row-reverse'
-            flexDirection: vertical ? 'row-reverse' : 'column-reverse',
+            flexDirection: vertical ? 'row' : 'column-reverse',
             margin: 1,
             // p: 1,
             position: 'absolute',
@@ -151,9 +164,9 @@ function Toolbar() {
             // color: theme.palette.primary.dark,
             backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
             position: 'absolute',
-            top: '1rem',
-            right: '1rem',
             opacity: 0.75,
+            margin: 2,
+            ...fabPos,
             // bgcolor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
             bgcolor: theme.palette.primary.main,
             ":hover": {
@@ -164,14 +177,11 @@ function Toolbar() {
 
         }}
         onClick={() => dispatch({ action: "menu", toggle: "main" })}
-        key="menu-button"
     >
         <MenuRoundedIcon />
     </Fab>
 
-    return <>
-        {state.openMenus.main ? toolbar : fab}
-    </>
+    return state.openMenus.main ? toolbar : fab
 }
 
 

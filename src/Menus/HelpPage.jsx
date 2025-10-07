@@ -1,22 +1,19 @@
 import { InTourContext, StateContext } from "../Contexts";
 import { useContext, useState } from "react";
 import Page from "./Page";
-import { Box, Button, Link, Typography, Stack } from "@mui/material";
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
+import { Box, Button, Link, Typography, Tabs } from "@mui/material";
+// import TabContext from '@mui/lab/TabContext';
+// import TabList from '@mui/lab/TabList';
+// import TabPanel from '@mui/lab/TabPanel';
 import Tab from '@mui/material/Tab';
 import InfoIcon from '@mui/icons-material/Info';
 import HelpIcon from '@mui/icons-material/Help';
 import QuizIcon from '@mui/icons-material/Quiz';
-
-function HelpContent() {
-    return <>
-    </>
-}
+// import TabPanel from './TabPanel';
+import TabManager from './TabManager';
 
 function AboutContent() {
-    return <Stack>
+    return <>
         <Typography>
             This is a drawing program that emulates doodling on graph paper.
             All the lines are intended to line up with the dots.
@@ -59,7 +56,12 @@ function AboutContent() {
                 Start full tour
             </Button>
         </Box>
-    </Stack>
+    </>
+}
+
+function HelpContent() {
+    return <>
+    </>
 }
 
 function FaqContent() {
@@ -67,39 +69,15 @@ function FaqContent() {
     </>
 }
 
-function HelpPage() {
-    const { dispatch } = useContext(StateContext)
-    const setInTour = useContext(InTourContext)
-
-    const [value, setValue] = useState('1');
-
-    const handleChange = (event, newValue) => {
-        setValue(newValue);
-    };
-
+function HelpMenuTabbed() {
     return <Page menu='help' title='Welcome to GeoDoodle!'>
-        <Box sx={{ width: '100%', typography: 'body1' }}>
-            <TabContext value={value}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <TabList onChange={handleChange} aria-label="Download/Upload or Save/Load">
-                        <Tab label="About" value="1" icon={<InfoIcon />} iconPosition='start' />
-                        <Tab label="Help" value="2" icon={<HelpIcon />} iconPosition='start' />
-                        <Tab label="FAQ" value="3" icon={<QuizIcon />} iconPosition='start' />
-                    </TabList>
-                </Box>
-                <TabPanel value="1">
-                    {AboutContent()}
-                </TabPanel>
-                <TabPanel value="2">
-                    {HelpContent()}
-                </TabPanel>
-                <TabPanel value="3">
-                    {FaqContent()}
-                </TabPanel>
-            </TabContext>
-        </Box>
-
+        <TabManager tabs={[
+            { label: 'About', content: AboutContent() },
+            { label: 'Help', content: HelpContent() },
+            { label: 'FAQ', content: FaqContent() },
+        ]} />
     </Page>
 }
 
-export default HelpPage
+export default HelpMenuTabbed
+
