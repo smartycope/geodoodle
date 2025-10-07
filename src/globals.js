@@ -28,8 +28,8 @@ export const localStorageTourTakenName = "GeoDoodleTourTaken"
 // Mutable globals -- these are here so the vite HMR fast refresh will work. They should be in Paper.jsx
 
 // The only places this is touched, is in reducer.jsx in 'cursor moved' and events.jsx
-export var tapHolding = false
-export const setTapHolding = to => tapHolding = to
+// export var tapHolding = false
+// export const setTapHolding = to => tapHolding = to
 
 // If the visual viewport is not available, assume we're in a testing environment
 export const viewportWidth  = () => window ? window.visualViewport?.width || 1024 : 1024

@@ -13,7 +13,8 @@ import {
 } from './utils'
 import defaultOptions from './options'
 import {deserializePattern, download, image, serializePattern, saveLocally, loadLocally, clearSaves} from './fileUtils';
-import {setTapHolding} from './globals';
+// import {setTapHolding} from './globals';
+import {cursorPosChanged} from './events'
 import Point from './helper/Point';
 import Dist from './helper/Dist';
 import Line from './helper/Line';
@@ -28,7 +29,8 @@ export const cursor_moved = (state, {point}) => {
     // This is here so when a touch is being held, and has moved enough to move the cursor, it disables the hold action
     const newPos = point.align(state)
     if (!cursorPos.eq(newPos))
-        setTapHolding(false)
+        cursorPosChanged(newPos)
+        // setTapHolding(false)
 
     return {
         cursorPos: newPos,
