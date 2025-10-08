@@ -95,13 +95,16 @@ export function invertObject(obj){
 //     return check;
 // }
 
+// NOTE: this can be used anywhere. The state also has a state.mobile attribute. The difference is that state.mobile gets
+// updated once at the beginning (on refresh), and isMobile() is always accurate. Because users typically aren't changing
+// the device they're on, default to using state.mobile (simply because you don't have to re-calculate it) unless you to
+// have an updated value for some reason
 export function isMobile(){
     // If *either* dimension is small (in case the phone is sideways)
     const smallDim = 768
     const smallWidth = window.innerWidth <= smallDim
     const smallHeight = window.innerHeight <= smallDim
     // const phoneRatio = Math.abs(window.innerWidth - window.innerHeight) > Math.min(window.innerWidth, window.innerHeight) / 2
-    console.log(Math.min(window.innerWidth, window.innerHeight) / Math.max(window.innerWidth, window.innerHeight))
     const phoneRatio = Math.min(window.innerWidth, window.innerHeight) / Math.max(window.innerWidth, window.innerHeight) < .5
     // If the aspect ratio seems to indicate a phone, check if either dimension is small
     // Otherwise, both of them need to be small

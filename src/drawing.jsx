@@ -9,7 +9,7 @@ import Line from './helper/Line';
 import Point from './helper/Point';
 import { useContext, useEffect } from "react";
 import { StateContext } from "./Contexts";
-import { Snackbar, useTheme } from '@mui/material';
+import { Snackbar, SvgIcon, useTheme } from '@mui/material';
 
 import HelpPage from "./Menus/HelpPage"
 import ColorMenu from "./Menus/ColorMenu";
@@ -90,11 +90,13 @@ export function DebugPoint({name, point, decimals=undefined, yoff=0, color='blac
 }
 
 export function GlowEffect(){
+    const theme = useTheme()
+
     return <defs>
         {/* the "filterUnits="userSpaceOnUse" makes it so unsloped lines get rendered */}
         <filter id="glow" x="-1000%" y="-1000%" width="2000%" height="2000%" filterUnits="userSpaceOnUse">
             <feGaussianBlur in="SourceGraphic" stdDeviation=".3" result="blur" />
-            <feFlood floodColor={options.glowColor} floodOpacity="1" result="color" />
+            <feFlood floodColor={theme.palette.primary.glow} floodOpacity="1" result="color" />
             <feComposite in="color" in2="blur" operator="in" result="coloredBlur" />
             <feMerge>
                 <feMergeNode in="coloredBlur"/>
@@ -137,7 +139,7 @@ export function MirrorMetaLines(){
     const {x: cursorLinex, y: cursorLiney} = curLinePos === null ? {x:null, y:null} : curLinePos.asViewport(state)
     const half = getHalf(state)
     const {x: halfx, y: halfy} = half.asViewport(state)
-    // const theme = useTheme()
+    const theme = useTheme()
 
     function MetaLines({x, y, axis, rot, axisOpacity}){
         let lines = []
@@ -147,46 +149,49 @@ export function MirrorMetaLines(){
             lines.push(<line
                 x1={x} y1={0}
                 x2={x} y2="100%"
-                stroke={options.mirrorColor}
+                stroke={theme.palette.primary.mirror}
                 strokeOpacity={axisOpacity}
-                key={`mirror-metaline-origin-horz`}
+                key={`mmoh`}
             />)
         if (axis === MIRROR_AXIS.X || axis === MIRROR_AXIS.BOTH)
             lines.push(<line
                 x1={0} y1={y}
                 x2="100%" y2={y}
-                stroke={options.mirrorColor}
+                stroke={theme.palette.primary.mirror}
                 strokeOpacity={axisOpacity}
-                key={`mirror-metaline-origin- vert`}
+                key={`mmov`}
             />)
 
         // Rotation lines
-        if (rot === MIRROR_ROT.RIGHT)
-            lines.push(<g
-                color={options.mirrorColor}
-                key={`mirror-metaline-left`}
-                transform={`translate(${x-12} ${y-12}) scale(${scalex} ${scaley})`}
-            >
-                {MirrorRotIcon[MIRROR_ROT.RIGHT]}
-            </g>)
-        if (rot === MIRROR_ROT.STRAIGHT)
-            lines.push(<g
-                color={options.mirrorColor}
-                key={`mirror-metaline-straight`}
-                transform={`translate(${x-12} ${y-12}) scale(${scalex} ${scaley})`}
-            >
-                {MirrorRotIcon[MIRROR_ROT.STRAIGHT]}
-            </g>)
-        if (rot === MIRROR_ROT.QUAD)
-            lines.push(<g
-                color={options.mirrorColor}
-                key={`mirror-metaline-quad`}
-                transform={`translate(${x-12} ${y-12}) scale(${scalex} ${scaley})`}
-            >
-                {MirrorRotIcon[MIRROR_ROT.QUAD]}
-            </g>)
-
-        return <g key='mirror-metalines'>{lines}</g>
+        // NOTE: this breaks in the Brave browser specifically
+        if (!state.disableMirrorIcons || state.debug){
+            if (rot === MIRROR_ROT.RIGHT)
+                lines.push(<g
+                    color={theme.palette.primary.mirror}
+                    key={`mms`}
+                    transform={`translate(${x-12} ${y-12}) `}
+                >
+                    {MirrorRotIcon()[MIRROR_ROT.RIGHT]}
+                </g>)
+            if (rot === MIRROR_ROT.STRAIGHT)
+                lines.push(<g
+                    color={theme.palette.primary.mirror}
+                    key={`mms`}
+                    transform={`translate(${x-12} ${y-12}) `}
+                >
+                    {MirrorRotIcon()[MIRROR_ROT.STRAIGHT]}
+                </g>)
+            if (rot === MIRROR_ROT.QUAD)
+                lines.push(<g
+                    color={theme.palette.primary.mirror}
+                    // color={'red'}
+                    key={`mmq`}
+                    transform={`translate(${x-12} ${y-12}) `}
+                >
+                    {MirrorRotIcon()[MIRROR_ROT.QUAD]}
+                </g>)
+        }
+        return <g key='mm'>{lines}</g>
     }
 
     // Origin meta lines
@@ -196,10 +201,10 @@ export function MirrorMetaLines(){
         mirrorMetaLines.push(<circle
             cx={originx} cy={originy}
             r={scalex/6}
-            fill={options.mirrorColor}
+            fill={theme.palette.primary.mirror}
             opacity={.6}
             strokeOpacity="0"
-            key={`mirror-origin-${origin.hash()}`}
+            key={`mo-${origin.hash()}`}
         />)
 
         mirrorMetaLines.push(<MetaLines
@@ -208,7 +213,7 @@ export function MirrorMetaLines(){
             axis={axis}
             rot={rot}
             axisOpacity={.2}
-            key={`mirror-origin-lines-${origin.hash()}`}
+            key={`ml-${origin.hash()}`}
         />)
     }
 
@@ -219,7 +224,7 @@ export function MirrorMetaLines(){
             y={halfy}
             axis={mirrorAxis}
             rot={mirrorRot}
-            key="mirror-page"
+            key="mp"
         />)
 
     // Cursor metalines
@@ -229,10 +234,10 @@ export function MirrorMetaLines(){
             y={cursorLiney || cursory}
             axis={mirrorAxis}
             rot={mirrorRot}
-            key="mirror-cursor"
+            key="mc"
         />)
 
-    return <g id='mirror-meta-lines'>{mirrorMetaLines}</g>
+    return <g id='m'>{mirrorMetaLines}</g>
 }
 
 export function Eraser(){
@@ -245,7 +250,7 @@ export function Eraser(){
             y1={eraserSvg.y - scaley / 3 + translation.asInflated(state).y}
             x2={eraserSvg.x + scalex / 3 + translation.asInflated(state).x}
             y2={eraserSvg.y + scaley / 3 + translation.asInflated(state).y}
-            stroke={options.eraserColor}
+            stroke={theme.palette.primary.eraser}
             strokeWidth={options.eraserWidth}
             key="eraser1"
         />,
@@ -254,7 +259,7 @@ export function Eraser(){
             y1={eraserSvg.y - scaley / 3 + translation.asInflated(state).y}
             x2={eraserSvg.x - scalex / 3 + translation.asInflated(state).x}
             y2={eraserSvg.y + scaley / 3 + translation.asInflated(state).y}
-            stroke={options.eraserColor}
+            stroke={theme.palette.primary.eraser}
             strokeWidth={options.eraserWidth}
             key="eraser2"
         />

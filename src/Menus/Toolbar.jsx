@@ -58,6 +58,18 @@ function Toolbar() {
         return () => window.removeEventListener('resize', doReload)
     }, [])
 
+    const handleUndoClick = (e) => {
+        // prevent right-click from also triggering undo
+        if (e.type === "click" && e.button === 0) {
+          dispatch("undo");
+        }
+      };
+
+      const handleUndoContextMenu = (e) => {
+        e.preventDefault(); // prevent browser context menu
+        dispatch("redo");
+      };
+
     let style = {}
     let fabPos = {} // this entirely depends on the values of the MuiPaper flexDirection below
     // This creates an empty space on the appropriate along the entire side of the screen
@@ -120,6 +132,7 @@ function Toolbar() {
             // These intentionally get overridden by the mobile breakpoint
             // px: vertical ? .5 : {xs: 1, sm: 1.5, md: 2, lg: 2, xl: 2},
             // py: vertical ? {xs: 1, sm: 1.5, md: 2, lg: 2, xl: 2} : .5,
+            // TODO: should this be state.mobile?
             px: isMobile() ? .5 : 1,
             py: isMobile() ? .5 : 1,
             // [theme.breakpoints.desktop]: {
@@ -162,9 +175,10 @@ function Toolbar() {
             {extraSlots >= 1 && <ToolButton menu="repeat" />}
             <ToolButton menu="color" />
             {/* Undo button */}
-            <UndoButton />
+            {/* <UndoButton /> */}
+            <ToolButton menu="undo" onClick={handleUndoClick} onContextMenu={handleUndoContextMenu}/>
             <ToolButton menu="mirror" />
-            <ToolButton menu="select" />
+            {(state.mobile && state.bounds.length < 2) ? <ToolButton menu="add_bound" onClick={() => dispatch('add_bound')}/> : <ToolButton menu="select"/>}
             <ToolButton menu="clipboard" />
             <ToolButton menu="delete" />
             {/* The menu button in the corner */}
@@ -174,14 +188,15 @@ function Toolbar() {
 
     const fab = <Fab
         sx={{
-            // color: theme.palette.primary.dark,
-            backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
+            color: theme.palette.primary.contrast,
+            // backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
+            bgcolor: theme.alpha(theme.palette.primary.contrast, 0.1),
             position: 'absolute',
-            opacity: 0.75,
+            // opacity: 0.1,
             margin: 2,
             ...fabPos,
             // bgcolor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
-            bgcolor: theme.palette.primary.main,
+            // bgcolor: theme.palette.primary.main,
             ":hover": {
                 // TODO: I don't love this, it should be the same as the hover of the ToolButtons
                 backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
@@ -191,7 +206,7 @@ function Toolbar() {
         }}
         onClick={() => dispatch({ action: "menu", toggle: "main" })}
     >
-        <MenuRoundedIcon />
+        <MenuRoundedIcon sx={{ bgcolor: 'transparent' }}/>
     </Fab>
 
     return state.openMenus.main ? toolbar : fab

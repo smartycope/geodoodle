@@ -155,6 +155,8 @@ export default function getInitialState(){
         paperColor: options.paperColor,
         doubleTapTimeMS: options.doubleTapTimeMS,
         holdTapTimeMS: options.holdTapTimeMS,
+        // Some browsers (Brave, DuckDuckGo) don't display the mirror icons correctly
+        disableMirrorIcons: false,
 
         // Set to a string to show a toast. It will hide itself after options.toastDuration ms
         toast: null,

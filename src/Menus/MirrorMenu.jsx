@@ -71,9 +71,9 @@ export default function MirrorMenu() {
             {/* Rotate */}
             <ToggleIconButtonGroup
                 buttons={[
-                    { label: "90°",  icon: MirrorRotIcon[MIRROR_ROT.RIGHT], value: MIRROR_ROT.RIGHT },
-                    { label: "180°", icon: MirrorRotIcon[MIRROR_ROT.STRAIGHT], value: MIRROR_ROT.STRAIGHT },
-                    { label: "x4",   icon: MirrorRotIcon[MIRROR_ROT.QUAD], value: MIRROR_ROT.QUAD },
+                    { label: "90°",  icon: MirrorRotIcon()[MIRROR_ROT.RIGHT], value: MIRROR_ROT.RIGHT },
+                    { label: "180°", icon: MirrorRotIcon()[MIRROR_ROT.STRAIGHT], value: MIRROR_ROT.STRAIGHT },
+                    { label: "x4",   icon: MirrorRotIcon()[MIRROR_ROT.QUAD], value: MIRROR_ROT.QUAD },
                 ]}
                 labelInline
                 exclusive

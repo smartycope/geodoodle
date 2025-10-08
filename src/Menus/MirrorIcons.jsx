@@ -22,29 +22,29 @@ const xy = 12
 const r = 10
 const dash = r * Math.PI / 2
 const svgProps = {
-    // xmlns: "http://www.w3.org/2000/svg",
+    xmlns: "http://www.w3.org/2000/svg",
     fill: "none",
     viewBox: "0 0 24 24",
     strokeWidth: "3",
     stroke: "currentColor",
 }
-export const MirrorRotIcon = {
+export const MirrorRotIcon = (unscale=1) => ({
     [MIRROR_ROT.RIGHT]: <SvgIcon><svg {...svgProps}><circle
-        cx={xy} cy={xy} r={r}
-        strokeDasharray={`0 ${dash} 0 ${dash} 0 ${dash} ${dash}`}
+        cx={xy/unscale} cy={xy/unscale} r={r/unscale}
+        strokeDasharray={`0 ${dash/unscale} 0 ${dash/unscale} 0 ${dash/unscale} ${dash/unscale}`}
     /></svg></SvgIcon>,
     [MIRROR_ROT.STRAIGHT]: <SvgIcon><svg {...svgProps}><circle
-        cx={xy} cy={xy} r={r}
-        strokeDasharray={dash}
-        strokeDashoffset={dash}
+        cx={xy/unscale} cy={xy/unscale} r={r/unscale}
+        strokeDasharray={dash/unscale}
+        strokeDashoffset={dash/unscale}
     /></svg></SvgIcon>,
     [MIRROR_ROT.QUAD]: <SvgIcon><svg {...svgProps}><circle
-        cx={xy} cy={xy} r={r}
-        strokeDasharray={`${dash-2} 2`}
+        cx={xy/unscale} cy={xy/unscale} r={r/unscale}
+        strokeDasharray={`${(dash/unscale)-(2/unscale)} 2`}
         strokeDashoffset={-1}
     /></svg></SvgIcon>,
     [MIRROR_ROT.NONE]: <DoDisturbAltIcon/>,
-}
+})
 
 // export const MirrorRotIcon = {
     // // This one fits with the others

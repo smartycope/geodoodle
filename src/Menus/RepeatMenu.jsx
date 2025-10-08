@@ -540,9 +540,21 @@ function SubMenu({ title, byRow, byCol, onReset, label, transformation, resetVal
 
     const alpha = .75
     const { col, row } = state[transformation]
+    // The grid should act as part of the background, but we still need to interact with the stuff it holds
+    const gridItemProps = {
+        sx: {
+            '& *': {
+                pointerEvents: 'all',
+            },
+        },
+    }
 
     return <Grid container direction="row" rowSpacing={1} columnSpacing={1} sx={{
-        position: 'absolute', bottom: '1em', left: '1em', zIndex: 3,
+        position: 'absolute',
+        bottom: '1em',
+        left: '1em',
+        zIndex: 3,
+        pointerEvents: 'none',
         border: state.debug ? '1px solid' : undefined,
         borderColor: state.debug ? 'black' : undefined,
         '& > div': {
@@ -551,13 +563,12 @@ function SubMenu({ title, byRow, byCol, onReset, label, transformation, resetVal
             display: 'flex',
             alignItems: 'end',
         },
-
     }}>
-        <Grid size={12}>
+        <Grid size={12} {...gridItemProps}>
             {byCol}
         </Grid>
         {/* Every Column */}
-        <Grid size={12} >
+        <Grid size={12} {...gridItemProps}>
             <Number
                 // label="Every"
                 onValueChange={val => dispatch({ [transformation]: { col: { every: val, val: col.val }, row } })}
@@ -571,7 +582,7 @@ function SubMenu({ title, byRow, byCol, onReset, label, transformation, resetVal
             />
         </Grid>
         {/* Reset Button */}
-        <Grid size='auto'>
+        <Grid size='auto' {...gridItemProps}>
             <IconButton onClick={() => dispatch({ [transformation]: defaultTrellisControl(resetVal) })} variant="contained" sx={{
                 // Don't know why borderRadius here is different than in Number
                 borderRadius: theme.shape.borderRadius/2,
@@ -584,7 +595,7 @@ function SubMenu({ title, byRow, byCol, onReset, label, transformation, resetVal
             </IconButton>
         </Grid>
         {/* Every Row */}
-        <Grid size='auto'>
+        <Grid size='auto' {...gridItemProps}>
             <Number
                 // label="Skip Every"
                 onValueChange={val => dispatch({ [transformation]: { row: { every: val, val: row.val }, col } })}
@@ -596,7 +607,7 @@ function SubMenu({ title, byRow, byCol, onReset, label, transformation, resetVal
                 bgAlpha={alpha}
             />
         </Grid>
-        <Grid size='grow'>
+        <Grid size='grow' {...gridItemProps}>
             {byRow}
         </Grid>
     </Grid>

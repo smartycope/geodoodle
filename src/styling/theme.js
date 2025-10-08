@@ -67,6 +67,14 @@ export default function generateTheme(paperColor, themeMode, systemPreferedTheme
     theme.palette.primary.dots = contrast
     theme.palette.primary.bounds = contrast
     theme.palette.primary.cursor = contrast
+    theme.palette.primary.contrast = contrast
+    theme.palette.paperIsDark = contrast === '#fff'
+    theme.palette.primary.glow = theme.palette.paperIsDark ? 'red' : 'blue'
+    // theme.palette.primary.mirror = theme.palette.paperIsDark ? 'lime' : 'green'
+    theme.palette.primary.mirror = 'green'
+    theme.palette.primary.eraser = 'red' //theme.palette.paperIsDark ? 'red' : 'blue'
+    console.log(theme.palette.primary.glow)
+    console.log(contrast)
     // theme.breakpoints.mobile = isMobile() ? '@media (max-width:768px), (max-height:768px)' : '@media (max-width:768px), (max-height:768px)'
     // theme.breakpoints.desktop = isMobile() ? '@media (min-width:769px), (min-height:769px)' : '@media (min-width:769px), (min-height:769px)'
     // theme = createTheme({...theme,

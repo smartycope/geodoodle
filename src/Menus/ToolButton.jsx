@@ -20,6 +20,7 @@ import RedoIcon from '@mui/icons-material/Redo';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import UndoIcon from '@mui/icons-material/Undo';
 import { isMobile } from '../utils';
+import { PiSelectionPlusDuotone } from "react-icons/pi";
 
 export const toolButtonStyle = (theme) => ({
     border: 'none',
@@ -61,7 +62,8 @@ export const iconMap = {
     redo: <RedoIcon />,
     copy_image: <FileCopyIcon />,
     undo: <UndoIcon />,
-    main: <MenuRoundedIcon />
+    main: <MenuRoundedIcon />,
+    add_bound: <PiSelectionPlusDuotone/>
 }
 
 export const tooltipMap = (mobile) => {
@@ -73,6 +75,7 @@ export const tooltipMap = (mobile) => {
         'extra': mobile ? 'More' : 'More Tools',
         'navigation': mobile ? 'Nav' : 'Navigation',
         'clipboard': mobile ? 'Clip' : 'Clipboard',
+        'add_bound': mobile ? 'Bound' : 'Add Bound',
     }
 }
 
@@ -98,7 +101,7 @@ const ToolButton = forwardRef(({ menu, onClick, inExtraMenu, disableTooltip, ...
         }}
         id={menu + '-tool-button'}
         className="tool-button"
-        onClick={onClick || (() => { dispatch({ action: "menu", toggle: menu }) })}
+        onClick={onClick === undefined ? (() => { dispatch({ action: "menu", toggle: menu }) }) : onClick}
         ref={ref}
         {...props}
     >

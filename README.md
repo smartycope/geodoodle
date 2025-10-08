@@ -64,8 +64,11 @@ To see more about this project, see my blog post about it [here](https://smartyc
 Things I need to remember to do before merging the current branch. Don't merge this list!
 - Make the mobile icons smaller, and add text
 - A how to use/gestures/additional help/douplicate of stuff covered in tour Page -- even if just a framework
-- An FAQ page
-
+- reminging the only bound via double tap adds it back after a sec
+- selection SVG buttons arent showing up
+- mobile toolbar stil lshows taps
+- clipboard isn't gonna repeat with mirror origins
+- mirror rotate icons on paper should scale with current scale
 
 ## Other todos that should be issues but I'm lazy:
 - Add explanatuon text as a controlled snackbox or tooltip that disapears on next touch On mobile

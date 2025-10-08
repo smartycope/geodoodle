@@ -135,7 +135,12 @@ export const clear = state => ({
     mirrorAxis: MIRROR_AXIS.NONE,
     mirrorRot: MIRROR_ROT.NONE,
 })
-export const clear_bounds = state => ({...cancel_clipboard(state), bounds: []})
+export const clear_bounds = state => ({
+    ...cancel_clipboard(state),
+    bounds: [],
+    // If we're on mobile, clearing bounds changes the ToolButton to add_bound, so close the menu cause suddenly there's nothing in it
+    openMenus: {...state.openMenus, select: state.mobile ? false : state.openMenus.select},
+})
 export const delete_selected = state => {
     const boundRect = getBoundRect(state)
     return {...cancel_clipboard(state),

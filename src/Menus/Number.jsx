@@ -9,7 +9,7 @@ import styles from '../styling/number-field.module.css';
 
 // See for allowed props:
 // https://base-ui.com/react/components/number-field#api-reference
-export default function ({
+export default function Number({
     label,
     id,
     title,

@@ -204,12 +204,6 @@ export default function SettingsPage() {
             </Setting>
 
             <StyledSubheader>Advanced</StyledSubheader>
-            <Setting label="Beginner Mode" help="Shows extra tooltips and other beginner-friendly features">
-                <Checkbox
-                    checked={beginnerMode}
-                    onChange={() => dispatch({ beginnerMode: !beginnerMode })}
-                />
-            </Setting>
             <Setting label="Hide Hex Color" help="Controls if the hex color is displayed in the color menu">
                 <Checkbox
                     checked={hideHexColor}
@@ -220,6 +214,12 @@ export default function SettingsPage() {
                 <Checkbox
                     checked={dotsAbovefill}
                     onChange={() => dispatch({ dotsAbovefill: !dotsAbovefill })}
+                />
+            </Setting>
+            <Setting label="Disable Mirror Icons" help="Some browsers (Brave, DuckDuckGo) don't display the mirror icons correctly, if you're seeing giant icons when mirroring, enable this">
+                <Checkbox
+                    checked={state.disableMirrorIcons}
+                    onChange={() => dispatch({ disableMirrorIcons: !state.disableMirrorIcons })}
                 />
             </Setting>
             <Setting label="Max Undo Amount" help="Controls how many consecutive undos you can do at once">

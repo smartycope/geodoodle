@@ -11,10 +11,13 @@ import DeselectIcon from '@mui/icons-material/Deselect';
 
 export default function(){
     const {dispatch, state} = useContext(StateContext)
+    if (state.mobile && state.bounds.length < 2)
+        return null
+
     return <MiniMenu menu="select">
         {/* If we're on desktop, we can't both click the button, and move the cursor to where we
             want to add the bound */}
-        {state.mobile && <MenuItem onClick={() => dispatch("add_bound")}>
+        {state.mobile && state.bounds.length >= 2 && <MenuItem onClick={() => dispatch("add_bound")}>
             <ListItemIcon>
                 <PiSelectionPlusDuotone/>
             </ListItemIcon>

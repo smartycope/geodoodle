@@ -121,7 +121,7 @@ export default function ColorMenu() {
                     flexDirection: 'column',
                     margin: '10px',
                     borderRadius: '10px',
-                    color: 'black',
+                    color: theme.palette.primary.contrast,
                 }}
             >
                 Close
