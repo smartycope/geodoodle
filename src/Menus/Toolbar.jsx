@@ -30,6 +30,7 @@ import { styled, useTheme } from '@mui/material/styles';
 import { Box, Fab, IconButton, Paper as MuiPaper, Tooltip } from "@mui/material";
 import ToolButton, { getTooltipSide, toolButtonStyle, UndoButton } from "./ToolButton";
 import ExtraButton from "./ExtraButton";
+import { isMobile } from '../utils';
 
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialIcon from '@mui/material/SpeedDialIcon';
@@ -40,6 +41,7 @@ var tapHolding = false
 var touchHoldTimer = null
 var redid = false
 
+// TODO: On a sideways mobile screen, the toolbar goes off the screen
 function Toolbar() {
     const { state, dispatch } = useContext(StateContext)
     const { side } = state
@@ -115,8 +117,19 @@ function Toolbar() {
         ...style,
     }}>
         <MuiPaper id='menu-selector-mobile' elevation={4} sx={{
-            px: vertical ? .5 : {xs: 1, sm: 1.5, md: 2, lg: 2, xl: 2},
-            py: vertical ? {xs: 1, sm: 1.5, md: 2, lg: 2, xl: 2} : .5,
+            // These intentionally get overridden by the mobile breakpoint
+            // px: vertical ? .5 : {xs: 1, sm: 1.5, md: 2, lg: 2, xl: 2},
+            // py: vertical ? {xs: 1, sm: 1.5, md: 2, lg: 2, xl: 2} : .5,
+            px: isMobile() ? .5 : 1,
+            py: isMobile() ? .5 : 1,
+            // [theme.breakpoints.desktop]: {
+            //     px: 2,
+            //     py: 2,
+            // },
+            // [theme.breakpoints.mobile]: {
+            //     px: .5,
+            //     py: .5,
+            // },
             display: 'flex',
             // TODO: I can't decide if this should be 'row' or 'row-reverse'
             flexDirection: vertical ? 'row' : 'column-reverse',
@@ -138,22 +151,22 @@ function Toolbar() {
             // backgroundColor: theme.palette.mode === 'dark' ? theme.darken(theme.palette.primary.dark, 0.1) : theme.lighten(theme.palette.primary.light, 0.1),
             // backgroundColor: theme.palette.primary.main,
         }}>
-            {extraSlots < 5 && <ToolButton menu="extra" id="extra-tool-button" disableTooltip={state.openMenus.extra} />}
+            {extraSlots < 5 && <ToolButton menu="extra" disableTooltip={state.openMenus.extra} />}
             {/* This is the button which is dynamically set in settings */}
             {/* TODO: not yet reviewed for Mui compatibility */}
             {extraSlots >= 3 && <ExtraButton />}
-            {extraSlots >= 5 && <ToolButton menu="help" id="help-tool-button" />}
-            {extraSlots >= 5 && <ToolButton menu="settings" id="settings-tool-button" />}
-            {extraSlots >= 4 && <ToolButton menu="file" id="file-tool-button" />}
-            {extraSlots >= 2 && <ToolButton menu="navigation" id="navigation-tool-button" />}
-            {extraSlots >= 1 && <ToolButton menu="repeat" id="repeat-tool-button" />}
-            <ToolButton menu="color" id="color-tool-button" />
+            {extraSlots >= 5 && <ToolButton menu="help" />}
+            {extraSlots >= 5 && <ToolButton menu="settings" />}
+            {extraSlots >= 4 && <ToolButton menu="file" />}
+            {extraSlots >= 2 && <ToolButton menu="navigation" />}
+            {extraSlots >= 1 && <ToolButton menu="repeat" />}
+            <ToolButton menu="color" />
             {/* Undo button */}
             <UndoButton />
-            <ToolButton menu="mirror" id="mirror-tool-button" />
-            <ToolButton menu="select" id="select-tool-button" />
-            <ToolButton menu="clipboard" id="clipboard-tool-button" />
-            <ToolButton menu="delete" id="delete-tool-button" />
+            <ToolButton menu="mirror" />
+            <ToolButton menu="select" />
+            <ToolButton menu="clipboard" />
+            <ToolButton menu="delete" />
             {/* The menu button in the corner */}
             <ToolButton menu="main" />
         </MuiPaper>

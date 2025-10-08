@@ -15,16 +15,25 @@ import { FormControlLabel, Stack, TextField, useTheme } from "@mui/material";
 
 export default function ColorMenu() {
     const { state, dispatch } = useContext(StateContext)
+    const theme = useTheme()
 
     const { stroke, strokeWidth, dash, colorProfile, scalex, fillMode, fill } = state
     const colors = fillMode ? fill : stroke
-    const theme = useTheme()
 
     return <MiniMenu menu="color">
+        <Box sx={{
+            // Squishes sideways if the screen is too small - this works for all toolbar sides
+            '@media (max-height: 784px)': {
+                display: 'flex',
+            },
+        }}>
         {/* The full screen color menu */}
         <Box sx={{
-            height: '100%',
-            width: '100%',
+            // I can't style the ColorPicker directly, so I have to style the children of it's parent
+            '& *': {
+                backgroundColor: 'inherit',
+                color: 'inherit',
+            },
         }}>
             <ColorPicker
                 color={ColorService.convert('hex', colors[colorProfile])}
@@ -126,5 +135,6 @@ export default function ColorMenu() {
                 /></svg>
             </Button>
         </Stack>
+        </Box>
     </MiniMenu>
 }

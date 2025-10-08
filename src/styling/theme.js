@@ -7,7 +7,7 @@ function colorIsVisible(color, background) {
     return color.contrast(background, 'WCAG21') > 4.5
 }
 
-export default (paperColor, themeMode, systemPreferedTheme) => {
+export default function generateTheme(paperColor, themeMode, systemPreferedTheme){
     const darkMode = themeMode === 'dark' || (themeMode === 'system' && systemPreferedTheme === 'dark')
     // This white was not randomly chosen
     const paperMain = darkMode ? '#272727' : '#f7f7f7'
@@ -24,7 +24,7 @@ export default (paperColor, themeMode, systemPreferedTheme) => {
     }
     main = main.toString({ format: "hex" })
 
-    return createTheme({
+    let theme = createTheme({
         palette: {
             mode: darkMode ? 'dark' : 'light',
             primary: { main: main },
@@ -61,4 +61,24 @@ export default (paperColor, themeMode, systemPreferedTheme) => {
             },
         },
     })
+
+    const contrast = theme.palette.getContrastText(paperColor)
+    // We re-create the theme just so we can have access to auto-generated theme properties like getContrastText()
+    theme.palette.primary.dots = contrast
+    theme.palette.primary.bounds = contrast
+    theme.palette.primary.cursor = contrast
+    // theme.breakpoints.mobile = isMobile() ? '@media (max-width:768px), (max-height:768px)' : '@media (max-width:768px), (max-height:768px)'
+    // theme.breakpoints.desktop = isMobile() ? '@media (min-width:769px), (min-height:769px)' : '@media (min-width:769px), (min-height:769px)'
+    // theme = createTheme({...theme,
+    //     palette: {
+    //         ...theme.palette,
+    //         primary: {
+    //             ...theme.palette.primary,
+    //             dots: contrast,
+    //             bounds: contrast,
+    //             cursor: contrast,
+    //         },
+    //     },
+    // })
+    return theme
 }

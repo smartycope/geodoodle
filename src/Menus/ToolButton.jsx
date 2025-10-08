@@ -19,6 +19,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import RedoIcon from '@mui/icons-material/Redo';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import UndoIcon from '@mui/icons-material/Undo';
+import { isMobile } from '../utils';
 
 export const toolButtonStyle = (theme) => ({
     border: 'none',
@@ -26,13 +27,16 @@ export const toolButtonStyle = (theme) => ({
     pointerEvents: 'all',
     textAlign: 'center',
     navIndex: -1,
-    scale: { xs: 1, sm: 1, md: 1.5 },
     opacity: 90,
     outlineStyle: 'none',
     boxShadow: 'none',
     borderColor: 'transparent',
     // NOTE: margin is controlled by Toolbar, not here (because it's dynamic with respect to side)
-    p: {xs: .25, sm: .25, md: 1, lg: 1, xl: 1},
+    // These intentionally gets overridden by the mobile breakpoint
+    // p: {xs: .25, sm: .25, md: 1, lg: 1, xl: 1},
+    // scale: { xs: .5, sm: 1, md: 1.5 },
+    p: isMobile() ? .25 : 1,//{xs: .25, sm: .5, md: 1, lg: 1, xl: 1},
+    scale: isMobile() ? 1 : 1.5,//{ xs: 1, sm: 1, md: 1.5 },
     backgroundColor: 'transparent',
     color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
     // color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
@@ -92,7 +96,7 @@ const ToolButton = forwardRef(({ menu, onClick, inExtraMenu, disableTooltip, ...
           bgcolor: (state.openMenus[menu] && menu !== 'main') ? theme.palette.action.selected : 'transparent',
           borderRadius: (state.openMenus[menu] && menu !== 'main') ? theme.shape.borderRadius : undefined,
         }}
-
+        id={menu + '-tool-button'}
         className="tool-button"
         onClick={onClick || (() => { dispatch({ action: "menu", toggle: menu }) })}
         ref={ref}

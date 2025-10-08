@@ -7,6 +7,7 @@ import { useContext } from "react";
 import { StateContext } from "../Contexts";
 
 // TODO: This... works? It needs much more testing
+// TODO: thsi has a bug where if the menu wouldn't fit on the page, it swaps sides instead of just clipping a little bit
 export default function MiniMenu({menu, children}){
     const {state, dispatch} = useContext(StateContext)
     const {side} = state
@@ -25,15 +26,23 @@ export default function MiniMenu({menu, children}){
         onClose={() => dispatch({action: "menu", close: menu})}
         placement={placement}
         sx={{zIndex: 2}}
-        modifiers={[{
-            name: 'transformOrigin',
-            enabled: true,
-            phase: 'write',
-            fn({ state }) {
-                // emulate Popover's transformOrigin
-                state.styles.popper.transformOrigin = placement;
+        modifiers={[
+            {
+                name: 'transformOrigin',
+                enabled: true,
+                phase: 'write',
+                fn({ state }) {
+                    // emulate Popover's transformOrigin
+                    state.styles.popper.transformOrigin = placement;
+                },
             },
-        }]}
+            // These don't seem to do anything
+            { name: 'flip', enabled: true },
+            { name: 'preventOverflow', enabled: true },
+            // { name: 'offset', options: { offset: [0, 16] } },
+            // { name: 'preventOverflow', options: { padding: 16 } },
+            // { name: 'flip', options: { altBoundary: true } },
+        ]}
       >
         <Paper sx={{
             p: 1,

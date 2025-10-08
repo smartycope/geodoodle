@@ -6,33 +6,42 @@ import "react-color-palette/dist/css/rcp.css";
 import { version } from '../globals';
 import { StateContext } from '../Contexts';
 import Page from "./Page";
-import { Box, Button, Checkbox, List, ListItem, ListItemText, ListSubheader, MenuItem, Popover, Select } from '@mui/material';
+import { Box, Button, Checkbox, List, ListItem, ListItemText, ListSubheader, MenuItem, Popover, Select, TextField, useTheme } from '@mui/material';
 import styled from '@emotion/styled';
 import { extraButtons } from './ExtraButton';
 import { clearPreservedState } from '../fileUtils';
 
-const StyledSubheader = styled(ListSubheader)(({ theme }) => ({
-    backgroundColor: theme.palette.mode === 'dark' ? undefined : theme.palette.primary.light,
-    width: '100%',
-    borderRadius: theme.shape.borderRadius,
-}));
+const StyledSubheader = styled(ListSubheader)(({ theme }) => {
+    // Yes this inconsistent, but *I like it*
+    const bg = theme.palette.mode === 'dark' ? theme.palette.background.paper : theme.palette.primary.light
+    return {
+        backgroundColor: bg,
+        width: '100%',
+        color: theme.darken(theme.palette.getContrastText(bg), .1),
+        borderRadius: theme.shape.borderRadius,
+    }
+});
+
+
+function Setting({ label, help, children, mobileOnly, desktopOnly }) {
+    const { state } = useContext(StateContext)
+    if (mobileOnly && !state.mobile) return null
+    if (desktopOnly && state.mobile) return null
+    return <ListItem>
+        <ListItemText primary={label} secondary={help} />
+        {children}
+    </ListItem>
+}
 
 export default function SettingsPage() {
     const { state, dispatch } = useContext(StateContext)
     const [palletteVisible, setPalletteVisible] = useState(false);
     const colorMenuButton = useRef()
+    const theme = useTheme()
 
     const [tmpColor, setTmpColor] = useState(state.paperColor)
     // const [tmpColor, setTmpColor] = useState(ColorService.convert('hex', state.paperColor))
 
-    function Setting({ label, help, children, mobileOnly, desktopOnly }) {
-        if (mobileOnly && !state.mobile) return null
-        if (desktopOnly && state.mobile) return null
-        return <ListItem>
-            <ListItemText primary={label} secondary={help} />
-            {children}
-        </ListItem>
-    }
 
     const {
         removeSelectionAfterDelete,
@@ -57,7 +66,6 @@ export default function SettingsPage() {
 
     // console.log(document.getElementById('color-picker-button'))
 
-    console.log(tmpColor)
     return <Page menu="settings">
         <List subheader={<StyledSubheader>General</StyledSubheader>}>
             {/* General */}
@@ -76,16 +84,17 @@ export default function SettingsPage() {
             {/* Color Menu */}
             {/* TODO: this should work, but it doesn't, I suspect an internal color picker error */}
             {/* TODO: also, once it does work, have it modify the current theme */}
+
             <Setting label="Background Color">
                 <Button ref={colorMenuButton} id='color-picker-button'
                     onClick={() => setPalletteVisible(!palletteVisible)}
-                    // sx={{ backgroundColor: paperColor, color: 'black' }}
+                    sx={{ backgroundColor: paperColor, color: theme.palette.getContrastText(paperColor) }}
                 >
-                    {/* {palletteVisible ? "Set" : "Pick Background Color"} */}
+                     {/* {palletteVisible ? "Set" : "Pick Background Color"} */}
                     Pick Background Color
                 </Button>
-                {/* TODO: this should work, but it doesn't, I suspect an internal color picker error */}
-                {/* <Popover
+                 {/* TODO: this should work, but it doesn't, I suspect an internal color picker error */}
+                 <Popover
                     open={palletteVisible}
                     onClose={() => {
                         setPalletteVisible(false)
@@ -101,20 +110,16 @@ export default function SettingsPage() {
                         vertical: 'bottom',
                         horizontal: 'right',
                     }}
-                > */}
+                >
                 {/* Just center it on top */}
-                {palletteVisible && <Box sx={{ position: 'absolute', zIndex: 100, top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-                    <ColorPicker
-                        // color={ColorService.convert('hex', paperColor)}
-                        // onChange={clr => dispatch({ paperColor: clr.hex })}
-                        // color={ColorService.convert('hex', tmpColor)}
-                        // onChange={clr => setTmpColor(clr.hex)}
-                        color={tmpColor}
-                        onChange={clr => setTmpColor(clr)}
-                        hideInput={['hsv', hideHexColor ? 'hex' : '']}
-                    />
-                </Box>}
-                {/* </Popover> */}
+                {/* {palletteVisible && <Box sx={{ position: 'absolute', zIndex: 100, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', p:2, bgcolor: 'blue', pointerEvents: 'all'}}> */}
+                <ColorPicker
+                    color={ColorService.convert('hex', paperColor)}
+                    hideInput={['hsv', hideHexColor ? 'hex' : '']}
+                    onChange={clr => dispatch({action: 'set_paper_color', color: clr.hex})}
+                />
+                </Popover>
+                {/* </Box>} */}
             </Setting>
 
             <Setting label="Hide Dots" help="Useful for saving images or admiring your creation">

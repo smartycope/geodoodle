@@ -282,6 +282,10 @@ export const set_dash = (state, {dash}) => {
     return {dash: copy}
 }
 
+export const set_paper_color = (state, {color}) => {
+    return {paperColor: color}
+}
+
 // Fill actions
 export const fill = state => {
     const {fillMode, curPolys, filledPolys} = state

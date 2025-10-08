@@ -4,7 +4,7 @@ import options from './options';
 import { RxRotateCounterClockwise } from "react-icons/rx";
 import { GoMirror } from "react-icons/go";
 import {FaCheck, FaTrash, FaXmark} from 'react-icons/fa6';
-import {getHalf, getDebugBox, getBoundRect, splitAllLines, getAllClipboardLines, getAllIntersections, getClipboardButtonsPos} from './utils';
+import {getHalf, getDebugBox, getBoundRect, splitAllLines, getAllClipboardLines, getAllIntersections, getClipboardButtonsPos, isMobile} from './utils';
 import Line from './helper/Line';
 import Point from './helper/Point';
 import { useContext, useEffect } from "react";
@@ -25,14 +25,32 @@ import DeleteMenu from "./Menus/DeleteMenu";
 import SelectMenu from "./Menus/SelectMenu";
 import { MirrorAxisIcon, MirrorRotIcon } from './Menus/MirrorIcons';
 
-var debugTextOffset = 20
+import { useMediaQuery } from "@mui/material";
+
+export function useActiveBreakpoint() {
+  const theme = useTheme();
+
+  const isXs = useMediaQuery(theme.breakpoints.only("xs"));
+  const isSm = useMediaQuery(theme.breakpoints.only("sm"));
+  const isMd = useMediaQuery(theme.breakpoints.only("md"));
+  const isLg = useMediaQuery(theme.breakpoints.only("lg"));
+  const isXl = useMediaQuery(theme.breakpoints.only("xl"));
+
+  if (isXl) return "xl";
+  if (isLg) return "lg";
+  if (isMd) return "md";
+  if (isSm) return "sm";
+  return "xs"; // default fallback
+}
+
+var debugTextOffset = 50
 
 // This is slightly inelegant, but it works, and it's just a debug function
 // Color is the color of the text and cirlce, fill overrides the color of the circle
 export function DebugPoint({name, point, decimals=undefined, yoff=0, color='black', r=5, fill=undefined, inflated=false, omitText=false, omitCircle=false, ...props}){
     useEffect(() => {
         // Reset the global every render
-        debugTextOffset = 20
+        debugTextOffset = 50
     })
     debugTextOffset += 20
     const {state} = useContext(StateContext)
@@ -96,6 +114,7 @@ export function DebugInfo(){
 
     return debug && <g>
         {/* Repeat box */}
+        <text x='75%' y={debugTextOffset + 20} fill='black'>{isMobile() ? 'mobile' : 'desktop'}{' -- '}{useActiveBreakpoint()}</text>
         {openMenus.repeat && debugBox.render(state, {stroke: 'green', strokeWidth: 2, fillOpacity: 0})}
 
         <DebugPoint name="Translation" point={origin} inflated={false} color='green'/>
@@ -307,6 +326,8 @@ export function Bounds(){
     const {state} = useContext(StateContext)
     const {scalex, bounds, partials} = state
     const boundRadius = scalex / 1
+    const theme = useTheme()
+
     return <g id='bounds'>
         {bounds.map(bound =>
             <rect
@@ -316,7 +337,7 @@ export function Bounds(){
                 y={bound.asViewport(state).y - (boundRadius / 2)}
                 rx={partials ? 4 : 0}
                 // rx={4}
-                stroke={options.boundColor}
+                stroke={theme.palette.primary.bounds}
                 fillOpacity={0}
                 key={`bound-${bound.hash()}`}
             />
@@ -380,13 +401,15 @@ export function Cursor(){
     const {state} = useContext(StateContext)
     const {cursorPos, scalex, openMenus, mirrorType, mirrorAxis, fillMode} = state
     const cursorPosViewport = cursorPos.asViewport(state)
+    const theme = useTheme()
+
     // Construct the cursor (internal mirror lines, etc)
     let cursor = [
         <circle
             cx={cursorPosViewport.x}
             cy={cursorPosViewport.y}
             r={scalex / 3}
-            stroke={options.cursorColor}
+            stroke={theme.palette.primary.cursor}
             // fill={options.mirrorColor}
             // Make it filled if we're cursor rotating
             fillOpacity={0}
@@ -423,8 +446,10 @@ export function Cursor(){
 
 export function Dots(){
     const {state} = useContext(StateContext)
-    const {translation, scalex, scaley, rotate, hideDots} = state
+    const {translation, scalex, scaley, rotate, hideDots, paperColor} = state
     const {x: transx, y: transy} = translation.asInflated(state)
+    const theme = useTheme()
+
     return !hideDots && <>
         <pattern id="dots"
             // This makes it line up with everything else just a little better. I don't know why
@@ -439,7 +464,7 @@ export function Dots(){
                 x={0} y={0}
                 width={options.dotRadius}
                 height={options.dotRadius}
-                fill={options.dotColor}
+                fill={theme.palette.primary.dots}
             />
         </pattern>
         <rect fill="url(#dots)" stroke="black" width="100%" height="100%" />

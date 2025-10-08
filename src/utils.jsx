@@ -96,7 +96,16 @@ export function invertObject(obj){
 // }
 
 export function isMobile(){
-    return window.innerWidth <= 768
+    // If *either* dimension is small (in case the phone is sideways)
+    const smallDim = 768
+    const smallWidth = window.innerWidth <= smallDim
+    const smallHeight = window.innerHeight <= smallDim
+    // const phoneRatio = Math.abs(window.innerWidth - window.innerHeight) > Math.min(window.innerWidth, window.innerHeight) / 2
+    console.log(Math.min(window.innerWidth, window.innerHeight) / Math.max(window.innerWidth, window.innerHeight))
+    const phoneRatio = Math.min(window.innerWidth, window.innerHeight) / Math.max(window.innerWidth, window.innerHeight) < .5
+    // If the aspect ratio seems to indicate a phone, check if either dimension is small
+    // Otherwise, both of them need to be small
+    return phoneRatio ? (smallWidth || smallHeight) : (smallWidth && smallHeight)
 }
 
 
