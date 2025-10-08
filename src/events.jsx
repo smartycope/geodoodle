@@ -40,6 +40,7 @@ export function onMouseUp(state, dispatch, e){
 }
 
 export function onScroll(state, dispatch, e){
+    e.preventDefault()
     if (e.shiftKey)
         dispatch({
             action: 'translate',
@@ -368,8 +369,6 @@ function onDoubleTap(state, dispatch){
     // e is the event of the last touchend event, which is guranteed ("should") be within 1 scalex of the first tap
     dispatch('delete_at_cursor')
 }
-
-
 
 
 // This keeps the focus always on the paper element

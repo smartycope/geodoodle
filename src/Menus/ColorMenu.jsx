@@ -13,7 +13,7 @@ import { getShowableStroke } from "../utils";
 import { FormControlLabel, Stack, TextField, useTheme } from "@mui/material";
 
 
-export default function() {
+export default function ColorMenu() {
     const { state, dispatch } = useContext(StateContext)
 
     const { stroke, strokeWidth, dash, colorProfile, scalex, fillMode, fill } = state

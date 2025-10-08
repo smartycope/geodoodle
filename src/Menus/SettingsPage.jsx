@@ -6,7 +6,7 @@ import "react-color-palette/dist/css/rcp.css";
 import { version } from '../globals';
 import { StateContext } from '../Contexts';
 import Page from "./Page";
-import { Button, Checkbox, List, ListItem, ListItemText, ListSubheader, MenuItem, Popover, Select } from '@mui/material';
+import { Box, Button, Checkbox, List, ListItem, ListItemText, ListSubheader, MenuItem, Popover, Select } from '@mui/material';
 import styled from '@emotion/styled';
 import { extraButtons } from './ExtraButton';
 import { clearPreservedState } from '../fileUtils';
@@ -17,10 +17,13 @@ const StyledSubheader = styled(ListSubheader)(({ theme }) => ({
     borderRadius: theme.shape.borderRadius,
 }));
 
-export default function () {
+export default function SettingsPage() {
     const { state, dispatch } = useContext(StateContext)
     const [palletteVisible, setPalletteVisible] = useState(false);
     const colorMenuButton = useRef()
+
+    const [tmpColor, setTmpColor] = useState(state.paperColor)
+    // const [tmpColor, setTmpColor] = useState(ColorService.convert('hex', state.paperColor))
 
     function Setting({ label, help, children, mobileOnly, desktopOnly }) {
         if (mobileOnly && !state.mobile) return null
@@ -52,6 +55,9 @@ export default function () {
         themeMode,
     } = state
 
+    // console.log(document.getElementById('color-picker-button'))
+
+    console.log(tmpColor)
     return <Page menu="settings">
         <List subheader={<StyledSubheader>General</StyledSubheader>}>
             {/* General */}
@@ -73,12 +79,13 @@ export default function () {
             <Setting label="Background Color">
                 <Button ref={colorMenuButton} id='color-picker-button'
                     onClick={() => setPalletteVisible(!palletteVisible)}
-                    sx={{ backgroundColor: paperColor, color: 'black' }}
+                    // sx={{ backgroundColor: paperColor, color: 'black' }}
                 >
                     {/* {palletteVisible ? "Set" : "Pick Background Color"} */}
                     Pick Background Color
                 </Button>
-                <Popover
+                {/* TODO: this should work, but it doesn't, I suspect an internal color picker error */}
+                {/* <Popover
                     open={palletteVisible}
                     onClose={() => {
                         setPalletteVisible(false)
@@ -94,13 +101,20 @@ export default function () {
                         vertical: 'bottom',
                         horizontal: 'right',
                     }}
-                >
+                > */}
+                {/* Just center it on top */}
+                {palletteVisible && <Box sx={{ position: 'absolute', zIndex: 100, top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
                     <ColorPicker
-                        color={ColorService.convert('hex', paperColor)}
-                        onChangeComplete={(clr) => dispatch({ paperColor: clr.hex })}
+                        // color={ColorService.convert('hex', paperColor)}
+                        // onChange={clr => dispatch({ paperColor: clr.hex })}
+                        // color={ColorService.convert('hex', tmpColor)}
+                        // onChange={clr => setTmpColor(clr.hex)}
+                        color={tmpColor}
+                        onChange={clr => setTmpColor(clr)}
                         hideInput={['hsv', hideHexColor ? 'hex' : '']}
                     />
-                </Popover>
+                </Box>}
+                {/* </Popover> */}
             </Setting>
 
             <Setting label="Hide Dots" help="Useful for saving images or admiring your creation">
