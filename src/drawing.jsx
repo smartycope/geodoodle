@@ -9,7 +9,7 @@ import Line from './helper/Line';
 import Point from './helper/Point';
 import { useContext, useEffect } from "react";
 import { StateContext } from "./Contexts";
-import { Snackbar } from '@mui/material';
+import { Snackbar, useTheme } from '@mui/material';
 
 import HelpPage from "./Menus/HelpPage"
 import ColorMenu from "./Menus/ColorMenu";
@@ -23,6 +23,7 @@ import ExtraMenu from "./Menus/ExtraMenu";
 import ClipboardMenu from "./Menus/ClipboardMenu";
 import DeleteMenu from "./Menus/DeleteMenu";
 import SelectMenu from "./Menus/SelectMenu";
+import { MirrorAxisIcon, MirrorRotIcon } from './Menus/MirrorIcons';
 
 var debugTextOffset = 20
 
@@ -112,19 +113,107 @@ export function DebugInfo(){
 export function MirrorMetaLines(){
     const {state} = useContext(StateContext)
     let mirrorMetaLines = []
-    const {mirrorType, mirrorAxis, mirrorRot, scalex} = state
+    const {cursorPos, mirrorType, mirrorAxis, mirrorRot, scalex, scaley, curLinePos} = state
+    const {x: cursorx, y: cursory} = cursorPos.asViewport(state)
+    const {x: cursorLinex, y: cursorLiney} = curLinePos === null ? {x:null, y:null} : curLinePos.asViewport(state)
     const half = getHalf(state)
     const {x: halfx, y: halfy} = half.asViewport(state)
+    // const theme = useTheme()
 
-    if (mirrorType === MIRROR_TYPE.PAGE){
-        if ((mirrorAxis === MIRROR_AXIS.Y || mirrorAxis === MIRROR_AXIS.BOTH))
-            mirrorMetaLines.push(<line x1={halfx} y1={0} x2={halfx} y2="100%" stroke={options.mirrorColor} key="mirror-horz"/>)
-        if ((mirrorAxis === MIRROR_AXIS.X || mirrorAxis === MIRROR_AXIS.BOTH))
-            mirrorMetaLines.push(<line x1={0} y1={halfy} x2="100%" y2={halfy} stroke={options.mirrorColor} key="mirror-vert"/>)
-        if (mirrorRot)
-            mirrorMetaLines.push(<circle cx={halfx} cy={halfy} r={scalex/3} fill={options.mirrorColor} opacity={.8} strokeOpacity="0" key="mirror-center"/>)
+    function MetaLines({x, y, axis, rot, axisOpacity}){
+        let lines = []
+
+        // Axis lines
+        if (axis === MIRROR_AXIS.Y || axis === MIRROR_AXIS.BOTH)
+            lines.push(<line
+                x1={x} y1={0}
+                x2={x} y2="100%"
+                stroke={options.mirrorColor}
+                strokeOpacity={axisOpacity}
+                key={`mirror-metaline-origin-horz`}
+            />)
+        if (axis === MIRROR_AXIS.X || axis === MIRROR_AXIS.BOTH)
+            lines.push(<line
+                x1={0} y1={y}
+                x2="100%" y2={y}
+                stroke={options.mirrorColor}
+                strokeOpacity={axisOpacity}
+                key={`mirror-metaline-origin- vert`}
+            />)
+
+        // Rotation lines
+        if (rot === MIRROR_ROT.RIGHT)
+            lines.push(<g
+                color={options.mirrorColor}
+                key={`mirror-metaline-left`}
+                transform={`translate(${x-12} ${y-12}) scale(${scalex} ${scaley})`}
+            >
+                {MirrorRotIcon[MIRROR_ROT.RIGHT]}
+            </g>)
+        if (rot === MIRROR_ROT.STRAIGHT)
+            lines.push(<g
+                color={options.mirrorColor}
+                key={`mirror-metaline-straight`}
+                transform={`translate(${x-12} ${y-12}) scale(${scalex} ${scaley})`}
+            >
+                {MirrorRotIcon[MIRROR_ROT.STRAIGHT]}
+            </g>)
+        if (rot === MIRROR_ROT.QUAD)
+            lines.push(<g
+                color={options.mirrorColor}
+                key={`mirror-metaline-quad`}
+                transform={`translate(${x-12} ${y-12}) scale(${scalex} ${scaley})`}
+            >
+                {MirrorRotIcon[MIRROR_ROT.QUAD]}
+            </g>)
+
+        return <g key='mirror-metalines'>{lines}</g>
     }
-    return mirrorMetaLines
+
+    // Origin meta lines
+    for (const {origin, rot, axis} of state.mirrorOrigins){
+        const {x: originx, y: originy} = origin.asViewport(state)
+        // The origin circle
+        mirrorMetaLines.push(<circle
+            cx={originx} cy={originy}
+            r={scalex/6}
+            fill={options.mirrorColor}
+            opacity={.6}
+            strokeOpacity="0"
+            key={`mirror-origin-${origin.hash()}`}
+        />)
+
+        mirrorMetaLines.push(<MetaLines
+            x={originx}
+            y={originy}
+            axis={axis}
+            rot={rot}
+            axisOpacity={.2}
+            key={`mirror-origin-lines-${origin.hash()}`}
+        />)
+    }
+
+    // Page meta lines
+    if (mirrorType === MIRROR_TYPE.PAGE)
+        mirrorMetaLines.push(<MetaLines
+            x={halfx}
+            y={halfy}
+            axis={mirrorAxis}
+            rot={mirrorRot}
+            key="mirror-page"
+        />)
+
+    // Cursor metalines
+    if (mirrorType === MIRROR_TYPE.CURSOR)
+        mirrorMetaLines.push(<MetaLines
+            x={cursorLinex || cursorx}
+            y={cursorLiney || cursory}
+            axis={mirrorAxis}
+            rot={mirrorRot}
+            key="mirror-cursor"
+        />)
+
+    return <g id='mirror-meta-lines'>{mirrorMetaLines}</g>
 }
 
 export function Eraser(){
@@ -237,17 +326,20 @@ export function Bounds(){
 
 export function CurrentLines(){
     const {state} = useContext(StateContext)
-    const {curLinePos, cursorPos, translation, scalex, scaley} = state
+    const {curLinePos, cursorPos, translation, scalex, scaley, mirrorOrigins} = state
     if (!curLinePos)
         return null
+
     const line = new Line(state, curLinePos, cursorPos)
-    return <g id='cur-lines' style={{backgroundColor: "green"}} transform={`
+    const lines = line.mirror(state)
+    for (const {origin, axis, rot} of mirrorOrigins){
+        lines.push(...line.mirrorRaw(axis, rot, origin))
+    }
+    return <g id='cur-lines' transform={`
                 translate(${translation.asInflated(state).x} ${translation.asInflated(state).y})
                 scale(${scalex} ${scaley})
             `}>
-        {line.mirror(state).map((line, i) => line.render(state, `curLine-${i}`))}
-        {/* Make the current line visible */}
-        {/* {debug && curLines.map((line, i) => line.render(state, `curLine-${i}`, {stroke: `hsl(${i*360/10}, 100%, 50%)`, strokeWidth: 3/scalex}))} */}
+        {lines.map((l, i) => l.render(state, `curLine-${i}`))}
     </g>
 }
 

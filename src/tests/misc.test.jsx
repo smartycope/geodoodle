@@ -1,7 +1,6 @@
-import { test, it, expect, describe } from 'vitest';
+import { test, expect, describe, beforeEach } from 'vitest';
 import {getState} from './testUtils';
-import { MIRROR_AXIS } from '../globals';
-import defaultOptions, { saveable } from '../options';
+import defaultOptions, { preservable, saveable } from '../options';
 import * as actions from '../actions';
 import { reversibleActions, saveSettingActions } from '../options';
 import { validateStorage } from '../fileUtils';
@@ -57,11 +56,11 @@ describe('Stuff in options.jsx is valid', () => {
         }
     });
     test('all preservables are valid', () => {
-        const actionKeys = Object.keys(actions);
-        for (const action of reversibleActions) {
-            const inState = actionKeys.includes(action)
+        const stateKeys = Object.keys(getState());
+        for (const key of preservable) {
+            const inState = stateKeys.includes(key)
             if (!inState) {
-                console.log('preservableAction not in state: ' + action);
+                console.log('preservable key not in state: ' + key);
             }
             expect(inState).toBe(true);
         }

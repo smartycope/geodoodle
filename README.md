@@ -69,6 +69,6 @@ Things I need to remember to do before merging the current branch. Don't merge t
 
 ## Other todos that should be issues but I'm lazy:
 - Add explanatuon text as a controlled snackbox or tooltip that disapears on next touch On mobile
--
+- import BorderClearIcon from '@mui/icons-material/BorderClear'; -- this might be good somewhere
 -
  -->

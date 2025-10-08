@@ -15,7 +15,7 @@ import * as actions from './actions'
 //                 {action: "...", foo: "bar"}
 // "..."        -> {action: "..."}
 // {foo: "bar"} -> {action: "set_manual", foo: "bar"}
-export default function(state, data){
+export default function reducer(state, data){
     // Some convenience parameter handling
     if (typeof data === "string")
         data = {action: data}
@@ -23,7 +23,7 @@ export default function(state, data){
         data = {action: "set_manual", ...data}
 
     if (state.debug && data.action !== 'cursor_moved')
-        console.debug(data.action, data, state)
+        console.debug(data.action, {'Reducer Params': data, 'Initial State': state})
 
     if (reversibleActions.includes(data.action)){
         if (undoStack.push(filterObjectByKeys(state, reversible)) > state.maxUndoAmt){

@@ -82,6 +82,8 @@ export default function getInitialState(){
         mirrorAxis: MIRROR_AXIS.NONE,
         mirrorRot: MIRROR_ROT.NONE,
         mirrorType: MIRROR_TYPE.CURSOR,
+        // Type: [{origin: Point, rot: MIRROR_ROT, axis: MIRROR_AXIS}]
+        mirrorOrigins: [],
 
         // Transformations
         translation: Dist.zero(),

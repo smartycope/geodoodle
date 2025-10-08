@@ -2,10 +2,11 @@
 // optionally take a 2nd parameter which is an object of anything passed to dispatch. They return modifications to the
 // existing state. Return {}, undefined or null to not modify the state.
 
-import {viewportWidth, viewportHeight, undoStack, redoStack} from './globals'
+import {viewportWidth, viewportHeight, undoStack, redoStack, MIRROR_ROT, MIRROR_AXIS} from './globals'
 import {
     getSelected,
     getBoundRect,
+    getHalf,
     splitAllLines,
     getAllClipboardLines,
     incrementMirrorAxis,
@@ -23,6 +24,7 @@ import Poly from './helper/Poly';
 import {tourState} from './states';
 import * as turf from '@turf/turf';
 
+// TODO: some way to "pick up" the end of a line and move it
 
 export const cursor_moved = (state, {point}) => {
     const { cursorPos, debugDrawPoints, fillMode, tempPolys } = state
@@ -129,6 +131,9 @@ export const clear = state => ({
     clipboardRotation: 0,
     eraser: null,
     curLinePos: null,
+    mirrorOrigins: [],
+    mirrorAxis: MIRROR_AXIS.NONE,
+    mirrorRot: MIRROR_ROT.NONE,
 })
 export const clear_bounds = state => ({...cancel_clipboard(state), bounds: []})
 export const delete_selected = state => {
@@ -156,30 +161,38 @@ export const delete_line = state => {
         return {curLinePos: null}
     else
         return {
-            lines: eraser ? (lines.filter(line => !(cursorPos.in(line.points(), .5) && eraser.in(line.points(), .5)))) : lines,
+            lines:
+                eraser
+                ? lines.filter(
+                    line => !(cursorPos.in(line.points(), .5) && eraser.in(line.points(), .5))
+                )
+                : lines,
             eraser: eraser ? null : cursorPos
         }
 }
 
 export const delete_at_cursor = state => {
-    const {cursorPos, bounds, curLinePos, clipboard, lines, eraser, fillMode} = state
+    const {cursorPos, bounds, curLinePos, clipboard, lines, eraser, fillMode, mirrorOrigins} = state
     // If we're over the eraser, delete it
     if (eraser && cursorPos.eq(eraser))
         return {eraser: null}
-    else if (fillMode)
+    if (fillMode)
         return clear_fill(state)
     // If we're over a bound, delete it
-    else if (cursorPos.in(bounds))
+    if (cursorPos.in(bounds))
         return {bounds: cursorPos.remove(bounds)}
     // If we are halfway done drawing a line, delete it
-    else if (curLinePos)
+    if (curLinePos)
         return {curLinePos: null}
     // If we have a clipboard, clear it
-    else if (clipboard)
+    if (clipboard)
         return cancel_clipboard(state)
-    else
-        // threshold is in deflated coordinates. It helps fudge rounding errors
-        return {lines: lines.filter(line => !cursorPos.in(line.points(), .5))}
+    // If we're over a mirror origin, delete it
+    if (cursorPos.in(mirrorOrigins.map(o => o.origin)))
+        return remove_mirror_origin(state, cursorPos)
+
+    // threshold is in deflated coordinates. It helps fudge rounding errors
+    return {lines: lines.filter(line => !cursorPos.in(line.points(), .5))}
 }
 
 export const nevermind = state => {
@@ -198,6 +211,7 @@ export const nevermind = state => {
 // Creation actions
 export const add_line = (state, args) => {
     const {clipboard, clipboardMirrorAxis, clipboardRotation, clipboardOffset, curLinePos, lines, cursorPos, mobile, fillMode} = state
+    const point = args.at || cursorPos
     if (fillMode)
         return
     // If we have a clipboard, paste it
@@ -216,13 +230,18 @@ export const add_line = (state, args) => {
         var newLines = []
         // If we have a line in progress, create it
         if (curLinePos != null){
-            const start = curLinePos.mirror(state)
-            const end = cursorPos.mirror(state)
+            let start = curLinePos.mirror(state)
+            let end = point.mirror(state)
+            for (const {origin, axis, rot} of state.mirrorOrigins){
+                start.push(...curLinePos.mirrorRaw(axis, rot, origin))
+                end.push(...point.mirrorRaw(axis, rot, origin))
+            }
+
             start.map((a, i) => newLines.push(new Line(state, a, end[i])))
         }
 
         return {...state,
-            curLinePos: curLinePos === null ? cursorPos : null,
+            curLinePos: curLinePos === null ? point : null,
             lines: [...lines, ...newLines]
         }
     }
@@ -345,6 +364,30 @@ export const cut = state => {
 
 export const increment_clipboard_rotation = state => ({clipboardRotation: (state.clipboardRotation + 90) % 360})
 export const increment_clipboard_mirror_axis = state => ({clipboardMirrorAxis: incrementMirrorAxis(state.clipboardMirrorAxis)})
+
+// Mirror Actions
+export const add_mirror_origin = (state) => {
+    const {mirrorOrigins, mirrorAxis, mirrorRot, cursorPos} = state
+    if ((mirrorAxis || mirrorRot) && mirrorOrigins.length < defaultOptions.maxMirrorOrigins){
+        // Ensure that the origin is unique
+        const existing = mirrorOrigins.findIndex(o => o.origin.eq(cursorPos))
+        if (existing !== -1)
+            return mirrorOrigins.slice(0, existing)
+        return {
+            mirrorOrigins: [...mirrorOrigins, {origin: cursorPos, rot: mirrorRot, axis: mirrorAxis}],
+            // Reset mirror settings to show that it was added
+            mirrorAxis: MIRROR_AXIS.NONE,
+            mirrorRot: MIRROR_ROT.NONE,
+        }
+    }
+}
+
+export const remove_mirror_origin = (state, {origin}) => {
+    const copy = [...state.mirrorOrigins]
+    copy.splice(copy.findIndex(o => o.origin.eq(origin)), 1)
+    return {mirrorOrigins: copy}
+}
+export const clear_mirror_origins = state => ({mirrorOrigins: []})
 
 // File Actions
 export const download_file = (state, {format, name, selectedOnly, rect}) => {

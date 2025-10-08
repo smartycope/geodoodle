@@ -29,11 +29,11 @@ import {
 import Trellis from './Trellis';
 import getInitialState from './states';
 import * as events from './events'
+import { Home } from '@mui/icons-material';
 
 // This is for the mouse/touch events that need to be bound non-passively, but also need access to the state
 // This is hacky, but I can't think of a better way
 var _state = {}
-
 export default function Paper({setDispatch}) {
     const paper = useRef()
     const initialState = useMemo(() => getInitialState(), [])

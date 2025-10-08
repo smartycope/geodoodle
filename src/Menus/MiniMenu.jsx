@@ -2,16 +2,14 @@
 // by the toolbar buttons)
 
 import React from "react";
-import { Box, Menu, Popper, Paper } from "@mui/material";
+import { Popper, Paper } from "@mui/material";
 import { useContext } from "react";
 import { StateContext } from "../Contexts";
-import { useTheme } from "@mui/material/styles";
 
 // TODO: This... works? It needs much more testing
 export default function MiniMenu({menu, children}){
     const {state, dispatch} = useContext(StateContext)
     const {side} = state
-    // const theme = useTheme()
 
     let placement = `${side}-start`
 

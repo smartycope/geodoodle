@@ -66,11 +66,13 @@ export default function ({
 
         <NumberField.Group className={styles.Group} style={{
             flexDirection: vertical ? 'column-reverse' : 'row',
+            // borderRadius: theme.shape.borderRadius/2,
         }}>
             <NumberField.Decrement className={styles.Decrement} onClick={onMinus} style={{
+                borderBottomLeftRadius: theme.shape.borderRadius,
                 borderTopRightRadius: 0,
-                borderBottomRightRadius: vertical ? undefined : 0,
-                borderTopLeftRadius: vertical ? 0 : undefined,
+                borderBottomRightRadius: vertical ? theme.shape.borderRadius : 0,
+                borderTopLeftRadius: vertical ? 0 : theme.shape.borderRadius,
                 width: other_dim,
                 height: other_dim,
                 color: theme.palette.primary.main,
@@ -89,9 +91,10 @@ export default function ({
                 }}/>
             </NumberField.ScrubArea>
             <NumberField.Increment className={styles.Increment} onClick={onPlus} style={{
-                borderTopLeftRadius: vertical ? undefined : 0,
+                borderTopRightRadius: theme.shape.borderRadius,
+                borderTopLeftRadius: vertical ? theme.shape.borderRadius : 0,
                 borderBottomLeftRadius: 0,
-                borderBottomRightRadius: vertical ? 0 : undefined,
+                borderBottomRightRadius: vertical ? 0 : theme.shape.borderRadius,
                 width: other_dim,
                 height: other_dim,
                 color: theme.palette.primary.main,

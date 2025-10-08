@@ -1,5 +1,6 @@
 import {viewportWidth, viewportHeight} from "./globals"
 
+// Options/defaultOptions needs a refactor
 const defaultOptions = {
     cursorColor: "black",
     scalex: 20,
@@ -8,6 +9,7 @@ const defaultOptions = {
     fill: "#ffffff",
     commonColorAmt: 5,
     strokeWidth: .05,
+    // TODO: these need to be put into theme instead
     boundColor: "black",
     mirrorColor: 'green',
     selectionBorderColor: '#2a56ad',
@@ -46,6 +48,7 @@ const defaultOptions = {
     toastDuration: 6000,
     beginnerMode: true,
     defaultToMemorableNames: true,
+    maxMirrorOrigins: 12,
 }
 export default defaultOptions
 
@@ -85,6 +88,7 @@ export const keybindings = {
     'h': {action: 'go_home'},
     'x': {action: 'increment_clipboard_rotation'},
     'z': {action: 'increment_clipboard_mirror_axis'},
+    'o': {action: 'add_mirror_origin'},
 
     'm': {action: "menu", toggle: 'mirror'},
     'r': {action: "menu", toggle: 'repeat'},
@@ -112,7 +116,7 @@ export const keybindings = {
     'shift+`': {action: 'toggle_debugging'},
 }
 
-// Only these can be undone, all othellr actions are ignored by undo/redo
+// Only these can be undone, all other actions are ignored by undo/redo
 export const reversibleActions = [
     'go_home',
     'clear',
@@ -128,6 +132,9 @@ export const reversibleActions = [
     'load_local',
     'fill',
     'clear_fill',
+    'add_mirror_origin',
+    'remove_mirror_origin',
+    'clear_mirror_origins',
 ]
 
 // Only save the state to be preserved when these actions happen
@@ -163,18 +170,21 @@ export const reversible = [
     'eraser',
     'clipboard',
     'filledPolys',
+    'mirrorOrigins',
 ]
 
 // Only preserve these parts of the state across loads (*not* when saving to a file)
+// Think: what does the user want to have come up when they re-open the app the next day?
 export const preservable = [
     "stroke",
     "dash",
     // This is contested
     'side',
     'filename',
-    "commonColors",
-    'extraButton',
+    "stroke",
     "strokeWidth",
+    "dash",
+    'extraButton',
     "partials",
     "lines",
     "bounds",
@@ -185,21 +195,19 @@ export const preservable = [
     "translation",
     "scalex",
     "scaley",
-    "rotate",
-    "shearx",
-    "sheary",
     "invertedScroll",
     "scrollSensitivity",
     "enableGestureScale",
     "debug",
-    "openMenus",
     "paperColor",
     "doubleTapTimeMS",
-    'filledPolys',
+    "filledPolys",
+    "mirrorOrigins",
     "beginnerMode",
 ]
 
 // The parts of the state that get serialized to the svg file
+// Think: what does the user want to share with someone else?
 export const saveable = [
     // This is handeled seperately
     // 'lines',

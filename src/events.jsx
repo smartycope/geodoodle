@@ -103,7 +103,27 @@ var doubleTapTimer = null
 var singleTapTouchingScreen = false
 // To distiguish between click and drag, and tap and drag
 var tapDragging = false
+// Aligned to the nearest dot
+// The last place we started tapping with a single finger
 var lastTapPos = new Point(-10, -10)
+
+// Creating lines:
+// Lines start from the onTouchMove event. After we know it's not a double tap, or a hold or the like,
+// we can start the line once we've changed cursorPos. We then start the line from where cursorPos was
+// when the touch started.
+// Lines are finished when the touch ends, we've been dragging (tapDragging), and there's only 1 finger
+// touching the screen. (and also when the position of the touch has changed? shoudl I maybe add that?)
+
+// Double tap:
+// we start a timer when we first touch the screen with a single finger. Then, multiple things can
+// cancel that timer. Then, if we start another touch, and the timer is still valid, we double tap.
+// Note -- doubleTapPossible is probably redundant for Boolean(doubleTapTimer). This can probably be changed.
+
+// Holding:
+// We start a timer from touchStart. several things can cancel that timer, just like double tap.
+// If the timer expires, and is valid, it calls the hold function.
+
+// TODO: if we hold (and it then adds 1 bound), and then we drag, it should add a 2nd bound on touch end
 
 export function onTouchStart(state, dispatch, e){
     e.preventDefault()
@@ -196,8 +216,10 @@ export function onTouchStart(state, dispatch, e){
     else{
         console.log('!!!!!!!!!!!!!!!!!!!!!!!how did we get here?!!!!!!!!!!!!!!!!!!!')
     }
-    lastTapPos = newTapPosAligned
-    console.log('lastTapPos set to', lastTapPos)
+    if (singleTapTouchingScreen){
+        lastTapPos = newTapPosAligned
+        console.log('lastTapPos set to', lastTapPos)
+    }
     // If we stop touching in that amount of time, we interrupt the timer, so this still works
     touchHoldTimer = setTimeout(() => onTouchHold(state, dispatch), state.holdTapTimeMS)
 }

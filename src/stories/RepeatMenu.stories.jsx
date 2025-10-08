@@ -8,8 +8,11 @@ export default {
 
   parameters: {
     layout: 'centered',
+    // grid: true,
+    // background: {
+    //   default: 'Paper',
+    // },
   },
-  tags: ['autodocs'],
 };
 
 // Default story

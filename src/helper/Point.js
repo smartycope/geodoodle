@@ -136,41 +136,45 @@ export default class Point extends Pair{
     // Mirror the point according to the current state
     // Returns an array of points
     // If we're not currently mirroring, just returns [this]
-    // Warning: uncommmenting all the logs can cause the console to glitch
     mirror(state){
         const {mirrorAxis, mirrorRot, mirrorType, curLinePos, cursorPos} = state
         const origin = mirrorType === MIRROR_TYPE.PAGE ? getHalf(state) : (curLinePos || cursorPos)
+        return this.mirrorRaw(mirrorAxis, mirrorRot, origin)
+    }
+
+    mirrorRaw(axis, rot, origin){
+        // Warning: uncommmenting all the logs can cause the console to glitch
         var array = [this]
 
-        if (!(mirrorAxis || mirrorRot))
+        if (!(axis || rot))
             return array
 
-        if (mirrorAxis){
-            // console.log('flipping', mirrorAxis)
-            array.push(this.flip(mirrorAxis, origin))
-            if (mirrorAxis === MIRROR_AXIS.BOTH){
+        if (axis){
+            // console.log('flipping', axis)
+            array.push(this.flip(axis, origin))
+            if (axis === MIRROR_AXIS.BOTH){
                 // console.log('flipping', 'MIRROR_AXIS.Y')
                 array.push(this.flip(MIRROR_AXIS.Y, origin))
                 // console.log('flipping', 'MIRROR_AXIS.X')
                 array.push(this.flip(MIRROR_AXIS.X, origin))
             }
         }
-        if (mirrorRot){
+        if (rot){
             // Optimization: 180 degree rotation == flipping both vertically & horizontally: that line already exists
-            if (!(mirrorAxis === MIRROR_AXIS.BOTH && (mirrorRot === MIRROR_ROT.STRAIGHT || mirrorRot === MIRROR_ROT.QUAD))){
-                // console.log('rotating', mirrorRot)
-                array.push(this.rotate(mirrorRot, origin))
+            if (!(axis === MIRROR_AXIS.BOTH && (rot === MIRROR_ROT.STRAIGHT || rot === MIRROR_ROT.QUAD))){
+                // console.log('rotating', rot)
+                array.push(this.rotate(rot, origin))
             }
-            if (mirrorRot === MIRROR_ROT.QUAD){
+            if (rot === MIRROR_ROT.QUAD){
                 // console.log('rotating', 'MIRROR_ROT.RIGHT')
                 array.push(this.rotate(MIRROR_ROT.RIGHT, origin))
-                if (!(mirrorAxis === MIRROR_AXIS.BOTH && mirrorRot === MIRROR_ROT.QUAD)){
+                if (!(axis === MIRROR_AXIS.BOTH && rot === MIRROR_ROT.QUAD)){
                     // console.log('rotating', 'MIRROR_ROT.STRAIGHT')
                     array.push(this.rotate(MIRROR_ROT.STRAIGHT, origin))
                 }
             }
         }
-        if (mirrorAxis === MIRROR_AXIS.BOTH && mirrorRot === MIRROR_ROT.QUAD){
+        if (axis === MIRROR_AXIS.BOTH && rot === MIRROR_ROT.QUAD){
             // console.log('rotating', 'MIRROR_ROT.QUAD')
             array.push(this.rotate(MIRROR_ROT.QUAD, origin))
             // console.log('flipping', 'MIRROR_AXIS.X')

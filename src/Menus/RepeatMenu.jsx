@@ -1,12 +1,12 @@
-import {useContext, useEffect, useState} from "react";
+import { useContext, useEffect, useState } from "react";
 import "../styling/RepeatMenu.css"
 import { MIRROR_AXIS, MIRROR_ROT } from "../globals";
 import { MirrorAxisIcon } from "./MirrorIcons"
 import Number from "./Number"
-import {defaultTrellisControl, incrementMirrorAxis} from "../utils";
+import { defaultTrellisControl, incrementMirrorAxis } from "../utils";
 
 import { FaGripLinesVertical } from "react-icons/fa6";
-import {StateContext} from "../Contexts";
+import { StateContext } from "../Contexts";
 import KeyboardTabIcon from '@mui/icons-material/KeyboardTab';
 import RedoIcon from '@mui/icons-material/Redo';
 import FlipIcon from '@mui/icons-material/Flip';
@@ -15,6 +15,8 @@ import { Box, Button, Grid, IconButton, SpeedDial, SpeedDialAction, Typography, 
 import CropIcon from '@mui/icons-material/Crop';
 import theme from "../styling/theme";
 import ReplayIcon from '@mui/icons-material/Replay';
+import ToggleIconButtonGroup from "./ToggleIconButtonGroup";
+import Slider from "@mui/material/Slider";
 
 let offsetX, offsetY;
 let isDragging = false;
@@ -30,11 +32,11 @@ const defaultTrellisControl = {
     },
 }
 */
-function DesktopRepeatMenu(){
-    const {state, dispatch} = useContext(StateContext)
-    const {side} = state
+function DesktopRepeatMenu() {
+    const { state, dispatch } = useContext(StateContext)
+    const { side } = state
 
-    function TrellisControl({verb, value, extra='', input}){
+    function TrellisControl({ verb, value, extra = '', input }) {
         const line = (rowCol) => <span className="trellis-control-desktop">
             {verb} every
             <Number
@@ -59,13 +61,13 @@ function DesktopRepeatMenu(){
     }
 
     // Enable dragging - mostly copied from ChatGPT
-    useEffect(() =>{
+    useEffect(() => {
         const draggableElement = document.getElementById('repeat-menu-desktop');
 
         // Function to handle mouse down event
         function handleMouseDown(event) {
             let x, y
-            if (event.type === 'touchstart'){
+            if (event.type === 'touchstart') {
                 const touch = (event.touches[0] || event.changedTouches[0])
                 x = touch.pageX
                 y = touch.pageY
@@ -86,7 +88,7 @@ function DesktopRepeatMenu(){
         function handleMouseMove(event) {
             if (!isDragging) return;
             let x, y
-            if (event.type === 'touchmove'){
+            if (event.type === 'touchmove') {
                 const touch = (event.touches[0] || event.changedTouches[0])
                 x = touch.pageX
                 y = touch.pageY
@@ -96,7 +98,7 @@ function DesktopRepeatMenu(){
             }
             // Update the element's position based on mouse movement
             draggableElement.style.left = `${x - offsetX}px`;
-            draggableElement.style.top  = `${y - offsetY}px`;
+            draggableElement.style.top = `${y - offsetY}px`;
             event.stopPropagation()
             // event.preventDefault()
         }
@@ -121,9 +123,9 @@ function DesktopRepeatMenu(){
             draggableElement.removeEventListener('mousedown', handleMouseDown)
             document.removeEventListener('mousemove', handleMouseMove)
             document.removeEventListener('mouseup', handleMouseUp)
-            draggableElement.removeEventListener('touchstart', handleMouseDown, {passive: false})
-            document.removeEventListener('touchmove', handleMouseMove, {passive: false})
-            document.removeEventListener('touchend', handleMouseUp, {passive: false})
+            draggableElement.removeEventListener('touchstart', handleMouseDown, { passive: false })
+            document.removeEventListener('touchmove', handleMouseMove, { passive: false })
+            document.removeEventListener('touchend', handleMouseUp, { passive: false })
         }
     }, [])
 
@@ -152,7 +154,7 @@ function DesktopRepeatMenu(){
                     value={state.trellisOverlap[rowCol].val.y}
                 ></Number>
             </span>
-        }/>
+        } />
         <TrellisControl value='trellisSkip' verb='Skip' input={rowCol =>
             <button onClick={() => {
                 let obj = {}
@@ -162,7 +164,7 @@ function DesktopRepeatMenu(){
             }}>
                 {state.trellisSkip[rowCol].val ? 'True' : 'False'}
             </button>
-        }/>
+        } />
         <TrellisControl value='trellisFlip' verb='Flip' input={rowCol =>
             <button onClick={() => {
                 let obj = {}
@@ -170,41 +172,41 @@ function DesktopRepeatMenu(){
                 obj.trellisFlip[rowCol].val = incrementMirrorAxis(state.trellisFlip[rowCol].val, true)
                 dispatch(obj)
             }}>
-                <MirrorAxisIcon val={state.trellisFlip[rowCol].val}/>
+                <MirrorAxisIcon val={state.trellisFlip[rowCol].val} />
             </button>
-        }/>
-        <TrellisControl value='trellisRotate'  verb='Rotate' input={rowCol =>
+        } />
+        <TrellisControl value='trellisRotate' verb='Rotate' input={rowCol =>
             <button onClick={() => {
                 let obj = {}
                 obj.trellisRotate = state.trellisRotate
                 obj.trellisRotate[rowCol].val = incrementMirrorAxis(state.trellisRotate[rowCol].val, true)
                 dispatch(obj)
             }}>
-                <MirrorRotIcon val={state.trellisRotate[rowCol].val}/>
+                <MirrorRotIcon val={state.trellisRotate[rowCol].val} />
             </button>
-        }/>
+        } />
 
         <button onClick={() => dispatch({
-            trellisOverlap: defaultTrellisControl({x: 0, y: 0}),
-            trellisSkip:    defaultTrellisControl(false),
-            trellisFlip:    defaultTrellisControl(MIRROR_AXIS.NONE_0),
-            trellisRotate:  defaultTrellisControl(MIRROR_AXIS.NONE_0),
+            trellisOverlap: defaultTrellisControl({ x: 0, y: 0 }),
+            trellisSkip: defaultTrellisControl(false),
+            trellisFlip: defaultTrellisControl(MIRROR_AXIS.NONE_0),
+            trellisRotate: defaultTrellisControl(MIRROR_AXIS.NONE_0),
         })}>Reset</button>
 
         {/* Grip */}
-        <FaGripLinesVertical id="grip" color='darkgray'/>
+        <FaGripLinesVertical id="grip" color='darkgray' />
     </div>
 }
 
-function MobileRepeatMenu(){
-    const {state, dispatch} = useContext(StateContext)
+function MobileRepeatMenu() {
+    const { state, dispatch } = useContext(StateContext)
     const [leftOpen, setLeftOpen] = useState({
         Offset: false,
         Skip: false,
         Flip: false,
         Rotate: false,
     });
-    const TrellisControl = ({verb, value}) => {
+    const TrellisControl = ({ verb, value }) => {
         const line = (rowCol) => <span className="trellis-control-mobile">
             {/* <hr/> */}
             {rowCol === 'row' ? "Rows" : 'Columns'}
@@ -240,29 +242,29 @@ function MobileRepeatMenu(){
         </details>
     }
     const overlap = rowCol => <span>
-            <span className="align-horz">x:<Number
-                type="number"
-                onChange={val => {
-                    let obj = {}
-                    obj.trellisOverlap = state.trellisOverlap
-                    obj.trellisOverlap[rowCol].val.x = val
-                    dispatch(obj)
-                }}
-                value={state.trellisOverlap[rowCol].val.x}
-            ></Number>
-            </span>
-            <span className="align-horz">y:<Number
-                type="number"
-                onChange={val => {
-                    let obj = {}
-                    obj.trellisOverlap = state.trellisOverlap
-                    obj.trellisOverlap[rowCol].val.y = val
-                    dispatch(obj)
-                }}
-                value={state.trellisOverlap[rowCol].val.y}
-            ></Number>
-            </span>
+        <span className="align-horz">x:<Number
+            type="number"
+            onChange={val => {
+                let obj = {}
+                obj.trellisOverlap = state.trellisOverlap
+                obj.trellisOverlap[rowCol].val.x = val
+                dispatch(obj)
+            }}
+            value={state.trellisOverlap[rowCol].val.x}
+        ></Number>
         </span>
+        <span className="align-horz">y:<Number
+            type="number"
+            onChange={val => {
+                let obj = {}
+                obj.trellisOverlap = state.trellisOverlap
+                obj.trellisOverlap[rowCol].val.y = val
+                dispatch(obj)
+            }}
+            value={state.trellisOverlap[rowCol].val.y}
+        ></Number>
+        </span>
+    </span>
 
     const skip = rowCol =>
         <button onClick={() => {
@@ -281,7 +283,7 @@ function MobileRepeatMenu(){
             obj.trellisFlip[rowCol].val = incrementMirrorAxis(state.trellisFlip[rowCol].val, true)
             dispatch(obj)
         }}>
-            <MirrorAxisIcon val={state.trellisFlip[rowCol].val}/>
+            <MirrorAxisIcon val={state.trellisFlip[rowCol].val} />
         </button>
 
     const rotate = rowCol =>
@@ -291,27 +293,27 @@ function MobileRepeatMenu(){
             obj.trellisRotate[rowCol].val = incrementMirrorAxis(state.trellisRotate[rowCol].val, true)
             dispatch(obj)
         }}>
-            <MirrorRotIcon val={state.trellisRotate[rowCol].val}/>
+            <MirrorRotIcon val={state.trellisRotate[rowCol].val} />
         </button>
 
     return <div id="repeat-menu-mobile">
         <div id="repeat-left" className="repeat-side">
             <h4>Every</h4>
-            <hr/>
+            <hr />
             <TrellisControl value='trellisOverlap' verb='Offset' />
-            <TrellisControl value='trellisSkip'    verb='Skip' />
-            <TrellisControl value='trellisFlip'    verb='Flip' />
-            <TrellisControl value='trellisRotate'  verb='Rotate' />
-            <hr/>
+            <TrellisControl value='trellisSkip' verb='Skip' />
+            <TrellisControl value='trellisFlip' verb='Flip' />
+            <TrellisControl value='trellisRotate' verb='Rotate' />
+            <hr />
             <details>
                 <summary id="settings-summary">Settings</summary>
                 <button id='repeat-settings-reset' onClick={() => dispatch({
-                    trellisOverlap: defaultTrellisControl({x: 0, y: 0}),
-                    trellisSkip:    defaultTrellisControl(false),
-                    trellisFlip:    defaultTrellisControl(MIRROR_AXIS.NONE_0),
-                    trellisRotate:  defaultTrellisControl(MIRROR_AXIS.NONE_0),
+                    trellisOverlap: defaultTrellisControl({ x: 0, y: 0 }),
+                    trellisSkip: defaultTrellisControl(false),
+                    trellisFlip: defaultTrellisControl(MIRROR_AXIS.NONE_0),
+                    trellisRotate: defaultTrellisControl(MIRROR_AXIS.NONE_0),
                 })}>Reset</button>
-                <button id='repeat-settings-hide-dots' onClick={() => dispatch({hideDots: !state.hideDots})}>
+                <button id='repeat-settings-hide-dots' onClick={() => dispatch({ hideDots: !state.hideDots })}>
                     {state.hideDots ? "Show" : "Hide"} dots
                 </button>
             </details>
@@ -320,7 +322,7 @@ function MobileRepeatMenu(){
 
         <div id="repeat-right" className="repeat-side">
             <h4>By</h4>
-            <hr/>
+            <hr />
             <details>
                 <summary>Offset</summary>
                 Rows
@@ -353,11 +355,11 @@ function MobileRepeatMenu(){
     </div>
 }
 
-function DesktopRepeatMenuMui(){
-    const {state, dispatch} = useContext(StateContext)
-    const {side} = state
+function DesktopRepeatMenuMui() {
+    const { state, dispatch } = useContext(StateContext)
+    const { side } = state
 
-    function TrellisControl({verb, value, extra='', input}){
+    function TrellisControl({ verb, value, extra = '', input }) {
         const line = (rowCol) => <span className="trellis-control-desktop">
             {verb} every
             <Number
@@ -382,13 +384,13 @@ function DesktopRepeatMenuMui(){
     }
 
     // Enable dragging - mostly copied from ChatGPT
-    useEffect(() =>{
+    useEffect(() => {
         const draggableElement = document.getElementById('repeat-menu-desktop');
 
         // Function to handle mouse down event
         function handleMouseDown(event) {
             let x, y
-            if (event.type === 'touchstart'){
+            if (event.type === 'touchstart') {
                 const touch = (event.touches[0] || event.changedTouches[0])
                 x = touch.pageX
                 y = touch.pageY
@@ -409,7 +411,7 @@ function DesktopRepeatMenuMui(){
         function handleMouseMove(event) {
             if (!isDragging) return;
             let x, y
-            if (event.type === 'touchmove'){
+            if (event.type === 'touchmove') {
                 const touch = (event.touches[0] || event.changedTouches[0])
                 x = touch.pageX
                 y = touch.pageY
@@ -419,7 +421,7 @@ function DesktopRepeatMenuMui(){
             }
             // Update the element's position based on mouse movement
             draggableElement.style.left = `${x - offsetX}px`;
-            draggableElement.style.top  = `${y - offsetY}px`;
+            draggableElement.style.top = `${y - offsetY}px`;
             event.stopPropagation()
             // event.preventDefault()
         }
@@ -444,9 +446,9 @@ function DesktopRepeatMenuMui(){
             draggableElement.removeEventListener('mousedown', handleMouseDown)
             document.removeEventListener('mousemove', handleMouseMove)
             document.removeEventListener('mouseup', handleMouseUp)
-            draggableElement.removeEventListener('touchstart', handleMouseDown, {passive: false})
-            document.removeEventListener('touchmove', handleMouseMove, {passive: false})
-            document.removeEventListener('touchend', handleMouseUp, {passive: false})
+            draggableElement.removeEventListener('touchstart', handleMouseDown, { passive: false })
+            document.removeEventListener('touchmove', handleMouseMove, { passive: false })
+            document.removeEventListener('touchend', handleMouseUp, { passive: false })
         }
     }, [])
 
@@ -475,7 +477,7 @@ function DesktopRepeatMenuMui(){
                     value={state.trellisOverlap[rowCol].val.y}
                 ></Number>
             </span>
-        }/>
+        } />
         <TrellisControl value='trellisSkip' verb='Skip' input={rowCol =>
             <button onClick={() => {
                 let obj = {}
@@ -485,7 +487,7 @@ function DesktopRepeatMenuMui(){
             }}>
                 {state.trellisSkip[rowCol].val ? 'True' : 'False'}
             </button>
-        }/>
+        } />
         <TrellisControl value='trellisFlip' verb='Flip' input={rowCol =>
             <button onClick={() => {
                 let obj = {}
@@ -493,29 +495,29 @@ function DesktopRepeatMenuMui(){
                 obj.trellisFlip[rowCol].val = incrementMirrorAxis(state.trellisFlip[rowCol].val, true)
                 dispatch(obj)
             }}>
-                <MirrorAxisIcon val={state.trellisFlip[rowCol].val}/>
+                <MirrorAxisIcon val={state.trellisFlip[rowCol].val} />
             </button>
-        }/>
-        <TrellisControl value='trellisRotate'  verb='Rotate' input={rowCol =>
+        } />
+        <TrellisControl value='trellisRotate' verb='Rotate' input={rowCol =>
             <button onClick={() => {
                 let obj = {}
                 obj.trellisRotate = state.trellisRotate
                 obj.trellisRotate[rowCol].val = incrementMirrorAxis(state.trellisRotate[rowCol].val, true)
                 dispatch(obj)
             }}>
-                <MirrorRotIcon val={state.trellisRotate[rowCol].val}/>
+                <MirrorRotIcon val={state.trellisRotate[rowCol].val} />
             </button>
-        }/>
+        } />
 
         <button onClick={() => dispatch({
-            trellisOverlap: defaultTrellisControl({x: 0, y: 0}),
-            trellisSkip:    defaultTrellisControl(false),
-            trellisFlip:    defaultTrellisControl(MIRROR_AXIS.NONE_0),
-            trellisRotate:  defaultTrellisControl(MIRROR_AXIS.NONE_0),
+            trellisOverlap: defaultTrellisControl({ x: 0, y: 0 }),
+            trellisSkip: defaultTrellisControl(false),
+            trellisFlip: defaultTrellisControl(MIRROR_AXIS.NONE_0),
+            trellisRotate: defaultTrellisControl(MIRROR_AXIS.NONE_0),
         })}>Reset</button>
 
         {/* Grip */}
-        <FaGripLinesVertical id="grip" color='darkgray'/>
+        <FaGripLinesVertical id="grip" color='darkgray' />
     </div>
 }
 
@@ -532,25 +534,25 @@ function DesktopRepeatMenuMui(){
  *     },
  * }
  */
-function SubMenu({title, byRow, byCol, onReset, label, transformation, resetVal}){
-    const {state, dispatch} = useContext(StateContext)
+function SubMenu({ title, byRow, byCol, onReset, label, transformation, resetVal }) {
+    const { state, dispatch } = useContext(StateContext)
     const theme = useTheme()
 
     const alpha = .75
-    const {col, row} = state[transformation]
+    const { col, row } = state[transformation]
 
     return <Grid container direction="row" rowSpacing={1} columnSpacing={1} sx={{
         position: 'absolute', bottom: '1em', left: '1em', zIndex: 3,
-        border: '1px solid',
-        borderColor: 'black',
+        border: state.debug ? '1px solid' : undefined,
+        borderColor: state.debug ? 'black' : undefined,
         '& > div': {
-          border: '1px solid',
-          borderColor: 'black',
-          display: 'flex',
-          alignItems: 'end',
+            border: state.debug ? '1px solid' : undefined,
+            borderColor: state.debug ? 'black' : undefined,
+            display: 'flex',
+            alignItems: 'end',
         },
 
-        }}>
+    }}>
         <Grid size={12}>
             {byCol}
         </Grid>
@@ -558,7 +560,7 @@ function SubMenu({title, byRow, byCol, onReset, label, transformation, resetVal}
         <Grid size={12} >
             <Number
                 // label="Every"
-                onValueChange={val => dispatch({[transformation]: {col: {every: val, val: col.val}, row}})}
+                onValueChange={val => dispatch({ [transformation]: { col: { every: val, val: col.val }, row } })}
                 value={col.every}
                 textColor={theme.palette.background.default}
                 numberColor={theme.palette.text.primary}
@@ -566,27 +568,26 @@ function SubMenu({title, byRow, byCol, onReset, label, transformation, resetVal}
                 // compact
                 // bold
                 bgAlpha={alpha}
-                />
+            />
         </Grid>
         {/* Reset Button */}
         <Grid size='auto'>
-            <IconButton onClick={() => dispatch({[transformation]: defaultTrellisControl(resetVal)})} variant="contained" sx={{
-                // TODO: make both Number and this border radius rely on theme instead
-                // Copied from number-field.module.css
-                borderRadius: '0.375rem',
+            <IconButton onClick={() => dispatch({ [transformation]: defaultTrellisControl(resetVal) })} variant="contained" sx={{
+                // Don't know why borderRadius here is different than in Number
+                borderRadius: theme.shape.borderRadius/2,
                 bgcolor: theme.alpha(theme.palette.background.default, .95),
                 "&:hover": {
                     bgcolor: theme.alpha(theme.palette.background.default, alpha),
                 },
             }}>
-                <ReplayIcon/>
+                <ReplayIcon />
             </IconButton>
         </Grid>
         {/* Every Row */}
         <Grid size='auto'>
             <Number
                 // label="Skip Every"
-                onValueChange={val => dispatch({[transformation]: {row: {every: val, val: row.val}, col}})}
+                onValueChange={val => dispatch({ [transformation]: { row: { every: val, val: row.val }, col } })}
                 value={row.every}
                 textColor={theme.palette.background.default}
                 numberColor={theme.palette.text.primary}
@@ -601,8 +602,8 @@ function SubMenu({title, byRow, byCol, onReset, label, transformation, resetVal}
     </Grid>
 }
 
-function OffsetMenu(){
-    const {state, dispatch} = useContext(StateContext)
+function OffsetMenu() {
+    const { state, dispatch } = useContext(StateContext)
     const theme = useTheme()
 
     return <SubMenu
@@ -617,35 +618,173 @@ function OffsetMenu(){
         </>}
     />
 }
-function SkipMenu(){
-    const {state, dispatch} = useContext(StateContext)
-    return <SubMenu title="Skip">
+function SkipMenu() {
+    const { state, dispatch } = useContext(StateContext)
+    const theme = useTheme()
 
-    </SubMenu>
-}
-function FlipMenu(){
-    const {state, dispatch} = useContext(StateContext)
+    const {row, col} = state.trellisSkip
+
+    const sharedProps = {
+        step: 1,
+        marks: true,
+        valueLabelDisplay: "on", // or "auto", I can't decide
+        sx: {
+            color: theme.palette.background.default,
+            '& .MuiSlider-track': {
+                bgcolor: theme.palette.background.default,
+            },
+            '& .MuiSlider-thumb': {
+                bgcolor: theme.palette.background.default,
+            },
+        },
+    }
+
     return <SubMenu
-        title="Flip"
-        resetVal={MIRROR_AXIS.NONE_0}
-        transformation="trellisFlip"
-        byRow={<>
-            <Typography>flip Row</Typography>
-        </>}
-        byCol={<>
-            <Typography>flip Col</Typography>
-        </>}
+        title="Skip"
+        resetVal={MIRROR_AXIS.NONE}
+        transformation="trellisSkip"
+        byCol={<Box sx={{height: '5rem'}}>
+            <Slider
+                value={col.val}
+                onChange={(event, newValue) => dispatch({ trellisSkip: { col: { every: col.every, val: newValue }, row } })}
+                min={0}
+                max={10}
+                height="5rem"
+                orientation="vertical"
+                // slotProps={{
+                //     valueLabel: {
+                //         placement: "right",
+                //         sx: {
+                //             // bgcolor: theme.palette.background.default,
+                //         },
+                //     },
+                // }}
+                // slotProps={{
+                //     valueLabel: {
+                //       style: {
+                //         left: 'auto',
+                //         right: 0,
+                //         transform: 'translateX(100%)', // push it to the right
+                //       },
+                //     },
+                //   }}
+                {...sharedProps}
+            />
+         </Box>
+        }
+        byRow={<Box sx={{width: '5rem'}}>
+            <Slider
+                value={row.val}
+                onChange={(event, newValue) => dispatch({ trellisSkip: { row: { every: row.every, val: newValue }, col } })}
+                min={0}
+                max={10}
+                width="5rem"
+                {...sharedProps}
+            />
+         </Box>
+        }
     />
 }
-function RotateMenu(){
-    const {state, dispatch} = useContext(StateContext)
-    return <SubMenu title="Rotate">
 
-    </SubMenu>
+// These are shared between the flip and rotate menus
+const boxSx = theme => ({
+    bgcolor: theme.palette.background.default,
+    borderRadius: theme.shape.borderRadius/2,
+})
+const sharedProps = {
+    exclusive: true,
+    allowNone: true,
+}
+const sharedButtonGroupProps = theme => ({
+    // I honestly don't know where 2.5rem is coming from
+    height: '2.5rem',
+    color: theme.palette.primary.main,
+})
+function FlipMenu() {
+    const { state, dispatch } = useContext(StateContext)
+    const theme = useTheme()
+
+    const {row, col} = state.trellisFlip
+    const props = {...sharedProps,
+        buttons: [
+            { label: "Horz", icon: MirrorAxisIcon[MIRROR_AXIS.Y], value: MIRROR_AXIS.Y },
+            { label: "Vert", icon: MirrorAxisIcon[MIRROR_AXIS.X], value: MIRROR_AXIS.X },
+            { label: "Both", icon: MirrorAxisIcon[MIRROR_AXIS.BOTH], value: MIRROR_AXIS.BOTH },
+        ],
+    }
+
+    return <SubMenu
+        title="Flip"
+        resetVal={MIRROR_AXIS.NONE}
+        transformation="trellisFlip"
+        byCol={<Box sx={boxSx(theme)}>
+            <ToggleIconButtonGroup
+                {...props}
+                vertical
+                buttonGroupSx={sharedButtonGroupProps(theme)}
+                value={col.val}
+                onChange={(newValue) => dispatch({
+                    trellisFlip: { col: { every: col.every, val: newValue }, row },
+                })}
+            />
+        </Box>}
+        byRow={<Box sx={boxSx(theme)}>
+            <ToggleIconButtonGroup
+                {...props}
+                buttonGroupSx={sharedButtonGroupProps(theme)}
+                labelInline
+                value={row.val}
+                onChange={(newValue) => dispatch({
+                    trellisFlip: { row: { every: row.every, val: newValue }, col },
+                })}
+            />
+        </Box>}
+    />
+}
+function RotateMenu() {
+    const { state, dispatch } = useContext(StateContext)
+    const theme = useTheme()
+
+    const {row, col} = state.trellisRotate
+    const props = {...sharedProps,
+        buttons: [
+            { label: "90°", icon: MirrorAxisIcon[MIRROR_AXIS.Y], value: MIRROR_ROT.RIGHT },
+            { label: "180°", icon: MirrorAxisIcon[MIRROR_AXIS.X], value: MIRROR_ROT.STRAIGHT },
+            { label: "270°", icon: MirrorAxisIcon[MIRROR_AXIS.BOTH], value: MIRROR_ROT.QUAD },
+        ],
+    }
+
+    return <SubMenu
+        title="Rotate"
+        resetVal={MIRROR_ROT.NONE}
+        transformation="trellisRotate"
+        byCol={<Box sx={boxSx(theme)}>
+            <ToggleIconButtonGroup
+                {...props}
+                vertical
+                buttonGroupSx={sharedButtonGroupProps(theme)}
+                value={col.val}
+                onChange={(newValue) => dispatch({
+                    trellisRotate: { col: { every: col.every, val: newValue }, row },
+                })}
+            />
+        </Box>}
+        byRow={<Box sx={boxSx(theme)}>
+            <ToggleIconButtonGroup
+                {...props}
+                buttonGroupSx={sharedButtonGroupProps(theme)}
+                labelInline
+                value={row.val}
+                onChange={(newValue) => dispatch({
+                    trellisRotate: { row: { every: row.every, val: newValue }, col },
+                })}
+            />
+        </Box>}
+    />
 }
 
-function MobileRepeatMenuMui(){
-    const {state, dispatch} = useContext(StateContext)
+function MobileRepeatMenuMui() {
+    const { state, dispatch } = useContext(StateContext)
     const [speedDialOpen, setSpeedDialOpen] = useState(false)
     const [openSubMenus, setOpenSubMenus] = useState({
         offset: false,
@@ -672,7 +811,7 @@ function MobileRepeatMenuMui(){
 
     return <>
         <SpeedDial
-            sx={{position: 'absolute', bottom: 16, right: 16}}
+            sx={{ position: 'absolute', bottom: 16, right: 16 }}
             ariaLabel="Repeat Menu"
             // Working icon
             icon={<CropIcon />}
@@ -680,10 +819,10 @@ function MobileRepeatMenuMui(){
             // onClose={() => setSpeedDialOpen(false)}
             onClick={() => setSpeedDialOpen(!speedDialOpen)}
         >
-            <SpeedDialAction icon={<KeyboardTabIcon />} slotProps={{tooltip: {title: "Offset"}}} onClick={() => handleSubMenuClick('offset')}/>
-            <SpeedDialAction icon={<RedoIcon />} slotProps={{tooltip: {title: "Skip"}}} onClick={() => handleSubMenuClick('skip')}/>
-            <SpeedDialAction icon={<FlipIcon />} slotProps={{tooltip: {title: "Flip"}}} onClick={() => handleSubMenuClick('flip')}/>
-            <SpeedDialAction icon={<LoopIcon />} slotProps={{tooltip: {title: "Rotate"}}} onClick={() => handleSubMenuClick('rotate')}/>
+            <SpeedDialAction icon={<KeyboardTabIcon />} slotProps={{ tooltip: { title: "Offset" } }} onClick={() => handleSubMenuClick('offset')} />
+            <SpeedDialAction icon={<RedoIcon />} slotProps={{ tooltip: { title: "Skip" } }} onClick={() => handleSubMenuClick('skip')} />
+            <SpeedDialAction icon={<FlipIcon />} slotProps={{ tooltip: { title: "Flip" } }} onClick={() => handleSubMenuClick('flip')} />
+            <SpeedDialAction icon={<LoopIcon />} slotProps={{ tooltip: { title: "Rotate" } }} onClick={() => handleSubMenuClick('rotate')} />
         </SpeedDial>
 
         {openSubMenus.offset && <OffsetMenu />}

@@ -90,6 +90,12 @@ export default class Line {
         return as.map((a, i) => this.copy(a, bs[i], aes))
     }
 
+    mirrorRaw(axis, rot, origin, aes=this.aes){
+        const as = this.a.mirrorRaw(axis, rot, origin)
+        const bs = this.b.mirrorRaw(axis, rot, origin)
+        return as.map((a, i) => this.copy(a, bs[i], aes))
+    }
+
     toJSON(){
         return {
             a: this.a,

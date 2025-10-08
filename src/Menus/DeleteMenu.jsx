@@ -47,7 +47,7 @@ function DeleteMenu(){
                 Delete Unselected
             </MenuItem>
         </span>}
-        <MenuItem onClick={() => window.confirm("Are you sure you want to delete everything?") ? dispatch("clear") : undefined}>
+        <MenuItem onClick={() => (state.debug || window.confirm("Are you sure you want to delete everything?")) ? dispatch("clear") : undefined}>
             <ListItemIcon>
                 <GiNuclear/>
             </ListItemIcon>

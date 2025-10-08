@@ -87,7 +87,12 @@ const ToolButton = forwardRef(({ menu, onClick, inExtraMenu, disableTooltip, ...
     const tooltip = tooltipMap(state.mobile)[menu] || menu.charAt(0).toUpperCase() + menu.slice(1)
 
     const btn = <IconButton
-        sx={toolButtonStyle(theme)}
+        sx={{...toolButtonStyle(theme),
+          // Highlight the currently open menu
+          bgcolor: (state.openMenus[menu] && menu !== 'main') ? theme.palette.action.selected : 'transparent',
+          borderRadius: (state.openMenus[menu] && menu !== 'main') ? theme.shape.borderRadius : undefined,
+        }}
+
         className="tool-button"
         onClick={onClick || (() => { dispatch({ action: "menu", toggle: menu }) })}
         ref={ref}
@@ -124,6 +129,8 @@ const ToolButton = forwardRef(({ menu, onClick, inExtraMenu, disableTooltip, ...
         </Tooltip>
 })
 
+// I don't know what this is but the linter was bugging me for it
+ToolButton.displayName = 'ToolButton';
 export default ToolButton
 
 // var tapHolding = false
