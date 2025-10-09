@@ -178,6 +178,51 @@ export function filterObjectByKeys(obj, keys) {
     }, {});
 }
 
+function getWHofelement(element){
+    const rect = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+
+    const totalVisualWidth = rect.width + parseFloat(style.marginLeft) + parseFloat(style.marginRight)
+    const totalVisualHeight = rect.height + parseFloat(style.marginTop) + parseFloat(style.marginBottom)
+
+    return [totalVisualWidth, totalVisualHeight]
+}
+
+let extraSlotsCache = { buttonWidth: 50, buttonMargin: 10, toolbarPadding: 10 }
+// addEventListener('resize', () => {
+//     const toolButton = document.getElementById('main-tool-button')
+//     // If we can't get it, the toolbar is closed and it's not relevant anyway
+//     // console.log({toolButton})
+//     if (toolButton){
+//         [extraSlotsCache.buttonWidth, extraSlotsCache.buttonHeight] = getWHofelement(toolButton)
+//         extraSlotsCache.toolbarPadding = parseFloat(getComputedStyle(toolButton.parentElement).padding.replace('px', ''))
+//     }
+// })
+// TODO: this is getting there, but it's still not there yet
+export function extraSlotsNew(state){
+    const vertical = ['left', 'right'].includes(state.side)
+    // let sideLen = vertical ? viewportHeight() : viewportWidth()
+    let sideLen = vertical ? window.innerHeight : window.innerWidth
+
+    const numButtons = 13
+    const minButtons = 7
+    const buttonSize = vertical ? extraSlotsCache.buttonHeight : extraSlotsCache.buttonWidth
+    const toolbarPadding = extraSlotsCache.toolbarPadding
+    // Desired space between edge of toolbar and edge of screen
+    const margin = 10
+
+    const hasRoomFor = Math.floor((sideLen - (margin * 2) - (toolbarPadding * 2)) / buttonSize)
+
+    // console.log({toolbarIs: (buttonSize + (margin * 2))*numButtons + (toolbarPadding*2) - (margin*2)})
+    // console.log({toolbarLen, extraSlotsCache})
+    // console.log({hasRoomFor, sideLen, availableSpace: sideLen - (margin * 2) - (toolbarPadding * 2)})
+    // console.log({buttonSize, margin, toolbarPadding})
+    // console.log(extraSlotsCache)
+
+    return hasRoomFor - minButtons
+}
+
+// This still works better (for now)
 export function extraSlots(state){
     let sideLen
     switch (state.side) {

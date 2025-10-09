@@ -156,7 +156,7 @@ function Toolbar() {
             cursor: 'pointer',
             borderRadius: theme.shape.borderRadius,
             // backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
-            backgroundColor: theme.palette.background.paper,
+            // backgroundColor: theme.palette.background.paper,
             '& .tool-button': {
                 mx: vertical ? 1 : 0,
                 my: vertical ? 0 : 1,

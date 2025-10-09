@@ -22,13 +22,14 @@ import UndoIcon from '@mui/icons-material/Undo';
 import { isMobile } from '../utils';
 import { PiSelectionPlusDuotone } from "react-icons/pi";
 
+const mobile = isMobile()
 export const toolButtonStyle = (theme) => ({
     border: 'none',
     cursor: 'pointer',
     pointerEvents: 'all',
     textAlign: 'center',
     navIndex: -1,
-    opacity: 90,
+    // opacity: 90,
     outlineStyle: 'none',
     boxShadow: 'none',
     borderColor: 'transparent',
@@ -36,8 +37,8 @@ export const toolButtonStyle = (theme) => ({
     // These intentionally gets overridden by the mobile breakpoint
     // p: {xs: .25, sm: .25, md: 1, lg: 1, xl: 1},
     // scale: { xs: .5, sm: 1, md: 1.5 },
-    p: isMobile() ? .25 : 1,//{xs: .25, sm: .5, md: 1, lg: 1, xl: 1},
-    scale: isMobile() ? 1 : 1.5,//{ xs: 1, sm: 1, md: 1.5 },
+    p: mobile ? .25 : 1,//{xs: .25, sm: .5, md: 1, lg: 1, xl: 1},
+    scale: mobile ? 1 : 1.5,//{ xs: 1, sm: 1, md: 1.5 },
     backgroundColor: 'transparent',
     color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
     // color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
@@ -75,7 +76,8 @@ export const tooltipMap = (mobile) => {
         'extra': mobile ? 'More' : 'More Tools',
         'navigation': mobile ? 'Nav' : 'Navigation',
         'clipboard': mobile ? 'Clip' : 'Clipboard',
-        'add_bound': mobile ? 'Bound' : 'Add Bound',
+        // This only exists on mobile
+        'add_bound': 'Bound',
     }
 }
 
