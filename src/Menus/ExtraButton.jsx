@@ -1,21 +1,17 @@
 import { useContext } from "react";
 import { StateContext } from "../Contexts";
 import ToolButton from "./ToolButton";
+import { extraButtons } from "../globals";
 
-// menu doesn't
-export const extraButtons = {
-    copy_image: {action: 'copy_image'},
-    home: {action: 'go_home'},
-    redo: {action: 'redo'},
-}
+export default function ExtraButton({ style }) {
+    const { state, dispatch } = useContext(StateContext);
 
-export default function ExtraButton({style}){
-    const {state, dispatch} = useContext(StateContext)
-
-    return <ToolButton
-        id='extra-tool-button'
-        onClick={() => dispatch(extraButtons[state.extraButton])}
-        menu={state.extraButton}
-        style={style}
-    />
+    return (
+        <ToolButton
+            id="extra-tool-button"
+            onClick={() => dispatch(extraButtons[state.extraButton])}
+            menu={state.extraButton}
+            style={style}
+        />
+    );
 }
