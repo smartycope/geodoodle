@@ -39,6 +39,9 @@ This project is an attempt to recreate the experience of doodling on graph paper
 - To build: `npm run build`.
 - To deploy: `npm run deploy`.
 - To run tests: `npm test`.
+- To lint: `npm run lint`.
+- To format: `npm run pretty` (runs both eslint and prettier).
+- To run storybook: `npm run storybook`.
 
 ## Documentation
 

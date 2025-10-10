@@ -1,104 +1,103 @@
-import { viewportWidth, viewportHeight, MIRROR_AXIS } from "./globals";
-import Point from "./helper/Point";
-import Rect from "./helper/Rect";
-import options from "./options";
+import { viewportWidth, viewportHeight, MIRROR_AXIS } from "./globals"
+import Point from "./helper/Point"
+import Rect from "./helper/Rect"
+import options from "./options"
 
 // TODO: several of these functions are not used anymore and should be removed
 
 export function getClipboardButtonsPos(state) {
-    const { cursorPos, scalex } = state;
-    const { clipboardButtonWidth: buttonWidth, clipboardButtonHeight: buttonHeight } = options;
-    const { x: cursorx, y: cursory } = cursorPos.asViewport(state);
-    const { width: boundWidth, height: boundHeight } = getBoundRect(state).asViewport(state, true);
-    // x={cursorx - width/2 - scalex/2} y={cursory - height/2 - buttonHeight}
-    return Point.fromViewport(state, cursorx - boundWidth / 2 - scalex / 2, cursory - boundHeight / 2 - buttonHeight);
+  const { cursorPos, scalex } = state
+  const { clipboardButtonWidth: buttonWidth, clipboardButtonHeight: buttonHeight } = options
+  const { x: cursorx, y: cursory } = cursorPos.asViewport(state)
+  const { width: boundWidth, height: boundHeight } = getBoundRect(state).asViewport(state, true)
+  // x={cursorx - width/2 - scalex/2} y={cursory - height/2 - buttonHeight}
+  return Point.fromViewport(state, cursorx - boundWidth / 2 - scalex / 2, cursory - boundHeight / 2 - buttonHeight)
 }
 
 // Get all the lines for the clipboard, including mirroring and transformation of the clipboard
 export function getAllClipboardLines(state, translate) {
-    const { clipboard, cursorPos, clipboardMirrorAxis, clipboardRotation } = state;
-    if (!clipboard) return [];
-    const origin = translate ? cursorPos : Point.svgOrigin(state);
-    return clipboard
-        .map((line) =>
-            line.translate(origin).flip(clipboardMirrorAxis, origin).rotate(clipboardRotation, origin).mirror(state),
-        )
-        .flat();
+  const { clipboard, cursorPos, clipboardMirrorAxis, clipboardRotation } = state
+  if (!clipboard) return []
+  const origin = translate ? cursorPos : Point.svgOrigin(state)
+  return clipboard
+    .map((line) =>
+      line.translate(origin).flip(clipboardMirrorAxis, origin).rotate(clipboardRotation, origin).mirror(state),
+    )
+    .flat()
 }
 
 export function getAllCursorPoints(state, includeOriginal = true, useMousePos = false) {
-    const { cursorPos, mirrorOrigins, mousePos } = state;
-    const point = useMousePos ? mousePos : cursorPos;
-    const points = includeOriginal ? [point] : [];
-    // Add the local mirror points
-    points.push(...point.mirror(state));
-    // Add the mirror origin points
-    for (const { origin, axis, rot } of mirrorOrigins) {
-        points.push(...point.mirrorRaw(axis, rot, origin));
-    }
-    return points;
+  const { cursorPos, mirrorOrigins, mousePos } = state
+  const point = useMousePos ? mousePos : cursorPos
+  const points = includeOriginal ? [point] : []
+  // Add the local mirror points
+  points.push(...point.mirror(state))
+  // Add the mirror origin points
+  for (const { origin, axis, rot } of mirrorOrigins) points.push(...point.mirrorRaw(axis, rot, origin))
+
+  return points
 }
 
 // If retranslated is 'center', the lines will be retranslated to be relative to the center of the selection
 // If retranslated is 'topLeft', the lines will be retranslated to be relative to the top left of the selection
 // If retranslated is falsey, the lines will be returned as they are
 export function getSelected(state, retranslated, polygons = false) {
-    const boundRect = getBoundRect(state);
-    if (!boundRect) return [];
+  const boundRect = getBoundRect(state)
+  if (!boundRect) return []
 
-    let selected = state.lines.filter((obj) => obj.isSelected(state, boundRect));
-    if (polygons) selected = selected.concat(state.filledPolys.filter((obj) => obj.isSelected(state, boundRect)));
+  let selected = state.lines.filter((obj) => obj.isSelected(state, boundRect))
+  if (polygons) selected = selected.concat(state.filledPolys.filter((obj) => obj.isSelected(state, boundRect)))
 
-    if (retranslated === "center") return selected.map((obj) => obj.relativeTo(boundRect.center));
-    else if (retranslated === "topLeft") return selected.map((obj) => obj.relativeTo(boundRect.topLeft));
-    else return selected;
+  if (retranslated === "center") return selected.map((obj) => obj.relativeTo(boundRect.center))
+  else if (retranslated === "topLeft") return selected.map((obj) => obj.relativeTo(boundRect.topLeft))
+  else return selected
 }
 
 // TODO: this should probably use the actually mouse location instead of CursorPos
 // (because it's going to be going in between dots a lot)
 export function getPreviewPolys(state, polys) {
-    return polys.filter((poly) => getAllCursorPoints(state, true, true).some((p) => poly.contains(p)));
+  return polys.filter((poly) => getAllCursorPoints(state, true, true).some((p) => poly.contains(p)))
 }
 
 export function getBoundRect(state) {
-    const { bounds, boundDragging, cursorPos } = state;
-    return boundDragging && bounds.length === 1
-        ? Rect.fromPoints(cursorPos, bounds[0])
-        : bounds.length > 1
-          ? Rect.fromPoints(...bounds)
-          : null;
+  const { bounds, boundDragging, cursorPos } = state
+  return boundDragging && bounds.length === 1
+    ? Rect.fromPoints(cursorPos, bounds[0])
+    : bounds.length > 1
+      ? Rect.fromPoints(...bounds)
+      : null
 }
 
 export function getHalf(state) {
-    return Point.fromViewport(state, viewportWidth() / 2, viewportHeight() / 2).align(state);
+  return Point.fromViewport(state, viewportWidth() / 2, viewportHeight() / 2).align(state)
 }
 
 export function getDebugBox(state) {
-    return new Rect(
-        Point.fromViewport(state, viewportWidth() / 4, viewportHeight() / 4),
-        Point.fromViewport(state, (viewportWidth() / 4) * 3, (viewportHeight() / 4) * 3),
-    );
+  return new Rect(
+    Point.fromViewport(state, viewportWidth() / 4, viewportHeight() / 4),
+    Point.fromViewport(state, (viewportWidth() / 4) * 3, (viewportHeight() / 4) * 3),
+  )
 }
 
 // NOTE: this doesn't do anything with modifier key events if they're not pressed with something else
 export function eventMatchesKeycode(event, code) {
-    // We need to acknoledge space!
-    // code = code.replace(/\s+/, '').split('+')
-    code = code.split("+");
-    return (
-        event.ctrlKey === code.includes("ctrl") &&
-        event.metaKey === code.includes("meta") &&
-        event.altKey === code.includes("alt") &&
-        event.shiftKey === code.includes("shift") &&
-        code.includes(event.key.toLowerCase())
-    );
+  // We need to acknoledge space!
+  // code = code.replace(/\s+/, '').split('+')
+  code = code.split("+")
+  return (
+    event.ctrlKey === code.includes("ctrl") &&
+    event.metaKey === code.includes("meta") &&
+    event.altKey === code.includes("alt") &&
+    event.shiftKey === code.includes("shift") &&
+    code.includes(event.key.toLowerCase())
+  )
 }
 
 export function invertObject(obj) {
-    return Object.entries(obj).reduce((acc, [key, value]) => {
-        acc[value] = key;
-        return acc;
-    }, {});
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    acc[value] = key
+    return acc
+  }, {})
 }
 
 // Source: https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser#11381730
@@ -113,24 +112,24 @@ export function invertObject(obj) {
 // the device they're on, default to using state.mobile (simply because you don't have to re-calculate it) unless you to
 // have an updated value for some reason
 export function isMobile() {
-    // If *either* dimension is small (in case the phone is sideways)
-    const smallDim = 768;
-    const smallWidth = window.innerWidth <= smallDim;
-    const smallHeight = window.innerHeight <= smallDim;
-    // const phoneRatio = Math.abs(window.innerWidth - window.innerHeight) > Math.min(window.innerWidth, window.innerHeight) / 2
-    const phoneRatio =
-        Math.min(window.innerWidth, window.innerHeight) / Math.max(window.innerWidth, window.innerHeight) < 0.6;
-    // If the aspect ratio seems to indicate a phone, check if either dimension is small
-    // Otherwise, both of them need to be small
-    return phoneRatio ? smallWidth || smallHeight : smallWidth && smallHeight;
+  // If *either* dimension is small (in case the phone is sideways)
+  const smallDim = 768
+  const smallWidth = window.innerWidth <= smallDim
+  const smallHeight = window.innerHeight <= smallDim
+  // const phoneRatio = Math.abs(window.innerWidth - window.innerHeight) > Math.min(window.innerWidth, window.innerHeight) / 2
+  const phoneRatio =
+    Math.min(window.innerWidth, window.innerHeight) / Math.max(window.innerWidth, window.innerHeight) < 0.6
+  // If the aspect ratio seems to indicate a phone, check if either dimension is small
+  // Otherwise, both of them need to be small
+  return phoneRatio ? smallWidth || smallHeight : smallWidth && smallHeight
 }
 
 export function distCenter(x1, y1, x2, y2) {
-    return {
-        distance: Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)),
-        centerx: (x1 + x2) / 2,
-        centery: (y1 + y2) / 2,
-    };
+  return {
+    distance: Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)),
+    centerx: (x1 + x2) / 2,
+    centery: (y1 + y2) / 2,
+  }
 }
 
 // const body = document.body;
@@ -140,23 +139,23 @@ export function distCenter(x1, y1, x2, y2) {
 // }
 
 export const multMat = (A, B) =>
-    A.map((row, i) => B[0].map((_, j) => row.reduce((acc, _, n) => acc + A[i][n] * B[n][j], 0)));
+  A.map((row, i) => B[0].map((_, j) => row.reduce((acc, _, n) => acc + A[i][n] * B[n][j], 0)))
 
 export function toRadians(angle) {
-    return angle * (Math.PI / 180);
+  return angle * (Math.PI / 180)
 }
 
 export function incrementMirrorAxis(mirrorAxis, none = false) {
-    switch (mirrorAxis) {
-        case MIRROR_AXIS.Y:
-            return MIRROR_AXIS.X;
-        case MIRROR_AXIS.X:
-            return MIRROR_AXIS.BOTH;
-        case MIRROR_AXIS.BOTH:
-            return none ? MIRROR_AXIS.NONE : MIRROR_AXIS.Y;
-        default:
-            return MIRROR_AXIS.Y;
-    }
+  switch (mirrorAxis) {
+    case MIRROR_AXIS.Y:
+      return MIRROR_AXIS.X
+    case MIRROR_AXIS.X:
+      return MIRROR_AXIS.BOTH
+    case MIRROR_AXIS.BOTH:
+      return none ? MIRROR_AXIS.NONE : MIRROR_AXIS.Y
+    default:
+      return MIRROR_AXIS.Y
+  }
 }
 
 /*
@@ -170,36 +169,35 @@ export function incrementMirrorAxis(mirrorAxis, none = false) {
  * }
  */
 export const defaultTrellisControl = (value, every = 1) => ({
-    row: {
-        every,
-        val: value,
-    },
-    col: {
-        every,
-        val: value,
-    },
-});
+  row: {
+    every,
+    val: value,
+  },
+  col: {
+    every,
+    val: value,
+  },
+})
 
 export function filterObjectByKeys(obj, keys) {
-    return keys.reduce((filteredObj, key) => {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            filteredObj[key] = obj[key];
-        }
-        return filteredObj;
-    }, {});
+  return keys.reduce((filteredObj, key) => {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) filteredObj[key] = obj[key]
+
+    return filteredObj
+  }, {})
 }
 
 function getWHofelement(element) {
-    const rect = element.getBoundingClientRect();
-    const style = getComputedStyle(element);
+  const rect = element.getBoundingClientRect()
+  const style = getComputedStyle(element)
 
-    const totalVisualWidth = rect.width + parseFloat(style.marginLeft) + parseFloat(style.marginRight);
-    const totalVisualHeight = rect.height + parseFloat(style.marginTop) + parseFloat(style.marginBottom);
+  const totalVisualWidth = rect.width + parseFloat(style.marginLeft) + parseFloat(style.marginRight)
+  const totalVisualHeight = rect.height + parseFloat(style.marginTop) + parseFloat(style.marginBottom)
 
-    return [totalVisualWidth, totalVisualHeight];
+  return [totalVisualWidth, totalVisualHeight]
 }
 
-let extraSlotsCache = { buttonWidth: 50, buttonMargin: 10, toolbarPadding: 10 };
+let extraSlotsCache = { buttonWidth: 50, buttonMargin: 10, toolbarPadding: 10 }
 // addEventListener('resize', () => {
 //     const toolButton = document.getElementById('main-tool-button')
 //     // If we can't get it, the toolbar is closed and it's not relevant anyway
@@ -211,81 +209,81 @@ let extraSlotsCache = { buttonWidth: 50, buttonMargin: 10, toolbarPadding: 10 };
 // })
 // TODO: this is getting there, but it's still not there yet
 export function extraSlotsNew(state) {
-    const vertical = ["left", "right"].includes(state.side);
-    // let sideLen = vertical ? viewportHeight() : viewportWidth()
-    let sideLen = vertical ? window.innerHeight : window.innerWidth;
+  const vertical = ["left", "right"].includes(state.side)
+  // let sideLen = vertical ? viewportHeight() : viewportWidth()
+  let sideLen = vertical ? window.innerHeight : window.innerWidth
 
-    const numButtons = 13;
-    const minButtons = 7;
-    const buttonSize = vertical ? extraSlotsCache.buttonHeight : extraSlotsCache.buttonWidth;
-    const toolbarPadding = extraSlotsCache.toolbarPadding;
-    // Desired space between edge of toolbar and edge of screen
-    const margin = 10;
+  const numButtons = 13
+  const minButtons = 7
+  const buttonSize = vertical ? extraSlotsCache.buttonHeight : extraSlotsCache.buttonWidth
+  const toolbarPadding = extraSlotsCache.toolbarPadding
+  // Desired space between edge of toolbar and edge of screen
+  const margin = 10
 
-    const hasRoomFor = Math.floor((sideLen - margin * 2 - toolbarPadding * 2) / buttonSize);
+  const hasRoomFor = Math.floor((sideLen - margin * 2 - toolbarPadding * 2) / buttonSize)
 
-    // console.log({toolbarIs: (buttonSize + (margin * 2))*numButtons + (toolbarPadding*2) - (margin*2)})
-    // console.log({toolbarLen, extraSlotsCache})
-    // console.log({hasRoomFor, sideLen, availableSpace: sideLen - (margin * 2) - (toolbarPadding * 2)})
-    // console.log({buttonSize, margin, toolbarPadding})
-    // console.log(extraSlotsCache)
+  // console.log({toolbarIs: (buttonSize + (margin * 2))*numButtons + (toolbarPadding*2) - (margin*2)})
+  // console.log({toolbarLen, extraSlotsCache})
+  // console.log({hasRoomFor, sideLen, availableSpace: sideLen - (margin * 2) - (toolbarPadding * 2)})
+  // console.log({buttonSize, margin, toolbarPadding})
+  // console.log(extraSlotsCache)
 
-    return hasRoomFor - minButtons;
+  return hasRoomFor - minButtons
 }
 
 // This still works better (for now)
 export function extraSlots(state) {
-    let sideLen;
-    switch (state.side) {
-        case "right":
-        case "left":
-            sideLen = viewportHeight();
-            break;
-        case "bottom":
-        case "top":
-            sideLen = viewportWidth();
-    }
+  let sideLen
+  switch (state.side) {
+    case "right":
+    case "left":
+      sideLen = viewportHeight()
+      break
+    case "bottom":
+    case "top":
+      sideLen = viewportWidth()
+  }
 
-    // Because the repeat menu is on the sides, if the repeat menu is open, make sure we're not on the side so we can close it again
-    if (state.openMenus.repeat && state.mobile && ["left", "right"].includes(state.side))
-        sideLen = window.visualViewport.width;
+  // Because the repeat menu is on the sides, if the repeat menu is open, make sure we're not on the side so we can close it again
+  if (state.openMenus.repeat && state.mobile && ["left", "right"].includes(state.side))
+    sideLen = window.visualViewport.width
 
-    return Math.floor((sideLen - 500) / 60);
+  return Math.floor((sideLen - 500) / 60)
 }
 
 // Return a color that shows up well on the given color so you can read text
 export function getShowableStroke(color) {
-    const r = parseInt(color.slice(1, 3), 16);
-    const g = parseInt(color.slice(3, 5), 16);
-    const b = parseInt(color.slice(5, 7), 16);
+  const r = parseInt(color.slice(1, 3), 16)
+  const g = parseInt(color.slice(3, 5), 16)
+  const b = parseInt(color.slice(5, 7), 16)
 
-    // Calculate perceived brightness (YIQ formula)
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    return brightness > 128 ? "black" : "white";
+  // Calculate perceived brightness (YIQ formula)
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000
+  return brightness > 128 ? "black" : "white"
 }
 
 // Returns the lines, but removekks any duplicates, lines with null values, and invalid lines
 export function normalizeLines(lines) {
-    const seen = new Set();
+  const seen = new Set()
 
-    return lines.filter((line) => {
-        const hash = line.hash();
-        if (!line || !line.valid || seen.has(hash)) return false;
-        seen.add(hash);
-        return true;
-    });
+  return lines.filter((line) => {
+    const hash = line.hash()
+    if (!line || !line.valid || seen.has(hash)) return false
+    seen.add(hash)
+    return true
+  })
 }
 
 export function splitAllLines(lines) {
-    return lines.flatMap((line) => line.split(lines));
+  return lines.flatMap((line) => line.split(lines))
 }
 
 export function unique(arr) {
-    // I don't understand why Sets stopped working suddenly
-    // return Array.from(new Set(arr))
-    return arr.filter((point, index, self) => self.findIndex((p) => p.eq(point)) === index);
+  // I don't understand why Sets stopped working suddenly
+  // return Array.from(new Set(arr))
+  return arr.filter((point, index, self) => self.findIndex((p) => p.eq(point)) === index)
 }
 
 export function getAllIntersections(lines) {
-    return unique(lines.flatMap((line) => line.findIntersections(lines)));
+  return unique(lines.flatMap((line) => line.findIntersections(lines)))
 }

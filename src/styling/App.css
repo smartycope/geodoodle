@@ -2,192 +2,191 @@
   text-align: center;
 }
 
-html{
-    overflow: hidden;
+html {
+  overflow: hidden;
 }
 
-#paper{
-    /* background-color: #C8A064; */
-    /* background-color: #E4C699; */
-    /* background-color: #ffddab; */
-    /* background-color: BlanchedAlmond; */
-    /* This is handled in paper itself now */
-    /* cursor: none; */
+#paper {
+  /* background-color: #C8A064; */
+  /* background-color: #E4C699; */
+  /* background-color: #ffddab; */
+  /* background-color: BlanchedAlmond; */
+  /* This is handled in paper itself now */
+  /* cursor: none; */
 }
 
-.checkbox{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    label{
-        margin-right: 1px;
-    }
+.checkbox {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  label {
+    margin-right: 1px;
+  }
 }
 
-.align-horz{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+.align-horz {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 /* input[type=number] {
     width: 3em;
 } */
 
-.up-half-scale{
-    scale: 1.5;
+.up-half-scale {
+  scale: 1.5;
 }
 
-.double-scale{
-    scale: 2;
+.double-scale {
+  scale: 2;
 }
 
-input{
-    padding: 8px;
-    color: white;
-    border-radius: 8px;
-    background-color: rgb(40,40,40);
+input {
+  padding: 8px;
+  color: white;
+  border-radius: 8px;
+  background-color: rgb(40, 40, 40);
 }
 
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
-    opacity: 0;
-    /* padding-top: 35%;
+  opacity: 0;
+  /* padding-top: 35%;
     padding-bottom: 30%;
     padding-left: 5%; */
-    /* fill: rgb(60,60,60);
+  /* fill: rgb(60,60,60);
     background: rgb(60,60,60);
 
     border-radius: 5px; */
 }
 
-.button-group{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    margin-left: 10px;
-    > *{
-        margin: 2px;
-    }
+.button-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 10px;
+  > * {
+    margin: 2px;
+  }
 }
 
-.selection-group{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    align-content: space-between;
-    justify-content: space-between;
-    > *{
-        margin: 2px;
-    }
+.selection-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-content: space-between;
+  justify-content: space-between;
+  > * {
+    margin: 2px;
+  }
 }
 
-#grip{
-    scale: 1.5;
-    transform: scaleY(1.5);
-    position: absolute;
-    right: 5px;
-    height: max-content;
-    display: flex;
-    flex-direction: column;
+#grip {
+  scale: 1.5;
+  transform: scaleY(1.5);
+  position: absolute;
+  right: 5px;
+  height: max-content;
+  display: flex;
+  flex-direction: column;
 }
 
-
-#close-button{
-    top: 10px;
-    right: 10px;
-    position: absolute;
+#close-button {
+  top: 10px;
+  right: 10px;
+  position: absolute;
 }
 
-#close-button{
-    bottom: 10px;
-    /* top: 300px; */
-    max-height: 50px;
-    right: 10px;
-    position: absolute;
+#close-button {
+  bottom: 10px;
+  /* top: 300px; */
+  max-height: 50px;
+  right: 10px;
+  position: absolute;
 }
 
-ul{
-    align-items: flex-start;
-    display: flex;
-    flex-direction: column;
+ul {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
 }
 
-
-label{
-    color: white;
-    margin-left: 5px;
-    font-size: small;
+label {
+  color: white;
+  margin-left: 5px;
+  font-size: small;
 }
 
-button:hover{
-    background-color: gray;
-    border-radius: 8px;
+button:hover {
+  background-color: gray;
+  border-radius: 8px;
 }
 
-button{
-    background-color: rgb(40,40,40);
-    color: white;
-    border-radius: 8px;
-    border: none;
-    margin-left: 5px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    padding: 10px;
+button {
+  background-color: rgb(40, 40, 40);
+  color: white;
+  border-radius: 8px;
+  border: none;
+  margin-left: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 10px;
 }
 
-select{
-    background-color: rgb(40,40,40);
-    color: white;
-    border-radius: 8px;
-    cursor: pointer;
-    padding: 8px;
+select {
+  background-color: rgb(40, 40, 40);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 8px;
 }
 
 svg {
-    overflow: visible;
+  overflow: visible;
 }
 
 /* Make links lighter in color */
-a{
-    color: rgb(187, 193, 255);
+a {
+  color: rgb(187, 193, 255);
 }
 
-#mirror-buttons{
-    > button > svg{
-        margin-right: 5px;
-    }
+#mirror-buttons {
+  > button > svg {
+    margin-right: 5px;
+  }
 }
 
-hr{
-    width: 95%;
+hr {
+  width: 95%;
 }
 
-#clipboard-transform-buttons-mobile:focus{
-    background-color: red;
-    width: 50;
+#clipboard-transform-buttons-mobile:focus {
+  background-color: red;
+  width: 50;
 }
-#clipboard-transform-buttons-mobile{
-    display: flex;
-    flex-direction: row;
-    pointer-events: all;
-    /* background-color: blue; */
-}
-
-summary{
-    padding: 10px;
-    border: 1px solid rgb(20,20,20);
-    border-radius: 8px;
-    background-color: rgb(40,40,40);
-    opacity: .8;
+#clipboard-transform-buttons-mobile {
+  display: flex;
+  flex-direction: row;
+  pointer-events: all;
+  /* background-color: blue; */
 }
 
-html, body .App{
-    overflow: hidden;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    background-color: #ffddab;
+summary {
+  padding: 10px;
+  border: 1px solid rgb(20, 20, 20);
+  border-radius: 8px;
+  background-color: rgb(40, 40, 40);
+  opacity: 0.8;
+}
+
+html,
+body .App {
+  overflow: hidden;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #ffddab;
 }

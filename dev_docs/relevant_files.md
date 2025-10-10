@@ -3,46 +3,46 @@
 These are the most relevant files in the program (these are all in /src/):
 
 - [Paper.jsx](../src/Paper.jsx)
-    - The main component of the program. It's where most (pretty much all) of the drawing happens. Also handles all of the input events
+  - The main component of the program. It's where most (pretty much all) of the drawing happens. Also handles all of the input events
 - [reducer.jsx](../src/reducer.jsx)
-    - Handles all the state changes. All the events are processed here. You'll see dispatch({action: "..."}) all over the place, that calls the reducer.
+  - Handles all the state changes. All the events are processed here. You'll see dispatch({action: "..."}) all over the place, that calls the reducer.
 - [actions.jsx](../src/actions.jsx)
-    - Contains all the actions that can be dispatched. These are executed by the reducer, and they return modifications to the state.
+  - Contains all the actions that can be dispatched. These are executed by the reducer, and they return modifications to the state.
 - [drawing.jsx](../src/drawing.jsx)
-    - Has all of the components that Paper uses, except for Trellis
+  - Has all of the components that Paper uses, except for Trellis
 - [Trellis.jsx](../src/Trellis.jsx)
-    - The component that draws the trellis. It holds the logic for the repeating algorithm
+  - The component that draws the trellis. It holds the logic for the repeating algorithm
 - [events.jsx](../src/events.jsx)
-    - Holds all the event handlers.
+  - Holds all the event handlers.
 - [utils.js](../src/utils.js)
-    - Contains utility functions used throughout the program
+  - Contains utility functions used throughout the program
 - [globals.js](../src/globals.js)
-    - Contains global constants. I think I've removed all real global variables by now (except relating to the tour)
+  - Contains global constants. I think I've removed all real global variables by now (except relating to the tour)
 - [options.jsx](../src/options.jsx)
-    - Contains the default options for the program. These get modified in the settings menu. This is due for a refactor
+  - Contains the default options for the program. These get modified in the settings menu. This is due for a refactor
 - [fileUtils.jsx](../src/fileUtils.jsx)
-    - Contains file handling functions. All code that touches storage mediums and file I/O is here.
+  - Contains file handling functions. All code that touches storage mediums and file I/O is here.
 - [styling/](../src/styling/)
-    - Contains all the CSS. This is almost entirely inline now
+  - Contains all the CSS. This is almost entirely inline now
 - [theme.js](../src/styling/theme.js)
-    - Contains the theme, accessible via useTheme()
+  - Contains the theme, accessible via useTheme()
 - [Menus/](../src/Menus/)
-    - Contains the menus and pages, and their utilities
-    - [MiniMenu.jsx](../src/Menus/MiniMenu.jsx)
-        - Mini menus are the popups that appear when you click a tool button
-    - [Page.jsx](../src/Menus/Page.jsx)
-        - Pages are full-screen menus, like the settings menu
-    - [ToolButton.jsx](../src/Menus/ToolButton.jsx)
-        - Toolbuttons are the buttons in the toolbar (and ExtraMenu)
-    - [Toolbar.jsx](../src/Menus/Toolbar.jsx)
-    - [tour.jsx](../src/Menus/tour.jsx)
+  - Contains the menus and pages, and their utilities
+  - [MiniMenu.jsx](../src/Menus/MiniMenu.jsx)
+    - Mini menus are the popups that appear when you click a tool button
+  - [Page.jsx](../src/Menus/Page.jsx)
+    - Pages are full-screen menus, like the settings menu
+  - [ToolButton.jsx](../src/Menus/ToolButton.jsx)
+    - Toolbuttons are the buttons in the toolbar (and ExtraMenu)
+  - [Toolbar.jsx](../src/Menus/Toolbar.jsx)
+  - [tour.jsx](../src/Menus/tour.jsx)
 - [helper/](../src/helper/)
-    - Classes to encapsulate some of the coordinate math
-    - [helper/Pair.jsx](../src/helper/Pair.jsx)
-        - An abstract class to encapsulate similar logic between Dist and Point
-    - [helper/Point.jsx](../src/helper/Point.jsx)
-        - A class to encapsulate coordinate logic. See the top comment in the file for more details
-    - [helper/Dist.jsx](../src/helper/Dist.jsx)
-        - It's for things that might be scaled, but aren't points, so they don't really have a coordinate system (like translation). It's to Point what TimeDelta is to DateTime.
-    - [helper/Line.jsx](../src/helper/Line.jsx)
-    - [helper/Rect.jsx](../src/helper/Rect.jsx)
+  - Classes to encapsulate some of the coordinate math
+  - [helper/Pair.jsx](../src/helper/Pair.jsx)
+    - An abstract class to encapsulate similar logic between Dist and Point
+  - [helper/Point.jsx](../src/helper/Point.jsx)
+    - A class to encapsulate coordinate logic. See the top comment in the file for more details
+  - [helper/Dist.jsx](../src/helper/Dist.jsx)
+    - It's for things that might be scaled, but aren't points, so they don't really have a coordinate system (like translation). It's to Point what TimeDelta is to DateTime.
+  - [helper/Line.jsx](../src/helper/Line.jsx)
+  - [helper/Rect.jsx](../src/helper/Rect.jsx)
