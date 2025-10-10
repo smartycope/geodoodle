@@ -49,8 +49,10 @@ export default function App() {
                     dispatch('end_tour')
                     setInTour(false)
                 }}
-                accentColor='#ffddab'
+                // accentColor='#ffddab'
                 // startAt={0}
+                // The prev button doesn't work, so we just hide it
+                prevButton={<></>}
                 rounded={8}
                 showNavigationNumber={false}
                 showNumber={false}

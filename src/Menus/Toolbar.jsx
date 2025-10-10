@@ -135,6 +135,7 @@ function Toolbar() {
             // TODO: should this be state.mobile?
             px: isMobile() ? .5 : 1,
             py: isMobile() ? .5 : 1,
+            focusVisible: false,
             // [theme.breakpoints.desktop]: {
             //     px: 2,
             //     py: 2,

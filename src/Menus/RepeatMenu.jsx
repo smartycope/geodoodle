@@ -54,6 +54,7 @@ function SubMenu({ title, byHorizontal, byVertical, transformation, resetVal, ev
         bottom: '.5rem',
         left: '.5rem',
         zIndex: 3,
+        width: 'max-content',
         pointerEvents: 'none',
         border: state.debug ? '1px solid' : undefined,
         borderColor: state.debug ? 'black' : undefined,
@@ -69,6 +70,7 @@ function SubMenu({ title, byHorizontal, byVertical, transformation, resetVal, ev
 
         {/* Every Column */}
         <Grid size={'auto'} sx={{...gridItemSx, display:'flex', justifyContent:'center'}}>
+            <div id='tour3'>
             <Number
                 // label="Every"
                 onValueChange={val => dispatch({ [transformation]: { col: { every: val, val: col.val }, row } })}
@@ -78,10 +80,11 @@ function SubMenu({ title, byHorizontal, byVertical, transformation, resetVal, ev
                 max={Math.floor(window.innerWidth / state.scaley)}
                 {...numberProps(theme)}
             />
+            </div>
         </Grid>
 
         {/* Label */}
-        <Grid size={10} sx={gridItemSx}>
+        <Grid size={11} sx={gridItemSx}>
             <Typography variant="h4" sx={{
                 fontWeight: 'bold',
                 opacity: .5,
@@ -111,6 +114,7 @@ function SubMenu({ title, byHorizontal, byVertical, transformation, resetVal, ev
 
         {/* Every Row */}
         <Grid size='auto' sx={gridItemSx}>
+            <div id='tour2'> {/* I hate everyone */}
             <Number
                 // label="Every"
                 onValueChange={val => dispatch({ [transformation]: { row: { every: val, val: row.val }, col } })}
@@ -119,6 +123,7 @@ function SubMenu({ title, byHorizontal, byVertical, transformation, resetVal, ev
                 max={Math.floor(window.innerWidth / state.scaley)}
                 {...numberProps(theme)}
             />
+            </div>
         </Grid>
 
         {/* By Horizontal */}
@@ -330,6 +335,7 @@ function RotateMenu() {
         byVertical={<Box sx={boxSx(theme)}>
             <ToggleIconButtonGroup
                 {...props}
+                id='tour1'
                 sx={{ width: '2.5rem' }}
                 vertical
                 buttonGroupSx={sharedButtonGroupProps(theme)}
@@ -342,6 +348,7 @@ function RotateMenu() {
         byHorizontal={<Box sx={boxSx(theme)}>
             <ToggleIconButtonGroup
                 {...props}
+                id='tour0'
                 buttonGroupSx={sharedButtonGroupProps(theme)}
                 labelInline
                 value={row.val}
@@ -375,6 +382,7 @@ export default function RepeatMenu() {
 
     return <>
         <SpeedDial
+            id='repeat-speed-dial'
             // 5rem puts it below the toolbar FAB
             sx={{ position: 'absolute', top: '5rem', right: 16 }}
             ariaLabel="Repeat Menu"

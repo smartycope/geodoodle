@@ -41,7 +41,7 @@ export default function reducer(state, data){
             // TODO: this stopped working and I don't know why
             setTimeout(() => {
                 window.dispatchEvent(new Event('resize'))
-                console.log("reloaded")
+                // console.log("reloaded")
             }, 10)
         }
 

@@ -44,12 +44,13 @@ export default function ToggleIconButtonGroup({
             >
                 {buttons.map((btn, i) => (
                     <ToggleButton
+                        id={`${id}-${btn.value}`}
                         key={btn.value}
                         value={btn.value}
                         disabled={typeof disabled === 'object' ? disabled[btn.value] : false}
                         sx={{
                             flexDirection: labelInline ? "row" : "column",
-                            // When oriented vertically, expand vertically to ensure the icon and label both fit
+                        // When oriented vertically, expand vertically to ensure the icon and label both fit
                             flex: vertical ? 1 : undefined,
                             // So the first one ensures enough space for the label
                             minWidth: i === 0 && !vertical ? "3rem" : undefined,
