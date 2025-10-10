@@ -13,83 +13,82 @@ const tour = _dispatch => {
     const mobile = isMobile()
 
     return [
-        {content: <>Welcome to GeoDoodle! This is a doodle program, but <em>not</em> a drawing program. All the lines are intended to line up with the dots. This lets you repeat patterns in interesting ways.</>},
+        {content: <>Welcome to GeoDoodle! This is a doodle program, but <em>not</em> a drawing program. All the lines are intended to line up with the dots. This lets you repeat patterns in interesting ways.<br/><br/>Let&apos;s walk through some of the basics</>},
         {   selector: "#menu-selector-mobile",
-            content: "This is the control bar. You can click the button on the far right to hide it. You can also change the side of the screen it sticks to in settings.",
+            content: "This is the toolbar. You can click the button on the far right to hide it. You can also change the side of the screen it sticks to in settings.",
         },
         menu({open: 'color'}),
-        {   selector: "#color-picker-mobile-actual",
-            content: "This is the color menu. You can use this to set the color and transparency of the lines."
+        {   selector: "#color-mini-menu",
+            content: "This is the color menu. You can use it to customize lines, including color, transparency, width, and dash pattern."
         },
-        {   selector: "#color-profile-buttons",
-            content: "These let you keep track of multiple color/stroke/dashes induvidually, so you can swap back and forth quickly." + (!mobile && ' You can also use the number keys to switch between them.'),
-        },
-        {   selector: "#stroke-input",
-            content: "The stroke is the width of the line. It scales with the page."
-        },
-        {   selector: "#dash-input",
-            content: "This lets you specify the \"dash code\". It lets you draw customized dashed lines. To draw a solid line, just put \"0\".",
-            highlightedSelectors: ['#color-menu-close-button']
-        },
+        // {   selector: "#color-profile-buttons",
+        //     content: "These let you keep track of multiple color/stroke/dashes induvidually, so you can swap back and forth quickly." + (!mobile && ' You can also use the number keys to switch between them.'),
+        // },
+        // {   selector: "#stroke-input",
+        //     content: "The stroke is the width of the line. It scales with the page."
+        // },
+        // {   selector: "#dash-input",
+        //     content: "This lets you specify the \"dash code\". It lets you draw customized dashed lines. To draw a solid line, just put \"0\".",
+        //     highlightedSelectors: ['#color-menu-close-button']
+        // },
         menu({close: 'color'}),
         // {   selector: "#dashed-line",
         //     content: "For example, this is what a dash code of \"20, 10\" looks like. To draw a solid line, just put \"0\"."
         // },
-        {   selector: "#undo-button",
-            content: "This is the undo button. Tap to undo, and tap and hold to redo."
+        {   selector: "#undo-tool-button",
+            content: "This is the undo button. Tap to undo, and tap and " + (mobile ? "hold to redo." : "right click to redo."),
         },
         menu({open: 'mirror'}),
-        {   selector: "#mirror-menu-mobile",
-            content: "This is the mirror menu.",
+        {   selector: "#mirror-mini-menu",
+            content: "This is the mirror menu. You can use it to mirror lines across an axis, rotate them, or both.",
         },
-        {   selector: "#mirror-enabled",
-            content: "This lets you keep mirroring after you close the menu.",
+        {   selector: "#mirror-type-input",
+            content: "There are 3 ways to mirror lines: around the cursor, the center of the page, or a specific spot."
         },
-        {   selector: "#mirror-type",
-            content: "This is the mirror type. You can have it mirror across the whole page, or around the cursor."
+        {   selector: "#mirror-origin-input",
+            content: "This lets you add or remove specific spots to mirror lines around."
         },
-        {   selector: "#mirror-method",
-            content: "This is the mirror method. You can mirror by flipping lines across an axis, by rotating round the center, or both."
-        },
-        {   selector: "#mirror-axis-1",
-            content: "This is the mirror axis. You can use it to specify what axis to mirror across/what angle to rotate to."
-        },
+        // {   selector: "#mirror",
+        //     content: "This is the mirror axis. You can use it to specify what axis to mirror across/what angle to rotate to."
+        // },
         menu({open: "select"}),
-        {   selector: "#select-menu",
-            content: "This is the selection menu."
+        {   selector: "#select-mini-menu",
+            content: "This is the selection menu. You can use it to select an area of the page, which you can then use to copy/paste, or repeat as a tesselation."
         },
-        {   selector: "#add-bound",
-            content: "Use this button to add bounds: points which select an area. " + (mobile ? "You can also tap and hold" : "You can also press 'b'") +  "to add a bound."
+        // {   selector: "#add-bound",
+        //     content: "Use this button to add bounds: points which select an area. " + (mobile ? "You can also tap and hold" : "You can also press 'b'") +  "to add a bound."
+        // },
+        // {   selector: "#clear-selection",
+        //     content: "This button clears the current selection."
+        // },
+        {   selector: "#partials-picker",
+            content: "This determines whether you want to include \"partials\" in the selected pattern or not. Partial lines are lines that only have one end inside the selected area."
         },
-        {   selector: "#clear-selection",
-            content: "This button clears the current selection."
-        },
-        {   selector: "#partial-picker",
-            content: "This determines whether you want to include \"partials\" in the selected pattern or not. Partials are lines that only have one end inside the selected area."
-        },
-        menu({open: 'clipboard'}),
-        {   selector: "#clipboard-menu",
-            content: "These are your standard copy, cut, and paste buttons. " + (mobile ? "When you're copying, you can long tap to paste, and double tap to cancel." : "They follow the standard keyboard shortcuts.")
-        },
+        // menu({open: 'clipboard'}),
+        // {   selector: "#clipboard-menu",
+        //     content: "These are your standard copy, cut, and paste buttons. " + (mobile ? "When you're copying, you can long tap to paste, and double tap to cancel." : "They follow the standard keyboard shortcuts.")
+        // },
         menu({open: 'delete'}),
-        {   selector: "#delete-lines",
-            content: "This button deletes all the lines attached to a selected point. " + (mobile ? "You can also double tap on a point to do the same thing." : "You can also press the delete key to do the same thing."),
+        {   selector: "#delete-mini-menu",
+            // TODO: explain delete_line vs delete_at_cursor better
+            content: "Here, there are several ways to delete lines. " + (mobile ? "Double tapping a point" : "The delete key") + " deletes all lines attached to that point." + (!mobile && ' Backspace does the same thing.')
         },
-        {   selector: "#delete-line",
-            content: "This button lets you erase a specific line. You press it once to leave a marker on one end of a line, and when you press it again on the other end of the line, it only deletes that line." + (!mobile && ' Backspace does the same thing.')
-        },
-        {   selector: "#delete-selected",
-            content: "These buttons let you erase everything in the selection, or everything except what's in the selection.",
-            highlightedSelectors: ['#delete-unselected']
-        },
-        {   selector: "#clear-all",
-            content: "This button clears all the lines. Careful!"
-        },
-        menu({open: 'extra'}),
+        // {   selector: "#delete-line",
+        //     content: "This button lets you erase a specific line. You press it once to leave a marker on one end of a line, and when you press it again on the other end of the line, it only deletes that line." + (!mobile && ' Backspace does the same thing.')
+        // },
+        // {   selector: "#delete-selected",
+        //     content: "These buttons let you erase everything in the selection, or everything except what's in the selection.",
+        //     highlightedSelectors: ['#delete-unselected']
+        // },
+        // {   selector: "#clear-all",
+        //     content: "This button clears all the lines. Careful!"
+        // },
         // {   selector: "#extra-menu",
         //     content: "Here are some more menus.",
         // },
-        {   selector: ".bonus-button",
+        // TODO: conditionally open the extra menu here depending on extraSlots()
+        // menu({open: 'extra'}),
+        {   selector: "#extra-tool-button",
             content: "This button is customizable in settings, for easy access",
         },
         menu({open: 'navigation', close: 'extra'}),
@@ -97,13 +96,13 @@ const tour = _dispatch => {
             content: "This is the navigation menu. You can set the current position and scale here manually, or you can " + (mobile ? "use 2 fingers to move and spread 2 fingers to scale." : "scroll to move vertically, shift+scroll to move horizontally, and ctrl+scroll to scale."),
         },
         {   selector: "#home-button",
-            content: "This button resets the position and scale to the starting position and scale.",
+            content: "Home resets the position and scale to the starting position and scale.",
         },
-        {   selector: "#nav-selection-button",
-            content: "This moves you to the current selection.",
-        },
+        // {   selector: "#nav-selection-button",
+        //     content: "This moves you to the current selection.",
+        // },
         menu({open: 'repeat', close: 'navigation'}),
-        {   position: "bottom",
+        {   position: "top",
             content: "This is the repeat menu. You can use it to tesselate the selected pattern across the page." // copy instead of tesselate?
         },
         ...(mobile ? [{   selector: "#repeat-right",

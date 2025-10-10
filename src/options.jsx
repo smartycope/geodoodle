@@ -25,7 +25,7 @@ const defaultOptions = {
     eraserWidth: 2,
     invertedScroll: true,
     scrollSensitivity: .3,
-    hideHexColor: false,
+    hideHexColor: true,
     enableGestureScale: false,
     paperColor: "#ffddab",
     maxMouseMoveEventsDuringHold: 30,
@@ -46,7 +46,6 @@ const defaultOptions = {
     clipboardButtonGap: 5,
     // In ms
     toastDuration: 6000,
-    beginnerMode: true,
     defaultToMemorableNames: true,
     maxMirrorOrigins: 12,
 }
@@ -203,7 +202,6 @@ export const preservable = [
     "doubleTapTimeMS",
     "filledPolys",
     "mirrorOrigins",
-    "beginnerMode",
 ]
 
 // The parts of the state that get serialized to the svg file

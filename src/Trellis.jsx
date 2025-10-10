@@ -5,6 +5,7 @@ import Rect from "./helper/Rect";
 import { useContext } from "react";
 import { StateContext } from "./Contexts";
 import { DebugPoint } from "./drawing";
+import { memo, useMemo } from "react";
 
 
 /* Indices
@@ -19,10 +20,10 @@ import { DebugPoint } from "./drawing";
     left | -2 -1 0 1 2 | right
 */
 
-
+// TODO: shove memo into this like crazy. Just cram them in there.
 // This is the main logic for generating the trellis
 // It returns a list of groups of the pattern with appropriate translations
-export default function Trellis(){
+export default memo(function Trellis() {
     const {state} = useContext(StateContext)
     const {trellis, openMenus, bounds,  trellisOverlap, trellisSkip, trellisFlip, trellisRotate, debug, translation, scalex, scaley } = state
     const {x: transx, y: transy} = translation.asInflated(state)
@@ -48,19 +49,31 @@ export default function Trellis(){
     const retrogradex_dots = trellisOverlap.row.val.x + trellisOverlap.col.val.x + dimDiff + height + 1
     const retrogradey_dots = trellisOverlap.row.val.y + trellisOverlap.col.val.y + dimDiff + width + 2
 
-    function applyTransformations(x, y, row, col){
+    const applyTransformations = (x, y, row, col) => {
         // Skip
-        if ((!trellisSkip.row.val || !(col % trellisSkip.row.every)) &&
-            (!trellisSkip.col.val || !(row % trellisSkip.col.every))){
+        if ((Math.abs(col) % (trellisSkip.row.every + trellisSkip.row.val)) < trellisSkip.row.every &&
+            (Math.abs(row) % (trellisSkip.col.every + trellisSkip.col.val)) < trellisSkip.col.every){
 
             // Initial translation
             let transformation = `translate(${x}, ${y})`
 
             // Offset/Overlap
-            if (!(col % trellisOverlap.row.every) && trellisOverlap.row.val.x && trellisOverlap.row.val.y)
-                transformation += `translate(${trellisOverlap.row.val.x}, ${trellisOverlap.row.val.y})`
-            if (!(row % trellisOverlap.col.every) && trellisOverlap.col.val.x && trellisOverlap.col.val.y)
-                transformation += `translate(${trellisOverlap.col.val.x}, ${trellisOverlap.col.val.y})`
+            if (!(col % (trellisOverlap.row.every+1))){
+                if (trellisOverlap.row.val.x)
+                    transformation += `translate(${trellisOverlap.row.val.x}, 0)`
+                if (trellisOverlap.row.val.y)
+                    transformation += `translate(0, ${trellisOverlap.row.val.y})`
+            }
+            if (!(row % (trellisOverlap.col.every+1))){
+                if (trellisOverlap.col.val.x)
+                    transformation += `translate(${trellisOverlap.col.val.x}, 0)`
+                if (trellisOverlap.col.val.y)
+                    transformation += `translate(0, ${trellisOverlap.col.val.y})`
+            }
+            // if (!(col % trellisOverlap.row.every) && trellisOverlap.row.val.x && trellisOverlap.row.val.y)
+            //     transformation += `translate(${trellisOverlap.row.val.x}, ${trellisOverlap.row.val.y})`
+            // if (!(row % trellisOverlap.col.every) && trellisOverlap.col.val.x && trellisOverlap.col.val.y)
+            //     transformation += `translate(${trellisOverlap.col.val.x}, ${trellisOverlap.col.val.y})`
 
             // Rotate
             if (!(col % trellisRotate.row.every) && trellisRotate.row.val)
@@ -145,4 +158,4 @@ export default function Trellis(){
                 > {pattern} </g>)}
         </g>
     </>
-}
+})

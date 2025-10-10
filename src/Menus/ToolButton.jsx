@@ -14,10 +14,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import NearMeIcon from '@mui/icons-material/NearMe';
 import PaletteIcon from '@mui/icons-material/Palette';
-import { GoMirror } from "react-icons/go";
 import HomeIcon from '@mui/icons-material/Home';
 import RedoIcon from '@mui/icons-material/Redo';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
+import FlipIcon from '@mui/icons-material/Flip';
 import UndoIcon from '@mui/icons-material/Undo';
 import { isMobile } from '../utils';
 import { PiSelectionPlusDuotone } from "react-icons/pi";
@@ -55,7 +55,7 @@ export const iconMap = {
     navigation: <NearMeIcon />,
     repeat: <DashboardIcon />,
     color: <PaletteIcon />,
-    mirror: <GoMirror />,
+    mirror: <FlipIcon />,
     select: <HighlightAltIcon />,
     clipboard: <ContentPasteIcon />,
     delete: <DeleteIcon />,
@@ -99,7 +99,8 @@ const ToolButton = forwardRef(({ menu, onClick, inExtraMenu, disableTooltip, ...
         sx={{...toolButtonStyle(theme),
           // Highlight the currently open menu
           bgcolor: (state.openMenus[menu] && menu !== 'main') ? theme.palette.action.selected : 'transparent',
-          borderRadius: (state.openMenus[menu] && menu !== 'main') ? theme.shape.borderRadius : undefined,
+          borderRadius: (state.openMenus[menu] && menu !== 'main') ? theme.shape.borderRadius/2 : undefined,
+
         }}
         id={menu + '-tool-button'}
         className="tool-button"

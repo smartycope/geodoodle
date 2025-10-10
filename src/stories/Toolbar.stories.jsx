@@ -16,7 +16,6 @@ const theme = createTheme({
 
 // Default state for the context
 const defaultState = {
-  beginnerMode: true,
   side: 'bottom',
   openMenus: {},
   mobile: false,
@@ -141,7 +140,6 @@ export const WithoutTooltips = Template.bind({});
 WithoutTooltips.args = {
   state: {
     ...defaultState,
-    beginnerMode: false,
     openMenus: { main: true },
   },
 };

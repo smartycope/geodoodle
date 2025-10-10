@@ -10,12 +10,13 @@ import MiniMenu from "./MiniMenu";
 
 import { StateContext } from "../Contexts";
 import { getShowableStroke } from "../utils";
-import { FormControlLabel, Stack, TextField, useTheme } from "@mui/material";
+import { FormControlLabel, Stack, TextField, useMediaQuery, useTheme } from "@mui/material";
 
 
 export default function ColorMenu() {
     const { state, dispatch } = useContext(StateContext)
     const theme = useTheme()
+    const compact = useMediaQuery('@media (max-height: 784px)')
 
     const { stroke, strokeWidth, dash, colorProfile, scalex, fillMode, fill } = state
     const colors = fillMode ? fill : stroke
@@ -47,6 +48,7 @@ export default function ColorMenu() {
             justifyContent: 'center',
             alignItems: 'center',
             width: '100%',
+            py: compact ? 5 : 0,
         }}>
             {/* Color profile buttons */}
             {/* TODO: there should be a way to get this to expand horizontally */}
@@ -96,7 +98,7 @@ export default function ColorMenu() {
                 value={dash[colorProfile]}
                 onChange={e => dispatch({ action: 'set_dash', dash: e.target.value })}
             />}
-
+            {compact && <span style={{height:'100%'}}/>}
             {/* Toggle fill mode button */}
             {/* TODO: I don't like this here, but I don't know where else to put it yet */}
             <FormControlLabel control={
@@ -107,7 +109,6 @@ export default function ColorMenu() {
                     onChange={() => dispatch('toggle_fill_mode')}
                 />
             } label="Fill Mode" labelPlacement="start" sx={{color: theme.palette.text.primary}}/>
-
 
             <Button id='color-menu-close-button'
                 onClick={() => {

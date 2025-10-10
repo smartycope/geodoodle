@@ -13,6 +13,9 @@ import QuizIcon from '@mui/icons-material/Quiz';
 import TabManager from './TabManager';
 
 function AboutContent() {
+    const {dispatch} = useContext(StateContext)
+    const setInTour = useContext(InTourContext)
+
     return <>
         <Typography>
             This is a drawing program that emulates doodling on graph paper.

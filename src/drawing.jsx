@@ -10,6 +10,7 @@ import Point from './helper/Point';
 import { useContext, useEffect } from "react";
 import { StateContext } from "./Contexts";
 import { Snackbar, SvgIcon, useTheme } from '@mui/material';
+import {memo, useMemo} from 'react'
 
 import HelpPage from "./Menus/HelpPage"
 import ColorMenu from "./Menus/ColorMenu";
@@ -27,30 +28,31 @@ import { MirrorAxisIcon, MirrorRotIcon } from './Menus/MirrorIcons';
 
 import { useMediaQuery } from "@mui/material";
 
-export function useActiveBreakpoint() {
-  const theme = useTheme();
+// For debugging
+function useActiveBreakpoint() {
+    const theme = useTheme()
+    const isXs = useMediaQuery(theme.breakpoints.only("xs"));
+    const isSm = useMediaQuery(theme.breakpoints.only("sm"));
+    const isMd = useMediaQuery(theme.breakpoints.only("md"));
+    const isLg = useMediaQuery(theme.breakpoints.only("lg"));
+    const isXl = useMediaQuery(theme.breakpoints.only("xl"));
 
-  const isXs = useMediaQuery(theme.breakpoints.only("xs"));
-  const isSm = useMediaQuery(theme.breakpoints.only("sm"));
-  const isMd = useMediaQuery(theme.breakpoints.only("md"));
-  const isLg = useMediaQuery(theme.breakpoints.only("lg"));
-  const isXl = useMediaQuery(theme.breakpoints.only("xl"));
-
-  if (isXl) return "xl";
-  if (isLg) return "lg";
-  if (isMd) return "md";
-  if (isSm) return "sm";
-  return "xs"; // default fallback
+    if (isXl) return "xl";
+    if (isLg) return "lg";
+    if (isMd) return "md";
+    if (isSm) return "sm";
+    return "xs"; // default fallback
 }
 
-var debugTextOffset = 50
+var debugTextOffset = 80
+const debugTextX = '75%'
 
 // This is slightly inelegant, but it works, and it's just a debug function
 // Color is the color of the text and cirlce, fill overrides the color of the circle
 export function DebugPoint({name, point, decimals=undefined, yoff=0, color='black', r=5, fill=undefined, inflated=false, omitText=false, omitCircle=false, ...props}){
     useEffect(() => {
         // Reset the global every render
-        debugTextOffset = 50
+        debugTextOffset = 80
     })
     debugTextOffset += 20
     const {state} = useContext(StateContext)
@@ -81,7 +83,7 @@ export function DebugPoint({name, point, decimals=undefined, yoff=0, color='blac
     }
 
     return state.debug && <>
-        {!omitText && <text x='75%' y={debugTextOffset} fill={color} fontWeight="bold">{label}</text>}
+        {!omitText && <text x={debugTextX} y={debugTextOffset} fill={color} fontWeight="bold">{label}</text>}
         {!omitCircle && <g key={`point-${name}`}>
             {!omitText && <text x={x-label.length*4} y={y-10+yoff} fill={color} fontWeight="bold">{label}</text>}
             <circle cx={x} cy={y} {...props} r={r} fill={fill || color}/>
@@ -89,7 +91,7 @@ export function DebugPoint({name, point, decimals=undefined, yoff=0, color='blac
     </>
 }
 
-export function GlowEffect(){
+export const GlowEffect = memo(function GlowEffect(){
     const theme = useTheme()
 
     return <defs>
@@ -105,18 +107,27 @@ export function GlowEffect(){
             </feMerge>
         </filter>
     </defs>
-}
+})
 
-export function DebugInfo(){
+export const DebugInfo = () => {
     const {state} = useContext(StateContext)
     const {debug, debugDrawPoints, translation, scalex, scaley, openMenus} = state
     const debugBox = getDebugBox(state)
     const origin = Point.fromViewport(state, translation._x, translation._y, false)
     const intersectcions = getAllIntersections(state.lines)
+    const breakpoint = useActiveBreakpoint()
 
     return debug && <g>
         {/* Repeat box */}
-        <text x='75%' y={debugTextOffset + 20} fill='black'>{isMobile() ? 'mobile' : 'desktop'}{' -- '}{useActiveBreakpoint()}</text>
+        <text x={debugTextX} y={debugTextOffset + 20} fill='black'>
+            {isMobile() ? 'mobile' : 'desktop'}
+            {' - '}
+            {breakpoint}
+            {' - '}
+            {window.innerWidth}
+            {' x '}
+            {window.innerHeight}
+        </text>
         {openMenus.repeat && debugBox.render(state, {stroke: 'green', strokeWidth: 2, fillOpacity: 0})}
 
         <DebugPoint name="Translation" point={origin} inflated={false} color='green'/>
@@ -131,7 +142,7 @@ export function DebugInfo(){
     </g>
 }
 
-export function MirrorMetaLines(){
+export const MirrorMetaLines = memo(function MirrorMetaLines() {
     const {state} = useContext(StateContext)
     let mirrorMetaLines = []
     const {cursorPos, mirrorType, mirrorAxis, mirrorRot, scalex, scaley, curLinePos} = state
@@ -238,9 +249,9 @@ export function MirrorMetaLines(){
         />)
 
     return <g id='m'>{mirrorMetaLines}</g>
-}
+})
 
-export function Eraser(){
+export const Eraser = memo(function Eraser() {
     const {state} = useContext(StateContext)
     const {eraser, scalex, translation, scaley} = state
     const eraserSvg = eraser?.asSvg(state)
@@ -264,9 +275,9 @@ export function Eraser(){
             key="eraser2"
         />
     ]
-}
+})
 
-export function ClipboardTransformButtons(){
+export const ClipboardTransformButtons = memo(function ClipboardTransformButtons() {
     const {state} = useContext(StateContext)
     const {mobile, clipboard, debug} = state
     const boundRect = getBoundRect(state)
@@ -296,9 +307,9 @@ export function ClipboardTransformButtons(){
             </div>
         </foreignObject>
     </>
-}
+})
 
-export function SelectionRect(){
+export const SelectionRect = memo(function SelectionRect() {
     const {state} = useContext(StateContext)
     const {partials, scalex} = state
     let boundRect = getBoundRect(state)
@@ -325,9 +336,9 @@ export function SelectionRect(){
         />
         <DebugPoint name="topLeft" point={boundRect.topLeft}/>
     </>
-}
+})
 
-export function Bounds(){
+export const Bounds = memo(function Bounds() {
     const {state} = useContext(StateContext)
     const {scalex, bounds, partials} = state
     const boundRadius = scalex / 1
@@ -348,9 +359,9 @@ export function Bounds(){
             />
         )}
     </g>
-}
+})
 
-export function CurrentLines(){
+export const CurrentLines = () => {
     const {state} = useContext(StateContext)
     const {curLinePos, cursorPos, translation, scalex, scaley, mirrorOrigins} = state
     if (!curLinePos)
@@ -369,7 +380,7 @@ export function CurrentLines(){
     </g>
 }
 
-export function Lines(){
+export const Lines = memo(function Lines() {
     const {state} = useContext(StateContext)
     const {lines, translation, scalex, scaley} = state
     const {x: transx, y: transy} = translation.asInflated(state)
@@ -382,9 +393,9 @@ export function Lines(){
         {/* Show each line as separate lines, for debugging */}
         {/* {debug && splitAllLines(lines).map((line, i) => line.render(state, `line-${i}`, {strokeWidth: 3/scalex, stroke: `hsl(${i*360/lines.length}, 100%, 50%)`}))} */}
     </g>
-}
+})
 
-export function Clipboard(){
+export const Clipboard = memo(function Clipboard() {
     const {state} = useContext(StateContext)
     const {clipboard, translation, scalex, scaley} = state
     const {x: transx, y: transy} = translation.asInflated(state)
@@ -400,9 +411,9 @@ export function Clipboard(){
         `}>
         {clipLines.map((line, i) => line.render(state, `clip-${i}`, {}, false))}
     </g>
-}
+})
 
-export function Cursor(){
+export const Cursor = () => {
     const {state} = useContext(StateContext)
     const {cursorPos, scalex, openMenus, mirrorType, mirrorAxis, fillMode} = state
     const cursorPosViewport = cursorPos.asViewport(state)
@@ -449,7 +460,7 @@ export function Cursor(){
     return !fillMode && <g id="cursor-group">{cursor}</g>
 }
 
-export function Dots(){
+export const Dots = memo(function Dots() {
     const {state} = useContext(StateContext)
     const {translation, scalex, scaley, rotate, hideDots, paperColor} = state
     const {x: transx, y: transy} = translation.asInflated(state)
@@ -474,18 +485,18 @@ export function Dots(){
         </pattern>
         <rect fill="url(#dots)" stroke="black" width="100%" height="100%" />
     </>
-}
+})
 
-export function Polygons(){
+export const Polygons = memo(function Polygons() {
     const {state} = useContext(StateContext)
     const {filledPolys, translation, scalex, scaley} = state
     const {x: transx, y: transy} = translation.asInflated(state)
     return <g id='filled-polys' transform={`translate(${transx} ${transy}) scale(${scalex} ${scaley})`}>
         {filledPolys.map((poly, i) => poly.render(state, `filled-poly-${i}`))}
     </g>
-}
+})
 
-export function CurrentPolys(){
+export const CurrentPolys = () => {
     const {state} = useContext(StateContext)
     const {curPolys, translation, scalex, scaley} = state
     const {x: transx, y: transy} = translation.asInflated(state)
@@ -494,7 +505,7 @@ export function CurrentPolys(){
     </g>
 }
 
-export function Menus(){
+export const Menus = memo(function Menus() {
     const {state} = useContext(StateContext)
     const {openMenus} = state
 
@@ -514,9 +525,9 @@ export function Menus(){
         {openMenus.settings   && <SettingsPage />}
         {openMenus.help       && <HelpPage />}
     </>
-}
+})
 
-export function Toast(){
+export const Toast = () => {
     const {state, dispatch} = useContext(StateContext)
 
     return <Snackbar
@@ -527,3 +538,5 @@ export function Toast(){
         message={state.toast}
     />
 }
+
+// Trellis is in it's own file

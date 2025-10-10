@@ -10,6 +10,7 @@ import {name as nameGenerator} from "naampje";
 import {localStorageName, localStorageSettingsName} from "./globals";
 import getInitialState from "./states";
 
+// TODO: A bunch of these functions should probably get grouped into a class structure at some point
 // Serializes the pattern into an SVG string
 export function serializePattern(state, selectedOnly=false, transform=''){
     const {scalex, scaley, lines} = state
@@ -202,6 +203,12 @@ export function saveLocally(name, state){
 // Load the pattern from localStorage
 export function loadLocally(name){
     return deserializePattern(JSON.parse(localStorage.getItem(localStorageName))[name.trim()])
+}
+
+export function deleteLocally(name){
+    let obj = JSON.parse(localStorage.getItem(localStorageName))
+    delete obj[name.trim()]
+    localStorage.setItem(localStorageName, JSON.stringify(obj))
 }
 
 // Clear all the saves from localStorage

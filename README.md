@@ -56,22 +56,24 @@ Honestly, this is mostly for my own enjoyment. I've tried to fine-tune it and ma
 
 That being said, there are potential applications for it, especially with minor adjustments. For instance, creating quilting patterns (something I eventually intend to get to), planning out floor or yard layouts, or creating dynamic screensavers.
 
-To see more about this project, see my blog post about it [here](https://smartycope.github.io/posts/GeoDoodle/)
+To see more about this project, see my blog post about it [here](https://smartycope.org/posts/GeoDoodle/)
 
 
 <!--
 ## Current branch todos:
 Things I need to remember to do before merging the current branch. Don't merge this list!
-- Make the mobile icons smaller, and add text
 - A how to use/gestures/additional help/douplicate of stuff covered in tour Page -- even if just a framework
 - reminging the only bound via double tap adds it back after a sec
 - selection SVG buttons arent showing up
 - mobile toolbar stil lshows taps
 - clipboard isn't gonna repeat with mirror origins
 - mirror rotate icons on paper should scale with current scale
+- get tests working again
+- clean up all the code & tree shake everything
+- tour
 
 ## Other todos that should be issues but I'm lazy:
 - Add explanatuon text as a controlled snackbox or tooltip that disapears on next touch On mobile
 - import BorderClearIcon from '@mui/icons-material/BorderClear'; -- this might be good somewhere
--
+- loading screen should look nicer than it currently does
  -->

@@ -16,6 +16,7 @@ export default function ToggleIconButtonGroup({
     allowNone,
     disabled=false,
     vertical,
+    id,
     sx,
     buttonGroupSx,
     labelSx,
@@ -24,6 +25,7 @@ export default function ToggleIconButtonGroup({
         <FormControl
             variant="outlined"
             fullWidth
+            id={id}
             sx={{ position: "relative", ...sx }}
         >
             <InputLabel shrink sx={{ ml: -.75, fontWeight: 'bold', ...labelSx }}> {label} </InputLabel>

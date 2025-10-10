@@ -38,7 +38,7 @@ export default function generateTheme(paperColor, themeMode, systemPreferedTheme
             },
         },
         shape: {
-            // borderRadius: 8
+            borderRadius: 4
         },
         components: {
             MuiPaper: {

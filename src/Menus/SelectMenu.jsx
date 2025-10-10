@@ -9,7 +9,7 @@ import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import DeselectIcon from '@mui/icons-material/Deselect';
 
-export default function(){
+export default function SelectMenu(){
     const {dispatch, state} = useContext(StateContext)
     if (state.mobile && state.bounds.length < 2)
         return null
@@ -33,7 +33,7 @@ export default function(){
                 </ListItemIcon>
                 Remove<br/> Selection
             </MenuItem>
-            <MenuItem onClick={() => dispatch("toggle_partials")}>
+            <MenuItem onClick={() => dispatch("toggle_partials")} id='partials-picker'>
                 <ListItemIcon>
                     {state.partials ? <CheckBoxIcon/> : <CheckBoxOutlineBlankIcon/>}
                 </ListItemIcon>

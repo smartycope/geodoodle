@@ -1,26 +1,15 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { IoClose } from "react-icons/io5";
 import { IoMdDownload } from "react-icons/io";
-import { MdOutlineTabUnselected, MdUpload } from "react-icons/md";
-import { FaSave } from "react-icons/fa";
-import { IoIosDownload } from "react-icons/io";
 import Number from './Number.jsx';
 import { GiNuclear } from 'react-icons/gi';
-import { MdOutlineFileCopy } from "react-icons/md";
-import { FaMobileScreenButton } from "react-icons/fa6";
 import { StateContext } from '../Contexts.jsx';
 import { viewportWidth, viewportHeight } from '../globals.js'
 import Rect from '../helper/Rect.jsx'
 import Point from '../helper/Point.js'
 import Page from './Page.jsx';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import * as React from 'react';
 import Box from '@mui/material/Box';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
-import { Button, FormControlLabel, Grid, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemSecondaryAction, ListItemText, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
+import { Button, FormControlLabel, Grid, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, Stack, TextField } from '@mui/material';
 import ScreenshotMonitorIcon from '@mui/icons-material/ScreenshotMonitor';
 import HighlightAltIcon from '@mui/icons-material/HighlightAlt';
 import SaveIcon from '@mui/icons-material/Save';
@@ -31,6 +20,9 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { getSaves, clearSaves, generateName } from '../fileUtils.jsx';
 import { Checkbox } from '@mui/material';
 import TabManager from './TabManager';
+import ShareIcon from '@mui/icons-material/Share';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
+import SyncIcon from '@mui/icons-material/Sync';
 
 function FileInput({ label = "Upload File", onChange, accept, multiple }) {
     const handleChange = (e) => {
@@ -60,7 +52,7 @@ function FileInput({ label = "Upload File", onChange, accept, multiple }) {
 }
 
 
-export default function () {
+export default function FilePage() {
     const { state, dispatch } = useContext(StateContext)
     const { filename, bounds } = state
 
@@ -74,10 +66,36 @@ export default function () {
 
     const saves = getSaves()
 
+    useEffect(() => {
+        // TODO: this requires debugging in the main branch (because WebShare API only works in secure contexts)
+        const share = () => {
+            console.log('Share clicked')
+            if (navigator.share) {
+                try {
+                    navigator.share({
+                        title: 'Check this out!',
+                        text: 'Here’s something cool.',
+                        url: window.location.href,
+                    })
+                } catch (err) {
+                    console.error('Share failed:', err)
+                }
+            }
+            else {
+                alert('Share not supported')
+            }
+        }
+
+        const shareButton = document.getElementById('share-button')
+        if (shareButton)
+            shareButton.addEventListener('click', share)
+        else
+            console.error('Share button not found')
+
+        return () => shareButton?.removeEventListener('click', share)
+    }, [])
+
     const downloadTab = <>
-        <Button id='copy-button' onClick={() => dispatch('copy_image')}>
-            <MdOutlineFileCopy />Copy Pattern
-        </Button>
         {bounds.length > 1 && <FormControlLabel
             control={<Checkbox checked={selectedOnly} onChange={() => setSelectedOnly(!selectedOnly)} />}
             label="Only include selection"
@@ -97,15 +115,15 @@ export default function () {
                 <MenuItem value='png'>PNG</MenuItem>
                 <MenuItem value='jpeg'>JPEG</MenuItem>
             </Select>
-            <Button variant="outlined" onClick={() => dispatch({
+            <IconButton variant="outlined" onClick={() => dispatch({
                 action: "download_file",
                 name: downloadName, format, rect: new Rect(
                     Point.fromViewport(state, x, y),
                     Point.fromViewport(state, x + width, y + height)
                 ), selectedOnly: selectedOnly && bounds.length > 1
             })}>
-                <IoMdDownload /> Download
-            </Button>
+                <IoMdDownload/>
+            </IconButton>
         </Stack>
         {format !== 'svg' && !selectedOnly &&
             <Grid container>
@@ -146,18 +164,18 @@ export default function () {
                 value={filename}
                 onChange={(e) => dispatch({ filename: e.target.value })}
             />
-            <Button variant="outlined" onClick={() => dispatch({ action: 'save_local', name: filename })}>
-                <SaveIcon /> Save
-            </Button>
             <Button variant="outlined" onClick={() => dispatch({ filename: generateName(state.defaultToMemorableNames) })}>
-                Generate Random Name
+                <SyncIcon sx={{ mr: 1 }}/>Random Name
             </Button>
+            <IconButton variant="outlined" onClick={() => dispatch({ action: 'save_local', name: filename })}>
+                <SaveIcon />
+            </IconButton>
         </Stack>
 
         {/* TODO: this needs more work */}
-        <List dense>
+        <List dense sx={theme => ({outline: '1px solid ' + theme.palette.divider, borderRadius: theme.shape.borderRadius/2})}>
             {saves && Object.keys(saves).map(key => <ListItem key={key} secondaryAction={
-                <IconButton edge="end" aria-label="delete">
+                <IconButton edge="end" aria-label="delete" onClick={() => dispatch({ action: 'delete_local', name: key })}>
                     <DeleteIcon />
                 </IconButton>
             }>
@@ -194,7 +212,18 @@ export default function () {
     }
 
 
-    return <Page menu='file' title='Files'>
+    return <Page menu='file' title={<Box sx={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', mr: 5, mt: -1
+    }}>Files
+        <div>
+            <IconButton id='share-button'>
+                <ShareIcon />
+            </IconButton>
+            <IconButton onClick={() => dispatch('copy_image')}>
+                <FileCopyIcon />
+            </IconButton>
+        </div>
+    </Box>}>
         <TabManager tabs={[
             { label: 'Download/Upload', content: downloadTab },
             { label: 'Save/Load', content: saveTab },

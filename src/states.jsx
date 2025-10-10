@@ -67,16 +67,18 @@ export default function getInitialState(){
         // or the selection gets deleted, we can still transform it
         clipboardOffset: null,
 
+        // TODO: is this still used at all?
         trellis: false,
         // See the definition of defaultTrellisControl (in utils.jsx) for what this type looks like
-        // Type: number
+        // Note that Offset is a synonym for Overlap
+        // Type: object
         trellisOverlap: defaultTrellisControl({x: 0, y: 0}),
-        // Type: bool
-        trellisSkip: defaultTrellisControl(false),
+        // Type: number
+        trellisSkip: defaultTrellisControl(0),
         // Type: MIRROR_AXIS
         trellisFlip: defaultTrellisControl(MIRROR_AXIS.NONE),
         // Type: MIRROR_AXIS
-        trellisRotate: defaultTrellisControl(MIRROR_AXIS.NONE),
+        trellisRotate: defaultTrellisControl(MIRROR_ROT.NONE),
         hideDots: false,
 
         mirrorAxis: MIRROR_AXIS.NONE,
@@ -119,7 +121,7 @@ export default function getInitialState(){
         // TODO: Not currently implemented
         cursorColor: options.cursorColor,
 
-        // true if the current pattern has unsaved edits
+        // true if the current pattern has unsaved edits -- I don't think this is implemented yet
         saved: false,
 
         // Set to true if we need to arbitrarily reload the state immediately after the next render
@@ -130,7 +132,6 @@ export default function getInitialState(){
         // This is mostly here to allow the theme to be set from the settings page
         // Use theme.palette.mode from useTheme() instead for most things
         themeMode: 'system',
-        beginnerMode: options.beginnerMode,
         debug: START_DEBUGGING,
         /* debugDrawPoints looks like this:
         {

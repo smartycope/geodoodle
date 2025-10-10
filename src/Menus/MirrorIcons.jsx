@@ -15,6 +15,10 @@ export const MirrorAxisIcon = {
     [MIRROR_AXIS.Y]: <VerticalAlignCenterIcon transform="rotate(90)"/>,
     [MIRROR_AXIS.X]: <VerticalAlignCenterIcon/>,
     [MIRROR_AXIS.BOTH]: <ZoomOutMapIcon/>,
+    // [MIRROR_AXIS.BOTH]: <SvgIcon><path
+    //     fillRule="evenodd"
+    //     d="M3 3v8h8V3zm6 6H5V5h4zm-6 4v8h8v-8zm6 6H5v-4h4zm4-16v8h8V3zm6 6h-4V5h4zm-6 4v8h8v-8zm6 6h-4v-4h4z"
+    // /></SvgIcon>,
     [MIRROR_AXIS.NONE]: <DoDisturbAltIcon/>,
 }
 
@@ -31,7 +35,8 @@ const svgProps = {
 export const MirrorRotIcon = (unscale=1) => ({
     [MIRROR_ROT.RIGHT]: <SvgIcon><svg {...svgProps}><circle
         cx={xy/unscale} cy={xy/unscale} r={r/unscale}
-        strokeDasharray={`0 ${dash/unscale} 0 ${dash/unscale} 0 ${dash/unscale} ${dash/unscale}`}
+        strokeDasharray={dash/unscale*3}
+        strokeDashoffset={dash/unscale*3}
     /></svg></SvgIcon>,
     [MIRROR_ROT.STRAIGHT]: <SvgIcon><svg {...svgProps}><circle
         cx={xy/unscale} cy={xy/unscale} r={r/unscale}
@@ -43,6 +48,13 @@ export const MirrorRotIcon = (unscale=1) => ({
         strokeDasharray={`${(dash/unscale)-(2/unscale)} 2`}
         strokeDashoffset={-1}
     /></svg></SvgIcon>,
+    // Only used in the repeat menu (since we reuse MIRROR_ROT for repeat rotation,
+    // even though it's slightly different than mirror rotation)
+    [MIRROR_ROT.THREE_QUARTERS]: <SvgIcon><svg {...svgProps}><circle
+        cx={xy/unscale} cy={xy/unscale} r={r/unscale}
+        strokeDasharray={`${dash*3} ${dash}`}
+        strokeDashoffset={dash}
+/></svg></SvgIcon>,
     [MIRROR_ROT.NONE]: <DoDisturbAltIcon/>,
 })
 

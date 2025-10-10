@@ -13,7 +13,7 @@ import {
     normalizeLines,
 } from './utils'
 import defaultOptions from './options'
-import {deserializePattern, download, image, serializePattern, saveLocally, loadLocally, clearSaves} from './fileUtils';
+import {deserializePattern, download, image, serializePattern, saveLocally, loadLocally, clearSaves, deleteLocally} from './fileUtils';
 // import {setTapHolding} from './globals';
 import {cursorPosChanged} from './events'
 import Point from './helper/Point';
@@ -119,7 +119,11 @@ export const down  = state => ({cursorPos: state.cursorPos.add(Dist.fromDeflated
 
 // Destruction Actions
 export const clear = state => ({
-    ...go_home(state),
+    translation: Dist.zero(),
+    // We want to keep the current scale, but reset everything else
+    // scalex: state.defaultScalex,
+    // scaley: state.defaultScaley,
+    rotate: 0,
     lines: [],
     bounds: [],
     openMenus: {...state.openMenus, delete: false, repeat: false},
@@ -396,7 +400,7 @@ export const remove_mirror_origin = (state, {origin}) => {
     copy.splice(copy.findIndex(o => o.origin.eq(origin)), 1)
     return {mirrorOrigins: copy}
 }
-export const clear_mirror_origins = state => ({mirrorOrigins: []})
+export const clear_mirror_origins = () => ({mirrorOrigins: []})
 
 // File Actions
 export const download_file = (state, {format, name, selectedOnly, rect}) => {
@@ -435,6 +439,8 @@ export const load_local = (state, {name}) => {
     return {filename: name}
 }
 
+export const delete_local = (state, {name}) => deleteLocally(name)
+
 export const copy_image = state => {
     const linesBBox = document.querySelector('#lines').getBBox()
     const rect = state.bounds.length > 1 ? getBoundRect(state) : new Rect(
@@ -465,10 +471,11 @@ export const deserialize = (state, {data}) => {
     return data
 }
 
-export const clear_saves = state => {
+export const clear_saves = () => {
     clearSaves()
     // return {reloadRequired: true}
 }
+
 // Tour Actions
 var preTourState = null
 export const start_tour = state => {
@@ -476,7 +483,7 @@ export const start_tour = state => {
     console.log('starting tour');
     return tourState({...state, ...go_home(state)})
 }
-export const end_tour = state => preTourState
+export const end_tour = () => preTourState
 
 // Misc Actions
 export const toggle_partials = state => ({partials: !state.partials})
@@ -525,14 +532,13 @@ export const menu = (state, {toggle, open, close}) => {
     // Reopen the mini menus when we open the toolbar
     // This maaay cause bugs if we issue multiple menu actions at once
     if (open === 'main' || (toggle === 'main' && copy[toggle])){
-        console.log({copy, savedMiniMenus})
-
         // It should be
         // copy = {...copy, ...savedMiniMenus}
         // But it doesn't work. For some reason
         // copy = {...savedMiniMenus}
         // Acts differently than
-        copy = savedMiniMenus
+        // Repeat and toolbar are independent of each other
+        copy = {repeat: copy.repeat, ...savedMiniMenus}
         // I have no idea why.
         savedMiniMenus['main'] = true
 
@@ -546,6 +552,13 @@ export const menu = (state, {toggle, open, close}) => {
         copy.repeat = false
         repeatToast = true
     }
+
+    // If we open the repeat menu, close the toolbar (and it's mini menus). They can both be open at the same time though
+    if (open === 'repeat' || (toggle === 'repeat' && copy[toggle])){
+        copy.main = false
+        miniMenus.forEach(key => copy[key] = false)
+    }
+
 
     return {
         openMenus: {...copy},

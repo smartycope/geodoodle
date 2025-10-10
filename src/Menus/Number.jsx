@@ -18,6 +18,7 @@ export default function Number({
     inputId,
     onPlus,
     onMinus,
+    // TODO
     scrubDirection='horizontal',
     compact,
     vertical,
@@ -66,7 +67,7 @@ export default function Number({
 
         <NumberField.Group className={styles.Group} style={{
             flexDirection: vertical ? 'column-reverse' : 'row',
-            // borderRadius: theme.shape.borderRadius/2,
+            ...(vertical ? {display: 'flex', alignItems: 'center'} : {}),
         }}>
             <NumberField.Decrement className={styles.Decrement} onClick={onMinus} style={{
                 borderBottomLeftRadius: theme.shape.borderRadius,

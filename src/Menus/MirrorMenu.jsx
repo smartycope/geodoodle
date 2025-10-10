@@ -23,6 +23,7 @@ export default function MirrorMenu() {
             {/* Type */}
             <Stack direction="row" spacing={mobile ? 1 : -2}> {/* I don't know why this spacing is wonky */}
                 <ToggleIconButtonGroup
+                    id='mirror-type-input'
                     buttons={[
                         { label: "Cursor", icon: MirrorTypeIcon[MIRROR_TYPE.CURSOR], value: MIRROR_TYPE.CURSOR },
                         { label: "Page",   icon: MirrorTypeIcon[MIRROR_TYPE.PAGE], value: MIRROR_TYPE.PAGE },
@@ -33,6 +34,7 @@ export default function MirrorMenu() {
                     onChange={(newValue) => dispatch({ mirrorType: newValue })}
                 />
                 <ToggleIconButtonGroup
+                    id='mirror-origin-input'
                     buttons={[
                         mobile
                         ? { label: "Add", icon: <AddIcon/>, value: 'add_mirror_origin' }
@@ -55,6 +57,7 @@ export default function MirrorMenu() {
 
             {/* Flip */}
             <ToggleIconButtonGroup
+                id='mirror-flip-input'
                 buttons={[
                     { label: "Horizontally", icon: MirrorAxisIcon[MIRROR_AXIS.Y], value: MIRROR_AXIS.Y },
                     { label: "Vertically",   icon: MirrorAxisIcon[MIRROR_AXIS.X], value: MIRROR_AXIS.X },
@@ -70,6 +73,7 @@ export default function MirrorMenu() {
 
             {/* Rotate */}
             <ToggleIconButtonGroup
+                id='mirror-rotate-input'
                 buttons={[
                     { label: "90°",  icon: MirrorRotIcon()[MIRROR_ROT.RIGHT], value: MIRROR_ROT.RIGHT },
                     { label: "180°", icon: MirrorRotIcon()[MIRROR_ROT.STRAIGHT], value: MIRROR_ROT.STRAIGHT },

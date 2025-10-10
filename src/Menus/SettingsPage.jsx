@@ -59,7 +59,6 @@ export default function SettingsPage() {
         smoothGestureScale,
         dotsAbovefill,
         paperColor,
-        beginnerMode,
         defaultToMemorableNames,
         themeMode,
     } = state

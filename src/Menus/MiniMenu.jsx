@@ -44,7 +44,7 @@ export default function MiniMenu({menu, children}){
             // { name: 'flip', options: { altBoundary: true } },
         ]}
       >
-        <Paper sx={{
+        <Paper id={`${menu}-mini-menu`} sx={{
             p: 1,
             // This value relates to the Toolbar padding value
             // I'm honestly not sure why these values work, but they do?

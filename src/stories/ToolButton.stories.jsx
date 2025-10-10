@@ -15,7 +15,6 @@ const theme = createTheme({
 
 // Default state for the context
 const defaultState = {
-  beginnerMode: true,
   side: 'bottom',
   openMenus: {},
   mobile: false,
@@ -83,7 +82,6 @@ WithTooltip.args = {
   menu: 'help',
   state: {
     ...defaultState,
-    beginnerMode: true,
   },
 };
 
@@ -94,7 +92,6 @@ InExtraMenu.args = {
   inExtraMenu: true,
   state: {
     ...defaultState,
-    beginnerMode: true,
   },
 };
 
@@ -105,7 +102,6 @@ NoTooltip.args = {
   disableTooltip: true,
   state: {
     ...defaultState,
-    beginnerMode: true,
   },
 };
 
@@ -140,7 +136,6 @@ export const DifferentPositions = () => (
             menu="help"
             state={{
               ...defaultState,
-              beginnerMode: true,
               side,
             }}
           />
@@ -148,7 +143,6 @@ export const DifferentPositions = () => (
             menu="settings"
             state={{
               ...defaultState,
-              beginnerMode: true,
               side,
             }}
           />
