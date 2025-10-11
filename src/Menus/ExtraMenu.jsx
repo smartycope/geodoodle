@@ -10,6 +10,7 @@ function ExtraMenuMui() {
   const { state } = useContext(StateContext)
 
   const extraSlots = Math.max(_extraSlots(state), 0)
+  if (extraSlots === 6) return null
 
   // TODO: I want these 2 be in 2 columns, instead of 1 row
   const gridProps = {
