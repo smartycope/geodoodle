@@ -50,14 +50,16 @@ const half = (dash) => ({
   strokeDasharray: `${dash * 2}`,
   strokeDashoffset: dash,
 })
-const icon = (unscale = 1, props) => (
+const icon = (unscale, props) => (
   <SvgIcon>
     <svg {...svgProps}>
-      <circle cx={xy / unscale} cy={xy / unscale} r={r / unscale} {...props} />
+      <circle cx={xy} cy={xy} r={r / unscale} strokeWidth={3 / unscale} {...props} />
     </svg>
   </SvgIcon>
 )
 
+// TODO: unscale is here so we can keep the scale aligned with the current scale
+// It doesn't currently work or used anywhere at the moment
 export const MirrorRotIcon = (rot, alt = false, unscale = 1) => {
   const d = dash / unscale
   switch (rot) {

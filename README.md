@@ -71,9 +71,9 @@ To see more about this project, see my blog post about it [here](https://smartyc
 ## Current branch todos:
 Things I need to remember to do before merging the current branch. Don't merge this list!
 - reminging the only bound via double tap adds it back after a sec
-- mirror rotate icons on paper should scale with current scale
 
 ## Other todos that should be issues but I'm lazy:
+- mirror rotate icons on paper should scale with current scale
 - Add to the Concepts help page
 - Add explanatuon text as a controlled snackbox or tooltip that disapears on next touch On mobile
 - mobile toolbar stil lshows taps
@@ -81,4 +81,4 @@ Things I need to remember to do before merging the current branch. Don't merge t
 - if the clipboard buttons would go off the side of the screen, they should adjust to stay on screen
 - clipboard doesn't mirror around mirror origins
 - move all the stuff in options that relate to color into the theme
- -->
+-->

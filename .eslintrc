@@ -25,8 +25,8 @@
         "react/jsx-no-target-blank": "warn",
         "react-refresh/only-export-components": ["warn", { "allowConstantExport": true }],
         // I'll fight people
-        "curly": ["error", "multi"],
-        "arrow-body-style": ["error", "as-needed"],
-        "semi": ["error", "never"]
+        "curly": ["warn", "multi"],
+        "arrow-body-style": ["warn", "as-needed"],
+        "semi": ["warn", "never"]
     }
 }

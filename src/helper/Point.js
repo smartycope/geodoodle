@@ -2,7 +2,7 @@ import Pair from "./Pair"
 import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE } from "../globals"
 import { getHalf, toRadians } from "../utils"
 import Dist from "./Dist"
-import turf from "@turf/turf"
+import { point as turfPoint } from "@turf/turf"
 
 /*
     A Point class to handle coordinate transformations declaratively for us
@@ -193,7 +193,7 @@ export default class Point extends Pair {
     return new Dist(this._x, this._y)
   }
   asGeoJson() {
-    return turf.point([this._x, this._y])
+    return turfPoint([this._x, this._y])
   }
   static fromGeoJson(geoJson) {
     return new Point(geoJson.geometry.coordinates[0], geoJson.geometry.coordinates[1])
