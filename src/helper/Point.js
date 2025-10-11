@@ -29,6 +29,7 @@ import { point as turfPoint } from "@turf/turf"
     coordinates is arbitrary, but inflated vs deflated is not.
 */
 export default class Point extends Pair {
+  // eslint-disable-next-line no-unused-vars
   static svgOrigin(state = undefined) {
     return new Point(0, 0)
   }

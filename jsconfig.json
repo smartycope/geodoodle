@@ -1,17 +1,17 @@
 {
-    "compilerOptions": {
-      "target": "esnext",
-      "module": "esnext",
-      "moduleResolution": "Bundler",
-      "jsx": "react-jsx",
-      "allowImportingTsExtensions": true,
-      "strictNullChecks": true,
-      "strictFunctionTypes": true,
-      "baseUrl": ".",
-      "paths": {
-        "@/*": ["src/*"]
-      }
-    },
-    "include": ["src"],
-    "exclude": ["node_modules", "dist"]
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }

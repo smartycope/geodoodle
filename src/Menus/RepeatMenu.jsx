@@ -153,6 +153,8 @@ function OffsetMenu() {
   const { state, dispatch } = useContext(StateContext)
   const theme = useTheme()
   const { col, row } = state.trellisOverlap
+  // Only update when bounds change is intentional, the state changes every render
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const { x: patternW, y: patternH } = useMemo(() => getBoundRect(state).wh.asDeflated(), [state.bounds])
   const minx = -patternW * 2 + 1
   const maxx = patternW * 2 - 1

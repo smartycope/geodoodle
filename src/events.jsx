@@ -5,7 +5,11 @@ import { distCenter, eventMatchesKeycode, getClipboardButtonsPos } from "./utils
 
 var dragging = false
 
-// TODO: middle click & drag starts a line on middle click up event -- make it delete a specific line instead
+/* eslint-disable no-unused-vars */
+
+// TODO: middle click & drag starts a line on middle click up event
+// -- make it delete a specific line instead
+// -- not sure if this is still happening
 
 // Mouse events
 export function onMouseMove(state, dispatch, e) {
@@ -20,16 +24,13 @@ export function onMouseMove(state, dispatch, e) {
 export function onMouseDown(state, dispatch, e) {
   const { fillMode, bounds } = state
   switch (e.button) {
-    // Left click
-    case 0:
+    case 0: // Left click
       dispatch(fillMode ? "fill" : bounds.length === 1 ? "add_bound" : "add_line")
       break
-    // Middle click
-    case 1:
+    case 1: // Middle click
       dispatch("delete_at_cursor")
       break
-    // Right click
-    case 2:
+    case 2: // Right click
       fillMode ? null : dispatch("continue_line")
       break
   }
@@ -90,12 +91,9 @@ export function onKeyDown(state, dispatch, e) {
 // so we can have it not capture passively, so we can prevent default
 // null or a 2 item list of the previous touches
 var gestureTouches = null
-// var withinDoubleTapTime = false
-// coordinates aren't relevant here, these are just placeholder values
-// var lastTapPos = new Point(-10, -10)
 var touchHoldTimer = null
-// True if we're in the hold window. This is needed because clearTimeout doesn't seem to do anything
 // True if we're in the double tap window
+// TODO: this can probably be removed in favor of Boolean(doubleTapTimer)
 var doubleTapIsPossible = false
 // The timer for the double tap window. If it expires, we're not double tapping
 var doubleTapTimer = null
@@ -109,11 +107,11 @@ var singleTapTouchingScreen = false
 var tapDragging = false
 // Aligned to the nearest dot
 // The last place we started tapping with a single finger
+// The initial values aren't important, but they need to be initialized to something
 var lastTapPos = new Point(-10, -10)
 // If we hold, it creates a point, but then if we drag, instead of creating a line, it creates another bound on touchend
 var holdAndDragPossible = false
-// If we touch, drag, keep holding, then release, we need to tell onTouchEnd not to add a line
-var dontAddLineOnNextTouchEnd = false
+
 // Creating lines:
 // Lines start from the onTouchMove event. After we know it's not a double tap, or a hold or the like,
 // we can start the line once we've changed cursorPos. We then start the line from where cursorPos was
@@ -130,14 +128,12 @@ var dontAddLineOnNextTouchEnd = false
 // We start a timer from touchStart. several things can cancel that timer, just like double tap.
 // If the timer expires, and is valid, it calls the hold function.
 
-// TODO: if we hold (and it then adds 1 bound), and then we drag, it should add a 2nd bound on touch end
-
 export function onTouchStart(state, dispatch, e) {
   e.preventDefault()
-  // console.log('touch start')
+
   const { fillMode, mobile, clipboard } = state
   const touch = e.touches[0] || e.changedTouches[0]
-  // TODO: reserach this to see if that's how it works
+  // I'm think this is good enough? I don't think I've had any issues because of it
   const touchCount = e.touches.length // || e.changedTouches.length
 
   // First, before we do anything else, if the clipboard is open, and we're on a mobile device, check if they just
@@ -197,29 +193,19 @@ export function onTouchStart(state, dispatch, e) {
   const newTapPos = Point.fromViewport(state, touch.pageX, touch.pageY)
   const newTapPosAligned = newTapPos.align(state)
 
-  // Practical logic starts here
-  dispatch({
-    action: "cursor_moved",
-    point: newTapPos,
-  })
+  dispatch({ action: "cursor_moved", point: newTapPos })
 
   if (fillMode && !clipboard?.length) dispatch("fill")
-  // dispatch(fillMode ? 'fill' : 'add_line')
   // We can only be dragging if a single finger has changed the cursorPos
-  // console.log('tapDragging set to false (from touch start)')
   tapDragging = false
-  // We have to wait until the state updates and the cursor moves, before we compare to new cursor positions
-  // setTimeout(() => setTapHolding(true), 10)
   singleTapTouchingScreen = touchCount === 1
-  // console.log('singleTapTouchingScreen set to', singleTapTouchingScreen)
   let is2ndTapOfDoubleTap = false
 
-  if (singleTapTouchingScreen){
+  if (singleTapTouchingScreen) {
     if (doubleTapIsPossible && lastTapPos.eq(newTapPosAligned)) {
       // If we're in the double tap window, and we tapped again? Double tap!
       doubleTapIsPossible = false
       clearTimeout(doubleTapTimer)
-      // console.log('double tapped!!!')
       onDoubleTap(state, dispatch)
       // See onTouchEnd for why this is here
       clearTimeout(touchHoldTimer)
@@ -227,25 +213,15 @@ export function onTouchStart(state, dispatch, e) {
     }
     // If we're not in the double tap window, start it
     else {
-      // console.log('Not double tapped, but the timer has started...')
       doubleTapIsPossible = true
       clearTimeout(doubleTapTimer)
       doubleTapTimer = setTimeout(() => {
-        console.log("...double tap timer expired")
         doubleTapIsPossible = false
       }, state.doubleTapTimeMS)
     }
     lastTapPos = newTapPosAligned
   }
-  // else if (!singleTapTouchingScreen) {
-  //   // console.log('Not double tapped: we started a gesture')
-  // } else if (!lastTapPos.eq(newTapPosAligned)) {
-  //   // console.log('Not double tapped: cursorPos changed (from touch start)')
-  // } else {
-  //   // console.log('!!!!!!!!!!!!!!!!!!!!!!!how did we get here?!!!!!!!!!!!!!!!!!!!')
-  // }
 
-  // console.log('lastTapPos set to', lastTapPos)
   if (!is2ndTapOfDoubleTap)
     // If we stop touching in that amount of time, we interrupt the timer, so this still works
     touchHoldTimer = setTimeout(() => onTouchHold(state, dispatch), state.holdTapTimeMS)
@@ -253,11 +229,9 @@ export function onTouchStart(state, dispatch, e) {
 
 // This is the only thing that sets gestureTouches to null
 export function onTouchEnd(state, dispatch, e) {
-  console.log('onTouchEnd called')
   e.preventDefault()
-  const { fillMode, clipboard } = state
-  // const touch = (e.touches[0] || e.changedTouches[0])
 
+  const { fillMode, clipboard } = state
 
   // Well we're not holding anymore
   // NOTE: APPARENTLY browers will supress the 2nd touchend event if we double tap fast enough.
@@ -265,54 +239,27 @@ export function onTouchEnd(state, dispatch, e) {
   // So instead, if we detect that a touchstart event is the 2nd part of a double tap, we just
   // disable the hold timer from there.
   clearTimeout(touchHoldTimer)
-  console.log('touch end: disabling hold timer')
 
   // If we're coming off of a gesture, don't do anything
   // We don't support 3 finger gestures, so this will always be fine
   if (gestureTouches) {
-    // console.log('touch end: coming off of a gesture')
     gestureTouches = null
     return
   }
 
-  // if (dontAddLineOnNextTouchEnd){
-  //   dontAddLineOnNextTouchEnd = false
-  //   return
-  // }
-  // else console.log('touch end: ended with a single touch (pretty sure)')
-
   // Only add lines if we've been dragging
-  // console.log('~~~~~~~~~~~~~~~~~~~~~~~~', {clipboard, fillMode, tapDragging, singleTapTouchingScreen})
   if (!clipboard?.length && !fillMode && tapDragging && singleTapTouchingScreen)
-    if (holdAndDragPossible)
-      dispatch("add_bound")
-    else
-      dispatch("add_line")
+    if (holdAndDragPossible) dispatch("add_bound")
+    else dispatch("add_line")
 
   holdAndDragPossible = false
-
-
-  // singleTapTouchingScreen = touchCount === 1
   singleTapTouchingScreen = false
-
-  // console.log('tapDragging set to false (from touch end)')
   tapDragging = false
-  // const newTapPos = Point.fromViewport(state, touch.pageX, touch.pageY)
-  // if (!withinDoubleTapTime){
-  //     console.debug('NOT double tapped')
-  //     withinDoubleTapTime = true
-  //     setTimeout(() => {console.debug('double tap timer expired'); withinDoubleTapTime = false}, state.doubleTapTimeMS)
-  // } else if (lastTapPos.eq(newTapPos)){
-  //     console.debug('double tapped')
-  //     withinDoubleTapTime = false
-  //     onDoubleTap(state, dispatch, e)
-  // }
-
-  // lastTapPos = newTapPos
 }
 
 export function onTouchMove(state, dispatch, e) {
   e.preventDefault()
+
   // We can allow double taps if we move, but not enough to change cursorPos
   if (e.touches.length === 2) {
     // Immediately stop all double tap, tap and hold, dragging, and curLinePos
@@ -320,10 +267,7 @@ export function onTouchMove(state, dispatch, e) {
     dragging = false
     doubleTapIsPossible = false
     clearTimeout(doubleTapTimer)
-    // setTapHolding(false)
     clearTimeout(touchHoldTimer)
-    // For good measure
-    // lastTapPos = [-10,-10]
     dispatch({ curLinePos: null })
 
     if (gestureTouches !== null) {
@@ -338,6 +282,7 @@ export function onTouchMove(state, dispatch, e) {
         centerx: prevCenterx,
         centery: prevCentery,
       } = distCenter(gestureTouches[0].pageX, gestureTouches[0].pageY, gestureTouches[1].pageX, gestureTouches[1].pageY)
+
       dispatch({ curLinePos: null })
       dispatch({
         action: "translate",
@@ -347,7 +292,8 @@ export function onTouchMove(state, dispatch, e) {
           -(prevCentery - newCentery) * state.gestureTranslateSensitivity,
         ),
       })
-      // TODO: enableGestureScale is broken
+
+      // TODO: enableGestureScale is broken -- not sure if it still is
       // This line helps stablize translation
       if (!state.smoothGestureScale || Math.abs((prevDist - newDist) * state.gestureScaleSensitivity) > 0.6)
         dispatch({
@@ -360,20 +306,16 @@ export function onTouchMove(state, dispatch, e) {
 
     gestureTouches = e.touches
   } else if (e.touches.length === 1 && gestureTouches === null) {
-    // console.log('single touch moved')
     const touch = e.touches[0] || e.changedTouches[0]
     const { clipboard, fillMode, curLinePos } = state
     // If we move while holding, that's fine, as long as we haven't moved enough to change cursorPos.
     // If we move enough to change cursorPos, we stop holding.
-    // the cursor_moved action calls cursorPosChanged() if the cursor has moved enough to change cursorPos.
-    // tapDragging = true
+    // The cursor_moved action calls cursorPosChanged() if the cursor has moved enough to change cursorPos.
     if (tapDragging && !clipboard?.length && !fillMode && !curLinePos)
-      if (touchHoldTimer){
+      if (touchHoldTimer) {
         clearTimeout(touchHoldTimer)
-        dontAddLineOnNextTouchEnd = true
-      }
-      else
         dispatch({ action: "add_line", at: lastTapPos })
+      }
 
     dispatch({
       action: "cursor_moved",
@@ -383,24 +325,17 @@ export function onTouchMove(state, dispatch, e) {
 }
 
 export function cursorPosChanged(newPos) {
-  // console.log('cursorPosChanged', {newPos})
-  // console.log('lastTapPos', {lastTapPos, newPos})
   if (singleTapTouchingScreen && !lastTapPos.eq(newPos)) {
     clearTimeout(touchHoldTimer)
-    // console.log('double tap is not possible: cursorPos changed')
     clearTimeout(doubleTapTimer)
     doubleTapIsPossible = false
-    // console.log('tapDragging set to true (from cursorPosChanged)')
     tapDragging = true
   }
 }
 
 function onTouchHold(state, dispatch) {
-  // This only gets called when valid -- OR SHOULD ANYWAY
   const { fillMode, clipboard } = state
   holdAndDragPossible = true
-  console.log("onTouchHold")
-  console.log("double tap is not possible: We held instead")
   clearTimeout(doubleTapTimer)
   doubleTapIsPossible = false
   // This also only applies to touch events, not mouse events
@@ -418,8 +353,6 @@ function onDoubleTap(state, dispatch) {
 // This keeps the focus always on the paper element
 export function onBlur(state, dispatch, e) {
   setTimeout(function () {
-    if (document.activeElement.nodeName !== "INPUT" || document.activeElement.type === "checkbox")
-      // paper.current.focus()
-      e.target.focus()
+    if (document.activeElement.nodeName !== "INPUT" || document.activeElement.type === "checkbox") e.target.focus()
   }, 100)
 }

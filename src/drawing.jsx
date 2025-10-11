@@ -39,7 +39,6 @@ import useMediaQuery from "@mui/material/useMediaQuery"
 // For debugging
 function useActiveBreakpoint() {
   const theme = useTheme()
-  const isXs = useMediaQuery(theme.breakpoints.only("xs"))
   const isSm = useMediaQuery(theme.breakpoints.only("sm"))
   const isMd = useMediaQuery(theme.breakpoints.only("md"))
   const isLg = useMediaQuery(theme.breakpoints.only("lg"))
@@ -188,7 +187,7 @@ export const DebugInfo = () => {
 export const MirrorMetaLines = () => {
   const { state } = useContext(StateContext)
   let mirrorMetaLines = []
-  const { cursorPos, mirrorType, mirrorAxis, mirrorRot, scalex, scaley, curLinePos } = state
+  const { cursorPos, mirrorType, mirrorAxis, mirrorRot, scalex, curLinePos } = state
   const { x: cursorx, y: cursory } = cursorPos.asViewport(state)
   const { x: cursorLinex, y: cursorLiney } = curLinePos === null ? { x: null, y: null } : curLinePos.asViewport(state)
   const half = getHalf(state)
@@ -521,7 +520,7 @@ export const Cursor = () => {
 
 export const Dots = () => {
   const { state } = useContext(StateContext)
-  const { translation, scalex, scaley, rotate, hideDots, paperColor } = state
+  const { translation, scalex, scaley, rotate, hideDots } = state
   const { x: transx, y: transy } = translation.asInflated(state)
   const theme = useTheme()
 

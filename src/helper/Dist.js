@@ -14,6 +14,7 @@ export default class Dist extends Pair {
     return new Dist(x / scalex, y / scaley)
   }
 
+  // eslint-disable-next-line no-unused-vars
   asDeflated(state = undefined) {
     return { x: this._x, y: this._y }
   }

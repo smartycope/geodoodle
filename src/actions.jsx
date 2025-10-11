@@ -35,6 +35,8 @@ import * as turf from "@turf/turf"
 
 // TODO: some way to "pick up" the end of a line and move it
 
+/* eslint-disable no-unused-vars */
+
 export const cursor_moved = (state, { point }) => {
   const { cursorPos, debugDrawPoints, fillMode, tempPolys } = state
   // This is here so when a touch is being held, and has moved enough to move the cursor, it disables the hold action
@@ -509,7 +511,7 @@ export const set_manual = (state, data) => {
 const miniMenus = ["extra", "color", "mirror", "select", "clipboard", "delete"]
 var savedMiniMenus = {}
 export const menu = (state, { toggle, open, close }) => {
-  const { openMenus, mobile, hideDots } = state
+  const { openMenus, hideDots } = state
 
   let copy = JSON.parse(JSON.stringify(openMenus))
   if (toggle !== undefined) copy[toggle] = !copy[toggle]

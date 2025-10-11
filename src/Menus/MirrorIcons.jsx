@@ -7,7 +7,7 @@ import NearMeOutlinedIcon from "@mui/icons-material/NearMeOutlined"
 import SvgIcon from "@mui/material/SvgIcon"
 
 // TODO: these should probably get updated to custom icons as well
-export const MirrorAxisIcon = (axis, unscale = 1) => {
+export const MirrorAxisIcon = (axis) => {
   switch (axis) {
     case MIRROR_AXIS.Y:
       return <VerticalAlignCenterIcon transform="rotate(90)" />
