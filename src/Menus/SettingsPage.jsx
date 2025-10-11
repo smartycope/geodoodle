@@ -2,7 +2,7 @@ import { useContext, useRef, useState } from "react"
 import Number from "./Number"
 import { ColorPicker, ColorService } from "react-color-palette"
 import "react-color-palette/dist/css/rcp.css"
-import { version } from "../globals"
+import { cursors, version } from "../globals"
 import { StateContext } from "../Contexts"
 import Page from "./Page"
 import Button from "@mui/material/Button"
@@ -55,6 +55,7 @@ export default function SettingsPage() {
     scrollSensitivity,
     hideHexColor,
     enableGestureScale,
+    cursor,
     extraButton,
     hideDots,
     maxUndoAmt,
@@ -155,6 +156,16 @@ export default function SettingsPage() {
             checked={defaultToMemorableNames}
             onChange={() => dispatch({ defaultToMemorableNames: !defaultToMemorableNames })}
           />
+        </Setting>
+
+        <Setting label="Cursor" help="Which cursor to use">
+          <Select value={cursor} onChange={(e) => dispatch({ cursor: e.target.value })}>
+            {cursors.map((i) => (
+              <MenuItem sx={{ width: "100%" }} value={i} key={i}>
+                {i.charAt(0).toUpperCase() + i.slice(1)}
+              </MenuItem>
+            ))}
+          </Select>
         </Setting>
 
         {/* Controls */}

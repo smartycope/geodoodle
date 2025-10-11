@@ -481,41 +481,39 @@ export const Clipboard = () => {
 
 export const Cursor = () => {
   const { state } = useContext(StateContext)
-  const { cursorPos, scalex, fillMode, debug } = state
+  const { cursor, cursorPos, scalex, fillMode, debug } = state
   const cursorPosViewport = cursorPos.asViewport(state)
   const theme = useTheme()
 
+  function getCursor(x, y, ...props) {
+    const r = scalex / 3
+    switch (cursor) {
+      case "circle":
+        return <circle cx={x} cy={y} r={r} stroke={theme.palette.primary.cursor} fillOpacity={0} {...props} />
+      case "crosshair":
+        return <>
+          <line x1={x} y1={y-r} x2={x} y2={y+r} stroke={theme.palette.primary.cursor} {...props} />
+          <line x1={x+r} y1={y} x2={x-r} y2={y} stroke={theme.palette.primary.cursor} {...props} />
+        </>
+      case "x":
+        return <>
+          <line x1={x-r} y1={y-r} x2={x+r} y2={y+r} stroke={theme.palette.primary.cursor} {...props} />
+          <line x1={x-r} y1={y+r} x2={x+r} y2={y-r} stroke={theme.palette.primary.cursor} {...props} />
+        </>
+    }
+  }
+
   // We do our own seperately so we can control it's opacity independently
-  let cursor = [
-    <circle
-      cx={cursorPosViewport.x}
-      cy={cursorPosViewport.y}
-      r={scalex / 3}
-      stroke={theme.palette.primary.cursor}
-      fillOpacity={0}
-      key="cursor"
-    />,
-  ]
+  let cursors = [getCursor(cursorPosViewport.x, cursorPosViewport.y)]
 
   let i = 0
   for (const point of getAllCursorPoints(state, false)) {
     const { x, y } = point.asViewport(state)
-    cursor.push(
-      <circle
-        cx={x}
-        cy={y}
-        r={scalex / 3}
-        stroke={theme.palette.primary.cursor}
-        fillOpacity={0}
-        // TODO: this should be in theme
-        strokeOpacity={0.25}
-        key={`cursor-${i}`}
-      />,
-    )
+    cursors.push(getCursor(x, y, {strokeOpacity: 0.25, key: `cursor-${i}`}))
     i++
   }
 
-  return (!fillMode || debug) && <g id="cursor-group">{cursor}</g>
+  return (!fillMode || debug) && <g id="cursor-group">{cursors}</g>
 }
 
 export const Dots = () => {

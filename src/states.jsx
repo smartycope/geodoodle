@@ -124,6 +124,7 @@ export default function getInitialState() {
 
     // TODO: Not currently implemented -- also, this should be in theme probably
     cursorColor: options.cursorColor,
+    cursor: options.cursor,
 
     // true if the current pattern has unsaved edits
     // TODO: I don't think this is implemented yet

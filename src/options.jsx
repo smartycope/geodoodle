@@ -48,6 +48,7 @@ const defaultOptions = {
   toastDuration: 6000,
   defaultToMemorableNames: true,
   maxMirrorOrigins: 12,
+  cursor: "circle",
 }
 export default defaultOptions
 

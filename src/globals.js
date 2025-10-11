@@ -49,3 +49,9 @@ export const extraButtons = {
   home: { action: "go_home" },
   redo: { action: "redo" },
 }
+
+export const cursors = [
+  "circle",
+  "crosshair",
+  "x",
+]
