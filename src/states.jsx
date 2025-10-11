@@ -1,136 +1,144 @@
-import { mobileAndTabletCheck } from "./utils"
 import options from "./options"
-import { viewportWidth, viewportHeight, START_DEBUGGING, MIRROR_AXIS, MIRROR_TYPE, MIRROR_METHOD } from "./globals"
+import { viewportWidth, viewportHeight, START_DEBUGGING, MIRROR_AXIS, MIRROR_TYPE, MIRROR_ROT } from "./globals"
 import Point from "./helper/Point"
 import Line from "./helper/Line"
-import { defaultTrellisControl } from "./utils"
+import { defaultTrellisControl, isMobile as getIsMobile } from "./utils"
 import Dist from "./helper/Dist"
+import { generateName } from "./fileUtils"
 
-const debug_aes = {
-    stroke: 'black',
-    width: .05,
-    dash: '0',
-    lineCap: 'butt',
-    lineJoin: 'miter',
-}
+export default function getInitialState() {
+  const isMobile = getIsMobile()
+  const state = {
+    mobile: isMobile,
+    // 0 indexed
+    colorProfile: 0,
+    // A list of hex color string
+    stroke: Array(options.commonColorAmt).fill(options.stroke),
+    // Coords: Dist, deflated
+    strokeWidth: Array(options.commonColorAmt).fill(0.05),
+    // A list of hex color strings that gets shifted
+    // commonColors: Array(options.commonColorAmt).fill(options.stroke),
+    // "a series of comma and/or whitespace separated numbers"
+    // The numbers are scaled
+    dash: Array(options.commonColorAmt).fill("0"),
+    lineCap: options.lineCap,
+    lineJoin: options.lineJoin,
 
-export default function getInitialState(){
-    const isMobile = mobileAndTabletCheck()
-    return {
-        mobile: isMobile,
-        // 0 indexed
-        colorProfile: 0,
-        // A list of hex color string
-        stroke: Array(options.commonColorAmt).fill(options.stroke),
-        // Coords: Dist, deflated
-        strokeWidth: Array(options.commonColorAmt).fill(.05),
-        // A list of hex color strings that gets shifted
-        // commonColors: Array(options.commonColorAmt).fill(options.stroke),
-        // "a series of comma and/or whitespace separated numbers"
-        // The numbers are scaled
-        dash: Array(options.commonColorAmt).fill('0'),
-        lineCap: options.lineCap,
-        lineJoin: options.lineJoin,
+    // The index of the currently selected color to fill polygons in with
+    // 0 indexed
+    // currentFillColorProfileIndex: 0,
+    // A list of hex color string
+    fill: Array(options.commonColorAmt).fill(options.fill),
 
-        // The index of the currently selected color to fill polygons in with
-        // 0 indexed
-        // currentFillColorProfileIndex: 0,
-        // A list of hex color string
-        fill: Array(options.commonColorAmt).fill(options.fill),
+    fillMode: false,
+    // Constructed when we transition into fillMode, null otherwise. Returns to null after we exit fillMode.
+    // A list of Poly objects.
+    tempPolys: null,
+    // The polygons that the mouse is over currently (as a list, because there might be multiple due to mirroring)
+    // A list of Poly objects
+    curPolys: [],
+    // A list of Poly objects that have been filled. We draw these
+    filledPolys: [],
 
-        fillMode: false,
-        // Constructed when we transition into fillMode, null otherwise. Returns to null after we exit fillMode.
-        // A list of Poly objects.
-        tempPolys: null,
-        // The polygons that the mouse is over currently (as a list, because there might be multiple due to mirroring)
-        // A list of Poly objects
-        curPolys: [],
-        // A list of Poly objects that have been filled. We draw these
-        filledPolys: [],
+    filename: generateName(options.defaultToMemorableNames),
+    // The side of page we have the menu bound to: left, right, top, or bottom
+    side: viewportWidth() < viewportHeight() ? "top" : "right",
 
-        filename: "",
-        // The side of page we have the menu bound to: left, right, top, or bottom
-        side: viewportWidth() < viewportHeight() ? 'top' : 'right',
+    // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
+    cursorPos: Point.svgOrigin(),
+    // The *actual* mouse location. This is only tracked because fillMode uses it to calculate the preview polygons
+    // (otherwise, we couldn't fill say, a 1x1 square)
+    // IT SHOULD BE USED CAREFULLY. It's currently only used during fill mode. Everything else should use cursorPos.
+    mousePos: Point.svgOrigin(),
+    // A list of Line objects, or an empty list
+    lines: [],
+    // The starting point of the current line, or null
+    curLinePos: null,
+    // A list of points specifying the bounderies that define the selection rect
+    bounds: [],
+    // Whether we're currently dragging the selection rect. If we are, we count the cursorPos as a bound
+    boundDragging: false,
+    // The point of the eraser, or null
+    eraser: null,
+    // A list of Line objects, or null
+    clipboard: null,
+    // In degrees
+    clipboardRotation: MIRROR_ROT.NONE,
+    // Of type MIRROR_AXIS
+    clipboardMirrorAxis: MIRROR_AXIS.NONE,
+    // We need to get the center of the clipboard when we copy, not dynamically from the selection, so if it changes
+    // or the selection gets deleted, we can still transform it
+    clipboardOffset: null,
 
-        // The position of the circle we're drawing to act as a cursor in our application, NOT the actual mouse position
-        cursorPos: Point.svgOrigin(),
-        // A list of Line objects, or an empty list
-        lines: START_DEBUGGING ? [
-            new Line({}, new Point(5, 13), new Point(6, 11), debug_aes),
-            new Line({}, new Point(5, 13), new Point(4, 11), debug_aes),
-            new Line({}, new Point(6, 11), new Point(5, 9), debug_aes),
-            new Line({}, new Point(5, 9), new Point(4, 11), debug_aes),
-        ] : [],
-        // The starting point of the current line, or null
-        curLinePos: null,
-        // A list of points specifying the bounderies that define the selection rect
-        bounds: [],
-        // Whether we're currently dragging the selection rect. If we are, we count the cursorPos as a bound
-        boundDragging: false,
-        // The point of the eraser, or null
-        eraser: null,
-        // A list of Line objects, or null
-        clipboard: null,
-        // In degrees
-        // TODO: make this use radians instead, it only comes in increments of 90 degrees, there's no reason not to use radians
-        clipboardRotation: 0,
-        // Of type MIRROR_AXIS or null
-        clipboardMirrorAxis: null,
-        // We need to get the center of the clipboard when we copy, not dynamically from the selection, so if it changes
-        // or the selection gets deleted, we can still transform it
-        clipboardOffset: null,
+    // TODO: is this still used at all? Remove it if not
+    trellis: false,
+    // See the definition of defaultTrellisControl (in utils.jsx) for what this type looks like
+    // Note that Offset is a synonym for Overlap
+    // Type: object
+    trellisOverlap: defaultTrellisControl({ x: 0, y: 0 }),
+    // Type: number
+    trellisSkip: defaultTrellisControl(0),
+    // Type: MIRROR_AXIS
+    trellisFlip: defaultTrellisControl(MIRROR_AXIS.NONE),
+    // Type: MIRROR_AXIS
+    trellisRotate: defaultTrellisControl(MIRROR_ROT.NONE),
+    hideDots: false,
 
-        trellis: false,
-        // See the definition of defaultTrellisControl (in utils.jsx) for what this type looks like
-        // Type: number
-        trellisOverlap: defaultTrellisControl({x: 0, y: 0}),
-        // Type: bool
-        trellisSkip: defaultTrellisControl(false),
-        // Type: MIRROR_AXIS
-        trellisFlip: defaultTrellisControl(MIRROR_AXIS.NONE_0),
-        // Type: MIRROR_AXIS
-        trellisRotate: defaultTrellisControl(MIRROR_AXIS.NONE_0),
-        hideDots: false,
+    mirrorAxis: MIRROR_AXIS.NONE,
+    mirrorRot: MIRROR_ROT.NONE,
+    mirrorType: MIRROR_TYPE.CURSOR,
+    // Type: [{origin: Point, rot: MIRROR_ROT, axis: MIRROR_AXIS}]
+    mirrorOrigins: [],
 
-        mirroring: false,
-        mirrorAxis: MIRROR_AXIS.VERT_90,
-        // The second one is only used when mirrorMethod == BOTH, and it used for the Rotation one
-        mirrorAxis2: MIRROR_AXIS.BOTH_360,
-        mirrorType: MIRROR_TYPE.PAGE,
-        mirrorMethod: MIRROR_METHOD.FLIP,
+    // Transformations
+    translation: Dist.zero(),
+    // The scale to go back to after we reset
+    defaultScalex: isMobile ? 30 : 20,
+    defaultScaley: isMobile ? 30 : 20,
+    // The current scale
+    scalex: isMobile ? 30 : 20,
+    scaley: isMobile ? 30 : 20,
+    // TODO: this is not currently implemented, but I'm looking at it soon
+    // In degrees
+    rotate: 0,
+    // TODO: Look into this eventually
+    // shearx: 0,
+    // sheary: 0,
 
-        // Transformations
-        translation: Dist.zero(),
-        // The scale to go back to after we reset
-        defaultScalex: isMobile ? 30 : 20,
-        defaultScaley: isMobile ? 30 : 20,
-        // The current scale
-        scalex: isMobile ? 30 : 20,
-        scaley: isMobile ? 30 : 20,
-        // In degrees
-        rotate: 0,
-        // TODO: Look into this eventually
-        // shearx: 0,
-        // sheary: 0,
+    // Options
+    removeSelectionAfterDelete: options.removeSelectionAfterDelete,
+    partials: options.partials,
+    invertedScroll: options.invertedScroll,
+    scrollSensitivity: options.scrollSensitivity,
+    gestureTranslateSensitivity: 1,
+    gestureScaleSensitivity: 0.3,
+    smoothGestureScale: false,
+    dotsAbovefill: true,
+    // One of options.extraButtons
+    extraButton: "home",
+    hideHexColor: options.hideHexColor,
+    maxUndoAmt: options.maxUndoAmt,
+    enableGestureScale: options.enableGestureScale,
+    inTour: false,
+    defaultToMemorableNames: options.defaultToMemorableNames,
 
-        // Options
-        removeSelectionAfterDelete: options.removeSelectionAfterDelete,
-        partials: options.partials,
-        invertedScroll: options.invertedScroll,
-        scrollSensitivity: options.scrollSensitivity,
-        gestureTranslateSensitivity: 1,
-        gestureScaleSensitivity: .3,
-        smoothGestureScale: false,
-        dotsAbovefill: true,
-        // One of options.extraButtons
-        extraButton: 'home',
-        hideHexColor: options.hideHexColor,
-        maxUndoAmt: options.maxUndoAmt,
-        enableGestureScale: options.enableGestureScale,
-        inTour: false,
+    // TODO: Not currently implemented -- also, this should be in theme probably
+    cursorColor: options.cursorColor,
 
-        debug: START_DEBUGGING,
-        /* debugDrawPoints looks like this:
+    // true if the current pattern has unsaved edits
+    // TODO: I don't think this is implemented yet
+    saved: false,
+
+    // Set to true if we need to arbitrarily reload the state immediately after the next render
+    // It doesn't do anything, just triggers another reducer call
+    reloadRequired: false,
+
+    // 'system', 'light' or 'dark'.
+    // This is mostly here to allow the theme to be set from the settings page
+    // Use theme.palette.mode from useTheme() instead for most things
+    themeMode: "system",
+    debug: START_DEBUGGING,
+    /* debugDrawPoints looks like this:
         {
             "Point 1 name": {
                 "point": Point,
@@ -148,63 +156,113 @@ export default function getInitialState(){
             },
         }
         */
-        debugDrawPoints: {},
+    debugDrawPoints: {},
 
-        paperColor: options.paperColor,
-        doubleTapTimeMS: options.doubleTapTimeMS,
-        holdTapTimeMS: options.holdTapTimeMS,
+    paperColor: options.paperColor,
+    doubleTapTimeMS: options.doubleTapTimeMS,
+    holdTapTimeMS: options.holdTapTimeMS,
+    // Some browsers (Brave, DuckDuckGo) don't display the mirror icons correctly
+    disableMirrorIcons: false,
 
-        openMenus: {
-            main: true,
-            controls: true,
-            color: false,
-            navigation: false,
-            repeat: false,
-            file: false,
-            settings: false,
-            help: false,
-            mirror: false,
-            key: false,
-            extra: false,
-            select: false,
-            clipboard: false,
-            delete: false,
-        },
-    }
+    // Set to a string to show a toast. It will hide itself after options.toastDuration ms
+    toast: null,
+
+    openMenus: {
+      // TODO: rename this toolbar eventually
+      main: true, // Toolbar
+      controls: true,
+      color: false,
+      navigation: false,
+      repeat: false,
+      file: false,
+      settings: false,
+      help: false,
+      mirror: false,
+      key: false,
+      extra: false,
+      select: false,
+      clipboard: false,
+      delete: false,
+    },
+  }
+
+  if (START_DEBUGGING) return { ...state, ...debugState(state) }
+  else return state
 }
 
-export function tourState(state){
-    return {
-        inTour: true,
-        debug: false,
-        debugDrawPoints: {},
-        openMenus: {
-            main: true,
-            controls: false,
-            color: false,
-            navigation: false,
-            repeat: false,
-            file: false,
-            settings: false,
-            help: false,
-            mirror: false,
-        },
-        side: 'top',
-        bounds: [
-            Point.fromSvg(state, 6, 13, false),
-            Point.fromSvg(state, 4, 9, false),
-        ],
-        curLinePos: null,
-        dash: ['0', "20, 10", '0', '0', '0'],
-        colorProfile: 1,
-        // mobile: true,
-        stroke: ['#000000', '#000000', '#ddddab', '#ff784b', '#1a31ff'],
-        lines: [
-            new Line(state, Point.fromSvg(state, 5, 13, false), Point.fromSvg(state, 6, 11, false), {stroke: 'black', strokeWidth: 0, dash: '1, .5'}, {id: 'dashed-line'}),
-            new Line(state, Point.fromSvg(state, 5, 13, false), Point.fromSvg(state, 6, 11, false), {stroke: 'black', strokeWidth: 0}),
-            new Line(state, Point.fromSvg(state, 6, 11, false), Point.fromSvg(state, 5, 9, false), {stroke: 'black', strokeWidth: 0}),
-            new Line(state, Point.fromSvg(state, 5, 9, false), Point.fromSvg(state, 4, 11, false), {stroke: 'black', strokeWidth: 0}),
-            new Line(state, Point.fromSvg(state, 4, 11, false), Point.fromSvg(state, 5, 13, false), {stroke: 'black', strokeWidth: 0}),
-        ]
-    }
+function debugState(state) {
+  const debug_aes = {
+    stroke: "black",
+    width: 0.05,
+    dash: "0",
+    lineCap: "butt",
+    lineJoin: "miter",
+  }
+
+  return {
+    lines: [
+      new Line({}, new Point(5, 13), new Point(6, 11), debug_aes),
+      new Line({}, new Point(5, 13), new Point(4, 11), debug_aes),
+      new Line({}, new Point(6, 11), new Point(5, 9), debug_aes),
+      new Line({}, new Point(5, 9), new Point(4, 11), debug_aes),
+    ],
+    bounds: [Point.fromSvg(state, 6, 13, false), Point.fromSvg(state, 4, 9, false)],
+    openMenus: {
+      ...state.openMenus,
+      repeat: false,
+      main: true,
+    },
+    side: "top",
+    debug: true,
+  }
+}
+
+export function tourState(state) {
+  return {
+    inTour: true,
+    debug: false,
+    debugDrawPoints: {},
+    openMenus: {
+      main: true,
+      controls: false,
+      color: false,
+      navigation: false,
+      repeat: false,
+      file: false,
+      settings: false,
+      help: false,
+      mirror: false,
+    },
+    side: "top",
+    bounds: [Point.fromSvg(state, 6, 13, false), Point.fromSvg(state, 4, 9, false)],
+    curLinePos: null,
+    dash: ["0", "20, 10", "0", "0", "0"],
+    colorProfile: 1,
+    stroke: ["#000000", "#000000", "#ddddab", "#ff784b", "#1a31ff"],
+    lines: [
+      new Line(
+        state,
+        Point.fromSvg(state, 5, 13, false),
+        Point.fromSvg(state, 6, 11, false),
+        { stroke: "black", strokeWidth: 0, dash: "1, .5" },
+        { id: "dashed-line" },
+      ),
+      new Line(state, Point.fromSvg(state, 5, 13, false), Point.fromSvg(state, 6, 11, false), {
+        stroke: "black",
+        strokeWidth: 0,
+      }),
+      new Line(state, Point.fromSvg(state, 6, 11, false), Point.fromSvg(state, 5, 9, false), {
+        stroke: "black",
+        strokeWidth: 0,
+      }),
+      new Line(state, Point.fromSvg(state, 5, 9, false), Point.fromSvg(state, 4, 11, false), {
+        stroke: "black",
+        strokeWidth: 0,
+      }),
+      new Line(state, Point.fromSvg(state, 4, 11, false), Point.fromSvg(state, 5, 13, false), {
+        stroke: "black",
+        strokeWidth: 0,
+      }),
+    ],
+  }
 }

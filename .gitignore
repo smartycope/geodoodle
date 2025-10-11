@@ -49,3 +49,5 @@ dist-ssr
 
 # The testing html file
 test.html
+*storybook.log
+storybook-static

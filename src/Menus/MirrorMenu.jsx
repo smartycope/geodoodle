@@ -1,184 +1,94 @@
-import {useContext, useEffect} from "react";
-import { MIRROR_METHOD } from "../globals";
-import { FaGripLinesVertical } from "react-icons/fa6";
-import {incrementMirrorAxis, incrementMirrorMethod, incrementMirrorType} from "../utils";
-import {Checkbox, MirrorAxisIcon, MirrorMethodIcon, MirrorTypeIcon} from "./MenuUtils";
-import "../styling/MirrorMenu.css"
-import {StateContext} from "../Contexts";
-import {useAlignWithElement} from "./MenuHooks";
+import { useContext } from "react"
+import { MIRROR_AXIS, MIRROR_TYPE, MIRROR_ROT } from "../globals"
+import { StateContext } from "../Contexts"
+import MiniMenu from "./MiniMenu"
+import Stack from "@mui/material/Stack"
+import ToggleIconButtonGroup from "./ToggleIconButtonGroup"
+import { MirrorTypeIcon, MirrorAxisIcon, MirrorRotIcon } from "./MirrorIcons"
+import AddIcon from "@mui/icons-material/Add"
+import ClearIcon from "@mui/icons-material/Clear"
 
-let offsetX, offsetY;
-let isDragging = false;
+// TODO: when the mirror menu is open, and you move the mouse enough (especially
+// if theres a bunch of lines on screen), it gives a max recusion error in the console
+// No clue why, investigation needed -- I suspect it doesn't have to do with
+// MirrorMenu specifically
 
+export default function MirrorMenu() {
+  const { state, dispatch } = useContext(StateContext)
+  const { mirrorType, mirrorAxis, mirrorRot, mirrorOrigins, mobile } = state
 
-function DesktopMirrorMenu(){
-    const {state, dispatch} = useContext(StateContext)
+  return (
+    <MiniMenu menu="mirror" id="mirror-menu-mobile">
+      <Stack spacing={1} sx={{ px: 1.5, py: 0.5 }}>
+        {/* Type */}
+        <Stack direction="row" spacing={mobile ? 1 : -2}>
+          {" "}
+          {/* I don't know why this spacing is wonky */}
+          <ToggleIconButtonGroup
+            id="mirror-type-input"
+            buttons={[
+              { label: "Cursor", icon: MirrorTypeIcon(MIRROR_TYPE.CURSOR), value: MIRROR_TYPE.CURSOR },
+              { label: "Page", icon: MirrorTypeIcon(MIRROR_TYPE.PAGE), value: MIRROR_TYPE.PAGE },
+            ]}
+            exclusive
+            label="Type"
+            value={mirrorType}
+            onChange={(newValue) => dispatch({ mirrorType: newValue })}
+          />
+          <ToggleIconButtonGroup
+            id="mirror-origin-input"
+            buttons={[
+              mobile
+                ? { label: "Add", icon: <AddIcon />, value: "add_mirror_origin" }
+                : { label: "Press o to Add", icon: null, value: "ignoreme" },
+              { label: "Clear ", icon: <ClearIcon />, value: "clear_mirror_origins" },
+            ]}
+            disabled={{
+              ignoreme: true,
+              add_mirror_origin: !(mirrorAxis || mirrorRot),
+              clear_mirror_origins: !mirrorOrigins.length,
+            }}
+            allowNone
+            label="Origins"
+            alwaysShowLabel
+            // Makes it not allowed to select any of them and act like buttons
+            value={null}
+            onChange={(newValue) => (newValue === "ignoreme" ? null : dispatch({ action: newValue }))}
+          />
+        </Stack>
 
-    // Enable dragging - mostly copied from ChatGPT
-    useEffect(() =>{
-        const draggableElement = document.getElementById('mirror-menu-desktop');
+        {/* Flip */}
+        <ToggleIconButtonGroup
+          id="mirror-flip-input"
+          buttons={[
+            { label: "Horizontally", icon: MirrorAxisIcon(MIRROR_AXIS.Y), value: MIRROR_AXIS.Y },
+            { label: "Vertically", icon: MirrorAxisIcon(MIRROR_AXIS.X), value: MIRROR_AXIS.X },
+            { label: "Crossed", icon: MirrorAxisIcon(MIRROR_AXIS.BOTH), value: MIRROR_AXIS.BOTH },
+          ]}
+          labelInline
+          exclusive
+          allowNone
+          label="Flip"
+          value={mirrorAxis}
+          onChange={(newValue) => dispatch({ mirrorAxis: newValue })}
+        />
 
-        // Function to handle mouse down event
-        function handleMouseDown(event) {
-            let x, y
-            if (event.type === 'touchstart'){
-                const touch = (event.touches[0] || event.changedTouches[0])
-                x = touch.pageX
-                y = touch.pageY
-            } else {
-                x = event.clientX
-                y = event.clientY
-            }
-            isDragging = true;
-            // Calculate the offset between mouse position and element position
-            offsetX = x - draggableElement.getBoundingClientRect().left;
-            offsetY = y - draggableElement.getBoundingClientRect().top;
-            draggableElement.style.cursor = "grabbing"
-            event.stopPropagation()
-            // event.preventDefault()
-        }
-
-        // Function to handle mouse move event
-        function handleMouseMove(event) {
-            if (!isDragging) return;
-            let x, y
-            if (event.type === 'touchmove'){
-                const touch = (event.touches[0] || event.changedTouches[0])
-                x = touch.pageX
-                y = touch.pageY
-            } else {
-                x = event.clientX
-                y = event.clientY
-            }
-            // Update the element's position based on mouse movement
-            draggableElement.style.left = `${x - offsetX}px`;
-            draggableElement.style.top  = `${y - offsetY}px`;
-            event.stopPropagation()
-            // event.preventDefault()
-        }
-
-        // Function to handle mouse up event
-        function handleMouseUp(event) {
-            isDragging = false;
-            draggableElement.style.cursor = "grab"
-            event.stopPropagation()
-            // event.preventDefault()
-        }
-
-        // Add event listeners for mouse events
-        draggableElement.addEventListener('mousedown', handleMouseDown)
-        document.addEventListener('mousemove', handleMouseMove)
-        document.addEventListener('mouseup', handleMouseUp)
-        draggableElement.addEventListener('touchstart', handleMouseDown)
-        document.addEventListener('touchmove', handleMouseMove)
-        document.addEventListener('touchend', handleMouseUp)
-
-        return () => {
-            draggableElement.removeEventListener('mousedown', handleMouseDown)
-            document.removeEventListener('mousemove', handleMouseMove)
-            document.removeEventListener('mouseup', handleMouseUp)
-            draggableElement.removeEventListener('touchstart', handleMouseDown, {passive: false})
-            document.removeEventListener('touchmove', handleMouseMove, {passive: false})
-            document.removeEventListener('touchend', handleMouseUp, {passive: false})
-        }
-    }, [])
-
-    const {mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2} = state
-
-    return <span id="mirror-menu-desktop" className="button-group">
-        <button
-            id='mirror-type'
-            title='Toggle mirror type'
-            onClick={() => dispatch({mirrorType: incrementMirrorType(mirrorType)})}
-        >
-            <MirrorTypeIcon mirrorType={state.mirrorType}/>
-        </button>
-        <button
-            id='mirror-method'
-            title='Toggle mirror method'
-            onClick={() => dispatch({mirrorMethod: incrementMirrorMethod(mirrorMethod)})}
-        >
-            <MirrorMethodIcon mirrorMethod={state.mirrorMethod}/>
-        </button>
-        {[MIRROR_METHOD.BOTH, MIRROR_METHOD.FLIP].includes(state.mirrorMethod) &&
-            <button
-                id='mirror-axis-1'
-                title='Toggle mirror axis'
-                onClick={() => dispatch({mirrorAxis: incrementMirrorAxis(mirrorAxis)})}
-            >
-                <MirrorAxisIcon mirrorAxis={state.mirrorAxis} mirrorMethod={MIRROR_METHOD.FLIP}/>
-            </button>
-        }
-        {[MIRROR_METHOD.BOTH, MIRROR_METHOD.ROTATE].includes(state.mirrorMethod) &&
-            <button
-                id='mirror-axis-2'
-                title='Toggle mirror rotation angle'
-                onClick={() => dispatch({mirrorAxis2: incrementMirrorAxis(mirrorAxis2)})}
-            >
-                <MirrorAxisIcon mirrorAxis={state.mirrorAxis2} mirrorMethod={MIRROR_METHOD.ROTATE}/>
-            </button>
-        }
-        {/* Grip */}
-        <FaGripLinesVertical id="grip" color='darkgray'/>
-    </span>
-}
-
-function MobileMirrorMenu({align}){
-    const {state, dispatch} = useContext(StateContext)
-    const style = useAlignWithElement(align)
-    const {mirrorType, mirrorMethod, mirrorAxis, mirrorAxis2, mirroring} = state
-
-    return <span id="mirror-menu-mobile" className="main-mobile-sub-menu" style={style}>
-        {/* Enabled */}
-        <Checkbox id='mirror-enabled' checked={mirroring} onChange={() => dispatch({mirroring: !mirroring})} label={"Enabled:"} backwards={true}/>
-        Type
-        <button
-            id='mirror-type'
-            title='Toggle mirror type'
-            onClick={() => dispatch({mirrorType: incrementMirrorType(mirrorType)})}
-        >
-            <MirrorTypeIcon mirrorType={mirrorType}/>
-        </button>
-        Method
-        <button
-            id='mirror-method'
-            title='Toggle mirror method'
-            onClick={() => dispatch({mirrorMethod: incrementMirrorMethod(mirrorMethod)})}
-        >
-            <MirrorMethodIcon mirrorMethod={mirrorMethod}/>
-        </button>
-        {[MIRROR_METHOD.BOTH, MIRROR_METHOD.FLIP].includes(mirrorMethod) &&
-            <span>
-                Flip
-                <button
-                    id='mirror-axis-1'
-                    title='Toggle mirror axis'
-                    onClick={() => dispatch({mirrorAxis: incrementMirrorAxis(mirrorAxis)})}
-                >
-                    <MirrorAxisIcon mirrorAxis={mirrorAxis} mirrorMethod={MIRROR_METHOD.FLIP}/>
-                </button>
-            </span>
-        }
-        {[MIRROR_METHOD.BOTH, MIRROR_METHOD.ROTATE].includes(mirrorMethod) &&
-            <span>
-                Rotate
-                <button
-                    id='mirror-axis-2'
-                    title='Toggle mirror rotation angle'
-                    onClick={() => dispatch({mirrorAxis2: incrementMirrorAxis(mirrorAxis2)})}
-                >
-                    <MirrorAxisIcon mirrorAxis={mirrorAxis2} mirrorMethod={MIRROR_METHOD.ROTATE}/>
-                </button>
-            </span>
-        }
-    </span>
-}
-
-export default function MirrorMenu({align}){
-    // const {state, dispatch} = useContext(StateContext)
-    // const {side} = state
-
-    // return state.mobile
-    return <MobileMirrorMenu align={align}/>
-        // : <DesktopMirrorMenu/>
+        {/* Rotate */}
+        <ToggleIconButtonGroup
+          id="mirror-rotate-input"
+          buttons={[
+            { label: "90°", icon: MirrorRotIcon(MIRROR_ROT.RIGHT), value: MIRROR_ROT.RIGHT },
+            { label: "180°", icon: MirrorRotIcon(MIRROR_ROT.STRAIGHT), value: MIRROR_ROT.STRAIGHT },
+            { label: "x4", icon: MirrorRotIcon(MIRROR_ROT.QUAD), value: MIRROR_ROT.QUAD },
+          ]}
+          labelInline
+          exclusive
+          allowNone
+          label="Rotate"
+          value={mirrorRot}
+          onChange={(newValue) => dispatch({ mirrorRot: newValue })}
+        />
+      </Stack>
+    </MiniMenu>
+  )
 }
