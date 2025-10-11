@@ -10,6 +10,8 @@ var dragging = false
 // TODO: middle click & drag starts a line on middle click up event
 // -- make it delete a specific line instead
 // -- not sure if this is still happening
+// TODO: all these functions (especially the touch functions) desperately need
+// tests. A ton of tests.
 
 // Mouse events
 export function onMouseMove(state, dispatch, e) {
@@ -222,7 +224,7 @@ export function onTouchStart(state, dispatch, e) {
     lastTapPos = newTapPosAligned
   }
 
-  if (!is2ndTapOfDoubleTap)
+  if (!is2ndTapOfDoubleTap && singleTapTouchingScreen)
     // If we stop touching in that amount of time, we interrupt the timer, so this still works
     touchHoldTimer = setTimeout(() => onTouchHold(state, dispatch), state.holdTapTimeMS)
 }
@@ -244,6 +246,7 @@ export function onTouchEnd(state, dispatch, e) {
   // We don't support 3 finger gestures, so this will always be fine
   if (gestureTouches) {
     gestureTouches = null
+    clearTimeout(touchHoldTimer)
     return
   }
 
