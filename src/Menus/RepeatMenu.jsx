@@ -91,7 +91,7 @@ function SubMenu({ title, byHorizontal, byVertical, transformation, resetVal, ev
       </Grid>
 
       {/* Label */}
-      <Grid size={11} sx={gridItemSx}>
+      <Grid size={{ xs: 10, sm: 10, md: 10, lg: 11 }} sx={gridItemSx}>
         <Typography
           variant="h4"
           sx={{
@@ -460,6 +460,7 @@ export default function RepeatMenu() {
     flip: false,
     rotate: false,
   })
+  const { side } = state
 
   // Be sure to close all the others
   const handleSubMenuClick = (subMenu) => {
@@ -471,15 +472,31 @@ export default function RepeatMenu() {
     })
   }
 
+  const vertical = window.innerHeight > window.innerWidth
+
+  // In the corner
+  let pos = { top: 16, left: 16 }
+  // Below the toolbar FAB
+  if (side === "top")
+    pos = { top: "5rem", right: 16 }
+  // To the left of the toolbar FAB
+  else if (side === "right")
+    pos = { top: 16, right: "5rem" }
+
+  // For the tooltips
+  const placement = vertical ? "right" : "bottom-end"
+  // TODO: the vertical here just disables tooltips if the menu is sideways, because SpeedDialActions
+  // don't seem to acknowledge the placement prop
+  const open = state.mobile && vertical
+
   return (
     <>
       <SpeedDial
         id="repeat-speed-dial"
-        // 5rem puts it below the toolbar FAB
-        sx={{ position: "absolute", top: "5rem", right: 16 }}
+        sx={{ position: "absolute", ...pos }}
         ariaLabel="Repeat Menu"
-        direction="down"
-        // Working icon
+        direction={vertical ? "down" : "left"}
+        // direction="down"
         icon={<DashboardIcon />}
         open={speedDialOpen}
         onClick={() => setSpeedDialOpen(!speedDialOpen)}
@@ -487,27 +504,28 @@ export default function RepeatMenu() {
         {/* TODO: make the tooltips transparent */}
         <SpeedDialAction
           icon={<KeyboardTabIcon />}
-          slotProps={{ tooltip: { title: "Offset", open: state.mobile } }}
+          slotProps={{ tooltip: { title: "Offset", open, placement } }}
+          // tooltipPlacement={placement}
           onClick={() => handleSubMenuClick("offset")}
         />
         <SpeedDialAction
           icon={<RedoIcon />}
-          slotProps={{ tooltip: { title: "Skip", open: state.mobile } }}
+          slotProps={{ tooltip: { title: "Skip", open, placement } }}
           onClick={() => handleSubMenuClick("skip")}
         />
         <SpeedDialAction
           icon={<FlipIcon />}
-          slotProps={{ tooltip: { title: "Flip", open: state.mobile } }}
+          slotProps={{ tooltip: { title: "Flip", open, placement } }}
           onClick={() => handleSubMenuClick("flip")}
         />
         <SpeedDialAction
           icon={MirrorRotIcon(MIRROR_ROT.STRAIGHT)}
-          slotProps={{ tooltip: { title: "Rotate", open: state.mobile } }}
+          slotProps={{ tooltip: { title: "Rotate", open, placement } }}
           onClick={() => handleSubMenuClick("rotate")}
         />
         <SpeedDialAction
           icon={<ReplayIcon />}
-          slotProps={{ tooltip: { title: "Reset", open: state.mobile } }}
+          slotProps={{ tooltip: { title: "Reset", open, placement } }}
           onClick={(e) => {
             dispatch({
               trellisOverlap: defaultTrellisControl({ x: 0, y: 0 }),
@@ -521,7 +539,7 @@ export default function RepeatMenu() {
         />
         <SpeedDialAction
           icon={state.hideDots ? <BlurOnIcon /> : <BlurOffIcon />}
-          slotProps={{ tooltip: { title: "Toggle Dots", open: state.mobile } }}
+          slotProps={{ tooltip: { title: "Toggle Dots", open, placement } }}
           onClick={(e) => {
             dispatch({ hideDots: !state.hideDots })
             e.stopPropagation()

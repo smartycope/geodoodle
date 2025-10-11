@@ -13,9 +13,12 @@ import { isMobile } from "../utils"
 // TODO: On a sideways mobile screen, the toolbar goes off the screen
 function Toolbar() {
   const { state, dispatch } = useContext(StateContext)
-  const { side } = state
   const [, doReload] = useState()
   const theme = useTheme()
+
+  let { side, openMenus } = state
+  // The toolbar on these sides overlaps with the repeat menu, so move it to the top
+  if (openMenus.repeat && ["left", "bottom"].includes(side)) side = "top"
   const vertical = ["top", "bottom"].includes(side)
   const horizontal = !vertical
   const extraSlots = _extraSlots(state)
@@ -101,6 +104,9 @@ function Toolbar() {
         id="menu-selector-mobile"
         elevation={4}
         sx={{
+          // Where the crap did this come from???
+          // "-webkit-tap-highlight-color": "transparent",
+          WebkitTapHighlightColor: "transparent",
           // TODO: should this be state.mobile?
           px: isMobile() ? 0.5 : 1,
           py: isMobile() ? 0.5 : 1,

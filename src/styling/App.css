@@ -6,15 +6,6 @@ html {
   overflow: hidden;
 }
 
-#paper {
-  /* background-color: #C8A064; */
-  /* background-color: #E4C699; */
-  /* background-color: #ffddab; */
-  /* background-color: BlanchedAlmond; */
-  /* This is handled in paper itself now */
-  /* cursor: none; */
-}
-
 .checkbox {
   display: flex;
   flex-direction: row;

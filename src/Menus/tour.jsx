@@ -6,6 +6,7 @@ let alreadyHappened = {}
 // TODO: For some reason *which is a later problem* the tour actions seem to be running *six times*, and with inconsistent
 // timing. Why, I don't know. Probably has something to do with the StrictMode warning it keeps giving me with no
 // stack trace
+// TODO: reorder these
 // To work around this, alreadyHappened is used to make sure the actions only run once
 const tour = (_dispatch) => {
   // We have to use this, because the selector selects *before* the action runs, so we need to stick an intermediate
@@ -78,8 +79,8 @@ const tour = (_dispatch) => {
       selector: "#undo-tool-button",
       content: (
         <>
-          This is the undo button. Tap to undo, and tap and
-          {mobile ? "hold to redo." : "right click to redo."}
+          This is the undo button. Tap to undo, and
+          {mobile ? " tap and hold to redo." : " right click to redo."}
         </>
       ),
     },
@@ -114,7 +115,7 @@ const tour = (_dispatch) => {
       selector: "#partials-picker",
       content: (
         <>
-          This determines whether you want to include <em>partials</em> in the selected pattern or not. Partial lines
+          This determines whether you want to include <em>partials</em> in the selected pattern or not. <em>Partials</em>
           are lines that only have one end inside the selected area.
         </>
       ),
@@ -125,8 +126,8 @@ const tour = (_dispatch) => {
       selector: "#delete-mini-menu",
       content: (
         <>
-          Here, there are several ways to delete lines.
-          {mobile ? "Double tapping a point " : "The delete key "}
+          There are several ways to delete lines.
+          {mobile ? " Double tapping a point " : " The delete key "}
           deletes all lines attached to that point.
         </>
       ),
@@ -234,7 +235,7 @@ const tour = (_dispatch) => {
         </>
       ),
     },
-    menu({ open: "help" }),
+    // menu({ open: "help" }),
     { content: "Have fun doodling!" },
   ]
 }

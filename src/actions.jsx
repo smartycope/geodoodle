@@ -508,8 +508,8 @@ export const set_manual = (state, data) => {
 }
 
 // This function defines how all the menus & pages interact with each other
+// Nav is not a mini menu, it can be open indepedently
 const miniMenus = ["extra", "color", "mirror", "select", "clipboard", "delete"]
-var savedMiniMenus = {}
 export const menu = (state, { toggle, open, close }) => {
   const { openMenus, hideDots } = state
 
@@ -522,7 +522,6 @@ export const menu = (state, { toggle, open, close }) => {
   if (
     (open !== undefined && miniMenus.includes(open)) ||
     (toggle !== undefined && copy[toggle] && miniMenus.includes(toggle))
-    // && open !== 'repeat' && toggle !== 'repeat'
   ) {
     const setFalse = miniMenus.filter((i) => i !== open && i !== toggle)
     Object.keys(copy).forEach((key) => {
@@ -530,31 +529,12 @@ export const menu = (state, { toggle, open, close }) => {
     })
   }
 
-  // If we close the toolbar (main), save the state of the mini menus and reopen them when we open the toolbar again
+  // If we close the toolbar (main), close all the mini menus as well (except repeat)
   if (close === "main" || (toggle === "main" && !copy[toggle])) {
-    savedMiniMenus = { ...copy }
     Object.keys(copy).forEach((key) => {
       // Toolbar and repeat menus are independent of each other
       if (key !== "repeat") copy[key] = false
     })
-  }
-
-  let requireReload = false
-  // Reopen the mini menus when we open the toolbar
-  // This maaay cause bugs if we issue multiple menu actions at once
-  if (open === "main" || (toggle === "main" && copy[toggle])) {
-    // It should be
-    // copy = {...copy, ...savedMiniMenus}
-    // But it doesn't work. For some reason
-    // copy = {...savedMiniMenus}
-    // Acts differently than
-    // Repeat and toolbar are independent of each other
-    copy = { repeat: copy.repeat, ...savedMiniMenus }
-    // I have no idea why.
-    savedMiniMenus["main"] = true
-
-    // The toolbar renders before the menus, so we have to do this to make sure the menus are open
-    requireReload = true
   }
 
   let repeatToast = false
@@ -576,7 +556,6 @@ export const menu = (state, { toggle, open, close }) => {
     // If we close the repeat menu, and we have dots turned off, turn them back on
     hideDots: !(openMenus.repeat && !copy.repeat) && hideDots,
     toast: repeatToast ? "Please select an area to repeat" : null,
-    reloadRequired: requireReload,
   }
 }
 
