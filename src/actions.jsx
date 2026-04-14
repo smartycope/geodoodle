@@ -304,8 +304,14 @@ export const set_paper_color = (state, { color }) => ({ paperColor: color })
 
 // Fill actions
 export const fill = (state) => {
-  const { fillMode, curPolys, filledPolys } = state
-  if (fillMode && curPolys.length) return { filledPolys: [...filledPolys, ...curPolys] }
+  const { fillMode, curPolys, filledPolys, fill, colorProfile } = state
+  if (fillMode && curPolys.length)
+    return { filledPolys: [
+      ...filledPolys,
+      // Set the color of the new polys
+      ...curPolys.map((p) => p.withColor(fill[colorProfile]))
+    ]
+  }
 }
 
 export const clear_fill = (state) => {
