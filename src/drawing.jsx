@@ -224,25 +224,24 @@ export const MirrorMetaLines = () => {
       )
 
     // Rotation lines
-    // NOTE: this breaks in some browsers (Brave & DuckDuckGo at least)
     // TODO: this icon should scale with the current scale
     if (!state.disableMirrorIcons || state.debug) {
       if (rot === MIRROR_ROT.RIGHT)
         lines.push(
           <g color={theme.palette.primary.mirror} key={`mms`} transform={`translate(${x - 12} ${y - 12})`}>
-            {MirrorRotIcon(MIRROR_ROT.RIGHT, false)}
+            {MirrorRotIcon(MIRROR_ROT.RIGHT, false, 1, false)}
           </g>,
         )
       if (rot === MIRROR_ROT.STRAIGHT)
         lines.push(
           <g color={theme.palette.primary.mirror} key={`mms`} transform={`translate(${x - 12} ${y - 12})`}>
-            {MirrorRotIcon(MIRROR_ROT.STRAIGHT, false)}
+            {MirrorRotIcon(MIRROR_ROT.STRAIGHT, false, 1, false)}
           </g>,
         )
       if (rot === MIRROR_ROT.QUAD)
         lines.push(
           <g color={theme.palette.primary.mirror} key={`mmq`} transform={`translate(${x - 12} ${y - 12})`}>
-            {MirrorRotIcon(MIRROR_ROT.QUAD, false)}
+            {MirrorRotIcon(MIRROR_ROT.QUAD, false, 1, false)}
           </g>,
         )
     }
