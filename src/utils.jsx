@@ -262,7 +262,7 @@ export function getShowableStroke(color) {
   return brightness > 128 ? "black" : "white"
 }
 
-// Returns the lines, but removekks any duplicates, lines with null values, and invalid lines
+// Returns the lines, but removes any duplicates, lines with null values, and invalid lines
 export function normalizeLines(lines) {
   const seen = new Set()
 
