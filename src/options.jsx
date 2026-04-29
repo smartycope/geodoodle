@@ -49,6 +49,7 @@ const defaultOptions = {
   defaultToMemorableNames: true,
   maxMirrorOrigins: 12,
   cursor: "circle",
+  allowSnapToIntersections: true
 }
 export default defaultOptions
 
@@ -202,6 +203,7 @@ export const preservable = [
   "doubleTapTimeMS",
   "filledPolys",
   "mirrorOrigins",
+  "allowSnapToIntersections",
 ]
 
 // The parts of the state that get serialized to the svg file

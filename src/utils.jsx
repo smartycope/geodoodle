@@ -284,6 +284,15 @@ export function unique(arr) {
   return arr.filter((point, index, self) => self.findIndex((p) => p.eq(point)) === index)
 }
 
+// Returns Points
 export function getAllIntersections(lines) {
+  if (lines.length < 2) return []
   return unique(lines.flatMap((line) => line.findIntersections(lines)))
 }
+
+// Returns a list of Lines - we use this instead of storing which lines go with each intersection, because
+// that's more of a hassle, and the situations in which we need this function (so far, only deleting what's)
+// under the cursor when it's on an intersection) don't need to be optimized, we can just recalculate all of them
+// export function getLinesAssociatedWithIntersection(state, intersection) {
+//   return state.lines.filter((line) => line.findIntersections(state.lines).includes(intersection))
+// }

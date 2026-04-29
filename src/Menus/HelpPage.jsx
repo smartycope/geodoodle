@@ -28,9 +28,9 @@ function AboutContent() {
         <li>✅ Settings</li>
         <li>✅ Repeating</li>
         <li>✅ Mobile Compatibility</li>
-        <li>❌ Alternate Dot Patterns</li>
+        <li>✅ Allow lines to be drawn from line intersections</li>
         <li>❌ Custom Keyboard Shortcuts</li>
-        <li>❌ Allow lines to be drawn from line intersections</li>
+        <li>❌ Alternate Dot Patterns</li>
         <li>❌ Connect to Google Drive</li>
         <li>❌ Curved Lines</li>
         <li>❌ App</li>

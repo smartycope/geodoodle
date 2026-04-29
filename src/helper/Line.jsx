@@ -5,9 +5,10 @@ import * as turf from "@turf/turf"
 export default class Line {
   // if state is not specified, aes must be specified
   // round defaults to true because (as of right now) lines only go between the dots, and dots are integers in
-  // deflated coordinates. This shouldn't be necissary now that I fixed the phantom off by one errors, but it's still
+  // deflated coordinates. This shouldn't be necessary now that I fixed the phantom off by one errors, but it's still
   // usefull and should cover any rounding errors
-  constructor(state, a, b, aes = {}, props = {}, round = true) {
+  // constructor(state, a, b, aes = {}, props = {}, round = false) {
+  constructor(state, a, b, aes = {}, props = {}) {
     const { stroke, strokeWidth, dash, lineCap, lineJoin, colorProfile } = state
     // For "aesthetics" (concept stolen from ggplot2 in R)
     this.aes = {
@@ -17,8 +18,8 @@ export default class Line {
       lineCap: aes?.lineCap ?? lineCap,
       lineJoin: aes?.lineJoin ?? lineJoin,
     }
-    this.a = round ? a.round() : a
-    this.b = round ? b.round() : b
+    this.a = a
+    this.b = b
     this.props = props
   }
 
@@ -34,10 +35,12 @@ export default class Line {
   }
 
   // Return an optionally modified copy of this line
-  copy(a = this.a, b = this.b, aes = this.aes, props = this.props, round = true) {
+  // copy(a = this.a, b = this.b, aes = this.aes, props = this.props, round = true) {
+  copy(a = this.a, b = this.b, aes = this.aes, props = this.props) {
     // Mock the scale here so the constructor can unscale the points, even though it doesn't have to (since it's
     // just a copy, we already did that when *this* line was constructed)
-    return new Line({}, a, b, { ...this.aes, ...aes }, { ...this.props, ...props }, round)
+    // return new Line({}, a, b, { ...this.aes, ...aes }, { ...this.props, ...props }, round)
+    return new Line({}, a, b, { ...this.aes, ...aes }, { ...this.props, ...props })
   }
 
   isSelected(state, boundRect = null) {

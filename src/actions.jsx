@@ -38,9 +38,9 @@ import * as turf from "@turf/turf"
 /* eslint-disable no-unused-vars */
 
 export const cursor_moved = (state, { point }) => {
-  const { cursorPos, debugDrawPoints, fillMode, tempPolys } = state
+  const { cursorPos, debugDrawPoints, fillMode, tempPolys, clipboard, allowSnapToIntersections } = state
   // This is here so when a touch is being held, and has moved enough to move the cursor, it disables the hold action
-  const newPos = point.align(state)
+  const newPos = point.align(state, clipboard === null && allowSnapToIntersections)
   if (!cursorPos.eq(newPos)) cursorPosChanged(newPos)
   return {
     cursorPos: newPos,
@@ -196,6 +196,7 @@ export const delete_at_cursor = (state) => {
   const { cursorPos, bounds, curLinePos, clipboard, lines, eraser, fillMode, mirrorOrigins } = state
   // If we're over the eraser, delete it
   if (eraser && cursorPos.eq(eraser)) return { eraser: null }
+  // If we're in fill mode, clear the fill of whatever we're over
   if (fillMode) return clear_fill(state)
   // If we're over a bound, delete it
   if (cursorPos.in(bounds)) return { bounds: cursorPos.remove(bounds) }
@@ -206,8 +207,25 @@ export const delete_at_cursor = (state) => {
   // If we're over a mirror origin, delete it
   if (cursorPos.in(mirrorOrigins.map((o) => o.origin))) return remove_mirror_origin(state, cursorPos)
 
-  // threshold is in deflated coordinates. It helps fudge rounding errors
-  return { lines: lines.filter((line) => !cursorPos.in(line.points(), 0.5)) }
+  let linesWithoutStartEndStep = lines.filter((line) => !cursorPos.in(line.points()))
+  // If there's no lines without a start/end point at the cursor, and we're over an intersection,
+  // remove the lines that intersect at that point
+  if (linesWithoutStartEndStep.length === lines.length)
+    if (!cursorPos.isAlignedWithGrid()) return remove_lines_at_intersection(state)
+    // Otherise, if we are aligned, and there's nothing to remove, don't do anything
+    else return state
+  // If we're at an intersection, and we've created a line or lines using that intersection, remove those lines first
+  // Otherwise, just remove the lines that start/end at the cursor, as usual
+  else
+    return { lines: linesWithoutStartEndStep }
+}
+
+// args: { intersection: Point }, defaults to cursorPos
+export const remove_lines_at_intersection = (state, args) => {
+  const { cursorPos, lines } = state
+  return {
+    lines: lines.filter((line) => !line.findIntersections(lines).some((p) => p.eq(args?.intersection ?? cursorPos))),
+  }
 }
 
 export const nevermind = (state) => {
@@ -536,12 +554,12 @@ export const menu = (state, { toggle, open, close }) => {
   }
 
   // If we close the toolbar (main), close all the mini menus as well (except repeat)
-  if (close === "main" || (toggle === "main" && !copy[toggle])) {
+  if (close === "main" || (toggle === "main" && !copy[toggle]))
     Object.keys(copy).forEach((key) => {
       // Toolbar and repeat menus are independent of each other
       if (key !== "repeat") copy[key] = false
     })
-  }
+
 
   let repeatToast = false
   // Don't allow the repeat menu to be opened if we don't have a *finished* selection

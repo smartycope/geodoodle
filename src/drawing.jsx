@@ -142,45 +142,46 @@ export const GlowEffect = () => {
 
 export const DebugInfo = () => {
   const { state } = useContext(StateContext)
+  const breakpoint = useActiveBreakpoint()
+
+  if (!state.debug) return null
+
   const { debug, debugDrawPoints, translation, scalex, scaley, openMenus } = state
   const debugBox = getDebugBox(state)
   const origin = Point.fromViewport(state, translation._x, translation._y, false)
   const intersectcions = getAllIntersections(state.lines)
-  const breakpoint = useActiveBreakpoint()
 
   return (
-    debug && (
-      <g>
-        {/* Repeat box */}
-        <text x={debugTextX} y={debugTextOffset + 20} fill="black">
-          {isMobile() ? "mobile" : "desktop"}
-          {" - "}
-          {breakpoint}
-          {" - "}
-          {window.innerWidth}
-          {" x "}
-          {window.innerHeight}
-        </text>
-        {openMenus.repeat && debugBox.render(state, { stroke: "green", strokeWidth: 2, fillOpacity: 0 })}
+    <g>
+      {/* Repeat box */}
+      <text x={debugTextX} y={debugTextOffset + 20} fill="black">
+        {isMobile() ? "mobile" : "desktop"}
+        {" - "}
+        {breakpoint}
+        {" - "}
+        {window.innerWidth}
+        {" x "}
+        {window.innerHeight}
+      </text>
+      {openMenus.repeat && debugBox.render(state, { stroke: "green", strokeWidth: 2, fillOpacity: 0 })}
 
-        <DebugPoint name="Translation" point={origin} inflated={false} color="green" />
-        <DebugPoint name="Scale" point={{ x: scalex, y: scaley }} omitCircle inflated />
-        {!state.fillMode && <DebugPoint name="Cursor" point={state.cursorPos} yoff={40} fill="transparent" />}
-        {/* <DebugPoint name="SVG Origin" point={Point.svgOrigin(state)} omit/> */}
-        {debugDrawPoints &&
-          Object.entries(debugDrawPoints).map(([name, spec]) => <DebugPoint key={name} name={name} {...spec} />)}
-        {/* Draw intersections */}
-        {intersectcions.map((point, i) => (
+      <DebugPoint name="Translation" point={origin} inflated={false} color="green" />
+      <DebugPoint name="Scale" point={{ x: scalex, y: scaley }} omitCircle inflated />
+      {!state.fillMode && <DebugPoint name="Cursor" point={state.cursorPos} yoff={40} fill="transparent" />}
+      {/* <DebugPoint name="SVG Origin" point={Point.svgOrigin(state)} omit/> */}
+      {debugDrawPoints &&
+        Object.entries(debugDrawPoints).map(([name, spec]) => <DebugPoint key={name} name={name} {...spec} />)}
+      {/* Draw intersections */}
+      {intersectcions.map((point, i) => (
+        <DebugPoint key={i} name={`Intersection ${i}`} point={point} decimals={0} omitText />
+      ))}
+      {/* Draw intersections exclusively on the current line */}
+      {Line.getCurrentLine(state)
+        ?.findIntersections(state.lines)
+        .map((point, i) => (
           <DebugPoint key={i} name={`Intersection ${i}`} point={point} decimals={0} omitText />
         ))}
-        {/* Draw intersections exclusively on the current line */}
-        {Line.getCurrentLine(state)
-          ?.findIntersections(state.lines)
-          .map((point, i) => (
-            <DebugPoint key={i} name={`Intersection ${i}`} point={point} decimals={0} omitText />
-          ))}
-      </g>
-    )
+    </g>
   )
 }
 
@@ -425,9 +426,9 @@ export const CurrentLines = () => {
     <g
       id="cur-lines"
       transform={`
-                translate(${translation.asInflated(state).x} ${translation.asInflated(state).y})
-                scale(${scalex} ${scaley})
-            `}
+          translate(${translation.asInflated(state).x} ${translation.asInflated(state).y})
+          scale(${scalex} ${scaley})
+      `}
     >
       {lines.map((l, i) => l.render(state, `curLine-${i}`))}
     </g>

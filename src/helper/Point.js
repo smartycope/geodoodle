@@ -1,6 +1,6 @@
 import Pair from "./Pair"
 import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE } from "../globals"
-import { getHalf, toRadians } from "../utils"
+import { getAllIntersections, getHalf, toRadians } from "../utils"
 import Dist from "./Dist"
 import { point as turfPoint } from "@turf/turf"
 
@@ -80,8 +80,37 @@ export default class Point extends Pair {
   }
 
   // Aligns the point to the grid
-  align(state) {
-    return Point.fromSvg(state, Math.round(this._x), Math.round(this._y), false)
+  align(state, allowSnapToIntersections = state.allowSnapToIntersections) {
+    // Align to regular grid
+    const defaultAlignedPoint = Point.fromSvg(state, Math.round(this._x), Math.round(this._y), false)
+
+    if (!allowSnapToIntersections)
+      return defaultAlignedPoint
+
+    // Align to regular grid, or an intersection point, if one is closer
+    const intersections = getAllIntersections(state.lines)
+    if (!intersections || !intersections.length)
+      return defaultAlignedPoint
+
+    // Optimization: Filter out any intersection points with an x or y that is not within 1 of the point x or y
+    // This is going to be faster than the distance algorithm, and the intersections list could be quite large
+    const applicableIntersections = intersections.filter(
+      (p) => Math.abs(p._x - this._x) <= 1 && Math.abs(p._y - this._y) <= 1,
+    )
+
+    const distances = applicableIntersections.map((p) => p.dist(this))
+    // Get smallest distance of each intersection to the cursor
+    const smallest = Math.min(...distances)
+
+    // Get distance to a point on the regular grid
+    if (smallest > defaultAlignedPoint.dist(this))
+      return defaultAlignedPoint
+    else
+      return applicableIntersections[distances.indexOf(smallest)]
+  }
+
+  isAlignedWithGrid() {
+    return this._x % 1 === 0 && this._y % 1 === 0
   }
 
   // These are basically matrix multiplication by hand

@@ -6,6 +6,8 @@ import { defaultTrellisControl, isMobile as getIsMobile } from "./utils"
 import Dist from "./helper/Dist"
 import { generateName } from "./fileUtils"
 
+// NOTE: when adding new things to the state, go through options.jsx and add them to any applicable lists there as well
+// i.e. is it preservable, should it be saved, is it reversable, etc.
 export default function getInitialState() {
   const isMobile = getIsMobile()
   const state = {
@@ -121,6 +123,7 @@ export default function getInitialState() {
     enableGestureScale: options.enableGestureScale,
     inTour: false,
     defaultToMemorableNames: options.defaultToMemorableNames,
+    allowSnapToIntersections: options.allowSnapToIntersections,
 
     // TODO: Not currently implemented -- also, this should be in theme probably
     cursorColor: options.cursorColor,

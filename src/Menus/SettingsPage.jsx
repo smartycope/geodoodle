@@ -67,6 +67,7 @@ export default function SettingsPage() {
     paperColor,
     defaultToMemorableNames,
     themeMode,
+    allowSnapToIntersections,
   } = state
 
   return (
@@ -128,6 +129,16 @@ export default function SettingsPage() {
 
         <Setting label="Hide Dots" help="Useful for saving images or admiring your creation">
           <Checkbox checked={hideDots} onChange={() => dispatch({ hideDots: !hideDots })} />
+        </Setting>
+
+        <Setting
+          label="Snap to Intersections"
+          help="If enabled, this will allow you to draw lines from the intersections of two lines"
+        >
+          <Checkbox
+            checked={allowSnapToIntersections}
+            onChange={() => dispatch({ allowSnapToIntersections: !allowSnapToIntersections })}
+          />
         </Setting>
 
         <Setting
