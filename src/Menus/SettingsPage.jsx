@@ -18,6 +18,7 @@ import styled from "@emotion/styled"
 import { useTheme } from "@mui/material/styles"
 import { extraButtons } from "../globals"
 import { clearPreservedState } from "../fileUtils"
+import { Slider } from "@mui/material"
 
 const StyledSubheader = styled(ListSubheader)(({ theme }) => {
   // Yes this inconsistent, but *I like it*
@@ -68,6 +69,7 @@ export default function SettingsPage() {
     defaultToMemorableNames,
     themeMode,
     allowSnapToIntersections,
+    toolbarOpacity,
   } = state
 
   return (
@@ -228,7 +230,17 @@ export default function SettingsPage() {
           />
         </Setting>
 
+        {/* Advanced */}
         <StyledSubheader>Advanced</StyledSubheader>
+        <Setting label="Toolbar Opacity" help="Controls the opacity of the toolbar">
+          <Slider
+            onChange={(e, val) => dispatch({ toolbarOpacity: val })}
+            value={toolbarOpacity}
+            min={0}
+            max={1}
+            step={0.1}
+          />
+        </Setting>
         <Setting label="Hide Hex Color" help="Controls if the hex color is displayed in the color menu">
           <Checkbox checked={hideHexColor} onChange={() => dispatch({ hideHexColor: !hideHexColor })} />
         </Setting>

@@ -1,6 +1,6 @@
 import { useContext, useMemo, useState } from "react"
 import { MIRROR_AXIS, MIRROR_ROT } from "../globals"
-import { MirrorAxisIcon, MirrorRotIcon } from "./MirrorIcons"
+import { MirrorAxisIcon, MirrorRotIcon } from "./CustomIcons"
 import Number from "./Number"
 import { defaultTrellisControl, getBoundRect } from "../utils"
 

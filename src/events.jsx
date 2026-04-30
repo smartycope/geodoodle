@@ -113,6 +113,7 @@ var tapDragging = false
 var lastTapPos = new Point(-10, -10)
 // If we hold, it creates a point, but then if we drag, instead of creating a line, it creates another bound on touchend
 var holdAndDragPossible = false
+var holdAndDragConverted = false
 
 // Creating lines:
 // Lines start from the onTouchMove event. After we know it's not a double tap, or a hold or the like,
@@ -256,6 +257,7 @@ export function onTouchEnd(state, dispatch, e) {
     else dispatch("add_line")
 
   holdAndDragPossible = false
+  holdAndDragConverted = false
   singleTapTouchingScreen = false
   tapDragging = false
 }
@@ -311,6 +313,20 @@ export function onTouchMove(state, dispatch, e) {
   } else if (e.touches.length === 1 && gestureTouches === null) {
     const touch = e.touches[0] || e.changedTouches[0]
     const { clipboard, fillMode, curLinePos } = state
+    const touchPoint = Point.fromViewport(state, touch.pageX, touch.pageY)
+    const touchPointAligned = touchPoint.align(state, clipboard === null && state.allowSnapToIntersections)
+
+    if (
+      holdAndDragPossible &&
+      !holdAndDragConverted &&
+      !clipboard?.length &&
+      !fillMode &&
+      !lastTapPos.eq(touchPointAligned)
+    ) {
+      dispatch("convert_last_generic_selector_to_bound")
+      holdAndDragConverted = true
+    }
+
     // If we move while holding, that's fine, as long as we haven't moved enough to change cursorPos.
     // If we move enough to change cursorPos, we stop holding.
     // The cursor_moved action calls cursorPosChanged() if the cursor has moved enough to change cursorPos.
@@ -322,7 +338,7 @@ export function onTouchMove(state, dispatch, e) {
 
     dispatch({
       action: "cursor_moved",
-      point: Point.fromViewport(state, touch.pageX, touch.pageY),
+      point: touchPoint,
     })
   }
 }
@@ -344,7 +360,7 @@ function onTouchHold(state, dispatch) {
   // This also only applies to touch events, not mouse events
   if (singleTapTouchingScreen && !fillMode)
     if (clipboard?.length) dispatch("paste")
-    else dispatch("add_bound")
+    else dispatch("add_generic_selector")
 }
 
 function onDoubleTap(state, dispatch) {

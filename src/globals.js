@@ -1,4 +1,4 @@
-export const version = "1.7.2"
+export const version = "1.8.0"
 
 export const MIRROR_TYPE = {
   PAGE: 1,
@@ -48,6 +48,7 @@ export const extraButtons = {
   copy_image: { action: "copy_image" },
   home: { action: "go_home" },
   redo: { action: "redo" },
+  generic_select: { action: "add_generic_selector" },
 }
 
 export const cursors = [

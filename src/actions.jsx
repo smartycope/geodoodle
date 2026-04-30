@@ -2,6 +2,10 @@
 // optionally take a 2nd parameter which is an object of anything passed to dispatch. They return modifications to the
 // existing state. Return {}, undefined or null to not modify the state.
 
+// NOTE: when adding new actions, go through options.jsx and add them to reversibleActions and saveSettingActions, if applicable
+
+/* eslint-disable no-unused-vars */
+
 import { viewportWidth, viewportHeight, undoStack, redoStack, MIRROR_ROT, MIRROR_AXIS } from "./globals"
 import {
   getSelected,
@@ -23,7 +27,6 @@ import {
   clearSaves,
   deleteLocally,
 } from "./fileUtils"
-// import {setTapHolding} from './globals';
 import { cursorPosChanged } from "./events"
 import Point from "./helper/Point"
 import Dist from "./helper/Dist"
@@ -33,9 +36,6 @@ import Poly from "./helper/Poly"
 import { tourState } from "./states"
 import * as turf from "@turf/turf"
 
-// TODO: some way to "pick up" the end of a line and move it
-
-/* eslint-disable no-unused-vars */
 
 export const cursor_moved = (state, { point }) => {
   const { cursorPos, debugDrawPoints, fillMode, tempPolys, clipboard, allowSnapToIntersections } = state
@@ -132,6 +132,40 @@ export const right = (state) => ({ cursorPos: state.cursorPos.add(Dist.fromDefla
 export const up = (state) => ({ cursorPos: state.cursorPos.add(Dist.fromDeflated(state, 0, -1)) })
 export const down = (state) => ({ cursorPos: state.cursorPos.add(Dist.fromDeflated(state, 0, 1)) })
 
+// Selection Actions
+
+export const add_specific_selector = (state) => ({
+  specificSelectors: state.cursorPos.in(state.specificSelectors)
+  ? state.specificSelectors
+  : [...state.specificSelectors, state.cursorPos]
+})
+
+export const add_generic_selector = (state) => ({
+  genericSelectors: state.cursorPos.in(state.genericSelectors)
+  ? state.genericSelectors
+  : [...state.genericSelectors, state.cursorPos]
+})
+
+export const clear_specific_selectors = (state) => ({
+  ...cancel_clipboard(state),
+  specificSelectors: [],
+})
+
+export const clear_generic_selectors = (state) => ({
+  ...cancel_clipboard(state),
+  genericSelectors: [],
+})
+
+// For touch & hold & drag specifically
+export const convert_last_generic_selector_to_bound = (state) => ({
+  bounds: [state.genericSelectors[state.genericSelectors.length - 1]],
+  genericSelectors: state.genericSelectors.slice(0, state.genericSelectors.length - 1),
+})
+
+export const clear_bounds = (state) => ({
+  ...cancel_clipboard(state),
+  bounds: [],
+})
 // Destruction Actions
 export const clear = (state) => ({
   translation: Dist.zero(),
@@ -148,18 +182,14 @@ export const clear = (state) => ({
   clipboard: null,
   clipboardMirrorAxis: MIRROR_AXIS.NONE,
   clipboardRotation: MIRROR_ROT.NONE,
-  eraser: null,
+  specificSelectors: [],
+  genericSelectors: [],
   curLinePos: null,
   mirrorOrigins: [],
   mirrorAxis: MIRROR_AXIS.NONE,
   mirrorRot: MIRROR_ROT.NONE,
 })
-export const clear_bounds = (state) => ({
-  ...cancel_clipboard(state),
-  bounds: [],
-  // If we're on mobile, clearing bounds changes the ToolButton to add_bound, so close the menu cause suddenly there's nothing in it
-  openMenus: { ...state.openMenus, select: state.mobile ? false : state.openMenus.select },
-})
+
 export const delete_selected = (state) => {
   const boundRect = getBoundRect(state)
   return {
@@ -177,25 +207,14 @@ export const delete_unselected = (state) => {
   }
 }
 
-export const delete_line = (state) => {
-  const { cursorPos, bounds, curLinePos, eraser, lines } = state
-  // First, if we're over a bound, delete it
-  if (cursorPos.in(bounds)) return { bounds: cursorPos.remove(bounds) }
-  // otherwise, if we are halfway done drawing a line, delete it
-  else if (curLinePos) return { curLinePos: null }
-  else
-    return {
-      lines: eraser
-        ? lines.filter((line) => !(cursorPos.in(line.points(), 0.5) && eraser.in(line.points(), 0.5)))
-        : lines,
-      eraser: eraser ? null : cursorPos,
-    }
-}
-
 export const delete_at_cursor = (state) => {
-  const { cursorPos, bounds, curLinePos, clipboard, lines, eraser, fillMode, mirrorOrigins } = state
-  // If we're over the eraser, delete it
-  if (eraser && cursorPos.eq(eraser)) return { eraser: null }
+  const { cursorPos, bounds, curLinePos, clipboard, lines, fillMode, mirrorOrigins, specificSelectors, genericSelectors } = state
+  // If we're over any selectors, delete them
+  if ((specificSelectors.length > 0 && cursorPos.in(specificSelectors)) || (genericSelectors.length > 0 && cursorPos.in(genericSelectors)))
+    return {
+      specificSelectors: specificSelectors.filter((p) => !p.eq(cursorPos)),
+      genericSelectors: genericSelectors.filter((p) => !p.eq(cursorPos))
+    }
   // If we're in fill mode, clear the fill of whatever we're over
   if (fillMode) return clear_fill(state)
   // If we're over a bound, delete it
@@ -220,8 +239,8 @@ export const delete_at_cursor = (state) => {
     return { lines: linesWithoutStartEndStep }
 }
 
-// args: { intersection: Point }, defaults to cursorPos
 export const remove_lines_at_intersection = (state, args) => {
+  // args: { intersection: Point }, defaults to cursorPos
   const { cursorPos, lines } = state
   return {
     lines: lines.filter((line) => !line.findIntersections(lines).some((p) => p.eq(args?.intersection ?? cursorPos))),

@@ -31,7 +31,7 @@ import ExtraMenu from "./Menus/ExtraMenu"
 import ClipboardMenu from "./Menus/ClipboardMenu"
 import DeleteMenu from "./Menus/DeleteMenu"
 import SelectMenu from "./Menus/SelectMenu"
-import { MirrorAxisIcon, MirrorRotIcon } from "./Menus/MirrorIcons"
+import { MirrorAxisIcon, MirrorRotIcon } from "./Menus/CustomIcons"
 import CheckIcon from "@mui/icons-material/Check"
 import ClearIcon from "@mui/icons-material/Clear"
 import useMediaQuery from "@mui/material/useMediaQuery"
@@ -283,35 +283,6 @@ export const MirrorMetaLines = () => {
   return <g id="m">{mirrorMetaLines}</g>
 }
 
-export const Eraser = () => {
-  const { state } = useContext(StateContext)
-  const { eraser, scalex, translation, scaley } = state
-  const eraserSvg = eraser?.asSvg(state)
-  const theme = useTheme()
-  return (
-    eraser && [
-      <line
-        x1={eraserSvg.x - scalex / 3 + translation.asInflated(state).x}
-        y1={eraserSvg.y - scaley / 3 + translation.asInflated(state).y}
-        x2={eraserSvg.x + scalex / 3 + translation.asInflated(state).x}
-        y2={eraserSvg.y + scaley / 3 + translation.asInflated(state).y}
-        stroke={theme.palette.primary.eraser}
-        strokeWidth={options.eraserWidth}
-        key="eraser1"
-      />,
-      <line
-        x1={eraserSvg.x + scalex / 3 + translation.asInflated(state).x}
-        y1={eraserSvg.y - scaley / 3 + translation.asInflated(state).y}
-        x2={eraserSvg.x - scalex / 3 + translation.asInflated(state).x}
-        y2={eraserSvg.y + scaley / 3 + translation.asInflated(state).y}
-        stroke={theme.palette.primary.eraser}
-        strokeWidth={options.eraserWidth}
-        key="eraser2"
-      />,
-    ]
-  )
-}
-
 export const ClipboardTransformButtons = () => {
   const { state } = useContext(StateContext)
   const { mobile, clipboard, clipboardRotation, clipboardMirrorAxis } = state
@@ -391,22 +362,68 @@ export const SelectionRect = () => {
 export const Bounds = () => {
   const { state } = useContext(StateContext)
   const { scalex, bounds, partials } = state
-  const boundRadius = scalex / 1
+  const radius = scalex / 1
   const theme = useTheme()
 
   return (
     <g id="bounds">
       {bounds.map((bound) => (
         <rect
-          width={boundRadius}
-          height={boundRadius}
-          x={bound.asViewport(state).x - boundRadius / 2}
-          y={bound.asViewport(state).y - boundRadius / 2}
+          width={radius}
+          height={radius}
+          x={bound.asViewport(state).x - radius / 2}
+          y={bound.asViewport(state).y - radius / 2}
           rx={partials ? 4 : 0}
           // rx={4}
           stroke={theme.palette.primary.bounds}
           fillOpacity={0}
           key={`bound-${bound.hash()}`}
+        />
+      ))}
+    </g>
+  )
+}
+export const SpecificSelectors = () => {
+  const { state } = useContext(StateContext)
+  const { scalex, specificSelectors } = state
+  const radius = scalex / 2
+  const theme = useTheme()
+
+  return (
+    <g id="specificSelectors">
+      {specificSelectors.map((selector) => (
+        <rect
+          width={radius}
+          height={radius}
+          x={selector.asViewport(state).x - radius / 2}
+          y={selector.asViewport(state).y - radius / 2}
+          rx={0}
+          stroke={theme.palette.primary.specificSelectors}
+          fillOpacity={0}
+          key={`specific-${selector.hash()}`}
+        />
+      ))}
+    </g>
+  )
+}
+export const GenericSelectors = () => {
+  const { state } = useContext(StateContext)
+  const { scalex, genericSelectors } = state
+  const radius = scalex / 2
+  const theme = useTheme()
+
+  return (
+    <g id="genericSelectors">
+      {genericSelectors.map((selector) => (
+        <rect
+          width={radius}
+          height={radius}
+          x={selector.asViewport(state).x - radius / 2}
+          y={selector.asViewport(state).y - radius / 2}
+          rx={4}
+          stroke={theme.palette.primary.genericSelectors}
+          fillOpacity={0}
+          key={`generic-${selector.hash()}`}
         />
       ))}
     </g>
