@@ -207,16 +207,16 @@ export const delete_unselected = (state) => {
   }
 }
 
-export const delete_at_cursor = (state) => {
+export const delete_at_cursor = (state, { allowDeleteSelected=false }) => {
   const { cursorPos, bounds, curLinePos, clipboard, lines, fillMode, mirrorOrigins, specificSelectors, genericSelectors } = state
+  // If we're in fill mode, clear the fill of whatever we're over
+  if (fillMode) return clear_fill(state)
   // If we're over any selectors, delete them
   if ((specificSelectors.length > 0 && cursorPos.in(specificSelectors)) || (genericSelectors.length > 0 && cursorPos.in(genericSelectors)))
     return {
       specificSelectors: specificSelectors.filter((p) => !p.eq(cursorPos)),
       genericSelectors: genericSelectors.filter((p) => !p.eq(cursorPos))
     }
-  // If we're in fill mode, clear the fill of whatever we're over
-  if (fillMode) return clear_fill(state)
   // If we're over a bound, delete it
   if (cursorPos.in(bounds)) return { bounds: cursorPos.remove(bounds) }
   // If we are halfway done drawing a line, delete it
@@ -225,6 +225,8 @@ export const delete_at_cursor = (state) => {
   if (clipboard) return cancel_clipboard(state)
   // If we're over a mirror origin, delete it
   if (cursorPos.in(mirrorOrigins.map((o) => o.origin))) return remove_mirror_origin(state, cursorPos)
+  // If we have selected lines, delete them
+  if (allowDeleteSelected && getSelected(state).length > 0) return delete_selected(state)
 
   let linesWithoutStartEndStep = lines.filter((line) => !cursorPos.in(line.points()))
   // If there's no lines without a start/end point at the cursor, and we're over an intersection,

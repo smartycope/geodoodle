@@ -75,7 +75,7 @@ export const keybindings = {
   "ctrl+arrowup": { action: "increase_scale" },
   "ctrl+arrowdown": { action: "decrease_scale" },
 
-  delete: { action: "delete_at_cursor" },
+  delete: { action: "delete_at_cursor", allowDeleteSelected: true },
   backspace: { action: "delete_line" },
   // 'ctrl+q': {action: "clear"},
   " ": { action: "add_line" },
