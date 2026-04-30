@@ -89,6 +89,8 @@ function ConceptsContent() {
       <Concept title="Selection">
         create bounds to specify a selection This selects Lines partials YOu can then copy, cut, paste, delete, delete
         all others, or repeat
+
+        mention about specific vs generic selectors vs area bounds
         <Concept title="Clipboard">works just like copy/paste</Concept>
       </Concept>
 

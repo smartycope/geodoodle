@@ -6,8 +6,8 @@ import { defaultTrellisControl, isMobile as getIsMobile } from "./utils"
 import Dist from "./helper/Dist"
 import { generateName } from "./fileUtils"
 
-// NOTE: when adding new things to the state, go through options.jsx and add them to any applicable lists there as well
-// i.e. is it preservable, should it be saved, is it reversable, etc.
+// NOTE: when adding to state, go through options.jsx and add them to reversible, preservable, and saveable, if applicable
+
 export default function getInitialState() {
   const isMobile = getIsMobile()
   const state = {
@@ -60,8 +60,11 @@ export default function getInitialState() {
     bounds: [],
     // Whether we're currently dragging the selection rect. If we are, we count the cursorPos as a bound
     boundDragging: false,
-    // The point of the eraser, or null
-    eraser: null,
+    // A list of Points. These select lines which have start AND end points which are in this list
+    specificSelectors: [],
+    // A list of Points. These select lines which have start OR end points which are in this list. Also
+    // selects intersections
+    genericSelectors: [],
     // A list of Line objects, or null
     clipboard: null,
     // In degrees
@@ -124,6 +127,7 @@ export default function getInitialState() {
     inTour: false,
     defaultToMemorableNames: options.defaultToMemorableNames,
     allowSnapToIntersections: options.allowSnapToIntersections,
+    toolbarOpacity: options.toolbarOpacity,
 
     // TODO: Not currently implemented -- also, this should be in theme probably
     cursorColor: options.cursorColor,

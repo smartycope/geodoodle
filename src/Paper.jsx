@@ -12,10 +12,11 @@ import {
   GlowEffect,
   DebugInfo,
   MirrorMetaLines,
-  Eraser,
   ClipboardTransformButtons,
   SelectionRect,
   Bounds,
+  SpecificSelectors,
+  GenericSelectors,
   CurrentLines,
   Lines,
   Clipboard,
@@ -120,10 +121,11 @@ export default function Paper({ setDispatch }) {
             <Lines />
             <CurrentLines />
             <Bounds />
+            <SpecificSelectors />
+            <GenericSelectors />
             <SelectionRect />
             <ClipboardTransformButtons />
             <MirrorMetaLines />
-            <Eraser />
             <Clipboard />
           </svg>
           {/* For exporting to images */}

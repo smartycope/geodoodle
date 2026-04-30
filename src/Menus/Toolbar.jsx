@@ -126,6 +126,7 @@ function Toolbar() {
             mx: vertical ? 1 : 0,
             my: vertical ? 0 : 1,
           },
+          background: theme.alpha(theme.palette.background.paper, state.toolbarOpacity),
         }}
       >
         {extraSlots < 5 && <ToolButton menu="extra" disableTooltip={state.openMenus.extra} />}
@@ -139,11 +140,7 @@ function Toolbar() {
         <ToolButton menu="color" />
         <ToolButton menu="undo" onClick={handleUndoClick} onContextMenu={handleUndoContextMenu} />
         <ToolButton menu="mirror" />
-        {state.mobile && state.bounds.length < 2 ? (
-          <ToolButton menu="add_bound" onClick={() => dispatch("add_bound")} />
-        ) : (
-          <ToolButton menu="select" />
-        )}
+        <ToolButton menu="select" />
         <ToolButton menu="clipboard" />
         <ToolButton menu="delete" />
         <ToolButton menu="main" />

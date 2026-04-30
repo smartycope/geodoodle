@@ -62,11 +62,12 @@ export default function generateTheme(paperColor, themeMode, systemPreferedTheme
   theme.palette.primary.contrast = contrast
   theme.palette.primary.dots = contrast
   theme.palette.primary.bounds = contrast
+  theme.palette.primary.specificSelectors = contrast
+  theme.palette.primary.genericSelectors = contrast
   theme.palette.primary.cursor = contrast
   theme.palette.paperIsDark = contrast === "#fff"
   theme.palette.primary.glow = theme.palette.paperIsDark ? "red" : "blue"
   theme.palette.primary.mirror = "green"
-  theme.palette.primary.eraser = "red"
 
   return theme
 }

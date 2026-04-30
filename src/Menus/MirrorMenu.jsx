@@ -4,7 +4,7 @@ import { StateContext } from "../Contexts"
 import MiniMenu from "./MiniMenu"
 import Stack from "@mui/material/Stack"
 import ToggleIconButtonGroup from "./ToggleIconButtonGroup"
-import { MirrorTypeIcon, MirrorAxisIcon, MirrorRotIcon } from "./MirrorIcons"
+import { MirrorTypeIcon, MirrorAxisIcon, MirrorRotIcon } from "./CustomIcons"
 import AddIcon from "@mui/icons-material/Add"
 import ClearIcon from "@mui/icons-material/Clear"
 

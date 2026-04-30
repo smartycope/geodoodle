@@ -60,6 +60,7 @@ const iconMap = {
   undo: <UndoIcon />,
   main: <MenuRoundedIcon />,
   add_bound: <PiSelectionPlusDuotone />,
+  generic_select: <PiSelectionPlusDuotone />,
 }
 
 const tooltipMap = (mobile) => ({
@@ -70,6 +71,7 @@ const tooltipMap = (mobile) => ({
   extra: mobile ? "More" : "More Tools",
   navigation: mobile ? "Nav" : "Navigation",
   clipboard: mobile ? "Clip" : "Clipboard",
+  generic_select: mobile ? "Generic" : "Generic Select",
   // This only exists on mobile
   add_bound: "Bound",
 })

@@ -1,6 +1,5 @@
 import { GiNuclear } from "react-icons/gi"
 import DeleteIcon from "@mui/icons-material/Delete"
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
 import { useContext } from "react"
 import { StateContext } from "../Contexts"
 import MiniMenu from "./MiniMenu"
@@ -8,6 +7,7 @@ import ListItemIcon from "@mui/material/ListItemIcon"
 import MenuItem from "@mui/material/MenuItem"
 import CancelPresentationIcon from "@mui/icons-material/CancelPresentation"
 import CancelPresentationTwoToneIcon from "@mui/icons-material/CancelPresentationTwoTone"
+import { getSelected } from "../utils"
 
 function DeleteMenu() {
   const { dispatch, state } = useContext(StateContext)
@@ -21,17 +21,12 @@ function DeleteMenu() {
             <ListItemIcon>
               <DeleteIcon />
             </ListItemIcon>
-            Delete Lines
-          </MenuItem>
-          <MenuItem onClick={() => dispatch("delete_line")}>
-            <ListItemIcon>
-              <DeleteForeverIcon />
-            </ListItemIcon>
-            Delete Line
+            Delete
           </MenuItem>
         </>
       )}
-      {state.bounds.length > 1 && (
+      {/* TODO: this could be optimized */}
+      {getSelected(state).length > 0 && (
         <span>
           <MenuItem onClick={() => dispatch("delete_selected")}>
             <CancelPresentationTwoToneIcon sx={{ mr: 1 }} />

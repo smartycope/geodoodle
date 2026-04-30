@@ -5,12 +5,14 @@ import Popper from "@mui/material/Popper"
 import Paper from "@mui/material/Paper"
 import { useContext } from "react"
 import { StateContext } from "../Contexts"
+import { useTheme } from "@mui/material/styles"
 
 // TODO: This... works? It needs much more testing
-// TODO: thsi has a bug where if the menu wouldn't fit on the page, it swaps sides instead of just clipping a little bit
+// TODO: this has a bug where if the menu wouldn't fit on the page, it swaps sides instead of just clipping a little bit
 export default function MiniMenu({ menu, children }) {
   const { state, dispatch } = useContext(StateContext)
   const { side } = state
+  const theme = useTheme()
 
   let placement = `${side}-start`
 
@@ -49,6 +51,7 @@ export default function MiniMenu({ menu, children }) {
           // I'm honestly not sure why these values work, but they do?
           m: { xs: 1, sm: 1.5, md: 0.5, lg: 0.5, xl: 0.5 },
           width: "max-content",
+          background: theme.alpha(theme.palette.background.paper, state.toolbarOpacity),
         }}
       >
         {children}

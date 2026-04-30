@@ -21,8 +21,6 @@ const defaultOptions = {
   dotOffsety: 0,
   dotRadius: 2,
   dotColor: "black",
-  eraserColor: "red",
-  eraserWidth: 2,
   invertedScroll: true,
   scrollSensitivity: 0.3,
   hideHexColor: true,
@@ -49,7 +47,8 @@ const defaultOptions = {
   defaultToMemorableNames: true,
   maxMirrorOrigins: 12,
   cursor: "circle",
-  allowSnapToIntersections: true
+  allowSnapToIntersections: true,
+  toolbarOpacity: 0.9,
 }
 export default defaultOptions
 
@@ -82,6 +81,8 @@ export const keybindings = {
   " ": { action: "add_line" },
   c: { action: "continue_line" },
   b: { action: "add_bound" },
+  n: { action: "add_generic_selector" },
+  "shift+n": { action: "add_specific_selector" },
   "shift+b": { action: "clear_bounds" },
   escape: { action: "nevermind" },
   p: { action: "toggle_partials" },
@@ -117,6 +118,7 @@ export const keybindings = {
   "shift+`": { action: "toggle_debugging" },
 }
 
+// These are actions
 // Only these can be undone, all other actions are ignored by undo/redo
 export const reversibleActions = [
   "go_home",
@@ -136,8 +138,11 @@ export const reversibleActions = [
   "add_mirror_origin",
   "remove_mirror_origin",
   "clear_mirror_origins",
+  "add_specific_selector",
+  "add_generic_selector",
 ]
 
+// These are actions
 // Only save the state to be preserved when these actions happen
 export const saveSettingActions = [
   "increase_scale",
@@ -160,20 +165,25 @@ export const saveSettingActions = [
   "toggle_partials",
   "fill",
   "clear_fill",
+  "add_specific_selector",
+  "add_generic_selector",
 ]
 
+// These are parts of the state
 // When undoing an action, only these parts of the state get undone
 export const reversible = [
   "lines",
   "curLinePos",
   "bounds",
+  "specificSelectors",
+  "genericSelectors",
   // 'trellis', // contested
-  "eraser",
   "clipboard",
   "filledPolys",
   "mirrorOrigins",
 ]
 
+// These are parts of the state
 // Only preserve these parts of the state across loads (*not* when saving to a file)
 // Think: what does the user want to have come up when they re-open the app the next day?
 export const preservable = [
@@ -188,6 +198,8 @@ export const preservable = [
   "partials",
   "lines",
   "bounds",
+  "specificSelectors",
+  "genericSelectors",
   "mirrorAxis",
   "mirrorRot",
   "mirrorType",
@@ -206,12 +218,15 @@ export const preservable = [
   "allowSnapToIntersections",
 ]
 
+// These are parts of the state
 // The parts of the state that get serialized to the svg file
 // Think: what does the user want to share with someone else?
 export const saveable = [
   // This is handeled seperately
   // 'lines',
   "bounds",
+  "specificSelectors",
+  "genericSelectors",
   "translation",
   "scalex",
   "scaley",

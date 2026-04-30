@@ -46,7 +46,16 @@ export default class Line {
   isSelected(state, boundRect = null) {
     // Don't recaclulate the bound rect if we don't have to (just for a slight optimization)
     const _boundRect = boundRect ?? getBoundRect(state)
-    return _boundRect && this.within(_boundRect, state.partials)
+    return (
+      // It's in the bound area
+      (_boundRect && this.within(_boundRect, state.partials))
+      // An end is selected by a generic selector
+      || (this.a.in(state.genericSelectors) || this.b.in(state.genericSelectors))
+      // One of our intersections is selected by a generic selector
+      || (this.findIntersections(state.lines).some((p) => p.in(state.genericSelectors)))
+      // An end is selected by specific selectors
+      || (this.a.in(state.specificSelectors) && this.b.in(state.specificSelectors))
+    )
   }
 
   // Return a React element, optionally adding/overriding props
