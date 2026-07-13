@@ -22,6 +22,7 @@ import RedoIcon from "@mui/icons-material/Redo"
 import FileCopyIcon from "@mui/icons-material/FileCopy"
 import FlipIcon from "@mui/icons-material/Flip"
 import UndoIcon from "@mui/icons-material/Undo"
+import BlurOnIcon from "@mui/icons-material/BlurOn"
 import { isMobile } from "../utils"
 import { PiSelectionPlusDuotone } from "react-icons/pi"
 
@@ -61,6 +62,7 @@ const iconMap = {
   main: <MenuRoundedIcon />,
   add_bound: <PiSelectionPlusDuotone />,
   generic_select: <PiSelectionPlusDuotone />,
+  toggle_dots: <BlurOnIcon />,
 }
 
 const tooltipMap = (mobile) => ({
@@ -72,6 +74,7 @@ const tooltipMap = (mobile) => ({
   navigation: mobile ? "Nav" : "Navigation",
   clipboard: mobile ? "Clip" : "Clipboard",
   generic_select: mobile ? "Generic" : "Generic Select",
+  toggle_dots: "Toggle Dots",
   // This only exists on mobile
   add_bound: "Bound",
 })

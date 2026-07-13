@@ -50,6 +50,7 @@ export const extraButtons = {
   home: { action: "go_home" },
   redo: { action: "redo" },
   generic_select: { action: "add_generic_selector" },
+  toggle_dots: { action: "toggle_dots" },
 }
 
 export const cursors = [

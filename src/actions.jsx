@@ -557,6 +557,7 @@ export const end_tour = () => preTourState
 
 // Misc Actions
 export const toggle_partials = (state) => ({ partials: !state.partials })
+export const toggle_dots = (state) => ({ hideDots: !state.hideDots })
 
 export const set_manual = (state, data) => {
   delete data.action

@@ -41,6 +41,7 @@ import {
   start_tour,
   end_tour,
   toggle_partials,
+  toggle_dots,
   set_manual,
   menu,
   debug,
@@ -981,6 +982,17 @@ describe("UI Actions", () => {
 
       const afterSecondToggle = toggle_partials(afterFirstToggle)
       expect(afterSecondToggle.partials).toBe(false)
+    })
+  })
+
+  describe("toggle_dots", () => {
+    test("should toggle dot visibility", () => {
+      const visibleState = { ...state, hideDots: false }
+
+      const hiddenState = toggle_dots(visibleState)
+      expect(hiddenState.hideDots).toBe(true)
+
+      expect(toggle_dots({ ...visibleState, ...hiddenState }).hideDots).toBe(false)
     })
   })
 

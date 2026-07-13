@@ -130,7 +130,7 @@ export default function SettingsPage() {
         </Setting>
 
         <Setting label="Hide Dots" help="Useful for saving images or admiring your creation">
-          <Checkbox checked={hideDots} onChange={() => dispatch({ hideDots: !hideDots })} />
+          <Checkbox checked={hideDots} onChange={() => dispatch({ action: 'toggle_dots' })} />
         </Setting>
 
         <Setting

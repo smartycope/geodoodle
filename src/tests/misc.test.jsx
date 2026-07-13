@@ -5,6 +5,7 @@ import * as actions from "../actions"
 import { reversibleActions, saveSettingActions } from "../options"
 import { validateStorage } from "../fileUtils"
 import { eventMatchesKeycode } from "../utils"
+import { extraButtons } from "../globals"
 
 // In between each tests, reset the localStorage
 beforeEach(() => {
@@ -99,4 +100,8 @@ describe("keybinding modifiers", () => {
 
 test("e is bound to picking up a line endpoint", () => {
   expect(keybindings.e).toEqual({ action: "pick_up_line_end" })
+})
+
+test("dot visibility is available as an Extra Button action", () => {
+  expect(extraButtons.toggle_dots).toEqual({ action: "toggle_dots" })
 })
