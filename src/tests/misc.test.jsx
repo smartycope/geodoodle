@@ -8,6 +8,7 @@ import { eventMatchesKeycode } from "../utils"
 import { extraButtons } from "../globals"
 import reducer from "../reducer"
 import Dist from "../helper/Dist"
+import generateTheme from "../styling/theme"
 
 // In between each tests, reset the localStorage
 beforeEach(() => {
@@ -115,4 +116,13 @@ test("e is bound to picking up a line endpoint", () => {
 
 test("dot visibility is available as an Extra Button action", () => {
   expect(extraButtons.toggle_dots).toEqual({ action: "toggle_dots" })
+})
+
+test("menu-item hover colors are neutral and independent of the paper color", () => {
+  const orangePaperTheme = generateTheme("#ffddab", "light", "light")
+  const bluePaperTheme = generateTheme("#3367d1", "light", "light")
+
+  expect(orangePaperTheme.palette.action.hover).toBeTypeOf("string")
+  expect(orangePaperTheme.palette.action.hover).toBe(bluePaperTheme.palette.action.hover)
+  expect(orangePaperTheme.palette.action.hover).not.toBe(orangePaperTheme.palette.primary.main)
 })

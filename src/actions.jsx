@@ -392,31 +392,31 @@ export const toggle_fill_mode = (state) => {
 
 // Undo Actions
 export const undo = (state) => {
-  console.log("undoing...")
-  console.log("undo stack:", undoStack)
-  console.log("redo stack:", redoStack)
+  // console.log("undoing...")
+  // console.log("undo stack:", undoStack)
+  // console.log("redo stack:", redoStack)
   const prevState = undoStack.pop()
   if (prevState !== undefined) {
-    console.log("undoing")
+    // console.log("undoing")
     redoStack.push(prevState)
-    console.log("undo stack is now:", undoStack)
-    console.log("redo stack is now:", redoStack)
+    // console.log("undo stack is now:", undoStack)
+    // console.log("redo stack is now:", redoStack)
     // TODO: have this maintain the current state except for the undo keys
     return prevState
   }
 }
 export const redo = (state) => {
-  console.log("redoing...")
-  console.log("undo stack:", undoStack)
-  console.log("redo stack:", redoStack)
+  // console.log("redoing...")
+  // console.log("undo stack:", undoStack)
+  // console.log("redo stack:", redoStack)
   const nextState = redoStack.pop()
   if (nextState === undefined) {
-    console.log("nothing to redo, ignoring")
+    // console.log("nothing to redo, ignoring")
     return state
   }
   undoStack.push(nextState)
-  console.log("undo stack is now:", undoStack)
-  console.log("redo stack is now:", redoStack)
+  // console.log("undo stack is now:", undoStack)
+  // console.log("redo stack is now:", redoStack)
   return nextState //{...state, ...nextState}
 }
 // Clipboard Actions

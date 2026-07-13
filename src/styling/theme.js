@@ -28,10 +28,6 @@ export default function generateTheme(paperColor, themeMode, systemPreferedTheme
     palette: {
       mode: darkMode ? "dark" : "light",
       primary: { main: main },
-      action: {
-        hover: { backgroundColor: main },
-        focus: { backgroundColor: main },
-      },
       background: {
         default: paperMain,
         paper: paperMain,
