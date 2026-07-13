@@ -60,6 +60,11 @@ export function getSelected(state, retranslated, polygons = false) {
   else return selected
 }
 
+export function getLinesRect(lines) {
+  if (!lines.length) return null
+  return Rect.fromPoints(...lines.flatMap((line) => line.points()))
+}
+
 // TODO: this should probably use the actually mouse location instead of CursorPos
 // (because it's going to be going in between dots a lot)
 export function getPreviewPolys(state, polys) {

@@ -44,6 +44,7 @@ import FileCopyIcon from "@mui/icons-material/FileCopy"
 import SyncIcon from "@mui/icons-material/Sync"
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined"
 import { Typography } from "@mui/material"
+import { shareCurrentPage } from "../shareUtils"
 
 const cloud_help_text =
   "Files are stored on Cope's semi-reliable server. They'll probably be safe? But if you have a pattern you really care about, " +
@@ -92,30 +93,6 @@ export default function FilePage() {
   const [selectedOnly, setSelectedOnly] = useState(true)
 
   const localSaves = getSaves()
-
-  useEffect(() => {
-    // TODO: this requires debugging in the main branch (because WebShare API only works in secure contexts)
-    const share = () => {
-      console.log("Share clicked")
-      if (navigator.share)
-        try {
-          navigator.share({
-            title: "Check this out!",
-            text: "Here's something cool.",
-            url: window.location.href,
-          })
-        } catch (err) {
-          console.error("Share failed:", err)
-        }
-      else alert("Share not supported")
-    }
-
-    const shareButton = document.getElementById("share-button")
-    if (shareButton) shareButton.addEventListener("click", share)
-    else console.error("Share button not found")
-
-    return () => shareButton?.removeEventListener("click", share)
-  }, [])
 
   useEffect(() => {
     let current = true
@@ -416,10 +393,10 @@ export default function FilePage() {
         >
           Files
           <div>
-            <IconButton id="share-button">
+            <IconButton id="share-button" aria-label="Share pattern" onClick={shareCurrentPage}>
               <ShareIcon />
             </IconButton>
-            <IconButton onClick={() => dispatch("copy_image")}>
+            <IconButton aria-label="Copy pattern as image" onClick={() => dispatch("copy_image")}>
               <FileCopyIcon />
             </IconButton>
           </div>

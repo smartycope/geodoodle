@@ -56,7 +56,7 @@ import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE } from "../globals"
 import defaultOptions from "../options"
 import * as utils from "../utils.jsx"
 import { tourState } from "../states"
-import { download, validateStorage } from "../fileUtils"
+import { download, image, validateStorage } from "../fileUtils"
 
 // Mock the global objects and functions
 const mockLocalStorage = {
@@ -772,6 +772,64 @@ describe("selector-based selection", () => {
 
     expect(relativeLine.a.eq(new Point(-2, -2))).toBe(true)
     expect(relativeLine.b.eq(new Point(2, 2))).toBe(true)
+  })
+})
+
+describe("copy_image", () => {
+  let state
+
+  beforeEach(() => {
+    state = getState()
+    image.mockClear()
+    navigator.clipboard.write.mockClear()
+  })
+
+  test("copies all selected lines using their actual bounding rectangle", () => {
+    const selectedLine = new Line(state, new Point(5, 7), new Point(15, 20))
+    const unselectedLine = new Line(state, new Point(-30, -40), new Point(50, 60))
+    const withSelection = {
+      ...state,
+      lines: [selectedLine, unselectedLine],
+      bounds: [],
+      genericSelectors: [],
+      specificSelectors: selectedLine.points(),
+    }
+
+    copy_image(withSelection)
+
+    expect(image).toHaveBeenCalledWith(withSelection, "png", expect.any(Rect), false, true, expect.any(Function), true)
+    const rect = image.mock.calls[0][2]
+    expect(rect.topLeft.eq(selectedLine.a)).toBe(true)
+    expect(rect.bottomRight.eq(selectedLine.b)).toBe(true)
+    expect(navigator.clipboard.write).toHaveBeenCalledOnce()
+  })
+
+  test("copies every line when no lines are selected", () => {
+    const lines = [
+      new Line(state, new Point(-5, 3), new Point(10, 8)),
+      new Line(state, new Point(2, -7), new Point(20, 15)),
+    ]
+    const withoutSelection = {
+      ...state,
+      lines,
+      bounds: [],
+      genericSelectors: [],
+      specificSelectors: [],
+    }
+
+    copy_image(withoutSelection)
+
+    expect(image).toHaveBeenCalledWith(withoutSelection, "png", expect.any(Rect), false, false, expect.any(Function), true)
+    const rect = image.mock.calls[0][2]
+    expect(rect.topLeft.eq(new Point(-5, -7))).toBe(true)
+    expect(rect.bottomRight.eq(new Point(20, 15))).toBe(true)
+  })
+
+  test("does nothing when the pattern has no lines", () => {
+    copy_image({ ...state, lines: [], bounds: [], genericSelectors: [], specificSelectors: [] })
+
+    expect(image).not.toHaveBeenCalled()
+    expect(navigator.clipboard.write).not.toHaveBeenCalled()
   })
 })
 /*

@@ -6,6 +6,7 @@ import Line from "./helper/Line"
 import Point from "./helper/Point"
 import Dist from "./helper/Dist"
 import Poly from "./helper/Poly"
+import Rect from "./helper/Rect"
 import { name as nameGenerator } from "naampje"
 import { localStorageCloudUsernameName, localStorageName, localStorageSettingsName } from "./globals"
 import getInitialState from "./states"
@@ -14,10 +15,10 @@ import getInitialState from "./states"
 // Serializes the pattern into an SVG string
 export function serializePattern(state, selectedOnly = false, transform = "") {
   const { scalex, scaley, lines } = state
-
-  const left = Math.min(...lines.map((i) => (i.a._x, i.b._x)).flat())
-  const top = Math.min(...lines.map((i) => (i.a._y, i.b._y)).flat())
-  const origin = new Point(left, top)
+  const exportedLines = selectedOnly ? getSelected(state) : lines
+  const origin = exportedLines.length
+    ? Rect.fromPoints(...exportedLines.flatMap((line) => line.points())).topLeft
+    : Point.svgOrigin()
 
   let saveme = Object.fromEntries(Object.entries(state).filter(([key]) => saveable.includes(key)))
   saveme.repeating = state.openMenus.repeat
@@ -31,9 +32,7 @@ export function serializePattern(state, selectedOnly = false, transform = "") {
     `<svg width="100%" height="100%" transform="${transform}" xmlns="http://www.w3.org/2000/svg">\n` +
     `<g id='lines' transform="scale(${scalex} ${scaley})">\n` +
     renderToStaticMarkup(
-      (selectedOnly ? getSelected(state, "topLeft") : lines.map((i) => i.relativeTo(origin))).map((i) =>
-        i.render(state),
-      ),
+      exportedLines.map((line) => line.relativeTo(origin).render(state)),
     ) +
     "\n</g>" +
     "\n</svg>"
@@ -83,10 +82,10 @@ export function deserializePattern(str) {
 // Coords: width, height: Dist, scaled
 // eslint-disable-next-line no-unused-vars
 export function image(state, format = "png", rect, dots = false, selectedOnly, func, blob = false, margin = 10) {
-  const { left, top, width, height } = rect.asSvg(state)
+  const { width, height } = rect.asSvg(state)
   // This serializes the state (with the function above), then creates a canvas, draws the serialized svg onto the
   // canvas, creates an image from the canvas
-  const svgBlob = new Blob([serializePattern(state, selectedOnly, `translate(${left} ${top})`)], {
+  const svgBlob = new Blob([serializePattern(state, selectedOnly)], {
     type: "image/svg+xml;charset=utf-8",
   })
 

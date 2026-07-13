@@ -15,6 +15,7 @@ import {
   incrementMirrorAxis,
   normalizeLines,
   getPreviewPolys,
+  getLinesRect,
 } from "./utils"
 import defaultOptions from "./options"
 import {
@@ -513,24 +514,25 @@ export const load_local = (state, { name }) => {
 export const delete_local = (state, { name }) => deleteLocally(name)
 
 export const copy_image = (state) => {
-  const linesBBox = document.querySelector("#lines").getBBox()
-  const rect =
-    state.bounds.length > 1
-      ? getBoundRect(state)
-      : new Rect(Point.svgOrigin(), Point.fromSvg(state, linesBBox.width, linesBBox.height))
+  const selectedLines = getSelected(state)
+  const lines = selectedLines.length ? selectedLines : state.lines
+  const rect = getLinesRect(lines)
+  if (!rect) return
+
   image(
     state,
     "png",
     rect,
     false,
-    state.bounds.length > 1, // Default to selectedOnly
+    selectedLines.length > 0,
     (blob) => {
       try {
-        navigator.clipboard.write([
+        const write = navigator.clipboard.write([
           new ClipboardItem({
             "image/png": blob,
           }),
         ])
+        Promise.resolve(write).catch((error) => console.error(error))
       } catch (error) {
         console.error(error)
       }
