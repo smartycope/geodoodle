@@ -416,7 +416,7 @@ export const cancel_clipboard = (state) => ({
   clipboardOffset: null,
 })
 export const paste = (state) => {
-  if (state.clipboard) return { lines: [...state.lines, ...getAllClipboardLines(state, true)] }
+  if (state.clipboard) return { lines: [...state.lines, ...getAllClipboardLines(state)] }
 }
 export const copy = (state) => ({
   clipboard: getSelected(state, "center"),

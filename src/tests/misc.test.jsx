@@ -4,6 +4,7 @@ import defaultOptions, { preservable, reversible, saveable } from "../options"
 import * as actions from "../actions"
 import { reversibleActions, saveSettingActions } from "../options"
 import { validateStorage } from "../fileUtils"
+import { eventMatchesKeycode } from "../utils"
 
 // In between each tests, reset the localStorage
 beforeEach(() => {
@@ -69,5 +70,29 @@ describe("Stuff in options.jsx is valid", () => {
 
       expect(inState).toBe(true)
     }
+  })
+})
+
+describe("keybinding modifiers", () => {
+  const keyEvent = (overrides = {}) => ({
+    key: "c",
+    ctrlKey: false,
+    metaKey: false,
+    altKey: false,
+    shiftKey: false,
+    ...overrides,
+  })
+
+  test("ctrl bindings accept the Control key", () => {
+    expect(eventMatchesKeycode(keyEvent({ ctrlKey: true }), "ctrl+c")).toBe(true)
+  })
+
+  test("ctrl bindings also accept the Mac Command key", () => {
+    expect(eventMatchesKeycode(keyEvent({ metaKey: true }), "ctrl+c")).toBe(true)
+  })
+
+  test("unmodified bindings do not match Control or Command shortcuts", () => {
+    expect(eventMatchesKeycode(keyEvent({ ctrlKey: true }), "c")).toBe(false)
+    expect(eventMatchesKeycode(keyEvent({ metaKey: true }), "c")).toBe(false)
   })
 })

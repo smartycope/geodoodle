@@ -29,9 +29,10 @@ function AboutContent() {
         <li>✅ Repeating</li>
         <li>✅ Mobile Compatibility</li>
         <li>✅ Allow lines to be drawn from line intersections</li>
+        <li>✅ Added backend for saving patterns</li>
+        <s><li>❌ Connect to Google Drive</li></s>
         <li>❌ Custom Keyboard Shortcuts</li>
         <li>❌ Alternate Dot Patterns</li>
-        <li>❌ Connect to Google Drive</li>
         <li>❌ Curved Lines</li>
         <li>❌ App</li>
       </ul>

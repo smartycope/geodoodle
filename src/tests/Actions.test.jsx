@@ -50,7 +50,7 @@ import Dist from "../helper/Dist"
 import Line from "../helper/Line"
 import Rect from "../helper/Rect"
 import { getDefaultTestingState, getState } from "./testUtils"
-import { MIRROR_AXIS, MIRROR_ROT } from "../globals"
+import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE } from "../globals"
 import defaultOptions from "../options"
 import * as utils from "../utils.jsx"
 import { tourState } from "../states"
@@ -577,6 +577,46 @@ describe("Clipboard Actions", () => {
 
       const newState = paste(withClipboard)
       expect(newState.lines).toEqual(withClipboard.clipboard)
+    })
+
+    test("mirrors clipboard lines around the cursor after positioning them", () => {
+      const cursorPos = new Point(10, 10)
+      const clipboardLine = new Line(state, new Point(-1, 0), new Point(1, 0))
+      const withClipboard = {
+        ...state,
+        cursorPos,
+        clipboard: [clipboardLine],
+        lines: [],
+        mirrorType: MIRROR_TYPE.CURSOR,
+        mirrorAxis: MIRROR_AXIS.Y,
+      }
+
+      const newState = paste(withClipboard)
+      const positionedLine = clipboardLine.translate(cursorPos)
+
+      expect(newState.lines).toHaveLength(2)
+      expect(newState.lines[0].eq(positionedLine)).toBe(true)
+      expect(newState.lines[1].eq(positionedLine.flip(MIRROR_AXIS.Y, cursorPos))).toBe(true)
+    })
+
+    test("mirrors clipboard lines around the page after positioning them", () => {
+      const cursorPos = new Point(10, 10)
+      const clipboardLine = new Line(state, new Point(-1, 0), new Point(1, 0))
+      const withClipboard = {
+        ...state,
+        cursorPos,
+        clipboard: [clipboardLine],
+        lines: [],
+        mirrorType: MIRROR_TYPE.PAGE,
+        mirrorAxis: MIRROR_AXIS.Y,
+      }
+
+      const newState = paste(withClipboard)
+      const positionedLine = clipboardLine.translate(cursorPos)
+
+      expect(newState.lines).toHaveLength(2)
+      expect(newState.lines[0].eq(positionedLine)).toBe(true)
+      expect(newState.lines[1].eq(positionedLine.flip(MIRROR_AXIS.Y, utils.getHalf(state)))).toBe(true)
     })
   })
 

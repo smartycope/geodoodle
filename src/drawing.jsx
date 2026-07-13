@@ -476,17 +476,16 @@ export const Clipboard = () => {
   const { state } = useContext(StateContext)
   const { clipboard, translation, scalex, scaley } = state
   const { x: transx, y: transy } = translation.asInflated(state)
-  const { x: cursorx, y: cursory } = state.cursorPos.asSvg(state)
 
   if (!clipboard) return null
 
-  const clipLines = getAllClipboardLines(state, false)
+  const clipLines = getAllClipboardLines(state)
   return (
     clipLines && (
       <g
         id="clipboard"
         transform={`
-            translate(${transx + cursorx} ${transy + cursory})
+            translate(${transx} ${transy})
             scale(${scalex} ${scaley})
         `}
       >

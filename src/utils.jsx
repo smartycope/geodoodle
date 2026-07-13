@@ -15,13 +15,16 @@ export function getClipboardButtonsPos(state) {
 }
 
 // Get all the lines for the clipboard, including mirroring and transformation of the clipboard
-export function getAllClipboardLines(state, translate) {
+export function getAllClipboardLines(state) {
   const { clipboard, cursorPos, clipboardMirrorAxis, clipboardRotation } = state
   if (!clipboard) return []
-  const origin = translate ? cursorPos : Point.svgOrigin(state)
   return clipboard
     .map((line) =>
-      line.translate(origin).flip(clipboardMirrorAxis, origin).rotate(clipboardRotation, origin).mirror(state),
+      line
+        .translate(cursorPos)
+        .flip(clipboardMirrorAxis, cursorPos)
+        .rotate(clipboardRotation, cursorPos)
+        .mirror(state),
     )
     .flat()
 }
@@ -84,9 +87,16 @@ export function eventMatchesKeycode(event, code) {
   // We need to acknoledge space!
   // code = code.replace(/\s+/, '').split('+')
   code = code.split("+")
+  const expectsCtrl = code.includes("ctrl")
+  const expectsMeta = code.includes("meta")
+  const primaryModifierMatches = expectsMeta
+    ? event.metaKey && event.ctrlKey === expectsCtrl
+    : expectsCtrl
+      ? event.ctrlKey || event.metaKey
+      : !event.ctrlKey && !event.metaKey
+
   return (
-    event.ctrlKey === code.includes("ctrl") &&
-    event.metaKey === code.includes("meta") &&
+    primaryModifierMatches &&
     event.altKey === code.includes("alt") &&
     event.shiftKey === code.includes("shift") &&
     code.includes(event.key.toLowerCase())
