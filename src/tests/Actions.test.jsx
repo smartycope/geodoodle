@@ -21,6 +21,7 @@ import {
   delete_unselected,
   delete_at_cursor,
   nevermind,
+  pick_up_line_end,
   add_line,
   continue_line,
   add_bound,
@@ -417,6 +418,49 @@ describe("Line Creation Actions", () => {
     state = getState()
     state.lines = []
     state.cursorPos = new Point(100, 100)
+  })
+
+  describe("pick_up_line_end", () => {
+    test("removes the line and keeps its opposite endpoint as the current line start", () => {
+      const pickedUpEnd = new Point(100, 100)
+      const fixedEnd = new Point(50, 50)
+      const line = new Line(state, fixedEnd, pickedUpEnd)
+      const untouchedLine = new Line(state, new Point(0, 0), new Point(10, 10))
+      const withLine = {
+        ...state,
+        cursorPos: pickedUpEnd,
+        lines: [line, untouchedLine],
+      }
+
+      const newState = pick_up_line_end(withLine)
+
+      expect(newState.lines).toEqual([untouchedLine])
+      expect(newState.curLinePos.eq(fixedEnd)).toBe(true)
+    })
+
+    test("does nothing when the cursor is not on a line endpoint", () => {
+      const withLine = {
+        ...state,
+        lines: [new Line(state, new Point(0, 0), new Point(10, 10))],
+      }
+
+      expect(pick_up_line_end(withLine)).toEqual({})
+    })
+
+    test("the picked-up endpoint can be placed using the normal add-line action", () => {
+      const originalEnd = new Point(100, 100)
+      const fixedEnd = new Point(50, 50)
+      const destination = new Point(120, 80)
+      const line = new Line(state, fixedEnd, originalEnd)
+      const pickedUp = pick_up_line_end({ ...state, cursorPos: originalEnd, lines: [line] })
+
+      const moved = add_line({ ...state, ...pickedUp, cursorPos: destination }, {})
+
+      expect(moved.lines).toHaveLength(1)
+      expect(moved.lines[0].a.eq(fixedEnd)).toBe(true)
+      expect(moved.lines[0].b.eq(destination)).toBe(true)
+      expect(moved.curLinePos).toBeNull()
+    })
   })
 
   describe("add_line", () => {

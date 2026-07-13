@@ -1,6 +1,6 @@
 import { test, expect, describe, beforeEach } from "vitest"
 import { getState } from "./testUtils"
-import defaultOptions, { preservable, reversible, saveable } from "../options"
+import defaultOptions, { keybindings, preservable, reversible, saveable } from "../options"
 import * as actions from "../actions"
 import { reversibleActions, saveSettingActions } from "../options"
 import { validateStorage } from "../fileUtils"
@@ -95,4 +95,8 @@ describe("keybinding modifiers", () => {
     expect(eventMatchesKeycode(keyEvent({ ctrlKey: true }), "c")).toBe(false)
     expect(eventMatchesKeycode(keyEvent({ metaKey: true }), "c")).toBe(false)
   })
+})
+
+test("e is bound to picking up a line endpoint", () => {
+  expect(keybindings.e).toEqual({ action: "pick_up_line_end" })
 })

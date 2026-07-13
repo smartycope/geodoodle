@@ -30,6 +30,11 @@ export default class Line {
   points() {
     return [this.a, this.b]
   }
+  otherEnd(point) {
+    if (this.a.eq(point)) return this.b
+    if (this.b.eq(point)) return this.a
+    return null
+  }
   round() {
     return this.copy(this.a.round(), this.b.round())
   }

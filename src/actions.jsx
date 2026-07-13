@@ -260,6 +260,17 @@ export const nevermind = (state) => {
 }
 
 // Creation actions
+export const pick_up_line_end = (state) => {
+  const lineIndex = state.lines.findIndex((line) => state.cursorPos.in(line.points()))
+  if (lineIndex === -1) return {}
+
+  const line = state.lines[lineIndex]
+  return {
+    lines: state.lines.filter((_, index) => index !== lineIndex),
+    curLinePos: line.otherEnd(state.cursorPos),
+  }
+}
+
 export const add_line = (state, args) => {
   const {
     clipboard,
