@@ -46,13 +46,17 @@ export function getAllCursorPoints(state, includeOriginal = true, useMousePos = 
 // If retranslated is falsey, the lines will be returned as they are
 export function getSelected(state, retranslated, polygons = false) {
   const boundRect = getBoundRect(state)
-  if (!boundRect) return []
+  const selectedLines = state.lines.filter((obj) => obj.isSelected(state, boundRect))
+  let selected = selectedLines
+  if (polygons && boundRect)
+    selected = selected.concat(state.filledPolys.filter((obj) => obj.isSelected(state, boundRect)))
 
-  let selected = state.lines.filter((obj) => obj.isSelected(state, boundRect))
-  if (polygons) selected = selected.concat(state.filledPolys.filter((obj) => obj.isSelected(state, boundRect)))
+  if (!selected.length || !retranslated) return selected
 
-  if (retranslated === "center") return selected.map((obj) => obj.relativeTo(boundRect.center))
-  else if (retranslated === "topLeft") return selected.map((obj) => obj.relativeTo(boundRect.topLeft))
+  const selectionRect = boundRect ?? Rect.fromPoints(...selectedLines.flatMap((line) => line.points()))
+
+  if (retranslated === "center") return selected.map((obj) => obj.relativeTo(selectionRect.center))
+  else if (retranslated === "topLeft") return selected.map((obj) => obj.relativeTo(selectionRect.topLeft))
   else return selected
 }
 

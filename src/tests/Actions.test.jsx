@@ -655,6 +655,80 @@ describe("Clipboard Actions", () => {
     })
   })
 })
+
+describe("selector-based selection", () => {
+  let state
+
+  beforeEach(() => {
+    state = getState()
+  })
+
+  test("a generic selector selects every line with an endpoint at that point", () => {
+    const selector = new Point(0, 0)
+    const selectedLines = [
+      new Line(state, selector, new Point(10, 0)),
+      new Line(state, selector, new Point(0, 10)),
+    ]
+    const unselectedLine = new Line(state, new Point(20, 20), new Point(30, 30))
+    const selectorState = {
+      ...state,
+      bounds: [],
+      lines: [...selectedLines, unselectedLine],
+      genericSelectors: [selector],
+      specificSelectors: [],
+    }
+
+    expect(utils.getSelected(selectorState)).toEqual(selectedLines)
+  })
+
+  test("a generic selector selects lines crossing at that intersection", () => {
+    const crossingLines = [
+      new Line(state, new Point(0, 0), new Point(10, 10)),
+      new Line(state, new Point(0, 10), new Point(10, 0)),
+    ]
+    const selectorState = {
+      ...state,
+      bounds: [],
+      lines: crossingLines,
+      genericSelectors: [new Point(5, 5)],
+      specificSelectors: [],
+    }
+
+    expect(utils.getSelected(selectorState)).toEqual(crossingLines)
+  })
+
+  test("specific selectors select only a line whose two endpoints are selected", () => {
+    const a = new Point(0, 0)
+    const b = new Point(10, 0)
+    const selectedLine = new Line(state, a, b)
+    const sharesOneEndpoint = new Line(state, a, new Point(0, 10))
+    const selectorState = {
+      ...state,
+      bounds: [],
+      lines: [selectedLine, sharesOneEndpoint],
+      genericSelectors: [],
+      specificSelectors: [a, b],
+    }
+
+    expect(utils.getSelected(selectorState)).toEqual([selectedLine])
+  })
+
+  test("selector-selected lines can be translated relative to their center for copying", () => {
+    const line = new Line(state, new Point(2, 4), new Point(6, 8))
+    const selectorState = {
+      ...state,
+      bounds: [],
+      lines: [line],
+      genericSelectors: [line.a],
+      specificSelectors: [],
+    }
+
+    const [relativeLine] = utils.getSelected(selectorState, "center")
+
+    expect(relativeLine.a.eq(new Point(-2, -2))).toBe(true)
+    expect(relativeLine.b.eq(new Point(2, 2))).toBe(true)
+  })
+})
 /*
 describe('File Actions', () => {
   let state;
