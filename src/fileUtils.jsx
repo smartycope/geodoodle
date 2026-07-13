@@ -144,11 +144,7 @@ export function deserializeState(str) {
       return {}
     }
 
-    return {
-      ...customDeserialize({ ...parsed, lines: parsed.lines.map((i) => Line.fromJSON(i)) }),
-      // Because all the lines have their translation reset
-      translation: Dist.zero(),
-    }
+    return customDeserialize({ ...parsed, lines: parsed.lines.map((i) => Line.fromJSON(i)) })
   } catch (e) {
     console.error(e)
     return {}

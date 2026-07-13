@@ -3,9 +3,11 @@ import { getState } from "./testUtils"
 import defaultOptions, { keybindings, preservable, reversible, saveable } from "../options"
 import * as actions from "../actions"
 import { reversibleActions, saveSettingActions } from "../options"
-import { validateStorage } from "../fileUtils"
+import { loadPreservedState, validateStorage } from "../fileUtils"
 import { eventMatchesKeycode } from "../utils"
 import { extraButtons } from "../globals"
+import reducer from "../reducer"
+import Dist from "../helper/Dist"
 
 // In between each tests, reset the localStorage
 beforeEach(() => {
@@ -72,6 +74,15 @@ describe("Stuff in options.jsx is valid", () => {
       expect(inState).toBe(true)
     }
   })
+})
+
+test("translation actions persist their updated value for refresh", () => {
+  const state = getState()
+  const amount = new Dist(4, -2)
+
+  reducer(state, { action: "translate", amt: amount })
+
+  expect(loadPreservedState().translation.eq(state.translation.add(amount))).toBe(true)
 })
 
 describe("keybinding modifiers", () => {

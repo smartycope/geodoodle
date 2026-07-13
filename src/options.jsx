@@ -146,6 +146,7 @@ export const reversibleActions = [
 // These are actions
 // Only save the state to be preserved when these actions happen
 export const saveSettingActions = [
+  "translate",
   "increase_scale",
   "decrease_scale",
   "go_home",

@@ -5,10 +5,24 @@ import {
   loadCloud,
   loadCloudUsername,
   requestServer,
+  serializeState,
+  deserializeState,
   saveCloud,
   saveCloudUsername,
 } from "../fileUtils"
 import { version } from "../globals"
+import Dist from "../helper/Dist"
+
+describe("preserved state", () => {
+  test("preserves translation as a Dist through serialization", () => {
+    const translation = new Dist(7, -3)
+
+    const restored = deserializeState(serializeState({ lines: [], translation }))
+
+    expect(restored.translation).toBeInstanceOf(Dist)
+    expect(restored.translation.eq(translation)).toBe(true)
+  })
+})
 
 describe("cloud storage requests", () => {
   beforeEach(() => {
