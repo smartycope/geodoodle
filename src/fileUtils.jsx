@@ -7,7 +7,7 @@ import Point from "./helper/Point"
 import Dist from "./helper/Dist"
 import Poly from "./helper/Poly"
 import { name as nameGenerator } from "naampje"
-import { localStorageName, localStorageSettingsName } from "./globals"
+import { localStorageCloudUsernameName, localStorageName, localStorageSettingsName } from "./globals"
 import getInitialState from "./states"
 
 // TODO: A bunch of these functions should probably get grouped into a class structure at some point
@@ -184,6 +184,78 @@ export function clearPreservedState() {
 // Get all the saves in localStorage - returns an object of filename: svg string -- does not deserialize!
 export function getSaves() {
   return JSON.parse(localStorage.getItem(localStorageName))
+}
+
+export function loadCloudUsername() {
+  return localStorage.getItem(localStorageCloudUsernameName) ?? ""
+}
+
+export function saveCloudUsername(username) {
+  localStorage.setItem(localStorageCloudUsernameName, username)
+}
+
+export async function requestServer(method, path, body = undefined) {
+  method = method.toUpperCase()
+  const schema = method === "GET" ? "Accept-Profile" : "Content-Profile"
+  const url = `https://db.smartycope.org/${path}`
+  const headers = { [schema]: "geodoodle" }
+  if (body !== undefined) headers["Content-Type"] = "application/json"
+
+  console.debug("Requesting", method, url)
+
+  const response = await fetch(url, {
+    method,
+    headers: {
+      ...headers,
+    },
+    ...(body !== undefined && method !== "GET" && method !== "HEAD" ? { body: JSON.stringify(body) } : {}),
+  })
+
+  if (!response.ok) {
+    const detail = await response.text()
+    throw new Error(`Cloud request failed (${response.status} ${response.statusText}): ${detail}`)
+  }
+
+  // PostgREST commonly returns an empty body for successful POST/DELETE requests.
+  const result = await response.text()
+  return result ? JSON.parse(result) : null
+}
+
+export async function getCloudSaves(username) {
+  if (!username) return []
+  const params = new URLSearchParams({ user: `eq.${username}` })
+  return (await requestServer("GET", `saves?${params}`)) ?? []
+}
+
+export function deleteCloud(user, name) {
+  const params = new URLSearchParams({ user: `eq.${user}`, name: `eq.${name}` })
+  return requestServer("DELETE", `saves?${params}`)
+}
+
+export async function saveCloud(state, user, name) {
+  const params = new URLSearchParams({ user: `eq.${user}`, name: `eq.${name}` })
+  const path = `saves?${params}`
+  const existing = (await requestServer("GET", path)) ?? []
+  const modified_at = new Date().toISOString()
+  const body = {
+    user: user,
+    name: name,
+    data: serializeState(state),
+    version: version,
+    modified_at,
+  }
+
+  if (existing.length > 0) return requestServer("PATCH", path, body)
+  return requestServer("POST", "saves", { ...body, created_at: modified_at })
+}
+
+export async function loadCloud(user, name) {
+  const params = new URLSearchParams({ user: `eq.${user}`, name: `eq.${name}` })
+  const [save] = (await requestServer("GET", `saves?${params}`)) ?? []
+  if (!save) return null
+
+  // Cloud rows store the same JSON string used for preserved state.
+  return deserializeState(typeof save.data === "string" ? save.data : JSON.stringify(save.data))
 }
 
 // Save the pattern to localStorage

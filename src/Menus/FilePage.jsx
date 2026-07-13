@@ -6,7 +6,16 @@ import { viewportWidth, viewportHeight } from "../globals.js"
 import Rect from "../helper/Rect.jsx"
 import Point from "../helper/Point.js"
 import Page from "./Page.jsx"
-import { getSaves, generateName } from "../fileUtils.jsx"
+import {
+  getSaves,
+  generateName,
+  getCloudSaves,
+  deleteCloud,
+  saveCloud,
+  loadCloud,
+  loadCloudUsername,
+  saveCloudUsername,
+} from "../fileUtils.jsx"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import FormControlLabel from "@mui/material/FormControlLabel"
@@ -33,6 +42,14 @@ import TabManager from "./TabManager"
 import ShareIcon from "@mui/icons-material/Share"
 import FileCopyIcon from "@mui/icons-material/FileCopy"
 import SyncIcon from "@mui/icons-material/Sync"
+import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined"
+import { Typography } from "@mui/material"
+
+const cloud_help_text =
+  "Files are stored on Cope's semi-reliable server. They'll probably be safe? But if you have a pattern you really care about, " +
+  "download it to be safe.\n" +
+  "Patterns are keyed to the username you enter. You can see other people's patterns if you enter their username, and vice versa.\n" +
+  "There is no privacy! Currently, anyway."
 
 function FileInput({ label = "Upload File", onChange, accept, multiple }) {
   const handleChange = (e) => {
@@ -63,6 +80,9 @@ export default function FilePage() {
   const { state, dispatch } = useContext(StateContext)
   const { filename, bounds } = state
 
+  const [username, setUsername] = useState(loadCloudUsername)
+  const [cloudSaves, setCloudSaves] = useState([])
+  const [cloudRefresh, setCloudRefresh] = useState(0)
   const [downloadName] = useState("pattern")
   const [format, setFormat] = useState("svg")
   const [width, setWidth] = useState(viewportWidth())
@@ -71,7 +91,7 @@ export default function FilePage() {
   const [y, sety] = useState(0)
   const [selectedOnly, setSelectedOnly] = useState(true)
 
-  const saves = getSaves()
+  const localSaves = getSaves()
 
   useEffect(() => {
     // TODO: this requires debugging in the main branch (because WebShare API only works in secure contexts)
@@ -81,7 +101,7 @@ export default function FilePage() {
         try {
           navigator.share({
             title: "Check this out!",
-            text: "Here’s something cool.",
+            text: "Here's something cool.",
             url: window.location.href,
           })
         } catch (err) {
@@ -96,6 +116,77 @@ export default function FilePage() {
 
     return () => shareButton?.removeEventListener("click", share)
   }, [])
+
+  useEffect(() => {
+    let current = true
+    const cloudUsername = username.trim()
+
+    saveCloudUsername(username)
+    getCloudSaves(cloudUsername)
+      .then((saves) => {
+        if (current) setCloudSaves(saves)
+      })
+      .catch((error) => {
+        console.error("Unable to load cloud saves:", error)
+        if (current) {
+          setCloudSaves([])
+          dispatch({ toast: "Unable to load cloud saves" })
+        }
+      })
+
+    return () => {
+      current = false
+    }
+  }, [username, cloudRefresh, dispatch])
+
+  const refreshCloudSaves = () => setCloudRefresh((refresh) => refresh + 1)
+
+  const handleCloudSave = async () => {
+    const cloudUsername = username.trim()
+    if (!cloudUsername) return
+
+    try {
+      await saveCloud(state, cloudUsername, filename)
+      refreshCloudSaves()
+    } catch (error) {
+      console.error("Unable to save to the cloud:", error)
+      dispatch({ toast: "Unable to save to the cloud" })
+    }
+  }
+
+  const handleCloudDelete = async (name) => {
+    try {
+      await deleteCloud(username.trim(), name)
+      refreshCloudSaves()
+    } catch (error) {
+      console.error("Unable to delete the cloud save:", error)
+      dispatch({ toast: "Unable to delete the cloud save" })
+    }
+  }
+
+  const handleCloudLoad = async (name) => {
+    try {
+      const data = await loadCloud(username.trim(), name)
+      if (data) dispatch({ action: "deserialize", data })
+      else dispatch({ toast: "Cloud save not found" })
+    } catch (error) {
+      console.error("Unable to load the cloud save:", error)
+      dispatch({ toast: "Unable to load the cloud save" })
+    }
+  }
+
+  const namePattern = (saveFunc, saveDisabled = false) => (
+    <Stack direction="row">
+      <TextField label="Pattern Name" value={filename} onChange={(e) => dispatch({ filename: e.target.value })} />
+      <Button variant="outlined" onClick={() => dispatch({ filename: generateName(state.defaultToMemorableNames) })}>
+        <SyncIcon sx={{ mr: 1 }} />
+        Random Name
+      </Button>
+      <IconButton variant="outlined" onClick={saveFunc} disabled={saveDisabled}>
+        <SaveIcon />
+      </IconButton>
+    </Stack>
+  )
 
   const downloadTab = (
     <>
@@ -174,17 +265,7 @@ export default function FilePage() {
 
   const saveTab = (
     <>
-      <Stack direction="row">
-        <TextField label="Pattern Name" value={filename} onChange={(e) => dispatch({ filename: e.target.value })} />
-        <Button variant="outlined" onClick={() => dispatch({ filename: generateName(state.defaultToMemorableNames) })}>
-          <SyncIcon sx={{ mr: 1 }} />
-          Random Name
-        </Button>
-        <IconButton variant="outlined" onClick={() => dispatch({ action: "save_local", name: filename })}>
-          <SaveIcon />
-        </IconButton>
-      </Stack>
-
+      {namePattern(() => dispatch({ action: "save_local", name: filename }))}
       {/* TODO: this needs more work */}
       <List
         dense
@@ -193,8 +274,9 @@ export default function FilePage() {
           borderRadius: theme.shape.borderRadius / 2,
         })}
       >
-        {saves &&
-          Object.keys(saves).map((key) => (
+        {localSaves &&
+          localSaves.length > 0 &&
+          Object.keys(localSaves).map((key) => (
             <ListItem
               key={key}
               secondaryAction={
@@ -230,6 +312,81 @@ export default function FilePage() {
       >
         <GiNuclear style={{ marginRight: "1em" }} /> Clear Saves
       </Button>
+    </>
+  )
+
+  const cloudTab = (
+    <>
+      <span>
+        <TextField
+          label="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          helperText="Your patterns will be keyed to this username"
+        />
+        <IconButton onClick={() => alert(cloud_help_text)}>
+          <HelpOutlineOutlinedIcon />
+        </IconButton>
+      </span>
+      <br />
+      <br />
+      {namePattern(handleCloudSave, !username.trim())}
+      {cloudSaves && cloudSaves.length > 0 ? (
+        <List
+          dense
+          sx={(theme) => ({
+            outline: "1px solid " + theme.palette.divider,
+            borderRadius: theme.shape.borderRadius / 2,
+          })}
+        >
+          {cloudSaves.map((save) => (
+            <ListItem
+              key={save.name}
+              secondaryAction={
+                <IconButton
+                  edge="end"
+                  aria-label="delete"
+                  onClick={() => handleCloudDelete(save.name)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              }
+            >
+              <ListItemIcon>
+                <FolderIcon />
+              </ListItemIcon>
+              <ListItemButton
+                onClick={() => handleCloudLoad(save.name)}
+              >
+                <ListItemText primary={save.name} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      ) : (
+        <Typography variant="caption" color="text.secondary">
+          No cloud saves yet
+        </Typography>
+      )}
+      {cloudSaves.length > 0 && (
+        <>
+          <br />
+          <Button
+            onClick={async () => {
+              if (!confirm("Are you sure you want to delete all your cloud saves? This action is irreversible.")) return
+              try {
+                await Promise.all(cloudSaves.map((save) => deleteCloud(username.trim(), save.name)))
+                refreshCloudSaves()
+              } catch (error) {
+                console.error("Unable to clear cloud saves:", error)
+                dispatch({ toast: "Unable to clear cloud saves" })
+              }
+            }}
+          >
+            <GiNuclear style={{ marginRight: "1em" }} /> Clear Cloud Saves
+          </Button>
+        </>
+      )}
     </>
   )
 
@@ -273,6 +430,7 @@ export default function FilePage() {
         tabs={[
           { label: "Download/Upload", content: downloadTab },
           { label: "Save/Load", content: saveTab },
+          { label: "Cloud", content: cloudTab },
         ]}
       />
     </Page>

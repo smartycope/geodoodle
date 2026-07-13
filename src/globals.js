@@ -23,6 +23,7 @@ export const MIRROR_ROT = {
 export const localStorageName = "GeoDoodleSaves"
 export const localStorageSettingsName = "GeoDoodleState"
 export const localStorageTourTakenName = "GeoDoodleTourTaken"
+export const localStorageCloudUsernameName = "GeoDoodleCloudUsername"
 
 // Mutable globals -- these are here so the vite HMR fast refresh will work. They should be in Paper.jsx
 
