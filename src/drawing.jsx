@@ -502,31 +502,35 @@ export const Cursor = () => {
   const cursorPosViewport = cursorPos.asViewport(state)
   const theme = useTheme()
 
-  function getCursor(x, y, ...props) {
+  function getCursor(x, y, key, props = {}) {
     const r = scalex / 3
     switch (cursor) {
       case "circle":
-        return <circle cx={x} cy={y} r={r} stroke={theme.palette.primary.cursor} fillOpacity={0} {...props} />
+        return <circle key={key} cx={x} cy={y} r={r} stroke={theme.palette.primary.cursor} fillOpacity={0} {...props} />
       case "crosshair":
-        return <>
-          <line x1={x} y1={y-r} x2={x} y2={y+r} stroke={theme.palette.primary.cursor} {...props} />
-          <line x1={x+r} y1={y} x2={x-r} y2={y} stroke={theme.palette.primary.cursor} {...props} />
-        </>
+        return (
+          <g key={key}>
+            <line x1={x} y1={y - r} x2={x} y2={y + r} stroke={theme.palette.primary.cursor} {...props} />
+            <line x1={x + r} y1={y} x2={x - r} y2={y} stroke={theme.palette.primary.cursor} {...props} />
+          </g>
+        )
       case "x":
-        return <>
-          <line x1={x-r} y1={y-r} x2={x+r} y2={y+r} stroke={theme.palette.primary.cursor} {...props} />
-          <line x1={x-r} y1={y+r} x2={x+r} y2={y-r} stroke={theme.palette.primary.cursor} {...props} />
-        </>
+        return (
+          <g key={key}>
+            <line x1={x - r} y1={y - r} x2={x + r} y2={y + r} stroke={theme.palette.primary.cursor} {...props} />
+            <line x1={x - r} y1={y + r} x2={x + r} y2={y - r} stroke={theme.palette.primary.cursor} {...props} />
+          </g>
+        )
     }
   }
 
   // We do our own seperately so we can control it's opacity independently
-  let cursors = [getCursor(cursorPosViewport.x, cursorPosViewport.y)]
+  let cursors = [getCursor(cursorPosViewport.x, cursorPosViewport.y, "cursor-main")]
 
   let i = 0
   for (const point of getAllCursorPoints(state, false)) {
     const { x, y } = point.asViewport(state)
-    cursors.push(getCursor(x, y, {strokeOpacity: 0.25, key: `cursor-${i}`}))
+    cursors.push(getCursor(x, y, `cursor-${i}`, { strokeOpacity: 0.25 }))
     i++
   }
 

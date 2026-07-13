@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest"
 import {
+  generateName,
   getCloudSaves,
   loadCloud,
   loadCloudUsername,
@@ -97,5 +98,13 @@ describe("cloud storage requests", () => {
     saveCloudUsername("cope")
 
     expect(loadCloudUsername()).toBe("cope")
+  })
+
+  test("falls back to an unnamed pattern if memorable-name generation fails", () => {
+    const random = vi.spyOn(Math, "random").mockReturnValue(1)
+
+    expect(generateName(true)).toBe("Unnamed 1")
+
+    random.mockRestore()
   })
 })

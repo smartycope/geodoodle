@@ -19,7 +19,6 @@ import {
   clear_bounds,
   delete_selected,
   delete_unselected,
-  delete_line,
   delete_at_cursor,
   nevermind,
   add_line,
@@ -343,49 +342,16 @@ describe("Deletion Actions", () => {
     })
   })
 
-  describe("delete_line", () => {
-    // test("should delete a line under cursor", () => {
-    //   const cursorAtLine = {
-    //     ...state,
-    //     eraser: new Point(0, 0),
-    //     lines: [
-    //       new Line(state, new Point(0, 0), new Point(10, 10)),
-    //       new Line(state, new Point(20, 20), new Point(30, 30)),
-    //     ],
-    //     cursorPos: new Point(10, 10), // On the first line
-    //   }
-
-    //   const newState = delete_line(cursorAtLine)
-    //   expect(newState.lines).toHaveLength(1) // One line should be removed
-    // })
-
-    // test("should not delete a line under cursor if eraser is not active", () => {
-    //   const cursorAtLine = {
-    //     ...state,
-    //     eraser: null,
-    //     lines: [
-    //       new Line(state, new Point(0, 0), new Point(10, 10)),
-    //       new Line(state, new Point(20, 20), new Point(30, 30)),
-    //     ],
-    //     cursorPos: new Point(10, 10), // On the first line
-    //   }
-
-    //   const newState = delete_line(cursorAtLine)
-    //   expect(newState.lines).toHaveLength(2) // One line should be removed
-    // })
-
+  describe("delete_at_cursor", () => {
     test("should remove a bound if clicked on it", () => {
       const cursorAtBound = {
         ...state,
         cursorPos: new Point(5, 5), // On a bound
       }
 
-      const newState = delete_line(cursorAtBound)
+      const newState = delete_at_cursor(cursorAtBound)
       expect(newState.bounds).toHaveLength(1) // One bound should be removed
     })
-  })
-
-  describe("delete_at_cursor", () => {
     test("should delete a line under cursor", () => {
       const cursorAtLine = {
         ...state,

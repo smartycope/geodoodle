@@ -113,6 +113,7 @@ export function getState() {
 }
 
 export function getDefaultTestingState() {
+  const cursorPos = new Point(5, 11)
   const aes = {
     stroke: "black",
     width: 0.05,
@@ -129,7 +130,9 @@ export function getDefaultTestingState() {
       new Line({}, new Point(5, 9), new Point(4, 11), aes),
     ],
     // Center of the pattern
-    cursorPos: new Point(5, 11),
+    cursorPos,
+    // Fill previews intentionally use the physical mouse position rather than the snapped cursor.
+    mousePos: cursorPos,
     bounds: [new Point(4, 9), new Point(6, 13)],
   }
 }

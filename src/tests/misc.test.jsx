@@ -1,6 +1,6 @@
 import { test, expect, describe, beforeEach } from "vitest"
 import { getState } from "./testUtils"
-import defaultOptions, { preservable, saveable } from "../options"
+import defaultOptions, { preservable, reversible, saveable } from "../options"
 import * as actions from "../actions"
 import { reversibleActions, saveSettingActions } from "../options"
 import { validateStorage } from "../fileUtils"
@@ -44,10 +44,10 @@ describe("Stuff in options.jsx is valid", () => {
     }
   })
   test("all reversibles are valid", () => {
-    const actionKeys = Object.keys(actions)
-    for (const action of reversibleActions) {
-      const inState = actionKeys.includes(action)
-      if (!inState) console.log("reversibleAction not in state: " + action)
+    const stateKeys = Object.keys(getState())
+    for (const key of reversible) {
+      const inState = stateKeys.includes(key)
+      if (!inState) console.log("reversible key not in state: " + key)
 
       expect(inState).toBe(true)
     }

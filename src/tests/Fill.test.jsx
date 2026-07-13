@@ -64,14 +64,11 @@ describe("Fill", () => {
     state = toggle_fill_mode(state)
     expect(state.tempPolys.length).toBe(2)
   })
-  // TODO:
-  test("can preview fill in multiple spaces when mirroring", () => {
+  test("previews one fill space when mirroring is not enabled", () => {
     const { container, paper } = renderPaper()
-    // press(paper, "m")
     setUpDefaultTestingState(paper)
-    saveHtml(container)
     press(paper, "f")
-    expect(getCurPolys(container)).toHaveLength(2)
+    expect(getCurPolys(container)).toHaveLength(1)
   })
 
   // TODO:

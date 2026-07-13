@@ -207,7 +207,7 @@ export const delete_unselected = (state) => {
   }
 }
 
-export const delete_at_cursor = (state, { allowDeleteSelected=false }) => {
+export const delete_at_cursor = (state, { allowDeleteSelected = false } = {}) => {
   const { cursorPos, bounds, curLinePos, clipboard, lines, fillMode, mirrorOrigins, specificSelectors, genericSelectors } = state
   // If we're in fill mode, clear the fill of whatever we're over
   if (fillMode) return clear_fill(state)

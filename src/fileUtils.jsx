@@ -156,12 +156,19 @@ export function deserializeState(str) {
 }
 
 export function generateName(defaultToMemorableNames) {
-  const saves = getSaves()
-  if (defaultToMemorableNames) {
-    let name = nameGenerator()
-    while (saves[name]) name = nameGenerator()
-    return name
-  } else if (saves) return `Unnamed ${Object.keys(saves).length + 1}`
+  const saves = getSaves() ?? {}
+  if (defaultToMemorableNames)
+    // naampje occasionally selects one item beyond its word lists and throws.
+    // Retry a few times, while also avoiding names that are already in use.
+    for (let attempt = 0; attempt < 10; attempt++)
+      try {
+        const name = nameGenerator()
+        if (name && !saves[name]) return name
+      } catch {
+        // Try another generated name.
+      }
+
+  return `Unnamed ${Object.keys(saves).length + 1}`
 }
 
 // Interactions with storage
