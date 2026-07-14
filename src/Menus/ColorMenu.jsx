@@ -93,6 +93,14 @@ export default function ColorMenu() {
               ))}
           </ButtonGroup>
 
+          <Button
+            id="color-menu-randomize-button"
+            variant="outlined"
+            onClick={() => dispatch("randomize_colors")}
+          >
+            Randomize
+          </Button>
+
           {/* Stroke input */}
           {!fillMode && (
             <Number

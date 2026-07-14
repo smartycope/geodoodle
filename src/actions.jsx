@@ -36,6 +36,7 @@ import Rect from "./helper/Rect"
 import Poly from "./helper/Poly"
 import { tourState } from "./states"
 import * as turf from "@turf/turf"
+import Color from "colorjs.io"
 
 
 export const cursor_moved = (state, { point }) => {
@@ -337,6 +338,16 @@ export const set_color = (state, { color }) => {
   let copy = JSON.parse(JSON.stringify(state.fillMode ? state.fill : state.stroke))
   copy[state.colorProfile] = color
   return { [state.fillMode ? "fill" : "stroke"]: copy }
+}
+
+export const randomize_colors = (state) => {
+  const background = new Color(state.paperColor)
+  const [, saturation, value] = background.hsv
+  const colors = Array.from({ length: defaultOptions.commonColorAmt }, () =>
+    new Color("hsv", [Math.random() * 360, saturation, value]).to("srgb").toString({ format: "hex" }),
+  )
+
+  return { stroke: colors, fill: [...colors] }
 }
 
 export const set_stroke_width = (state, { strokeWidth }) => {

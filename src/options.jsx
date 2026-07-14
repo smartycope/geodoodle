@@ -163,6 +163,7 @@ export const saveSettingActions = [
   "set_stroke_width",
   "set_dash",
   "set_color",
+  "randomize_colors",
   "toggle_partials",
   "apply_trellis",
   "fill",

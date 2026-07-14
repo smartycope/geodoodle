@@ -4,6 +4,7 @@ import {
   fill,
   clear_fill,
   toggle_fill_mode,
+  randomize_colors,
   translate,
   scale,
   rotate,
@@ -58,6 +59,7 @@ import defaultOptions from "../options"
 import * as utils from "../utils.jsx"
 import { tourState } from "../states"
 import { download, image, validateStorage } from "../fileUtils"
+import Color from "colorjs.io"
 
 // Mock the global objects and functions
 const mockLocalStorage = {
@@ -553,6 +555,32 @@ describe("Line Creation Actions", () => {
 
       expect(afterSecondBound.bounds).toHaveLength(2)
     })
+  })
+})
+
+describe("Color Actions", () => {
+  test("randomizes all preset hues while retaining the background saturation and value", () => {
+    const state = { ...getState(), paperColor: "#ff0000" }
+    const random = vi
+      .spyOn(Math, "random")
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(1 / 6)
+      .mockReturnValueOnce(2 / 6)
+      .mockReturnValueOnce(3 / 6)
+      .mockReturnValueOnce(4 / 6)
+
+    const result = randomize_colors(state)
+
+    expect(result.stroke).toHaveLength(defaultOptions.commonColorAmt)
+    expect(result.fill).toEqual(result.stroke)
+    expect(new Set(result.stroke).size).toBe(defaultOptions.commonColorAmt)
+    for (const color of result.stroke) {
+      const [, saturation, value] = new Color(color).hsv
+      expect(saturation).toBeCloseTo(100)
+      expect(value).toBeCloseTo(100)
+    }
+
+    random.mockRestore()
   })
 })
 
