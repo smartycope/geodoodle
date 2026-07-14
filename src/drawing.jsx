@@ -16,7 +16,7 @@ import {
 } from "./canvasButtonUtils"
 import Line from "./helper/Line"
 import Point from "./helper/Point"
-import { useContext, useEffect } from "react"
+import { useContext, useEffect, useMemo } from "react"
 import { StateContext } from "./Contexts"
 import Snackbar from "@mui/material/Snackbar"
 import { useTheme } from "@mui/material/styles"
@@ -485,8 +485,50 @@ export const CurrentLines = () => {
 
 export const Lines = () => {
   const { state } = useContext(StateContext)
-  const { lines, translation, scalex, scaley } = state
+  const {
+    lines,
+    translation,
+    scalex,
+    scaley,
+    bounds,
+    boundDragging,
+    cursorPos,
+    partials,
+    genericSelectors,
+    specificSelectors,
+  } = state
   const { x: transx, y: transy } = translation.asInflated(state)
+  // The cursor only affects permanent-line selection while a bound is being
+  // dragged. In every other mode, moving it should not rebuild every SVG line.
+  const activeBoundCursor = boundDragging && bounds.length === 1 ? cursorPos : null
+  const renderedLines = useMemo(
+    () => {
+      const renderState = {
+        lines,
+        scalex,
+        scaley,
+        bounds,
+        boundDragging,
+        cursorPos: activeBoundCursor,
+        partials,
+        genericSelectors,
+        specificSelectors,
+      }
+      return lines.map((line, i) => line.render(renderState, `line-${i}`))
+    },
+    [
+      lines,
+      scalex,
+      scaley,
+      bounds,
+      boundDragging,
+      activeBoundCursor,
+      partials,
+      genericSelectors,
+      specificSelectors,
+    ],
+  )
+
   return (
     <g
       id="lines"
@@ -496,7 +538,7 @@ export const Lines = () => {
         `}
     >
       {/* Make all the individual lines visible */}
-      {lines.map((line, i) => line.render(state, `line-${i}`))}
+      {renderedLines}
       {/* Show each line as separate lines, for debugging */}
       {/* {debug && splitAllLines(lines).map((line, i) => line.render(state, `line-${i}`, {strokeWidth: 3/scalex, stroke: `hsl(${i*360/lines.length}, 100%, 50%)`}))} */}
     </g>
@@ -596,11 +638,16 @@ export const Dots = () => {
 
 export const Polygons = () => {
   const { state } = useContext(StateContext)
-  const { filledPolys, translation, scalex, scaley } = state
+  const { filledPolys, translation, scalex, scaley, fill, colorProfile } = state
   const { x: transx, y: transy } = translation.asInflated(state)
+  const renderedPolys = useMemo(
+    () => filledPolys.map((poly, i) => poly.render({ fill, colorProfile }, `filled-poly-${i}`)),
+    [filledPolys, fill, colorProfile],
+  )
+
   return (
     <g id="filled-polys" transform={`translate(${transx} ${transy}) scale(${scalex} ${scaley})`}>
-      {filledPolys.map((poly, i) => poly.render(state, `filled-poly-${i}`))}
+      {renderedPolys}
     </g>
   )
 }

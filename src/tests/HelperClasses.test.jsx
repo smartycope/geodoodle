@@ -6,6 +6,7 @@ import Line from "../helper/Line"
 import Rect from "../helper/Rect"
 import { getState } from "./testUtils"
 import { MIRROR_AXIS } from "../globals"
+import { getAllIntersections } from "../utils"
 
 describe("Pair", () => {
   test("should create a new Pair with x and y coordinates", () => {
@@ -318,6 +319,37 @@ describe("Line", () => {
     expect(copy.b.eq(newB)).toBe(true)
     expect(copy.aes.stroke).toBe("blue")
     expect(copy.props.id).toBe(2)
+  })
+
+  test("memoizes intersections while the lines array is unchanged", () => {
+    const state = getState()
+    const lines = [
+      new Line(state, new Point(0, 1), new Point(2, 1)),
+      new Line(state, new Point(1, 0), new Point(1, 2)),
+    ]
+
+    const lineIntersections = lines[0].findIntersections(lines)
+    expect(lines[0].findIntersections(lines)).toBe(lineIntersections)
+    expect(lineIntersections).toHaveLength(1)
+    expect(lineIntersections[0].eq(new Point(1, 1))).toBe(true)
+
+    const allIntersections = getAllIntersections(lines)
+    expect(getAllIntersections(lines)).toBe(allIntersections)
+    expect(allIntersections).toHaveLength(1)
+
+    // A new collection represents a drawing edit and must use a new cache entry.
+    expect(getAllIntersections([...lines])).not.toBe(allIntersections)
+  })
+
+  test("does not calculate intersections when there are no generic selectors", () => {
+    const state = getState()
+    const line = new Line(state, new Point(0, 0), new Point(2, 2))
+    state.lines = [line]
+    line.findIntersections = () => {
+      throw new Error("intersection lookup should have been skipped")
+    }
+
+    expect(line.isSelected(state)).toBe(false)
   })
 })
 

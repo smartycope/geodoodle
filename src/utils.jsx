@@ -300,10 +300,20 @@ export function unique(arr) {
   return arr.filter((point, index, self) => self.findIndex((p) => p.eq(point)) === index)
 }
 
+// Line arrays in state are immutable, so their identity is a reliable cache key.
+// WeakMap keeps old drawings collectable after an edit replaces the array.
+const allIntersectionsCache = new WeakMap()
+
 // Returns Points
 export function getAllIntersections(lines) {
-  if (lines.length < 2) return []
-  return unique(lines.flatMap((line) => line.findIntersections(lines)))
+  const cached = allIntersectionsCache.get(lines)
+  if (cached) return cached
+
+  const intersections =
+    lines.length < 2 ? [] : unique(lines.flatMap((line) => line.findIntersections(lines)))
+
+  allIntersectionsCache.set(lines, intersections)
+  return intersections
 }
 
 // Returns a list of Lines - we use this instead of storing which lines go with each intersection, because

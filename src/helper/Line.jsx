@@ -2,6 +2,10 @@ import { getBoundRect, unique } from "../utils"
 import Point from "./Point"
 import * as turf from "@turf/turf"
 
+// Cache each line's intersections for an immutable lines array. This avoids
+// repeating Turf's geometry work while the cursor moves over an unchanged drawing.
+const intersectionCache = new WeakMap()
+
 export default class Line {
   // if state is not specified, aes must be specified
   // round defaults to true because (as of right now) lines only go between the dots, and dots are integers in
@@ -53,13 +57,17 @@ export default class Line {
     const _boundRect = boundRect ?? getBoundRect(state)
     return (
       // It's in the bound area
-      (_boundRect && this.within(_boundRect, state.partials))
-      // An end is selected by a generic selector
-      || (this.a.in(state.genericSelectors) || this.b.in(state.genericSelectors))
-      // One of our intersections is selected by a generic selector
-      || (this.findIntersections(state.lines).some((p) => p.in(state.genericSelectors)))
+      ((_boundRect && this.within(_boundRect, state.partials))
+      // A generic selector can select an end or an intersection. Avoid finding
+      // intersections at all when there are no generic selectors.
+      || (state.genericSelectors.length > 0
+        && (this.a.in(state.genericSelectors)
+          || this.b.in(state.genericSelectors)
+          || this.findIntersections(state.lines).some((p) => p.in(state.genericSelectors))))
       // An end is selected by specific selectors
-      || (this.a.in(state.specificSelectors) && this.b.in(state.specificSelectors))
+      || (state.specificSelectors.length > 0
+        && this.a.in(state.specificSelectors)
+        && this.b.in(state.specificSelectors)))
     )
   }
 
@@ -202,20 +210,33 @@ export default class Line {
   // Returns an array of points where this line intersects with the given lines
   // If sort is true, the intersections are sorted in order of closest to point a to further from point a
   findIntersections(otherLines, sort = false) {
-    const thisLine = this.asGeoJson()
-    const intersections = unique(
-      otherLines.flatMap((line) => {
-        const intersection = turf.lineIntersect(thisLine, line.asGeoJson())
-        if (intersection.features.length === 0) return []
-        // make sure it's not equal to a or b
-        return intersection.features.flatMap((feature) => {
-          const point = Point.fromGeoJson(feature)
-          if (point.eq(this.a) || point.eq(this.b)) return []
-          return [point]
-        })
-      }),
-    )
-    return sort ? intersections.sort((a, b) => this.a.dist(a) - this.a.dist(b)) : intersections
+    let intersectionsByLine = intersectionCache.get(otherLines)
+    if (!intersectionsByLine) {
+      intersectionsByLine = new WeakMap()
+      intersectionCache.set(otherLines, intersectionsByLine)
+    }
+
+    let intersections = intersectionsByLine.get(this)
+    if (!intersections) {
+      const thisLine = this.asGeoJson()
+      intersections = unique(
+        otherLines.flatMap((line) => {
+          const intersection = turf.lineIntersect(thisLine, line.asGeoJson())
+          if (intersection.features.length === 0) return []
+          // make sure it's not equal to a or b
+          return intersection.features.flatMap((feature) => {
+            const point = Point.fromGeoJson(feature)
+            if (point.eq(this.a) || point.eq(this.b)) return []
+            return [point]
+          })
+        }),
+      )
+      intersectionsByLine.set(this, intersections)
+    }
+
+    // Never sort the cached array itself: callers that requested the original
+    // order may still be holding it.
+    return sort ? [...intersections].sort((a, b) => this.a.dist(a) - this.a.dist(b)) : intersections
   }
 
   // I would put this in utils, but it needs the Line class
