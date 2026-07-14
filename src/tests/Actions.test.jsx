@@ -42,6 +42,7 @@ import {
   end_tour,
   toggle_partials,
   toggle_dots,
+  apply_trellis,
   set_manual,
   menu,
   debug,
@@ -1051,6 +1052,12 @@ describe("UI Actions", () => {
       expect(hiddenState.hideDots).toBe(true)
 
       expect(toggle_dots({ ...visibleState, ...hiddenState }).hideDots).toBe(false)
+    })
+  })
+
+  describe("apply_trellis", () => {
+    test("keeps the current trellis visible after the Repeat menu closes", () => {
+      expect(apply_trellis({ ...state, trellis: false })).toEqual({ trellis: true })
     })
   })
 

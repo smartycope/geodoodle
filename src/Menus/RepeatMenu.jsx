@@ -14,6 +14,7 @@ import ToggleIconButtonGroup from "./ToggleIconButtonGroup"
 import BlurOnIcon from "@mui/icons-material/BlurOn"
 import BlurOffIcon from "@mui/icons-material/BlurOff"
 import DashboardIcon from "@mui/icons-material/Dashboard"
+import CheckIcon from "@mui/icons-material/Check"
 
 // For reference,
 /*
@@ -522,6 +523,16 @@ export default function RepeatMenu() {
           icon={MirrorRotIcon(MIRROR_ROT.STRAIGHT)}
           slotProps={{ tooltip: { title: "Rotate", open, placement } }}
           onClick={() => handleSubMenuClick("rotate")}
+        />
+        <SpeedDialAction
+          id="repeat-apply"
+          icon={<CheckIcon />}
+          slotProps={{ tooltip: { title: "Apply", open, placement } }}
+          onClick={(e) => {
+            dispatch("apply_trellis")
+            dispatch({action: 'menu', close: "repeat"})
+            e.stopPropagation()
+          }}
         />
         <SpeedDialAction
           icon={<ReplayIcon />}

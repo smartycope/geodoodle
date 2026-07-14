@@ -59,7 +59,7 @@ export default function getInitialState() {
     // A list of points specifying the bounderies that define the selection rect
     bounds: [],
     // Whether we're currently dragging the selection rect. If we are, we count the cursorPos as a bound
-    boundDragging: false,
+    boundDragging:  false,
     // A list of Points. These select lines which have start AND end points which are in this list
     specificSelectors: [],
     // A list of Points. These select lines which have start OR end points which are in this list. Also
@@ -75,7 +75,6 @@ export default function getInitialState() {
     // or the selection gets deleted, we can still transform it
     clipboardOffset: null,
 
-    // TODO: is this still used at all? Remove it if not
     trellis: false,
     // See the definition of defaultTrellisControl (in utils.jsx) for what this type looks like
     // Note that Offset is a synonym for Overlap

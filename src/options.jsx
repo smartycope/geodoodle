@@ -164,6 +164,7 @@ export const saveSettingActions = [
   "set_dash",
   "set_color",
   "toggle_partials",
+  "apply_trellis",
   "fill",
   "clear_fill",
   "add_specific_selector",
@@ -226,6 +227,7 @@ export const saveable = [
   // This is handeled seperately
   // 'lines',
   "bounds",
+  "trellis",
   "specificSelectors",
   "genericSelectors",
   "translation",

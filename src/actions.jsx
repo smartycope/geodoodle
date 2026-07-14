@@ -411,10 +411,10 @@ export const redo = (state) => {
   // console.log("undo stack:", undoStack)
   // console.log("redo stack:", redoStack)
   const nextState = redoStack.pop()
-  if (nextState === undefined) {
+  if (nextState === undefined)
     // console.log("nothing to redo, ignoring")
     return state
-  }
+
   undoStack.push(nextState)
   // console.log("undo stack is now:", undoStack)
   // console.log("redo stack is now:", redoStack)
@@ -560,6 +560,7 @@ export const end_tour = () => preTourState
 // Misc Actions
 export const toggle_partials = (state) => ({ partials: !state.partials })
 export const toggle_dots = (state) => ({ hideDots: !state.hideDots })
+export const apply_trellis = () => ({ trellis: true })
 
 export const set_manual = (state, data) => {
   delete data.action
@@ -595,7 +596,6 @@ export const menu = (state, { toggle, open, close }) => {
       if (key !== "repeat") copy[key] = false
     })
 
-
   let repeatToast = false
   // Don't allow the repeat menu to be opened if we don't have a *finished* selection
   if (copy.repeat && state.bounds.length < 2) {
@@ -608,6 +608,11 @@ export const menu = (state, { toggle, open, close }) => {
     copy.main = false
     miniMenus.forEach((key) => (copy[key] = false))
   }
+
+  // If we close the repeat menu, open the toolbar back up.
+  // This is so we don't have to manually open the toolbar after closing the repeat menu
+  if (close === "repeat" || (toggle === "repeat" && !copy[toggle]))
+    copy.main = true
 
   return {
     openMenus: { ...copy },

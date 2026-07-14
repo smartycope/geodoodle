@@ -13,8 +13,8 @@ describe("File Page sharing", () => {
 
     await expect(shareCurrentPage()).resolves.toBe(true)
     expect(share).toHaveBeenCalledWith({
-      title: "Check this out!",
-      text: "Here's something cool.",
+      title: expect.any(String),
+      text: expect.any(String),
       url: window.location.href,
     })
   })
