@@ -335,7 +335,7 @@ export function onTouchMove(state, dispatch, e) {
     // If we move while holding, that's fine, as long as we haven't moved enough to change cursorPos.
     // If we move enough to change cursorPos, we stop holding.
     // The cursor_moved action calls cursorPosChanged() if the cursor has moved enough to change cursorPos.
-    if (tapDragging && !clipboard?.length && !fillMode && !curLinePos)
+    if (tapDragging && !holdAndDragPossible && !clipboard?.length && !fillMode && !curLinePos)
       if (touchHoldTimer) {
         clearTimeout(touchHoldTimer)
         dispatch({ action: "add_line", at: lastTapPos })
