@@ -7,10 +7,13 @@ import {
   getBoundRect,
   getAllClipboardLines,
   getAllIntersections,
-  getClipboardButtonsPos,
   isMobile,
   getAllCursorPoints,
 } from "./utils"
+import {
+  getClipboardButtonStrip,
+  getSelectionButtonStrip,
+} from "./canvasButtonUtils"
 import Line from "./helper/Line"
 import Point from "./helper/Point"
 import { useContext, useEffect } from "react"
@@ -34,6 +37,10 @@ import SelectMenu from "./Menus/SelectMenu"
 import { MirrorAxisIcon, MirrorRotIcon } from "./Menus/CustomIcons"
 import CheckIcon from "@mui/icons-material/Check"
 import ClearIcon from "@mui/icons-material/Clear"
+import ContentCopyIcon from "@mui/icons-material/ContentCopy"
+import ContentCutIcon from "@mui/icons-material/ContentCut"
+import CancelPresentationIcon from "@mui/icons-material/CancelPresentation"
+import CancelPresentationTwoToneIcon from "@mui/icons-material/CancelPresentationTwoTone"
 import useMediaQuery from "@mui/material/useMediaQuery"
 
 // For debugging
@@ -55,7 +62,7 @@ var debugTextOffset = 80
 const debugTextX = "75%"
 
 // This is slightly inelegant, but it works, and it's just a debug function
-// Color is the color of the text and cirlce, fill overrides the color of the circle
+// Color is the color of the text and circle, fill overrides the color of the circle
 export function DebugPoint({
   name,
   point,
@@ -283,50 +290,72 @@ export const MirrorMetaLines = () => {
   return <g id="m">{mirrorMetaLines}</g>
 }
 
-export const ClipboardTransformButtons = () => {
-  const { state } = useContext(StateContext)
-  const { mobile, clipboard, clipboardRotation, clipboardMirrorAxis } = state
-  const boundRect = getBoundRect(state)
-  if (!clipboard || !mobile || !clipboard.length || !boundRect) return null
+function CanvasButtonStrip({ state, strip, icons }) {
+  if (!strip) return null
 
-  const { x, y } = getClipboardButtonsPos(state).asViewport(state)
+  const { x, y } = strip.position.asViewport(state)
   const buttonHeight = options.clipboardButtonHeight
-  const buttonWidth = options.clipboardButtonWidth * 4 + options.clipboardButtonGap * 3
-  console.log(clipboardMirrorAxis)
-  const btnProps = {
-    width: options.clipboardButtonWidth,
-    height: options.clipboardButtonHeight,
-    // gap: options.clipboardButtonGap,
-  }
+  const buttonWidth = options.clipboardButtonWidth
+  const stripWidth = buttonWidth * strip.buttons.length + options.clipboardButtonGap * (strip.buttons.length - 1)
 
   return (
     <>
-      <DebugPoint name="Clipboard Buttons Pos" point={getClipboardButtonsPos(state)} />
+      <DebugPoint name={`${strip.id} position`} point={strip.position} />
       <foreignObject
         // Apparently foreignObjects don't acknowledge pointer (or possibly any) events.
-        // These are "buttons", but they're actually handled manually in touchStart() above
+        // These are "buttons", but their actions are handled manually in events.jsx.
         // For that reason, I'm intentionally keeping them as non-MUI buttons
         x={x}
         y={y}
-        width={buttonWidth}
+        width={stripWidth}
         height={buttonHeight}
       >
-        <div id="clipboard-transform-buttons-mobile">
-          <button {...btnProps}>{MirrorRotIcon(clipboardRotation, true)}</button>
-          <button {...btnProps}>{MirrorAxisIcon(clipboardMirrorAxis)}</button>
-          {/* <button> <GoMirror /> </button> */}
-          <button {...btnProps}>
-            <CheckIcon />
-          </button>
-          {/* I can't decide between these 2 */}
-          <button {...btnProps}>
-            <ClearIcon />
-          </button>
-          {/* <button><FaTrash /></button> */}
+        <div
+          id={strip.id}
+          className="canvas-option-buttons"
+          style={{ display: "flex", gap: options.clipboardButtonGap, pointerEvents: "all" }}
+        >
+          {strip.buttons.map(({ action, label }, index) => (
+            <button
+              key={action}
+              type="button"
+              aria-label={label}
+              title={label}
+              tabIndex={-1}
+              style={{ width: buttonWidth, height: buttonHeight, flex: `0 0 ${buttonWidth}px`, margin: 0 }}
+            >
+              {icons[index]}
+            </button>
+          ))}
         </div>
       </foreignObject>
     </>
   )
+}
+
+export const ClipboardTransformButtons = () => {
+  const { state } = useContext(StateContext)
+  const strip = getClipboardButtonStrip(state)
+  const icons = [
+    MirrorRotIcon(state.clipboardRotation, true),
+    MirrorAxisIcon(state.clipboardMirrorAxis),
+    <CheckIcon key="paste" />,
+    <ClearIcon key="cancel" />,
+  ]
+  return <CanvasButtonStrip state={state} strip={strip} icons={icons} />
+}
+
+export const SelectionOptionButtons = () => {
+  const { state } = useContext(StateContext)
+  const strip = getSelectionButtonStrip(state)
+  const icons = [
+    <ContentCopyIcon key="copy" />,
+    <ContentCutIcon key="cut" />,
+    <CancelPresentationTwoToneIcon key="delete-selected" />,
+    <CancelPresentationIcon key="delete-unselected" />,
+    <ClearIcon key="clear-bounds" />,
+  ]
+  return <CanvasButtonStrip state={state} strip={strip} icons={icons} />
 }
 
 export const SelectionRect = () => {
@@ -383,6 +412,7 @@ export const Bounds = () => {
     </g>
   )
 }
+
 export const SpecificSelectors = () => {
   const { state } = useContext(StateContext)
   const { scalex, specificSelectors } = state
@@ -406,6 +436,7 @@ export const SpecificSelectors = () => {
     </g>
   )
 }
+
 export const GenericSelectors = () => {
   const { state } = useContext(StateContext)
   const { scalex, genericSelectors } = state

@@ -1,9 +1,11 @@
-import options, { keybindings } from "./options"
+import { keybindings } from "./options"
 import Point from "./helper/Point"
 import Dist from "./helper/Dist"
-import { distCenter, eventMatchesKeycode, getClipboardButtonsPos } from "./utils"
+import { distCenter, eventMatchesKeycode } from "./utils"
+import { getCanvasButtonAt } from "./canvasButtonUtils"
 
 var dragging = false
+var canvasButtonMouseActive = false
 
 /* eslint-disable no-unused-vars */
 
@@ -15,6 +17,7 @@ var dragging = false
 
 // Mouse events
 export function onMouseMove(state, dispatch, e) {
+  if (canvasButtonMouseActive || getCanvasButtonAt(state, e.clientX, e.clientY)) return
   const { fillMode } = state
   if (e.buttons !== 0) dragging = !fillMode
   dispatch({
@@ -24,6 +27,16 @@ export function onMouseMove(state, dispatch, e) {
 }
 
 export function onMouseDown(state, dispatch, e) {
+  const canvasButton = getCanvasButtonAt(state, e.clientX, e.clientY)
+  if (canvasButton) {
+    e.preventDefault?.()
+    dragging = false
+    canvasButtonMouseActive = true
+    if (e.button === 0) dispatch(canvasButton.action)
+    return
+  }
+
+  canvasButtonMouseActive = false
   const { fillMode, bounds } = state
   switch (e.button) {
     case 0: // Left click
@@ -39,6 +52,11 @@ export function onMouseDown(state, dispatch, e) {
 }
 
 export function onMouseUp(state, dispatch, e) {
+  if (canvasButtonMouseActive) {
+    canvasButtonMouseActive = false
+    dragging = false
+    return
+  }
   if (dragging) dispatch("add_line")
   dragging = false
 }
@@ -114,9 +132,9 @@ var lastTapPos = new Point(-10, -10)
 // If we hold, it creates a point, but then if we drag, instead of creating a line, it creates another bound on touchend
 var holdAndDragPossible = false
 var holdAndDragConverted = false
-// Clipboard transform buttons are handled manually on touchstart. Consume the rest of that touch as well, or its
-// touchmove events will move the cursor and clipboard underneath the button.
-var clipboardTransformTouchActive = false
+// Canvas option buttons are handled manually on touchstart. Consume the rest of that touch as well, or its touchmove
+// events will move the cursor underneath the button.
+var canvasButtonTouchActive = false
 
 export function getGestureScaleDelta(scale, previousDistance, newDistance, sensitivity) {
   if (previousDistance <= 0) return 0
@@ -141,63 +159,20 @@ export function getGestureScaleDelta(scale, previousDistance, newDistance, sensi
 
 export function onTouchStart(state, dispatch, e) {
   e.preventDefault()
-  if (e.touches.length === 1) clipboardTransformTouchActive = false
+  if (e.touches.length === 1) canvasButtonTouchActive = false
 
-  const { fillMode, mobile, clipboard } = state
+  const { fillMode, clipboard } = state
   const touch = e.touches[0] || e.changedTouches[0]
   // I'm think this is good enough? I don't think I've had any issues because of it
   const touchCount = e.touches.length // || e.changedTouches.length
 
-  // First, before we do anything else, if the clipboard is open, and we're on a mobile device, check if they just
-  // tried to click on the clipboard transformation buttons. Because foriegnObjects don't seem to work with events,
-  // we have to handle them manually from here
-  if (mobile && clipboard) {
-    const { x: buttonLeft, y: buttonTop } = getClipboardButtonsPos(state).asViewport(state)
-    const { clipboardButtonWidth: width, clipboardButtonHeight: height, clipboardButtonGap: gap } = options
-    const x = touch.pageX
-    const y = touch.pageY
-    const consumeClipboardTransformTouch = (action) => {
-      clipboardTransformTouchActive = true
-      dispatch(action)
-      doubleTapIsPossible = false
-      clearTimeout(doubleTapTimer)
-    }
-
-    // The first button is rotate
-    if (x >= buttonLeft && x <= buttonLeft + width && y >= buttonTop && y <= buttonTop + height) {
-      consumeClipboardTransformTouch("increment_clipboard_rotation")
-      return
-    }
-    // The second button is flip
-    if (
-      x >= buttonLeft + width + gap &&
-      x <= buttonLeft + width * 2 + gap &&
-      y >= buttonTop &&
-      y <= buttonTop + height
-    ) {
-      consumeClipboardTransformTouch("increment_clipboard_mirror_axis")
-      return
-    }
-    // The third button is accept
-    if (
-      x >= buttonLeft + width * 2 + gap * 2 &&
-      x <= buttonLeft + width * 3 + gap * 2 &&
-      y >= buttonTop &&
-      y <= buttonTop + height
-    ) {
-      consumeClipboardTransformTouch("paste")
-      return
-    }
-    // The fourth button is cancel
-    if (
-      x >= buttonLeft + width * 3 + gap * 3 &&
-      x <= buttonLeft + width * 4 + gap * 3 &&
-      y >= buttonTop &&
-      y <= buttonTop + height
-    ) {
-      consumeClipboardTransformTouch("cancel_clipboard")
-      return
-    }
+  const canvasButton = getCanvasButtonAt(state, touch.pageX, touch.pageY)
+  if (canvasButton) {
+    canvasButtonTouchActive = true
+    dispatch(canvasButton.action)
+    doubleTapIsPossible = false
+    clearTimeout(doubleTapTimer)
+    return
   }
 
   const newTapPos = Point.fromViewport(state, touch.pageX, touch.pageY)
@@ -250,8 +225,8 @@ export function onTouchEnd(state, dispatch, e) {
   // disable the hold timer from there.
   clearTimeout(touchHoldTimer)
 
-  if (clipboardTransformTouchActive) {
-    clipboardTransformTouchActive = false
+  if (canvasButtonTouchActive) {
+    canvasButtonTouchActive = false
     gestureTouches = null
     holdAndDragPossible = false
     holdAndDragConverted = false
@@ -281,7 +256,7 @@ export function onTouchEnd(state, dispatch, e) {
 
 export function onTouchMove(state, dispatch, e) {
   e.preventDefault()
-  if (clipboardTransformTouchActive) return
+  if (canvasButtonTouchActive) return
 
   // We can allow double taps if we move, but not enough to change cursorPos
   if (e.touches.length === 2) {

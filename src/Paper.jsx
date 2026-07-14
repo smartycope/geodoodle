@@ -13,6 +13,7 @@ import {
   DebugInfo,
   MirrorMetaLines,
   ClipboardTransformButtons,
+  SelectionOptionButtons,
   SelectionRect,
   Bounds,
   SpecificSelectors,
@@ -124,6 +125,7 @@ export default function Paper({ setDispatch }) {
             <SpecificSelectors />
             <GenericSelectors />
             <SelectionRect />
+            <SelectionOptionButtons />
             <ClipboardTransformButtons />
             <MirrorMetaLines />
             <Clipboard />

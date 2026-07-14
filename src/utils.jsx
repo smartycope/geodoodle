@@ -1,18 +1,8 @@
 import { viewportWidth, viewportHeight, MIRROR_AXIS } from "./globals"
 import Point from "./helper/Point"
 import Rect from "./helper/Rect"
-import options from "./options"
 
 // TODO: several of these functions are not used anymore and should be removed
-
-export function getClipboardButtonsPos(state) {
-  const { cursorPos, scalex } = state
-  const { clipboardButtonWidth: buttonWidth, clipboardButtonHeight: buttonHeight } = options
-  const { x: cursorx, y: cursory } = cursorPos.asViewport(state)
-  const { width: boundWidth, height: boundHeight } = getBoundRect(state).asViewport(state, true)
-  // x={cursorx - width/2 - scalex/2} y={cursory - height/2 - buttonHeight}
-  return Point.fromViewport(state, cursorx - boundWidth / 2 - scalex / 2, cursory - boundHeight / 2 - buttonHeight)
-}
 
 // Get all the lines for the clipboard, including mirroring and transformation of the clipboard
 export function getAllClipboardLines(state) {
@@ -78,6 +68,13 @@ export function getBoundRect(state) {
     : bounds.length > 1
       ? Rect.fromPoints(...bounds)
       : null
+}
+
+export function getClipboardRect(state) {
+  const { clipboard } = state
+  if (!clipboard) return null
+  const allLines = getAllClipboardLines(state)
+  return getLinesRect(allLines)
 }
 
 export function getHalf(state) {

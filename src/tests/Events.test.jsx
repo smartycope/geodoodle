@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
-import { onTouchEnd, onTouchMove, onTouchStart } from "../events"
+import { onMouseDown, onMouseMove, onMouseUp, onTouchEnd, onTouchMove, onTouchStart } from "../events"
 import reducer from "../reducer"
 import options from "../options"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
-import { getClipboardButtonsPos } from "../utils"
+import { getClipboardButtonsPos, getSelectionButtonsPos } from "../utils"
 import { getState } from "./testUtils"
 
 const touch = (pageX, pageY) => ({ pageX, pageY })
@@ -150,5 +150,55 @@ describe("touch interactions", () => {
     expect(state.cursorPos.eq(originalCursor)).toBe(false)
 
     onTouchEnd(state, dispatch, touchEvent([], [ordinaryTouch]))
+  })
+
+  test.each([
+    [0, "copy"],
+    [1, "cut"],
+    [2, "delete_selected"],
+    [3, "delete_unselected"],
+    [4, "clear_bounds"],
+  ])("selection option button %i consumes its touch movement", (buttonIndex, expectedAction) => {
+    const originalCursor = Point.fromViewport(state, 300, 300).align(state)
+    state = {
+      ...state,
+      cursorPos: originalCursor,
+      bounds: [Point.fromViewport(state, 260, 280), Point.fromViewport(state, 340, 320)],
+    }
+    const { x: buttonLeft, y: buttonTop } = getSelectionButtonsPos(state).asViewport(state)
+    const buttonTouch = touch(
+      buttonLeft + buttonIndex * (options.clipboardButtonWidth + options.clipboardButtonGap) + 1,
+      buttonTop + 1,
+    )
+    const movedTouch = touch(buttonTouch.pageX + 30, buttonTouch.pageY + 30)
+
+    onTouchStart(state, dispatch, touchEvent([buttonTouch]))
+    onTouchMove(state, dispatch, touchEvent([movedTouch]))
+
+    expect(dispatched.map(actionName)).toContain(expectedAction)
+    expect(dispatched.map(actionName)).not.toContain("cursor_moved")
+    expect(state.cursorPos.eq(originalCursor)).toBe(true)
+
+    onTouchEnd(state, dispatch, touchEvent([], [movedTouch]))
+  })
+
+  test("selection option buttons handle desktop mouse presses without moving the cursor", () => {
+    const originalCursor = Point.fromViewport(state, 300, 300).align(state)
+    state = {
+      ...state,
+      mobile: false,
+      cursorPos: originalCursor,
+      bounds: [Point.fromViewport(state, 260, 280), Point.fromViewport(state, 340, 320)],
+    }
+    const { x: buttonLeft, y: buttonTop } = getSelectionButtonsPos(state).asViewport(state)
+    const event = { clientX: buttonLeft + 1, clientY: buttonTop + 1, buttons: 0, button: 0 }
+
+    onMouseMove(state, dispatch, event)
+    onMouseDown(state, dispatch, event)
+    onMouseUp(state, dispatch, event)
+
+    expect(dispatched.map(actionName)).toContain("copy")
+    expect(dispatched.map(actionName)).not.toContain("cursor_moved")
+    expect(state.cursorPos.eq(originalCursor)).toBe(true)
   })
 })
