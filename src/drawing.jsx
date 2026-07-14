@@ -571,6 +571,8 @@ export const Clipboard = () => {
 export const Cursor = () => {
   const { state } = useContext(StateContext)
   const { cursor, cursorPos, scalex, fillMode, debug } = state
+  if (fillMode) return null
+
   const cursorPosViewport = cursorPos.asViewport(state)
   const theme = useTheme()
 
@@ -606,7 +608,7 @@ export const Cursor = () => {
     i++
   }
 
-  return (!fillMode || debug) && <g id="cursor-group">{cursors}</g>
+  return <g id="cursor-group">{cursors}</g>
 }
 
 export const Dots = () => {
