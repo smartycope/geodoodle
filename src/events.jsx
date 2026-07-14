@@ -114,6 +114,9 @@ var lastTapPos = new Point(-10, -10)
 // If we hold, it creates a point, but then if we drag, instead of creating a line, it creates another bound on touchend
 var holdAndDragPossible = false
 var holdAndDragConverted = false
+// Clipboard transform buttons are handled manually on touchstart. Consume the rest of that touch as well, or its
+// touchmove events will move the cursor and clipboard underneath the button.
+var clipboardTransformTouchActive = false
 
 export function getGestureScaleDelta(scale, previousDistance, newDistance, sensitivity) {
   if (previousDistance <= 0) return 0
@@ -138,6 +141,7 @@ export function getGestureScaleDelta(scale, previousDistance, newDistance, sensi
 
 export function onTouchStart(state, dispatch, e) {
   e.preventDefault()
+  if (e.touches.length === 1) clipboardTransformTouchActive = false
 
   const { fillMode, mobile, clipboard } = state
   const touch = e.touches[0] || e.changedTouches[0]
@@ -152,12 +156,16 @@ export function onTouchStart(state, dispatch, e) {
     const { clipboardButtonWidth: width, clipboardButtonHeight: height, clipboardButtonGap: gap } = options
     const x = touch.pageX
     const y = touch.pageY
+    const consumeClipboardTransformTouch = (action) => {
+      clipboardTransformTouchActive = true
+      dispatch(action)
+      doubleTapIsPossible = false
+      clearTimeout(doubleTapTimer)
+    }
 
     // The first button is rotate
     if (x >= buttonLeft && x <= buttonLeft + width && y >= buttonTop && y <= buttonTop + height) {
-      dispatch("increment_clipboard_rotation")
-      doubleTapIsPossible = false
-      clearTimeout(doubleTapTimer)
+      consumeClipboardTransformTouch("increment_clipboard_rotation")
       return
     }
     // The second button is flip
@@ -167,9 +175,7 @@ export function onTouchStart(state, dispatch, e) {
       y >= buttonTop &&
       y <= buttonTop + height
     ) {
-      dispatch("increment_clipboard_mirror_axis")
-      doubleTapIsPossible = false
-      clearTimeout(doubleTapTimer)
+      consumeClipboardTransformTouch("increment_clipboard_mirror_axis")
       return
     }
     // The third button is accept
@@ -179,9 +185,7 @@ export function onTouchStart(state, dispatch, e) {
       y >= buttonTop &&
       y <= buttonTop + height
     ) {
-      dispatch("paste")
-      doubleTapIsPossible = false
-      clearTimeout(doubleTapTimer)
+      consumeClipboardTransformTouch("paste")
       return
     }
     // The fourth button is cancel
@@ -191,9 +195,7 @@ export function onTouchStart(state, dispatch, e) {
       y >= buttonTop &&
       y <= buttonTop + height
     ) {
-      dispatch("cancel_clipboard")
-      doubleTapIsPossible = false
-      clearTimeout(doubleTapTimer)
+      consumeClipboardTransformTouch("cancel_clipboard")
       return
     }
   }
@@ -248,6 +250,16 @@ export function onTouchEnd(state, dispatch, e) {
   // disable the hold timer from there.
   clearTimeout(touchHoldTimer)
 
+  if (clipboardTransformTouchActive) {
+    clipboardTransformTouchActive = false
+    gestureTouches = null
+    holdAndDragPossible = false
+    holdAndDragConverted = false
+    singleTapTouchingScreen = false
+    tapDragging = false
+    return
+  }
+
   // If we're coming off of a gesture, don't do anything
   // We don't support 3 finger gestures, so this will always be fine
   if (gestureTouches) {
@@ -269,6 +281,7 @@ export function onTouchEnd(state, dispatch, e) {
 
 export function onTouchMove(state, dispatch, e) {
   e.preventDefault()
+  if (clipboardTransformTouchActive) return
 
   // We can allow double taps if we move, but not enough to change cursorPos
   if (e.touches.length === 2) {

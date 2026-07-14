@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import { onTouchEnd, onTouchMove, onTouchStart } from "../events"
 import reducer from "../reducer"
+import options from "../options"
+import Line from "../helper/Line"
+import Point from "../helper/Point"
+import { getClipboardButtonsPos } from "../utils"
 import { getState } from "./testUtils"
 
 const touch = (pageX, pageY) => ({ pageX, pageY })
@@ -109,5 +113,42 @@ describe("touch interactions", () => {
     expect(scaleAction.amty).toBeCloseTo(5)
     expect(dispatched.map(actionName)).not.toContain("add_line")
     expect(state.lines).toHaveLength(0)
+  })
+
+  test.each([
+    [0, "increment_clipboard_rotation"],
+    [1, "increment_clipboard_mirror_axis"],
+    [2, "paste"],
+    [3, "cancel_clipboard"],
+  ])("clipboard transform button %i consumes its touch movement", (buttonIndex, expectedAction) => {
+    const originalCursor = Point.fromViewport(state, 300, 300).align(state)
+    state = {
+      ...state,
+      cursorPos: originalCursor,
+      bounds: [Point.fromViewport(state, 260, 280), Point.fromViewport(state, 340, 320)],
+      clipboard: [new Line(state, new Point(-1, 0), new Point(1, 0))],
+    }
+    const { x: buttonLeft, y: buttonTop } = getClipboardButtonsPos(state).asViewport(state)
+    const buttonTouch = touch(
+      buttonLeft + buttonIndex * (options.clipboardButtonWidth + options.clipboardButtonGap) + 1,
+      buttonTop + 1,
+    )
+    const movedTouch = touch(buttonTouch.pageX + 30, buttonTouch.pageY + 30)
+
+    onTouchStart(state, dispatch, touchEvent([buttonTouch]))
+    onTouchMove(state, dispatch, touchEvent([movedTouch]))
+
+    expect(dispatched.map(actionName)).toContain(expectedAction)
+    expect(state.cursorPos.eq(originalCursor)).toBe(true)
+    expect(dispatched.map(actionName)).not.toContain("cursor_moved")
+
+    onTouchEnd(state, dispatch, touchEvent([], [movedTouch]))
+
+    const ordinaryTouch = touch(500, 500)
+    onTouchStart(state, dispatch, touchEvent([ordinaryTouch]))
+
+    expect(state.cursorPos.eq(originalCursor)).toBe(false)
+
+    onTouchEnd(state, dispatch, touchEvent([], [ordinaryTouch]))
   })
 })
