@@ -180,7 +180,6 @@ export function onTouchStart(state, dispatch, e) {
 
   dispatch({ action: "cursor_moved", point: newTapPos })
 
-  if (fillMode && !clipboard?.length) dispatch("fill")
   // We can only be dragging if a single finger has changed the cursorPos
   tapDragging = false
   singleTapTouchingScreen = touchCount === 1
@@ -247,6 +246,12 @@ export function onTouchEnd(state, dispatch, e) {
   if (!clipboard?.length && !fillMode && tapDragging && singleTapTouchingScreen)
     if (holdAndDragPossible) dispatch("add_bound")
     else dispatch("add_line")
+
+  if (fillMode && !clipboard?.length && singleTapTouchingScreen)
+    // A fill drag is only a preview. Clear it on release even if the finger is
+    // still inside a polygon; only an unmoved tap commits the fill.
+    if (tapDragging) dispatch({ curPolys: [] })
+    else dispatch("fill")
 
   holdAndDragPossible = false
   holdAndDragConverted = false

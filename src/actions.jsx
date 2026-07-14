@@ -49,7 +49,7 @@ export const cursor_moved = (state, { point }) => {
     boundDragging: true,
     // This is only tracked because fillMode uses it
     mousePos: point,
-    curPolys: fillMode ? getPreviewPolys(state, tempPolys) : null,
+    curPolys: fillMode ? getPreviewPolys({ ...state, mousePos: point }, tempPolys) : null,
     debugDrawPoints: {
       ...debugDrawPoints,
       Mouse: { point: point, color: "grey", yoff: -10, inflated: true, fill: fillMode ? "transparent" : "grey" },

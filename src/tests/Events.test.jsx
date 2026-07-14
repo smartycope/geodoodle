@@ -4,6 +4,7 @@ import reducer from "../reducer"
 import options from "../options"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
+import Poly from "../helper/Poly"
 import { getClipboardButtonsPos, getSelectionButtonsPos } from "../canvasButtonUtils"
 import { getState } from "./testUtils"
 
@@ -114,6 +115,79 @@ describe("touch interactions", () => {
     expect(state.genericSelectors).toHaveLength(1)
     expect(state.bounds).toHaveLength(0)
     expect(state.lines).toHaveLength(0)
+  })
+
+  test("releasing a fill drag inside a polygon clears the preview without filling it", () => {
+    const poly = Poly.fromPoints([
+      new Point(4, 4),
+      new Point(6, 4),
+      new Point(6, 6),
+      new Point(4, 6),
+    ])
+    state = {
+      ...state,
+      fillMode: true,
+      tempPolys: [poly],
+      curPolys: [],
+    }
+    const outside = touch(state.scalex, state.scaley)
+    const inside = touch(5 * state.scalex, 5 * state.scaley)
+
+    onTouchStart(state, dispatch, touchEvent([outside]))
+    onTouchMove(state, dispatch, touchEvent([inside]))
+
+    expect(state.curPolys).toHaveLength(1)
+    expect(state.filledPolys).toHaveLength(0)
+
+    onTouchEnd(state, dispatch, touchEvent([], [inside]))
+
+    expect(state.curPolys).toHaveLength(0)
+    expect(state.filledPolys).toHaveLength(0)
+  })
+
+  test("tapping without dragging still permanently fills a polygon", () => {
+    const poly = Poly.fromPoints([
+      new Point(4, 4),
+      new Point(6, 4),
+      new Point(6, 6),
+      new Point(4, 6),
+    ])
+    state = {
+      ...state,
+      fillMode: true,
+      tempPolys: [poly],
+      curPolys: [],
+    }
+    const tapInside = touch(5 * state.scalex, 5 * state.scaley)
+
+    onTouchStart(state, dispatch, touchEvent([tapInside]))
+    onTouchEnd(state, dispatch, touchEvent([], [tapInside]))
+
+    expect(state.filledPolys).toHaveLength(1)
+  })
+
+  test("dragging from inside a polygon does not commit the initial fill", () => {
+    const poly = Poly.fromPoints([
+      new Point(4, 4),
+      new Point(8, 4),
+      new Point(8, 8),
+      new Point(4, 8),
+    ])
+    state = {
+      ...state,
+      fillMode: true,
+      tempPolys: [poly],
+      curPolys: [],
+    }
+    const startInside = touch(5 * state.scalex, 5 * state.scaley)
+    const endInside = touch(7 * state.scalex, 5 * state.scaley)
+
+    onTouchStart(state, dispatch, touchEvent([startInside]))
+    onTouchMove(state, dispatch, touchEvent([endInside]))
+    onTouchEnd(state, dispatch, touchEvent([], [endInside]))
+
+    expect(state.curPolys).toHaveLength(0)
+    expect(state.filledPolys).toHaveLength(0)
   })
 
   test("a two-finger gesture translates and scales without drawing", () => {
