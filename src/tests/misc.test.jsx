@@ -95,6 +95,14 @@ test("HSV color picker preference persists for refresh", () => {
   expect(loadPreservedState().useHSVColorPicker).toBe(true)
 })
 
+test("selection canvas button preference persists for refresh", () => {
+  const state = getState()
+
+  reducer(state, { action: "set_manual_and_save_settings", disableSelectionCanvasButtons: true })
+
+  expect(loadPreservedState().disableSelectionCanvasButtons).toBe(true)
+})
+
 test("pinch scaling tracks the proportional distance between fingers", () => {
   expect(getGestureScaleDelta(4, 100, 125, 1)).toBeCloseTo(1)
   expect(getGestureScaleDelta(20, 100, 125, 1)).toBeCloseTo(5)

@@ -142,6 +142,7 @@ describe("touch interactions", () => {
     const originalCursor = Point.fromViewport(state, 300, 300).align(state)
     state = {
       ...state,
+      disableSelectionCanvasButtons: true,
       cursorPos: originalCursor,
       bounds: [Point.fromViewport(state, 260, 280), Point.fromViewport(state, 340, 320)],
       clipboard: [new Line(state, new Point(-1, 0), new Point(1, 0))],
@@ -218,5 +219,24 @@ describe("touch interactions", () => {
     expect(dispatched.map(actionName)).toContain("copy")
     expect(dispatched.map(actionName)).not.toContain("cursor_moved")
     expect(state.cursorPos.eq(originalCursor)).toBe(true)
+  })
+
+  test("disabled selection option buttons do not consume pointer events", () => {
+    state = {
+      ...state,
+      mobile: false,
+      disableSelectionCanvasButtons: true,
+      bounds: [Point.fromViewport(state, 260, 280), Point.fromViewport(state, 340, 320)],
+    }
+    const { x: buttonLeft, y: buttonTop } = getSelectionButtonsPos(state).asViewport(state)
+    const event = { clientX: buttonLeft + 1, clientY: buttonTop + 1, buttons: 0, button: 0 }
+
+    onMouseMove(state, dispatch, event)
+    onMouseDown(state, dispatch, event)
+    onMouseUp(state, dispatch, event)
+
+    expect(dispatched.map(actionName)).toContain("cursor_moved")
+    expect(dispatched.map(actionName)).toContain("add_line")
+    expect(dispatched.map(actionName)).not.toContain("copy")
   })
 })

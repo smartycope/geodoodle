@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, test } from "vitest"
-import { Clipboard, SelectionOptionButtons } from "../drawing"
+import { Clipboard, ClipboardTransformButtons, SelectionOptionButtons } from "../drawing"
 import { StateContext } from "../Contexts"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
@@ -94,5 +94,37 @@ describe("Selection option buttons", () => {
     )
 
     expect(container.querySelector("#selection-option-buttons")).toBeNull()
+  })
+
+  test("can disable selection buttons without disabling mobile clipboard buttons", () => {
+    const state = stateWithBounds(true)
+    const disabledState = {
+      ...state,
+      disableSelectionCanvasButtons: true,
+    }
+    const { container, rerender } = render(
+      <StateContext.Provider value={{ state: disabledState }}>
+        <svg>
+          <SelectionOptionButtons />
+        </svg>
+      </StateContext.Provider>,
+    )
+
+    expect(container.querySelector("#selection-option-buttons")).toBeNull()
+
+    const clipboardState = {
+      ...disabledState,
+      cursorPos: new Point(10, 10),
+      clipboard: [new Line(state, new Point(-1, 0), new Point(1, 0))],
+    }
+    rerender(
+      <StateContext.Provider value={{ state: clipboardState }}>
+        <svg>
+          <ClipboardTransformButtons />
+        </svg>
+      </StateContext.Provider>,
+    )
+
+    expect(container.querySelector("#clipboard-transform-buttons-mobile")).not.toBeNull()
   })
 })

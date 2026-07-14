@@ -50,6 +50,7 @@ const defaultOptions = {
   cursor: "circle",
   allowSnapToIntersections: true,
   toolbarOpacity: 0.9,
+  disableSelectionCanvasButtons: false,
 }
 export default defaultOptions
 
@@ -222,6 +223,7 @@ export const preservable = [
   "mirrorOrigins",
   "allowSnapToIntersections",
   "useHSVColorPicker",
+  "disableSelectionCanvasButtons",
 ]
 
 // These are parts of the state

@@ -42,7 +42,7 @@ export function getClipboardButtonStrip(state) {
 }
 
 export function getSelectionButtonStrip(state) {
-  if (state.clipboard || state.bounds.length < 2) return null
+  if (state.disableSelectionCanvasButtons || state.clipboard || state.bounds.length < 2) return null
   return {
     id: "selection-option-buttons",
     position: getSelectionButtonsPos(state),

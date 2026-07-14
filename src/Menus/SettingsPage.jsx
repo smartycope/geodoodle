@@ -71,6 +71,7 @@ export default function SettingsPage() {
     themeMode,
     allowSnapToIntersections,
     toolbarOpacity,
+    disableSelectionCanvasButtons,
   } = state
 
   return (
@@ -158,6 +159,21 @@ export default function SettingsPage() {
           <Checkbox
             checked={removeSelectionAfterDelete}
             onChange={() => dispatch({ action: "set_manual_and_save_settings", removeSelectionAfterDelete: !removeSelectionAfterDelete })}
+          />
+        </Setting>
+
+        <Setting
+          label="Disable Selection Canvas Buttons"
+          help="Hide the copy, cut, delete, and clear buttons shown beside a bounded selection"
+        >
+          <Checkbox
+            checked={disableSelectionCanvasButtons}
+            onChange={() =>
+              dispatch({
+                action: "set_manual_and_save_settings",
+                disableSelectionCanvasButtons: !disableSelectionCanvasButtons,
+              })
+            }
           />
         </Setting>
 

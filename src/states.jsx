@@ -129,6 +129,7 @@ export default function getInitialState() {
     defaultToMemorableNames: options.defaultToMemorableNames,
     allowSnapToIntersections: options.allowSnapToIntersections,
     toolbarOpacity: options.toolbarOpacity,
+    disableSelectionCanvasButtons: options.disableSelectionCanvasButtons,
 
     // TODO: Not currently implemented -- also, this should be in theme probably
     cursorColor: options.cursorColor,
