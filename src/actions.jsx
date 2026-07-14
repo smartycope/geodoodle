@@ -135,7 +135,6 @@ export const up = (state) => ({ cursorPos: state.cursorPos.add(Dist.fromDeflated
 export const down = (state) => ({ cursorPos: state.cursorPos.add(Dist.fromDeflated(state, 0, 1)) })
 
 // Selection Actions
-
 export const add_specific_selector = (state) => ({
   specificSelectors: state.cursorPos.in(state.specificSelectors)
   ? state.specificSelectors
@@ -168,6 +167,7 @@ export const clear_bounds = (state) => ({
   ...cancel_clipboard(state),
   bounds: [],
 })
+
 // Destruction Actions
 export const clear = (state) => ({
   translation: Dist.zero(),
@@ -575,6 +575,11 @@ export const toggle_dots = (state) => ({ hideDots: !state.hideDots })
 export const apply_trellis = () => ({ trellis: true })
 
 export const set_manual = (state, data) => {
+  delete data.action
+  return data
+}
+
+export const set_manual_and_save_settings = (state, data) => {
   delete data.action
   return data
 }

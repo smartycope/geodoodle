@@ -89,7 +89,7 @@ test("translation actions persist their updated value for refresh", () => {
 test("HSV color picker preference persists for refresh", () => {
   const state = getState()
 
-  reducer(state, { action: "set_use_hsv_color_picker", useHSVColorPicker: true })
+  reducer(state, { action: "set_manual_and_save_settings", useHSVColorPicker: true })
 
   expect(loadPreservedState().useHSVColorPicker).toBe(true)
 })

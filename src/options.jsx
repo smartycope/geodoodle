@@ -165,7 +165,7 @@ export const saveSettingActions = [
   "set_dash",
   "set_color",
   "randomize_colors",
-  "set_use_hsv_color_picker",
+  "set_manual_and_save_settings",
   "toggle_partials",
   "apply_trellis",
   "fill",
