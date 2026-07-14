@@ -242,7 +242,7 @@ export default function SettingsPage() {
         <StyledSubheader>Advanced</StyledSubheader>
         <Setting label="Toolbar Opacity" help="Controls the opacity of the toolbar">
           <Slider
-            onChange={(e, val) => dispatch({ toolbarOpacity: val })}
+            onChange={(e, val) => dispatch({ toolbarOpacity: Math.log10(val) + 1 })}
             value={toolbarOpacity}
             min={0}
             max={1}
