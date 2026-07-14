@@ -4,7 +4,7 @@ import reducer from "../reducer"
 import options from "../options"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
-import { getClipboardButtonsPos, getSelectionButtonsPos } from "../utils"
+import { getClipboardButtonsPos, getSelectionButtonsPos } from "../canvasButtonUtils"
 import { getState } from "./testUtils"
 
 const touch = (pageX, pageY) => ({ pageX, pageY })
@@ -49,6 +49,24 @@ describe("touch interactions", () => {
     expect(state.lines).toHaveLength(0)
     expect(state.bounds).toHaveLength(0)
     expect(state.genericSelectors).toHaveLength(0)
+  })
+
+  test("double tapping a mirror origin removes it", () => {
+    const tap = touch(100, 100)
+    const origin = Point.fromViewport(state, tap.pageX, tap.pageY).align(state)
+    state = {
+      ...state,
+      mirrorOrigins: [{ origin, axis: 1, rot: 0 }],
+    }
+
+    onTouchStart(state, dispatch, touchEvent([tap]))
+    onTouchEnd(state, dispatch, touchEvent([], [tap]))
+    onTouchStart(state, dispatch, touchEvent([tap]))
+
+    expect(dispatched.map(actionName)).toContain("delete_at_cursor")
+    expect(state.mirrorOrigins).toHaveLength(0)
+
+    onTouchEnd(state, dispatch, touchEvent([], [tap]))
   })
 
   test("a normal one-finger drag still draws a line", () => {

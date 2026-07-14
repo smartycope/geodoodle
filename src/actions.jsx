@@ -226,7 +226,7 @@ export const delete_at_cursor = (state, { allowDeleteSelected = false } = {}) =>
   // If we have a clipboard, clear it
   if (clipboard) return cancel_clipboard(state)
   // If we're over a mirror origin, delete it
-  if (cursorPos.in(mirrorOrigins.map((o) => o.origin))) return remove_mirror_origin(state, cursorPos)
+  if (cursorPos.in(mirrorOrigins.map((o) => o.origin))) return remove_mirror_origin(state, { origin: cursorPos })
   // If we have selected lines, delete them
   if (allowDeleteSelected && getSelected(state).length > 0) return delete_selected(state)
 
