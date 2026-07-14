@@ -115,6 +115,11 @@ var lastTapPos = new Point(-10, -10)
 var holdAndDragPossible = false
 var holdAndDragConverted = false
 
+export function getGestureScaleDelta(scale, previousDistance, newDistance, sensitivity) {
+  if (previousDistance <= 0) return 0
+  return scale * (Math.pow(newDistance / previousDistance, sensitivity) - 1)
+}
+
 // Creating lines:
 // Lines start from the onTouchMove event. After we know it's not a double tap, or a hold or the like,
 // we can start the line once we've changed cursorPos. We then start the line from where cursorPos was
@@ -303,8 +308,8 @@ export function onTouchMove(state, dispatch, e) {
       if (!state.smoothGestureScale || Math.abs((prevDist - newDist) * state.gestureScaleSensitivity) > 0.6)
         dispatch({
           action: "scale",
-          amtx: -(prevDist - newDist) * state.gestureScaleSensitivity * 0.25,
-          amty: -(prevDist - newDist) * state.gestureScaleSensitivity * 0.25,
+          amtx: getGestureScaleDelta(state.scalex, prevDist, newDist, state.gestureScaleSensitivity),
+          amty: getGestureScaleDelta(state.scaley, prevDist, newDist, state.gestureScaleSensitivity),
           center: Point.fromViewport(state, newCenterx, newCentery),
         })
     } else dispatch({ curLinePos: null })

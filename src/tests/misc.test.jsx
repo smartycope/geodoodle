@@ -5,6 +5,7 @@ import * as actions from "../actions"
 import { reversibleActions, saveSettingActions } from "../options"
 import { loadPreservedState, validateStorage } from "../fileUtils"
 import { eventMatchesKeycode } from "../utils"
+import { getGestureScaleDelta } from "../events"
 import { extraButtons } from "../globals"
 import reducer from "../reducer"
 import Dist from "../helper/Dist"
@@ -92,6 +93,12 @@ test("HSV color picker preference persists for refresh", () => {
   reducer(state, { action: "set_manual_and_save_settings", useHSVColorPicker: true })
 
   expect(loadPreservedState().useHSVColorPicker).toBe(true)
+})
+
+test("pinch scaling tracks the proportional distance between fingers", () => {
+  expect(getGestureScaleDelta(4, 100, 125, 1)).toBeCloseTo(1)
+  expect(getGestureScaleDelta(20, 100, 125, 1)).toBeCloseTo(5)
+  expect(getGestureScaleDelta(25, 125, 100, 1)).toBeCloseTo(-5)
 })
 
 describe("keybinding modifiers", () => {

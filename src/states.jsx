@@ -115,7 +115,8 @@ export default function getInitialState() {
     invertedScroll: options.invertedScroll,
     scrollSensitivity: options.scrollSensitivity,
     gestureTranslateSensitivity: 1,
-    gestureScaleSensitivity: 0.3,
+    // 1 tracks the change in distance between two fingers exactly
+    gestureScaleSensitivity: 1,
     smoothGestureScale: false,
     dotsAbovefill: true,
     // One of options.extraButtons

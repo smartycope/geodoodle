@@ -213,7 +213,7 @@ export default function SettingsPage() {
             max={10}
           />
         </Setting>
-        <Setting label="Two Finger Scale Sensitivity" help="Controls how fast scroll translates">
+        <Setting label="Two Finger Scale Sensitivity" help="Controls how closely pinch zoom follows your fingers">
           <Number
             onValueChange={(val) => dispatch({ action: "set_manual_and_save_settings", gestureScaleSensitivity: val })}
             value={gestureScaleSensitivity}
