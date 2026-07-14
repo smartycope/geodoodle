@@ -121,6 +121,7 @@ export default function getInitialState() {
     // One of options.extraButtons
     extraButton: "home",
     hideHexColor: options.hideHexColor,
+    useHSVColorPicker: options.useHSVColorPicker,
     maxUndoAmt: options.maxUndoAmt,
     enableGestureScale: options.enableGestureScale,
     inTour: false,

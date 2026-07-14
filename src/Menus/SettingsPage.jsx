@@ -55,6 +55,7 @@ export default function SettingsPage() {
     invertedScroll,
     scrollSensitivity,
     hideHexColor,
+    useHSVColorPicker,
     enableGestureScale,
     cursor,
     extraButton,
@@ -245,6 +246,17 @@ export default function SettingsPage() {
         </Setting>
         <Setting label="Hide Hex Color" help="Controls if the hex color is displayed in the color menu">
           <Checkbox checked={hideHexColor} onChange={() => dispatch({ hideHexColor: !hideHexColor })} />
+        </Setting>
+        <Setting
+          label="Use HSV Color Picker"
+          help="Show hue, saturation, and value controls instead of red, green, and blue controls in the color menu"
+        >
+          <Checkbox
+            checked={useHSVColorPicker}
+            onChange={() =>
+              dispatch({ useHSVColorPicker: !useHSVColorPicker })
+            }
+          />
         </Setting>
         <Setting label="Dots above fill" help="Controls if the dots are displayed above the filled areas or not">
           <Checkbox checked={dotsAbovefill} onChange={() => dispatch({ dotsAbovefill: !dotsAbovefill })} />

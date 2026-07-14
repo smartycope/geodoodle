@@ -5,7 +5,7 @@ import { StateContext } from "../Contexts"
 import { getState } from "./testUtils"
 
 vi.mock("react-color-palette", () => ({
-  ColorPicker: () => null,
+  ColorPicker: ({ hideInput }) => <div data-testid="color-picker" data-hidden-inputs={hideInput.join(",")} />,
   ColorService: { convert: vi.fn(() => ({})) },
 }))
 
@@ -14,26 +14,29 @@ describe("Color Menu", () => {
     document.querySelector("#color-tool-button")?.remove()
   })
 
-  const renderColorMenu = () => {
+  const renderColorMenu = (stateOverrides = {}) => {
     const anchor = document.createElement("button")
     anchor.id = "color-tool-button"
     document.body.appendChild(anchor)
     const state = getState()
     const dispatch = vi.fn()
 
-    render(
+    const rendered = render(
       <StateContext.Provider
-        value={{ state: { ...state, openMenus: { ...state.openMenus, color: true } }, dispatch }}
+        value={{
+          state: { ...state, ...stateOverrides, openMenus: { ...state.openMenus, color: true } },
+          dispatch,
+        }}
       >
         <ColorMenu />
       </StateContext.Provider>,
     )
 
-    return dispatch
+    return { dispatch, unmount: rendered.unmount }
   }
 
   test("the Randomize button dispatches the palette action", () => {
-    const dispatch = renderColorMenu()
+    const { dispatch } = renderColorMenu()
 
     fireEvent.click(screen.getByRole("button", { name: "Randomize" }))
 
@@ -47,13 +50,24 @@ describe("Color Menu", () => {
 
     expect(
       await screen.findByText(
-        "Not truly random: hues vary, while value matches the paper and saturation is increased by up to 20 points.",
+        "Not truly random: it randomizes hues, while matches the paper value, and increasing the paper saturation.",
       ),
     ).not.toBeNull()
   })
 
+  test("shows either RGB or HSV inputs based on the picker setting", () => {
+    const { unmount } = renderColorMenu({ useHSVColorPicker: false, hideHexColor: false })
+
+    expect(screen.getByTestId("color-picker").getAttribute("data-hidden-inputs")).toBe("hsv")
+
+    unmount()
+    renderColorMenu({ useHSVColorPicker: true, hideHexColor: false })
+
+    expect(screen.getByTestId("color-picker").getAttribute("data-hidden-inputs")).toBe("rgb")
+  })
+
   test("retains palette selection, line controls, fill mode, and close controls", () => {
-    const dispatch = renderColorMenu()
+    const { dispatch } = renderColorMenu()
     const presets = screen.getAllByRole("button", { name: /Color preset/ })
 
     expect(presets).toHaveLength(5)

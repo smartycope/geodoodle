@@ -86,6 +86,14 @@ test("translation actions persist their updated value for refresh", () => {
   expect(loadPreservedState().translation.eq(state.translation.add(amount))).toBe(true)
 })
 
+test("HSV color picker preference persists for refresh", () => {
+  const state = getState()
+
+  reducer(state, { action: "set_use_hsv_color_picker", useHSVColorPicker: true })
+
+  expect(loadPreservedState().useHSVColorPicker).toBe(true)
+})
+
 describe("keybinding modifiers", () => {
   const keyEvent = (overrides = {}) => ({
     key: "c",

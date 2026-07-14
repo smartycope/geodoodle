@@ -26,7 +26,18 @@ export default function ColorMenu() {
   const theme = useTheme()
   const shortViewport = useMediaQuery("@media (max-height: 784px)")
 
-  const { stroke, strokeWidth, dash, colorProfile, scalex, fillMode, fill, mobile, paperColor } = state
+  const {
+    stroke,
+    strokeWidth,
+    dash,
+    colorProfile,
+    scalex,
+    fillMode,
+    fill,
+    mobile,
+    paperColor,
+    useHSVColorPicker,
+  } = state
   const colors = fillMode ? fill : stroke
   const compact = mobile || shortViewport
 
@@ -62,7 +73,7 @@ export default function ColorMenu() {
           <ColorPicker
             height={compact ? 108 : 148}
             color={ColorService.convert("hex", colors[colorProfile])}
-            hideInput={state.hideHexColor ? ["hsv", "hex"] : ["hsv"]}
+            hideInput={[useHSVColorPicker ? "rgb" : "hsv", ...(state.hideHexColor ? ["hex"] : [])]}
             onChange={(clr) => dispatch({ action: "set_color", color: clr.hex })}
           />
         </Box>
@@ -76,6 +87,7 @@ export default function ColorMenu() {
             </Typography>
             <Tooltip
               describeChild
+              enterDelay={0}
               title="Not truly random: it randomizes hues, while matches the paper value, and increasing the paper saturation."
             >
               <Button

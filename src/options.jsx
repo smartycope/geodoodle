@@ -24,6 +24,7 @@ const defaultOptions = {
   invertedScroll: true,
   scrollSensitivity: 0.3,
   hideHexColor: true,
+  useHSVColorPicker: false,
   enableGestureScale: false,
   paperColor: "#ffddab",
   maxMouseMoveEventsDuringHold: 30,
@@ -164,6 +165,7 @@ export const saveSettingActions = [
   "set_dash",
   "set_color",
   "randomize_colors",
+  "set_use_hsv_color_picker",
   "toggle_partials",
   "apply_trellis",
   "fill",
@@ -219,6 +221,7 @@ export const preservable = [
   "filledPolys",
   "mirrorOrigins",
   "allowSnapToIntersections",
+  "useHSVColorPicker",
 ]
 
 // These are parts of the state
