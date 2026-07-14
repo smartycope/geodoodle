@@ -71,12 +71,17 @@ export default function SettingsPage() {
     themeMode,
     allowSnapToIntersections,
     toolbarOpacity,
-    mobile,
   } = state
 
   return (
-    // <Page menu="settings" sx={{fontSize: mobile ? "0.75rem" : "0.875rem"}}>
-    <Page menu="settings">
+    <Page
+      menu="settings"
+      sx={{
+        "& .MuiListItemText-primary, & .MuiListItemText-secondary, & .MuiListSubheader-root, & .MuiButton-root, & .MuiSelect-select": {
+          fontSize: { xs: "0.70rem", sm: "0.875rem", md: "1rem" },
+        },
+      }}
+    >
       <List subheader={<StyledSubheader>General</StyledSubheader>}>
         {/* General */}
         <Setting label="Extra Button" help="Defines the functionality of the customizable button">
