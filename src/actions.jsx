@@ -334,6 +334,12 @@ export const add_bound = (state) => {
 }
 
 // Color actions
+export const set_color_profile_index = (state, { index }) => {
+  const colors = state.fillMode ? state.fill : state.stroke
+  if (!Number.isInteger(index) || index < 0 || index >= colors.length) return {}
+  return { colorProfile: index }
+}
+
 export const set_color = (state, { color }) => {
   let copy = JSON.parse(JSON.stringify(state.fillMode ? state.fill : state.stroke))
   copy[state.colorProfile] = color

@@ -137,6 +137,11 @@ test("e is bound to picking up a line endpoint", () => {
   expect(keybindings.e).toEqual({ action: "pick_up_line_end" })
 })
 
+test("number keys select the five zero-indexed color profiles", () => {
+  for (let key = 1; key <= defaultOptions.commonColorAmt; key++)
+    expect(keybindings[key]).toEqual({ action: "set_color_profile_index", index: key - 1 })
+})
+
 test("dot visibility is available as an Extra Button action", () => {
   expect(extraButtons.toggle_dots).toEqual({ action: "toggle_dots" })
 })

@@ -5,6 +5,7 @@ import {
   clear_fill,
   toggle_fill_mode,
   randomize_colors,
+  set_color_profile_index,
   translate,
   scale,
   rotate,
@@ -559,6 +560,22 @@ describe("Line Creation Actions", () => {
 })
 
 describe("Color Actions", () => {
+  test.each([0, 1, 2, 3, 4])("selects color profile %i without replacing either palette", (index) => {
+    const state = getState()
+
+    const result = set_color_profile_index(state, { index })
+
+    expect(result).toEqual({ colorProfile: index })
+    expect(state.stroke).toHaveLength(defaultOptions.commonColorAmt)
+    expect(state.fill).toHaveLength(defaultOptions.commonColorAmt)
+  })
+
+  test("ignores an out-of-range color profile", () => {
+    const state = getState()
+
+    expect(set_color_profile_index(state, { index: defaultOptions.commonColorAmt })).toEqual({})
+  })
+
   test("randomizes all preset hues with the background value and 20 points more saturation", () => {
     const state = { ...getState(), paperColor: "#996b6b" }
     const [, backgroundSaturation, backgroundValue] = new Color(state.paperColor).hsv

@@ -1,6 +1,6 @@
 import { viewportWidth, viewportHeight } from "./globals"
 
-// Options/defaultOptions needs a refactor
+// TODO: Options/defaultOptions needs a refactor
 const defaultOptions = {
   cursorColor: "black",
   scalex: 20,
@@ -99,15 +99,15 @@ export const keybindings = {
   r: { action: "menu", toggle: "repeat" },
   "ctrl+s": { action: "menu", toggle: "settings" },
 
-  1: { action: `set_to_common_color`, index: 1 },
-  2: { action: `set_to_common_color`, index: 2 },
-  3: { action: `set_to_common_color`, index: 3 },
-  4: { action: `set_to_common_color`, index: 4 },
-  5: { action: `set_to_common_color`, index: 5 },
-  6: { action: `set_to_common_color`, index: 6 },
-  7: { action: `set_to_common_color`, index: 7 },
-  8: { action: `set_to_common_color`, index: 8 },
-  9: { action: `set_to_common_color`, index: 9 },
+  1: { action: `set_color_profile_index`, index: 0 },
+  2: { action: `set_color_profile_index`, index: 1 },
+  3: { action: `set_color_profile_index`, index: 2 },
+  4: { action: `set_color_profile_index`, index: 3 },
+  5: { action: `set_color_profile_index`, index: 4 },
+  // 6: { action: `set_color_profile_index`, index: 6 },
+  // 7: { action: `set_color_profile_index`, index: 7 },
+  // 8: { action: `set_color_profile_index`, index: 8 },
+  // 9: { action: `set_color_profile_index`, index: 9 },
 
   "ctrl+c": { action: "copy" },
   "ctrl+v": { action: "paste" },
