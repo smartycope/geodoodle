@@ -70,9 +70,11 @@ export default function SettingsPage() {
     themeMode,
     allowSnapToIntersections,
     toolbarOpacity,
+    mobile,
   } = state
 
   return (
+    // <Page menu="settings" sx={{fontSize: mobile ? "0.75rem" : "0.875rem"}}>
     <Page menu="settings">
       <List subheader={<StyledSubheader>General</StyledSubheader>}>
         {/* General */}

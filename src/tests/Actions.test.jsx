@@ -559,8 +559,9 @@ describe("Line Creation Actions", () => {
 })
 
 describe("Color Actions", () => {
-  test("randomizes all preset hues while retaining the background saturation and value", () => {
-    const state = { ...getState(), paperColor: "#ff0000" }
+  test("randomizes all preset hues with the background value and 20 points more saturation", () => {
+    const state = { ...getState(), paperColor: "#996b6b" }
+    const [, backgroundSaturation, backgroundValue] = new Color(state.paperColor).hsv
     const random = vi
       .spyOn(Math, "random")
       .mockReturnValueOnce(0)
@@ -576,8 +577,8 @@ describe("Color Actions", () => {
     expect(new Set(result.stroke).size).toBe(defaultOptions.commonColorAmt)
     for (const color of result.stroke) {
       const [, saturation, value] = new Color(color).hsv
-      expect(saturation).toBeCloseTo(100)
-      expect(value).toBeCloseTo(100)
+      expect(saturation).toBeCloseTo(Math.min(backgroundSaturation + 20, 100), 0)
+      expect(value).toBeCloseTo(backgroundValue, 0)
     }
 
     random.mockRestore()

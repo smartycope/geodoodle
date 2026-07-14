@@ -343,8 +343,9 @@ export const set_color = (state, { color }) => {
 export const randomize_colors = (state) => {
   const background = new Color(state.paperColor)
   const [, saturation, value] = background.hsv
+  const boostedSaturation = Math.min(saturation + 20, 100)
   const colors = Array.from({ length: defaultOptions.commonColorAmt }, () =>
-    new Color("hsv", [Math.random() * 360, saturation, value]).to("srgb").toString({ format: "hex" }),
+    new Color("hsv", [Math.random() * 360, boostedSaturation, value]).to("srgb").toString({ format: "hex" }),
   )
 
   return { stroke: colors, fill: [...colors] }
