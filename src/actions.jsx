@@ -574,15 +574,9 @@ export const toggle_partials = (state) => ({ partials: !state.partials })
 export const toggle_dots = (state) => ({ hideDots: !state.hideDots })
 export const apply_trellis = () => ({ trellis: true })
 
-export const set_manual = (state, data) => {
-  delete data.action
-  return data
-}
+export const set_manual = (state, { action, ...data }) => data
 
-export const set_manual_and_save_settings = (state, data) => {
-  delete data.action
-  return data
-}
+export const set_manual_and_save_settings = (state, { action, ...data }) => data
 
 // This function defines how all the menus & pages interact with each other
 // Nav is not a mini menu, it can be open indepedently
