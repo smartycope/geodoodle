@@ -19,7 +19,7 @@ const defaultOptions = {
   // See note in onTouchEnd in App.jsx to see why this is / 2
   holdTapTimeMS: 1000 / 2,
   // If we remove all the bounds after cut or delete selection
-  removeSelectionAfterDelete: false,
+  removeSelectionAfterDelete: true,
   lineCap: "round",
   lineJoin: "round",
   maxUndoAmt: 20,
@@ -34,6 +34,7 @@ const defaultOptions = {
   toolbarOpacity: 0.9,
   disableSelectionCanvasButtons: false,
   loopCursorAtEdges: false,
+  allowCanvasRotation: true,
 }
 export default defaultOptions
 
@@ -68,7 +69,7 @@ export const keybindable = [
   bindable("clear_bounds", "Clear area bounds", "shift+b"),
   bindable("nevermind", "Cancel current operation", "escape"),
   bindable("toggle_partials", "Toggle partial selection", "p"),
-  bindable("go_home", "Reset position and scale", ["home", "h"]),
+  bindable("go_home", "Reset position, scale, and rotation", ["home", "h"]),
   bindable("increment_clipboard_rotation", "Rotate clipboard", "x"),
   bindable("increment_clipboard_mirror_axis", "Mirror clipboard", "z"),
   bindable("add_mirror_origin", "Add mirror origin", "o"),
@@ -142,6 +143,8 @@ export const reversibleActions = [
 // Only save the state to be preserved when these actions happen
 export const saveSettingActions = [
   "translate",
+  "rotate",
+  "gesture_transform",
   "increase_scale",
   "decrease_scale",
   "go_home",
@@ -160,6 +163,7 @@ export const saveSettingActions = [
   "set_color",
   "randomize_colors",
   "set_manual_and_save_settings",
+  "set_canvas_rotation_allowed",
   "toggle_partials",
   "apply_trellis",
   "fill",
@@ -206,6 +210,7 @@ export const preservable = [
   "translation",
   "scalex",
   "scaley",
+  "rotate",
   "defaultScalex",
   "defaultScaley",
   "invertedScroll",
@@ -221,6 +226,7 @@ export const preservable = [
   "disableSelectionCanvasButtons",
   "keybindings",
   "loopCursorAtEdges",
+  "allowCanvasRotation",
 ]
 
 // These are parts of the state
@@ -236,4 +242,5 @@ export const saveable = [
   "translation",
   "scalex",
   "scaley",
+  "rotate",
 ]

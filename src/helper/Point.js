@@ -3,6 +3,7 @@ import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE } from "../globals"
 import { getAllIntersections, getHalf, toRadians } from "../utils"
 import Dist from "./Dist"
 import { point as turfPoint } from "@turf/turf"
+import { rotateViewportCoordinates } from "../transformUtils"
 
 /*
     A Point class to handle coordinate transformations declaratively for us
@@ -34,8 +35,8 @@ export default class Point extends Pair {
     return new Point(0, 0)
   }
 
-  static viewportOrigin({ translation }) {
-    return new Point(-translation._x, -translation._y)
+  static viewportOrigin(state) {
+    return Point.fromViewport(state, 0, 0)
   }
 
   // To be avoided, just like the constructor
@@ -43,10 +44,12 @@ export default class Point extends Pair {
     return new Point(dist._x, dist._y)
   }
 
-  static fromViewport({ translation, scalex, scaley }, x, y, inflated = true) {
+  static fromViewport(state, x, y, inflated = true) {
+    const { translation, scalex, scaley } = state
+    const unrotated = rotateViewportCoordinates(state, x, y, -(state.rotate ?? 0), inflated)
     const { x: translationx, y: translationy } = translation.asDeflated()
-    if (inflated) return new Point(x / scalex - translationx, y / scaley - translationy)
-    return new Point(x - translationx, y - translationy)
+    if (inflated) return new Point(unrotated.x / scalex - translationx, unrotated.y / scaley - translationy)
+    return new Point(unrotated.x - translationx, unrotated.y - translationy)
   }
 
   // fromSvg(state, x, y, false)           - x and y are deflated
@@ -66,10 +69,13 @@ export default class Point extends Pair {
     return new Point(x_or_y, y)
   }
 
-  asViewport({ translation, scalex, scaley }, inflate = true) {
+  asViewport(state, inflate = true) {
+    const { translation, scalex, scaley } = state
     const { x: translationx, y: translationy } = translation.asDeflated()
-    if (inflate) return { x: (this._x + translationx) * scalex, y: (this._y + translationy) * scaley }
-    return { x: this._x + translationx, y: this._y + translationy }
+    const unrotated = inflate
+      ? { x: (this._x + translationx) * scalex, y: (this._y + translationy) * scaley }
+      : { x: this._x + translationx, y: this._y + translationy }
+    return rotateViewportCoordinates(state, unrotated.x, unrotated.y, state.rotate ?? 0, inflate)
   }
 
   asSvg({ scalex, scaley } = { scalex: 1, scaley: 1 }, inflate = true) {

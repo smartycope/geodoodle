@@ -2,6 +2,7 @@ import Point from "./helper/Point"
 import Dist from "./helper/Dist"
 import { distCenter, eventMatchesKeycode } from "./utils"
 import { getCanvasButtonAt } from "./canvasButtonUtils"
+import { normalizeAngle } from "./transformUtils"
 
 var dragging = false
 var canvasButtonMouseActive = false
@@ -62,7 +63,13 @@ export function onMouseUp(state, dispatch, e) {
 
 export function onScroll(state, dispatch, e) {
   e.preventDefault()
-  if (e.shiftKey)
+  const primaryModifier = e.ctrlKey || e.metaKey
+  if (primaryModifier && e.shiftKey)
+    dispatch({
+      action: "rotate",
+      amt: (e.deltaY / 8) * state.scrollSensitivity * (state.invertedScroll ? -1 : 1),
+    })
+  else if (e.shiftKey)
     dispatch({
       action: "translate",
       amt: Dist.fromInflated(
@@ -71,7 +78,7 @@ export function onScroll(state, dispatch, e) {
         e.deltaX * state.scrollSensitivity * (state.invertedScroll ? -1 : 1),
       ),
     })
-  else if (e.ctrlKey) {
+  else if (primaryModifier) {
     // Disable the broswer zoom shortcut
     e.preventDefault()
     dispatch({
@@ -138,6 +145,13 @@ var canvasButtonTouchActive = false
 export function getGestureScaleDelta(scale, previousDistance, newDistance, sensitivity) {
   if (previousDistance <= 0) return 0
   return scale * (Math.pow(newDistance / previousDistance, sensitivity) - 1)
+}
+
+export function getGestureRotationDelta(previousTouches, newTouches) {
+  const angle = (touches) =>
+    Math.atan2(touches[1].pageY - touches[0].pageY, touches[1].pageX - touches[0].pageX) *
+    (180 / Math.PI)
+  return normalizeAngle(angle(newTouches) - angle(previousTouches))
 }
 
 // Creating lines:
@@ -285,25 +299,24 @@ export function onTouchMove(state, dispatch, e) {
         centery: prevCentery,
       } = distCenter(gestureTouches[0].pageX, gestureTouches[0].pageY, gestureTouches[1].pageX, gestureTouches[1].pageY)
 
-      dispatch({ curLinePos: null })
-      dispatch({
-        action: "translate",
-        amt: Dist.fromInflated(
-          state,
-          -(prevCenterx - newCenterx) * state.gestureTranslateSensitivity,
-          -(prevCentery - newCentery) * state.gestureTranslateSensitivity,
-        ),
-      })
-
       // TODO: enableGestureScale is broken -- not sure if it still is
       // This line helps stablize translation
-      if (!state.smoothGestureScale || Math.abs((prevDist - newDist) * state.gestureScaleSensitivity) > 0.6)
-        dispatch({
-          action: "scale",
-          amtx: getGestureScaleDelta(state.scalex, prevDist, newDist, state.gestureScaleSensitivity),
-          amty: getGestureScaleDelta(state.scaley, prevDist, newDist, state.gestureScaleSensitivity),
-          center: Point.fromViewport(state, newCenterx, newCentery),
-        })
+      const shouldScale =
+        !state.smoothGestureScale || Math.abs((prevDist - newDist) * state.gestureScaleSensitivity) > 0.6
+      dispatch({
+        action: "gesture_transform",
+        previousCenter: { x: prevCenterx, y: prevCentery },
+        currentCenter: { x: newCenterx, y: newCentery },
+        amtx: shouldScale
+          ? getGestureScaleDelta(state.scalex, prevDist, newDist, state.gestureScaleSensitivity)
+          : 0,
+        amty: shouldScale
+          ? getGestureScaleDelta(state.scaley, prevDist, newDist, state.gestureScaleSensitivity)
+          : 0,
+        rotateAmt: state.allowCanvasRotation
+          ? getGestureRotationDelta(gestureTouches, e.touches)
+          : 0,
+      })
     } else dispatch({ curLinePos: null })
 
     gestureTouches = e.touches

@@ -68,7 +68,7 @@ const iconMap = {
 const tooltipMap = (mobile) => ({
   main: mobile ? "Hide" : "Hide Toolbar",
   copy_image: mobile ? "Copy" : "Copy as Image",
-  home: mobile ? "Home" : "Reset position and scale",
+  home: mobile ? "Home" : "Reset position, scale, and rotation",
   redo: "Redo",
   extra: mobile ? "More" : "More Tools",
   navigation: mobile ? "Nav" : "Navigation",

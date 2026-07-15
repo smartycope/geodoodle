@@ -10,10 +10,11 @@ import Dist from "../helper/Dist"
 import { validateStorage } from "../fileUtils"
 
 export function renderPaper(startPoint = [100, 100]) {
-  const rendered = render(<Paper setDispatch={() => {}} />)
+  let dispatch
+  const rendered = render(<Paper setDispatch={(paperDispatch) => (dispatch = paperDispatch)} />)
   const paper = rendered.container.querySelector("#paper")
   mouseMove(paper, ...startPoint)
-  return { paper, ...rendered }
+  return { paper, dispatch, ...rendered }
 }
 
 // Helpers to get parts of the Paper

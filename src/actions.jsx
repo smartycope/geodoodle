@@ -37,41 +37,41 @@ import Poly from "./helper/Poly"
 import { tourState } from "./states"
 import * as turf from "@turf/turf"
 import Color from "colorjs.io"
+import { normalizeAngle } from "./transformUtils"
 
 function positionCursorAtEdges(state, point, edgePoint = point) {
   const width = viewportWidth()
   const height = viewportHeight()
   if (state.loopCursorAtEdges) {
     const edge = edgePoint.asViewport(state)
-    const topLeft = Point.fromViewport(state, 0, 0).ceil()
-    const bottomRight = Point.fromViewport(state, width - 1, height - 1).floor()
-    let [x, y] = point.xy()
+    let targetx = edge.x
+    let targety = edge.y
 
-    if (edge.x <= 0) x = bottomRight._x
-    else if (edge.x >= width - 1) x = topLeft._x
+    if (edge.x <= 0) targetx = width - 1
+    else if (edge.x >= width - 1) targetx = 0
 
-    if (edge.y <= 0) y = bottomRight._y
-    else if (edge.y >= height - 1) y = topLeft._y
+    if (edge.y <= 0) targety = height - 1
+    else if (edge.y >= height - 1) targety = 0
 
-    return { cursorPos: new Point(x, y) }
+    return { cursorPos: Point.fromViewport(state, targetx, targety).align(state) }
   }
 
   const viewportPoint = point.asViewport(state)
-  let translateX = 0
-  let translateY = 0
+  let translateXpx = 0
+  let translateYpx = 0
 
-  if (viewportPoint.x < 0) translateX = Math.ceil(-viewportPoint.x / state.scalex)
+  if (viewportPoint.x < 0) translateXpx = -viewportPoint.x
   else if (viewportPoint.x > width - 1)
-    translateX = -Math.ceil((viewportPoint.x - (width - 1)) / state.scalex)
+    translateXpx = -(viewportPoint.x - (width - 1))
 
-  if (viewportPoint.y < 0) translateY = Math.ceil(-viewportPoint.y / state.scaley)
+  if (viewportPoint.y < 0) translateYpx = -viewportPoint.y
   else if (viewportPoint.y > height - 1)
-    translateY = -Math.ceil((viewportPoint.y - (height - 1)) / state.scaley)
+    translateYpx = -(viewportPoint.y - (height - 1))
 
   return {
     cursorPos: point,
-    ...(translateX || translateY
-      ? { translation: state.translation.add(translateX, translateY) }
+    ...(translateXpx || translateYpx
+      ? { translation: state.translation.add(Dist.fromInflated(state, translateXpx, translateYpx)) }
       : {}),
   }
 }
@@ -104,7 +104,7 @@ export const translate = (state, { amt } /*Dist*/) => {
   const { boundRect, trellis, openMenus } = state
   if (boundRect && (trellis || openMenus.repeat)) {
     const rect = boundRect.asViewport(state)
-    const { x, y } = amt.asInflated(state)
+    const { x, y } = amt.asViewport(state)
     if (rect.left + x < 0 || rect.right + x > viewportWidth() || rect.top + y < 0 || rect.bottom + y > viewportHeight())
       return
   }
@@ -125,23 +125,76 @@ export const scale = (state, { amtx, amty, center = state.cursorPos }) => {
   const newScalex = Math.min(defaultOptions.maxScale, Math.max(defaultOptions.minScale, scalex + amtx))
   const newScaley = Math.min(defaultOptions.maxScale, Math.max(defaultOptions.minScale, scaley + amty))
 
-  const { x: cx, y: cy } = center.asViewport(state, true)
-
-  // The difference between the rescaled and the unscaled translation differences
-  const diffx = cx / scalex - cx / newScalex
-  const diffy = cy / scaley - cy / newScaley
+  const centerViewport = center.asViewport(state)
+  const centerAtNewScale = Point.fromViewport(
+    { ...state, scalex: newScalex, scaley: newScaley },
+    centerViewport.x,
+    centerViewport.y,
+  )
 
   return {
     scalex: newScalex,
     scaley: newScaley,
-    // Move the translation to keep the center in the same place. We need to translate the difference between the
-    // unscaled and the rescaled translation to make up for the change in scale
-    translation: translation.sub(diffx, diffy),
+    // Keep the logical center point under the same viewport position.
+    translation: translation.add(centerAtNewScale.sub(center)),
     curLinePos: null,
   }
 }
 
-export const rotate = (state, { amt }) => ({ rotate: state.rotate + amt })
+export const rotate = (state, { amt = 0, angle, center = state.cursorPos }) => {
+  if (state.allowCanvasRotation === false) return {}
+
+  const nextRotate = normalizeAngle(angle ?? (state.rotate ?? 0) + amt)
+  const centerViewport = center.asViewport(state)
+  const centerAtNewRotation = Point.fromViewport(
+    { ...state, rotate: nextRotate },
+    centerViewport.x,
+    centerViewport.y,
+  )
+  return {
+    rotate: nextRotate,
+    translation: state.translation.add(centerAtNewRotation.sub(center)),
+  }
+}
+
+export const gesture_transform = (
+  state,
+  { previousCenter, currentCenter, amtx = 0, amty = 0, rotateAmt = 0 },
+) => {
+  const scalex = Math.min(defaultOptions.maxScale, Math.max(defaultOptions.minScale, state.scalex + amtx))
+  const scaley = Math.min(defaultOptions.maxScale, Math.max(defaultOptions.minScale, state.scaley + amty))
+  const nextRotate =
+    state.allowCanvasRotation === false
+      ? state.rotate
+      : normalizeAngle((state.rotate ?? 0) + rotateAmt)
+  const anchor = Point.fromViewport(state, previousCenter.x, previousCenter.y)
+  const targetCenter = {
+    x:
+      previousCenter.x +
+      (currentCenter.x - previousCenter.x) * state.gestureTranslateSensitivity,
+    y:
+      previousCenter.y +
+      (currentCenter.y - previousCenter.y) * state.gestureTranslateSensitivity,
+  }
+  const anchorAtNewTransform = Point.fromViewport(
+    { ...state, scalex, scaley, rotate: nextRotate },
+    targetCenter.x,
+    targetCenter.y,
+  )
+
+  return {
+    scalex,
+    scaley,
+    rotate: nextRotate,
+    translation: state.translation.add(anchorAtNewTransform.sub(anchor)),
+    curLinePos: null,
+  }
+}
+
+export const set_canvas_rotation_allowed = (state, { allowed }) => ({
+  allowCanvasRotation: allowed,
+  rotate: allowed ? state.rotate : 0,
+})
 export const increase_scale = (state) => scale(state, state.scalex, state.scaley)
 export const decrease_scale = (state) => scale(state, -state.scalex, -state.scaley)
 
@@ -159,12 +212,12 @@ export const go_home = (state) => ({
 export const go_to_selection = (state) => {
   const boundRect = getBoundRect(state)
   if (boundRect)
-    // I have no idea why this is inverted, but whatever
     return {
-      translation: boundRect.center
-        .neg()
-        .add(Dist.fromInflated(state, viewportWidth() / 2, viewportHeight() / 2))
-        .asDist(),
+      translation: state.translation
+        .add(
+          Point.fromViewport(state, viewportWidth() / 2, viewportHeight() / 2)
+            .sub(boundRect.center),
+        ),
     }
 }
 

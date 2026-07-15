@@ -38,15 +38,22 @@ export default class Rect {
   }
 
   asViewport(state, inflate = true) {
-    const topLeft = this.topLeft.asViewport(state, inflate)
-    const bottomRight = this.bottomRight.asViewport(state, inflate)
+    const corners = [this.topLeft, this.topRight, this.bottomLeft, this.bottomRight].map((point) =>
+      point.asViewport(state, inflate),
+    )
+    const xs = corners.map(({ x }) => x)
+    const ys = corners.map(({ y }) => y)
+    const left = Math.min(...xs)
+    const right = Math.max(...xs)
+    const top = Math.min(...ys)
+    const bottom = Math.max(...ys)
     return {
-      left: topLeft.x,
-      right: bottomRight.x,
-      top: topLeft.y,
-      bottom: bottomRight.y,
-      width: bottomRight.x - topLeft.x,
-      height: bottomRight.y - topLeft.y,
+      left,
+      right,
+      top,
+      bottom,
+      width: right - left,
+      height: bottom - top,
     }
   }
 

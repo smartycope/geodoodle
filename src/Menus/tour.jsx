@@ -170,17 +170,18 @@ const tour = (_dispatch) => {
       selector: "#nav-menu-grid",
       content: (
         <>
-          This is the navigation menu. You can set the current position and scale here manually. Additionally, you can
+          This is the navigation menu. You can set the current position, scale, and rotation here manually. Additionally,
+          you can
           {mobile
-            ? " use 2 fingers to move and spread 2 fingers to scale."
-            : " scroll to move vertically, shift+scroll to move horizontally, and ctrl+scroll to scale."}
+            ? " use 2 fingers to move, pinch to scale, and twist to rotate."
+            : " scroll to move vertically, shift+scroll to move horizontally, ctrl+scroll to scale, and ctrl+shift+scroll to rotate."}
         </>
       ),
     },
     {
       selector: "#home-button",
-      content: <>Home resets the position and scale to the starting position and scale.</>,
-     },
+      content: <>Home resets the position, scale, and rotation to their starting values.</>,
+    },
     // {   selector: "#nav-selection-button",
     //     content: "This moves you to the current selection.",
     // },

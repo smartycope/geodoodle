@@ -39,6 +39,7 @@ browser input → src/events.jsx → dispatch → src/reducer.jsx → src/action
 ### Input and drawing
 
 - `src/events.jsx` translates mouse, wheel, keyboard, and touch gestures into actions. Touch handling uses module-level gesture/timer variables because `Paper` must attach non-passive native listeners.
+- `src/transformUtils.js` owns shared canvas rotation math and the SVG transform strings used by drawing layers.
 - `src/drawing.jsx` renders all Paper-owned visual pieces: grid dots, lines, in-progress lines, fills, selection/bounds/selectors, cursor, clipboard preview, mirror guides, menus, toast, and debugging overlays.
 - `src/Trellis.jsx` separately renders the repeated background pattern. It derives the seed from the current selection and emits transformed groups until the viewport is covered. Repeat controls use row/column `{ every, val }` structures.
 - `src/Menus/Toolbar.jsx` lays out the responsive toolbar; `ToolButton.jsx` maps button names to icons and toggles menus. `MiniMenu.jsx` is the anchored popover primitive and `Page.jsx` is the full dialog primitive.
@@ -99,7 +100,7 @@ Feature menus are intentionally small, focused components:
 - `SelectMenu.jsx` and `DeleteMenu.jsx` — bounds/selectors and destructive selection commands.
 - `ClipboardMenu.jsx` — copy/cut/paste actions.
 - `MirrorMenu.jsx` — mirror type, axis, rotation, and stored origins.
-- `NavMenu.jsx` — translation, scale, home, and go-to-selection.
+- `NavMenu.jsx` — translation, scale, rotation, home, and go-to-selection.
 - `FilePage.jsx` — SVG/image import/export, local saves, cloud-save UI, and image copy.
 - `SettingsPage.jsx` — user-configurable state and reset-preserved-state UI.
 - `HelpPage.jsx` and `tour.jsx` — user education; `KeyMenu.jsx` is currently unused.

@@ -75,6 +75,7 @@ export default function SettingsPage() {
     disableSelectionCanvasButtons,
     loopCursorAtEdges,
     defaultScalex,
+    allowCanvasRotation,
   } = state
 
   return (
@@ -248,6 +249,21 @@ export default function SettingsPage() {
 
         {/* Controls */}
         <StyledSubheader>Controls</StyledSubheader>
+        <Setting
+          label="Allow Canvas Rotation"
+          help="Enable scroll, touch, and navigation controls that rotate the canvas"
+        >
+          <Checkbox
+            checked={allowCanvasRotation}
+            onChange={() =>
+              dispatch({
+                action: "set_canvas_rotation_allowed",
+                allowed: !allowCanvasRotation,
+              })
+            }
+          />
+        </Setting>
+
         <Setting desktopOnly label="Invert Scroll" help="Controls if the scroll is inverted">
           <Checkbox checked={invertedScroll} onChange={() => dispatch({ action: "set_manual_and_save_settings", invertedScroll: !invertedScroll })} />
         </Setting>

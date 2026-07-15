@@ -1,5 +1,15 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
-import { onKeyDown, onMouseDown, onMouseMove, onMouseUp, onTouchEnd, onTouchMove, onTouchStart } from "../events"
+import {
+  getGestureRotationDelta,
+  onKeyDown,
+  onMouseDown,
+  onMouseMove,
+  onMouseUp,
+  onScroll,
+  onTouchEnd,
+  onTouchMove,
+  onTouchStart,
+} from "../events"
 import reducer from "../reducer"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
@@ -31,6 +41,30 @@ describe("keyboard interactions", () => {
 
     expect(dispatch).toHaveBeenCalledTimes(1)
     expect(dispatch).toHaveBeenCalledWith({ action: "go_home" })
+  })
+})
+
+describe("wheel interactions", () => {
+  test("ctrl+shift+scroll rotates instead of translating or scaling", () => {
+    const state = getState()
+    const dispatch = vi.fn()
+    const event = {
+      ctrlKey: true,
+      metaKey: false,
+      shiftKey: true,
+      deltaX: 0,
+      deltaY: 80,
+      preventDefault: vi.fn(),
+    }
+
+    onScroll(state, dispatch, event)
+
+    expect(dispatch).toHaveBeenCalledOnce()
+    expect(dispatch).toHaveBeenCalledWith({
+      action: "rotate",
+      amt: (event.deltaY / 8) * state.scrollSensitivity * (state.invertedScroll ? -1 : 1),
+    })
+    expect(event.preventDefault).toHaveBeenCalled()
   })
 })
 
@@ -215,12 +249,31 @@ describe("touch interactions", () => {
     onTouchMove(state, dispatch, touchEvent(movedTouches))
     onTouchEnd(state, dispatch, touchEvent([], movedTouches))
 
-    const scaleAction = dispatched.find((action) => actionName(action) === "scale")
-    expect(dispatched.map(actionName)).toContain("translate")
-    expect(scaleAction.amtx).toBeCloseTo(5)
-    expect(scaleAction.amty).toBeCloseTo(5)
+    const gestureAction = dispatched.find((action) => actionName(action) === "gesture_transform")
+    expect(gestureAction.amtx).toBeCloseTo(5)
+    expect(gestureAction.amty).toBeCloseTo(5)
+    expect(state.scalex).toBeCloseTo(25)
+    expect(state.scaley).toBeCloseTo(25)
     expect(dispatched.map(actionName)).not.toContain("add_line")
     expect(state.lines).toHaveLength(0)
+  })
+
+  test("a two-finger twist rotates around the gesture center", () => {
+    const firstTouches = [touch(100, 150), touch(200, 150)]
+    const movedTouches = [touch(150, 100), touch(150, 200)]
+    const center = new Point(7.5, 7.5)
+    const before = center.asViewport(state)
+
+    onTouchStart(state, dispatch, touchEvent(firstTouches))
+    onTouchMove(state, dispatch, touchEvent(firstTouches))
+    onTouchMove(state, dispatch, touchEvent(movedTouches))
+
+    expect(getGestureRotationDelta(firstTouches, movedTouches)).toBeCloseTo(90)
+    expect(state.rotate).toBeCloseTo(90)
+    expect(center.asViewport(state).x).toBeCloseTo(before.x)
+    expect(center.asViewport(state).y).toBeCloseTo(before.y)
+
+    onTouchEnd(state, dispatch, touchEvent([], movedTouches))
   })
 
   test.each([

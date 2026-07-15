@@ -24,6 +24,8 @@ import {
   getSelectionRect,
 } from "../tests/testUtils"
 import { validateStorage } from "../fileUtils"
+import Point from "../helper/Point"
+import { viewportHeight, viewportWidth } from "../globals"
 
 // In between each tests, reset the localStorage
 beforeEach(() => {
@@ -162,6 +164,43 @@ describe("Paper interactions", () => {
     // The precise amount it scales is complicated, so just check that it's not the same
     expect(Number(width2)).not.toBe(Number(width))
     expect(Number(height2)).not.toBe(Number(height))
+  })
+  test("ctrl+shift+scroll rotates the canvas", () => {
+    const { container, paper } = renderPaper()
+
+    scroll(paper, -100, 0, { ctrlKey: true, shiftKey: true })
+
+    expect(container.querySelector("#lines").getAttribute("transform")).toMatch(/rotate\((?!0(?:\s|\)))/)
+  })
+
+  test("Home resets canvas rotation", () => {
+    const { container, paper } = renderPaper()
+    scroll(paper, -100, 0, { ctrlKey: true, shiftKey: true })
+
+    press(paper, "h")
+
+    expect(container.querySelector("#lines").getAttribute("transform")).toMatch(/^rotate\(0 /)
+  })
+
+  test("creates lines at the correct logical points after rotation", () => {
+    const centerx = viewportWidth() / 2
+    const centery = viewportHeight() / 2
+    const { container, paper, dispatch } = renderPaper([centerx, centery])
+
+    act(() =>
+      dispatch({
+        action: "rotate",
+        angle: 90,
+        center: new Point(centerx / 20, centery / 20),
+      }),
+    )
+    createLine(paper, centerx + 100, centery, centerx, centery + 100)
+
+    const line = getLines(container)[0]
+    expect(Number(line.getAttribute("x1"))).toBe(26)
+    expect(Number(line.getAttribute("y1"))).toBe(14)
+    expect(Number(line.getAttribute("x2"))).toBe(31)
+    expect(Number(line.getAttribute("y2"))).toBe(19)
   })
   // test('clicking on the main menu opens it', () => {
   //   const { container, paper } = renderPaper();

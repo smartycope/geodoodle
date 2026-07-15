@@ -119,13 +119,15 @@ function ConceptsContent() {
       <Concept title="Navigation">
         <Typography>
           Translation is the paper&apos;s position on screen, while scale is the pixel spacing between neighboring dots.
-          Scroll to move vertically, Shift+scroll to move horizontally, and Control+scroll to scale. On touchscreens,
-          use two fingers to move and pinch to scale. The Navigation menu also accepts exact position and scale values.
+          Scroll to move vertically, Shift+scroll to move horizontally, Control+scroll to scale, and
+          Control+Shift+scroll to rotate. On touchscreens, use two fingers to move, pinch to scale, and twist to rotate.
+          The Navigation menu also accepts exact position, scale, and rotation values.
         </Typography>
         <Typography sx={{ mt: 1 }}>
-          Home restores the starting position and scale, and Go to Selection centers the current area selection. In
-          Settings, the cursor can either wrap to the opposite side at an edge or keep moving while the paper follows
-          it so the cursor remains visible. Paper rotation is not currently implemented.
+          Home restores the starting position, scale, and rotation, and Go to Selection centers the current area
+          selection. In Settings, the cursor can either wrap to the opposite side at an edge or keep moving while the
+          paper follows it so the cursor remains visible. Canvas rotation can also be disabled there; disabling it
+          resets the rotation to zero.
         </Typography>
       </Concept>
 

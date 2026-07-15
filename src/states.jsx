@@ -103,7 +103,6 @@ export default function getInitialState() {
     // The current scale
     scalex: isMobile ? 30 : 20,
     scaley: isMobile ? 30 : 20,
-    // TODO: this is not currently implemented, but I'm looking at it soon
     // In degrees
     rotate: 0,
     // TODO: Look into this eventually
@@ -132,6 +131,7 @@ export default function getInitialState() {
     toolbarOpacity: options.toolbarOpacity,
     disableSelectionCanvasButtons: options.disableSelectionCanvasButtons,
     loopCursorAtEdges: options.loopCursorAtEdges,
+    allowCanvasRotation: options.allowCanvasRotation,
     keybindings: Object.fromEntries(
       Object.entries(defaultKeybindings).map(([shortcut, action]) => [shortcut, { ...action }]),
     ),

@@ -1,4 +1,5 @@
 import Pair from "./Pair"
+import { rotateCoordinates } from "../transformUtils"
 
 export default class Dist extends Pair {
   static zero() {
@@ -10,8 +11,9 @@ export default class Dist extends Pair {
     return new Dist(x_or_y, y)
   }
 
-  static fromInflated({ scalex, scaley }, x, y) {
-    return new Dist(x / scalex, y / scaley)
+  static fromInflated({ scalex, scaley, rotate = 0 }, x, y) {
+    const unrotated = rotateCoordinates(x, y, -rotate)
+    return new Dist(unrotated.x / scalex, unrotated.y / scaley)
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -21,5 +23,9 @@ export default class Dist extends Pair {
 
   asInflated({ scalex, scaley }) {
     return { x: this._x * scalex, y: this._y * scaley }
+  }
+
+  asViewport({ scalex, scaley, rotate = 0 }) {
+    return rotateCoordinates(this._x * scalex, this._y * scaley, rotate)
   }
 }

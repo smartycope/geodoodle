@@ -5,7 +5,7 @@ import Pair from "../helper/Pair"
 import Line from "../helper/Line"
 import Rect from "../helper/Rect"
 import { getState } from "./testUtils"
-import { MIRROR_AXIS } from "../globals"
+import { MIRROR_AXIS, viewportHeight, viewportWidth } from "../globals"
 import { getAllIntersections } from "../utils"
 
 describe("Pair", () => {
@@ -163,6 +163,36 @@ describe("Point", () => {
     expect(viewport2.y).toBe(30) // 10 + 20
   })
 
+  test("round trips viewport coordinates through canvas rotation", () => {
+    const state = {
+      translation: new Dist(3, -2),
+      scalex: 12,
+      scaley: 18,
+      rotate: 37,
+    }
+    const point = new Point(11.25, 8.75)
+    const viewport = point.asViewport(state)
+    const restored = Point.fromViewport(state, viewport.x, viewport.y)
+
+    expect(restored._x).toBeCloseTo(point._x)
+    expect(restored._y).toBeCloseTo(point._y)
+  })
+
+  test("rotates viewport points around the center of the canvas", () => {
+    const state = {
+      translation: Dist.zero(),
+      scalex: 1,
+      scaley: 1,
+      rotate: 90,
+    }
+    const centerx = viewportWidth() / 2
+    const centery = viewportHeight() / 2
+    const viewport = new Point(centerx + 20, centery).asViewport(state)
+
+    expect(viewport.x).toBeCloseTo(centerx)
+    expect(viewport.y).toBeCloseTo(centery + 20)
+  })
+
   test("should convert to SVG coordinates", () => {
     const state = {
       scalex: 2,
@@ -229,6 +259,16 @@ describe("Point", () => {
 })
 
 describe("Dist", () => {
+  test("round trips viewport deltas through scale and rotation", () => {
+    const state = { scalex: 12, scaley: 18, rotate: 37 }
+    const distance = new Dist(4.25, -2.5)
+    const viewport = distance.asViewport(state)
+    const restored = Dist.fromInflated(state, viewport.x, viewport.y)
+
+    expect(restored._x).toBeCloseTo(distance._x)
+    expect(restored._y).toBeCloseTo(distance._y)
+  })
+
   test("should create a zero distance", () => {
     const zero = Dist.zero()
     expect(zero._x).toBe(0)

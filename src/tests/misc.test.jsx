@@ -111,6 +111,17 @@ test("cursor edge looping preference persists for refresh", () => {
   expect(loadPreservedState().loopCursorAtEdges).toBe(true)
 })
 
+test("canvas rotation and its enabled setting persist for refresh", () => {
+  const rotatedState = reducer(getState(), { action: "rotate", amt: 45 })
+
+  expect(loadPreservedState().rotate).toBe(45)
+
+  reducer(rotatedState, { action: "set_canvas_rotation_allowed", allowed: false })
+
+  expect(loadPreservedState().allowCanvasRotation).toBe(false)
+  expect(loadPreservedState().rotate).toBe(0)
+})
+
 test("home scale preference persists and controls the Home action", () => {
   const state = reducer(getState(), {
     action: "set_manual_and_save_settings",

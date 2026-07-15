@@ -5,6 +5,7 @@ import Rect from "./helper/Rect"
 import { useContext, memo } from "react"
 import { StateContext } from "./Contexts"
 import { DebugPoint } from "./drawing"
+import { getCanvasTransform } from "./transformUtils"
 
 /* Indices
     rows:
@@ -32,11 +33,8 @@ export default memo(function Trellis() {
     trellisFlip,
     trellisRotate,
     debug,
-    translation,
     scalex,
-    scaley,
   } = state
-  const { x: transx, y: transy } = translation.asInflated(state)
 
   if (!(trellis || openMenus.repeat) || bounds.length <= 1) return null
 
@@ -126,10 +124,14 @@ export default memo(function Trellis() {
   // The base pattern location
   const { x: seedx, y: seedy } = boundRect.topLeft.asSvg(state, false)
 
-  const area = (
-    debug
-      ? getDebugBox(state)
-      : new Rect(Point.viewportOrigin(state), Point.fromViewport(state, viewportWidth(), viewportHeight()))
+  const area = (debug
+    ? getDebugBox(state)
+    : Rect.fromPoints(
+        Point.fromViewport(state, 0, 0),
+        Point.fromViewport(state, viewportWidth(), 0),
+        Point.fromViewport(state, 0, viewportHeight()),
+        Point.fromViewport(state, viewportWidth(), viewportHeight()),
+      )
   ).asSvg(state, false)
 
   // Instead of gracefully trying to calculate what will be needed, just add all the transformed patterns one at a time
@@ -163,7 +165,7 @@ export default memo(function Trellis() {
     <>
       <DebugPoint name="Area top left" point={[area.top, area.left]} color="green" />
       <DebugPoint name="Seed" point={Point.fromSvg(state, seedx, seedy, false)} color="red" />
-      <g transform={`translate(${transx} ${transy}) scale(${scalex} ${scaley})`}>
+      <g transform={getCanvasTransform(state)}>
         {Array.from(rtn).map((transformation) => (
           <g
             transform={transformation}

@@ -10,13 +10,16 @@ import Paper from "@mui/material/Paper"
 import HomeIcon from "@mui/icons-material/Home"
 import HighlightAltIcon from "@mui/icons-material/HighlightAlt"
 import { getHalf } from "../utils"
+import Point from "../helper/Point"
+import { viewportHeight, viewportWidth } from "../globals"
 
 export default function NavMenu() {
   const { state, dispatch } = useContext(StateContext)
 
-  const { scalex, scaley, translation, side } = state
+  const { scalex, scaley, translation, rotate, allowCanvasRotation, side } = state
   const { x: translationx, y: translationy } = translation.asDeflated(state)
   const half = getHalf(state)
+  const rotationCenter = Point.fromViewport(state, viewportWidth() / 2, viewportHeight() / 2)
 
   let style
   if (side === "bottom")
@@ -92,12 +95,25 @@ export default function NavMenu() {
             }
           />
         </Grid>
+
+        {/* Rotation */}
+        <Grid size={6}>
+          <Number
+            value={rotate}
+            label="Rotation"
+            step={1}
+            min={-180}
+            max={180}
+            disabled={!allowCanvasRotation}
+            onValueChange={(angle) => dispatch({ action: "rotate", angle, center: rotationCenter })}
+          />
+        </Grid>
         {/* Buttons */}
-        <Grid size={6} sx={{ m: "auto" }}>
+        <Grid size={12} sx={{ m: "auto", textAlign: "center" }}>
           <IconButton
             id="home-button"
             onClick={() => dispatch("go_home")}
-            title="Reset position and scale"
+            title="Reset position, scale, and rotation"
             size="large"
           >
             <HomeIcon />

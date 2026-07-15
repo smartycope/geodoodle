@@ -9,6 +9,8 @@ import {
   translate,
   scale,
   rotate,
+  gesture_transform,
+  set_canvas_rotation_allowed,
   increase_scale,
   decrease_scale,
   go_home,
@@ -205,6 +207,17 @@ describe("Transformation Actions", () => {
       expect(newState.translation).toBeDefined()
     })
 
+    test("keeps the scale center fixed when the canvas is rotated", () => {
+      state = { ...state, rotate: 37 }
+      const center = new Point(8, 12)
+      const before = center.asViewport(state)
+      const scaledState = { ...state, ...scale(state, { amtx: 5, amty: 5, center }) }
+      const after = center.asViewport(scaledState)
+
+      expect(after.x).toBeCloseTo(before.x)
+      expect(after.y).toBeCloseTo(before.y)
+    })
+
     test("should respect min and max scale limits", () => {
       // Test minimum scale
       const minScaleState = { ...state, scalex: defaultOptions.minScale, scaley: defaultOptions.minScale }
@@ -223,10 +236,61 @@ describe("Transformation Actions", () => {
       const newState = rotate(state, { amt: 90 })
       expect(newState.rotate).toBe(state.rotate + 90)
     })
+
+    test("keeps the rotation center at the same viewport position", () => {
+      const center = new Point(8, 12)
+      const before = center.asViewport(state)
+      const rotatedState = { ...state, ...rotate(state, { amt: 47, center }) }
+      const after = center.asViewport(rotatedState)
+
+      expect(after.x).toBeCloseTo(before.x)
+      expect(after.y).toBeCloseTo(before.y)
+    })
+
+    test("does not rotate when canvas rotation is disabled", () => {
+      state = { ...state, allowCanvasRotation: false }
+
+      expect(rotate(state, { amt: 45 })).toEqual({})
+    })
+
+    test("disabling canvas rotation resets the angle", () => {
+      state = { ...state, rotate: 45 }
+
+      expect(set_canvas_rotation_allowed(state, { allowed: false })).toEqual({
+        allowCanvasRotation: false,
+        rotate: 0,
+      })
+    })
+  })
+
+  describe("gesture_transform", () => {
+    test("moves, scales, and rotates around the two-finger gesture in one update", () => {
+      state = { ...state, rotate: 15, gestureTranslateSensitivity: 1 }
+      const previousCenter = { x: 200, y: 160 }
+      const currentCenter = { x: 230, y: 190 }
+      const anchor = Point.fromViewport(state, previousCenter.x, previousCenter.y)
+      const transformedState = {
+        ...state,
+        ...gesture_transform(state, {
+          previousCenter,
+          currentCenter,
+          amtx: 5,
+          amty: 5,
+          rotateAmt: 30,
+        }),
+      }
+      const movedAnchor = anchor.asViewport(transformedState)
+
+      expect(transformedState.scalex).toBe(state.scalex + 5)
+      expect(transformedState.scaley).toBe(state.scaley + 5)
+      expect(transformedState.rotate).toBe(45)
+      expect(movedAnchor.x).toBeCloseTo(currentCenter.x)
+      expect(movedAnchor.y).toBeCloseTo(currentCenter.y)
+    })
   })
 
   describe("go_home", () => {
-    test("should reset the viewport to default position and scale", () => {
+    test("should reset the viewport to its default position, scale, and rotation", () => {
       const translatedState = {
         ...state,
         translation: new Dist(100, 100),
@@ -307,6 +371,20 @@ describe("Navigation Actions", () => {
       expect(newState.translation).toBeDefined()
       expect(newState.translation._x).toBe(-124.4)
       expect(newState.translation._y).toBe(-130.8)
+    })
+
+    test("should center the selection when the canvas is rotated", () => {
+      const stateWithSelection = {
+        ...state,
+        rotate: 38,
+        translation: new Dist(4, -7),
+        bounds: [new Point(100, 100), new Point(200, 200)],
+      }
+      const centeredState = { ...stateWithSelection, ...go_to_selection(stateWithSelection) }
+      const selectionCenter = new Point(150, 150).asViewport(centeredState)
+
+      expect(selectionCenter.x).toBeCloseTo(viewportWidth() / 2)
+      expect(selectionCenter.y).toBeCloseTo(viewportHeight() / 2)
     })
 
     test("should return undefined if there is no selection", () => {

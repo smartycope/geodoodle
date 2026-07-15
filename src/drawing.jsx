@@ -1,5 +1,5 @@
 // Stuff which gets called by Paper to draw parts of the paper
-import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE } from "./globals"
+import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE, viewportHeight, viewportWidth } from "./globals"
 import options from "./options"
 import {
   getHalf,
@@ -44,6 +44,7 @@ import CancelPresentationIcon from "@mui/icons-material/CancelPresentation"
 import CancelPresentationTwoToneIcon from "@mui/icons-material/CancelPresentationTwoTone"
 import useMediaQuery from "@mui/material/useMediaQuery"
 import { themeDefaults } from "./styling/theme"
+import { getCanvasRotationTransform, getCanvasTransform, rotateCoordinates } from "./transformUtils"
 
 // For debugging
 function useActiveBreakpoint() {
@@ -155,7 +156,7 @@ export const DebugInfo = () => {
 
   if (!state.debug) return null
 
-  const { debug, debugDrawPoints, translation, scalex, scaley, openMenus } = state
+  const { debugDrawPoints, translation, scalex, scaley, openMenus } = state
   const debugBox = getDebugBox(state)
   const origin = Point.fromViewport(state, translation._x, translation._y, false)
   const intersectcions = getAllIntersections(state.lines)
@@ -197,7 +198,7 @@ export const DebugInfo = () => {
 export const MirrorMetaLines = () => {
   const { state } = useContext(StateContext)
   let mirrorMetaLines = []
-  const { cursorPos, mirrorType, mirrorAxis, mirrorRot, scalex, curLinePos } = state
+  const { cursorPos, mirrorType, mirrorAxis, mirrorRot, scalex, curLinePos, rotate } = state
   const { x: cursorx, y: cursory } = cursorPos.asViewport(state)
   const { x: cursorLinex, y: cursorLiney } = curLinePos === null ? { x: null, y: null } : curLinePos.asViewport(state)
   const half = getHalf(state)
@@ -206,32 +207,37 @@ export const MirrorMetaLines = () => {
 
   function MetaLines({ x, y, axis, rot, axisOpacity }) {
     let lines = []
+    const length = Math.hypot(viewportWidth(), viewportHeight())
 
     // Axis lines
-    if (axis === MIRROR_AXIS.Y || axis === MIRROR_AXIS.BOTH)
+    if (axis === MIRROR_AXIS.Y || axis === MIRROR_AXIS.BOTH) {
+      const direction = rotateCoordinates(0, 1, rotate)
       lines.push(
         <line
-          x1={x}
-          y1={0}
-          x2={x}
-          y2="100%"
+          x1={x - direction.x * length}
+          y1={y - direction.y * length}
+          x2={x + direction.x * length}
+          y2={y + direction.y * length}
           stroke={theme.palette.primary.mirror}
           strokeOpacity={axisOpacity}
           key={`mmoh`}
         />,
       )
-    if (axis === MIRROR_AXIS.X || axis === MIRROR_AXIS.BOTH)
+    }
+    if (axis === MIRROR_AXIS.X || axis === MIRROR_AXIS.BOTH) {
+      const direction = rotateCoordinates(1, 0, rotate)
       lines.push(
         <line
-          x1={0}
-          y1={y}
-          x2="100%"
-          y2={y}
+          x1={x - direction.x * length}
+          y1={y - direction.y * length}
+          x2={x + direction.x * length}
+          y2={y + direction.y * length}
           stroke={theme.palette.primary.mirror}
           strokeOpacity={axisOpacity}
           key={`mmov`}
         />,
       )
+    }
 
     // Rotation lines
     // TODO: this icon should scale with the current scale
@@ -293,9 +299,9 @@ export const MirrorMetaLines = () => {
 }
 
 function CanvasButtonStrip({ state, strip, icons }) {
+  const theme = useTheme()
   if (!strip) return null
 
-  const theme = useTheme()
   const { x, y } = strip.position.asViewport(state)
   const {
     width: buttonWidth,
@@ -366,7 +372,7 @@ export const SelectionOptionButtons = () => {
 
 export const SelectionRect = () => {
   const { state } = useContext(StateContext)
-  const { partials, scalex } = state
+  const { partials } = state
   const theme = useTheme()
   const selectionTheme = (theme.geodoodle ?? themeDefaults).selection
   let boundRect = getBoundRect(state)
@@ -374,22 +380,25 @@ export const SelectionRect = () => {
   if (!boundRect) return null
 
   boundRect = boundRect.grow(0.5)
-  const { width, height, left, top } = boundRect.asViewport(state)
+  const { width, height, left, top } = boundRect.asSvg(state, false)
 
   return (
     <>
-      <rect
-        id="selection-rect"
-        width={width}
-        height={height}
-        x={left}
-        y={top}
-        stroke={selectionTheme.borderColor}
-        fillOpacity={selectionTheme.opacity}
-        fill={selectionTheme.color}
-        rx={partials ? scalex / 2 : 0}
-        strokeWidth={0.5}
-      />
+      <g transform={getCanvasTransform(state)}>
+        <rect
+          id="selection-rect"
+          width={width}
+          height={height}
+          x={left}
+          y={top}
+          stroke={selectionTheme.borderColor}
+          fillOpacity={selectionTheme.opacity}
+          fill={selectionTheme.color}
+          rx={partials ? 0.5 : 0}
+          strokeWidth={0.5}
+          vectorEffect="non-scaling-stroke"
+        />
+      </g>
       <DebugPoint name="topLeft" point={boundRect.topLeft} />
     </>
   )
@@ -470,7 +479,7 @@ export const GenericSelectors = () => {
 
 export const CurrentLines = () => {
   const { state } = useContext(StateContext)
-  const { curLinePos, cursorPos, translation, scalex, scaley, mirrorOrigins } = state
+  const { curLinePos, cursorPos, mirrorOrigins } = state
   if (!curLinePos) return null
 
   const line = new Line(state, curLinePos, cursorPos)
@@ -478,13 +487,7 @@ export const CurrentLines = () => {
   for (const { origin, axis, rot } of mirrorOrigins) lines.push(...line.mirrorRaw(axis, rot, origin))
 
   return (
-    <g
-      id="cur-lines"
-      transform={`
-          translate(${translation.asInflated(state).x} ${translation.asInflated(state).y})
-          scale(${scalex} ${scaley})
-      `}
-    >
+    <g id="cur-lines" transform={getCanvasTransform(state)}>
       {lines.map((l, i) => l.render(state, `curLine-${i}`))}
     </g>
   )
@@ -494,7 +497,6 @@ export const Lines = () => {
   const { state } = useContext(StateContext)
   const {
     lines,
-    translation,
     scalex,
     scaley,
     bounds,
@@ -504,7 +506,6 @@ export const Lines = () => {
     genericSelectors,
     specificSelectors,
   } = state
-  const { x: transx, y: transy } = translation.asInflated(state)
   // The cursor only affects permanent-line selection while a bound is being
   // dragged. In every other mode, moving it should not rebuild every SVG line.
   const activeBoundCursor = boundDragging && bounds.length === 1 ? cursorPos : null
@@ -539,10 +540,7 @@ export const Lines = () => {
   return (
     <g
       id="lines"
-      transform={`
-            translate(${transx} ${transy})
-            scale(${scalex} ${scaley})
-        `}
+      transform={getCanvasTransform(state)}
     >
       {/* Make all the individual lines visible */}
       {renderedLines}
@@ -554,21 +552,14 @@ export const Lines = () => {
 
 export const Clipboard = () => {
   const { state } = useContext(StateContext)
-  const { clipboard, translation, scalex, scaley } = state
-  const { x: transx, y: transy } = translation.asInflated(state)
+  const { clipboard } = state
 
   if (!clipboard) return null
 
   const clipLines = getAllClipboardLines(state)
   return (
     clipLines && (
-      <g
-        id="clipboard"
-        transform={`
-            translate(${transx} ${transy})
-            scale(${scalex} ${scaley})
-        `}
-      >
+      <g id="clipboard" transform={getCanvasTransform(state)}>
         {clipLines.map((line, i) => line.render(state, `clip-${i}`, {}, false))}
       </g>
     )
@@ -577,11 +568,11 @@ export const Clipboard = () => {
 
 export const Cursor = () => {
   const { state } = useContext(StateContext)
-  const { cursor, cursorPos, scalex, fillMode, debug } = state
+  const { cursor, cursorPos, scalex, fillMode } = state
+  const theme = useTheme()
   if (fillMode) return null
 
   const cursorPosViewport = cursorPos.asViewport(state)
-  const theme = useTheme()
 
   function getCursor(x, y, key, props = {}) {
     const r = scalex / 3
@@ -620,7 +611,7 @@ export const Cursor = () => {
 
 export const Dots = () => {
   const { state } = useContext(StateContext)
-  const { translation, scalex, scaley, rotate, hideDots } = state
+  const { translation, scalex, scaley, hideDots } = state
   const { x: transx, y: transy } = translation.asInflated(state)
   const theme = useTheme()
 
@@ -635,7 +626,7 @@ export const Dots = () => {
           width={scalex}
           height={scaley}
           patternUnits="userSpaceOnUse"
-          patternTransform={`rotate(${rotate})`}
+          patternTransform={getCanvasRotationTransform(state)}
         >
           <rect
             x={0}
@@ -653,15 +644,14 @@ export const Dots = () => {
 
 export const Polygons = () => {
   const { state } = useContext(StateContext)
-  const { filledPolys, translation, scalex, scaley, fill, colorProfile } = state
-  const { x: transx, y: transy } = translation.asInflated(state)
+  const { filledPolys, fill, colorProfile } = state
   const renderedPolys = useMemo(
     () => filledPolys.map((poly, i) => poly.render({ fill, colorProfile }, `filled-poly-${i}`)),
     [filledPolys, fill, colorProfile],
   )
 
   return (
-    <g id="filled-polys" transform={`translate(${transx} ${transy}) scale(${scalex} ${scaley})`}>
+    <g id="filled-polys" transform={getCanvasTransform(state)}>
       {renderedPolys}
     </g>
   )
@@ -669,11 +659,10 @@ export const Polygons = () => {
 
 export const CurrentPolys = () => {
   const { state } = useContext(StateContext)
-  const { curPolys, translation, scalex, scaley } = state
-  const { x: transx, y: transy } = translation.asInflated(state)
+  const { curPolys } = state
   return (
     curPolys && (
-      <g id="cur-polys" transform={`translate(${transx} ${transy}) scale(${scalex} ${scaley})`}>
+      <g id="cur-polys" transform={getCanvasTransform(state)}>
         {curPolys.map((poly, i) => poly.render(state, `cur-poly-${i}`))}
       </g>
     )
