@@ -6,17 +6,20 @@ import Rect from "./helper/Rect"
 
 // Get all the lines for the clipboard, including mirroring and transformation of the clipboard
 export function getAllClipboardLines(state) {
-  const { clipboard, cursorPos, clipboardMirrorAxis, clipboardRotation } = state
+  const { clipboard, cursorPos, clipboardMirrorAxis, clipboardRotation, mirrorOrigins } = state
   if (!clipboard) return []
-  return clipboard
-    .map((line) =>
-      line
-        .translate(cursorPos)
-        .flip(clipboardMirrorAxis, cursorPos)
-        .rotate(clipboardRotation, cursorPos)
-        .mirror(state),
-    )
-    .flat()
+  return clipboard.flatMap((line) => {
+    const positionedLine = line
+      .translate(cursorPos)
+      .flip(clipboardMirrorAxis, cursorPos)
+      .rotate(clipboardRotation, cursorPos)
+
+    const mirroredLines = positionedLine.mirror(state)
+    for (const { origin, axis, rot } of mirrorOrigins)
+      mirroredLines.push(...positionedLine.mirrorRaw(axis, rot, origin))
+
+    return mirroredLines
+  })
 }
 
 export function getAllCursorPoints(state, includeOriginal = true, useMousePos = false) {

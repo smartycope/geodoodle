@@ -852,6 +852,27 @@ describe("Clipboard Actions", () => {
       expect(newState.lines[0].eq(positionedLine)).toBe(true)
       expect(newState.lines[1].eq(positionedLine.flip(MIRROR_AXIS.Y, utils.getHalf(state)))).toBe(true)
     })
+
+    test("mirrors clipboard lines around saved mirror origins after positioning them", () => {
+      const cursorPos = new Point(10, 10)
+      const origin = new Point(20, 10)
+      const clipboardLine = new Line(state, new Point(-1, 0), new Point(1, 0))
+      const withClipboard = {
+        ...state,
+        cursorPos,
+        clipboard: [clipboardLine],
+        lines: [],
+        mirrorAxis: MIRROR_AXIS.NONE,
+        mirrorOrigins: [{ origin, axis: MIRROR_AXIS.Y, rot: MIRROR_ROT.NONE }],
+      }
+
+      const newState = paste(withClipboard)
+      const positionedLine = clipboardLine.translate(cursorPos)
+
+      expect(newState.lines).toHaveLength(3)
+      expect(newState.lines[0].eq(positionedLine)).toBe(true)
+      expect(newState.lines[2].eq(positionedLine.flip(MIRROR_AXIS.Y, origin))).toBe(true)
+    })
   })
 
   describe("increment_clipboard_rotation", () => {

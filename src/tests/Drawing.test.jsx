@@ -36,6 +36,34 @@ describe("Clipboard preview", () => {
     expect([...lines].map((line) => Number(line.getAttribute("x1"))).sort((a, b) => a - b)).toEqual([9, 11])
     expect([...lines].map((line) => Number(line.getAttribute("x2"))).sort((a, b) => a - b)).toEqual([9, 11])
   })
+
+  test("renders clipboard lines mirrored around saved mirror origins", () => {
+    const state = getState()
+    const cursorPos = new Point(10, 10)
+    const origin = new Point(20, 10)
+    const clipboardLine = new Line(state, new Point(-1, 0), new Point(1, 0))
+    const previewState = {
+      ...state,
+      cursorPos,
+      clipboard: [clipboardLine],
+      mirrorAxis: MIRROR_AXIS.NONE,
+      mirrorOrigins: [{ origin, axis: MIRROR_AXIS.Y, rot: 0 }],
+    }
+
+    const { container } = render(
+      <StateContext.Provider value={{ state: previewState }}>
+        <svg>
+          <Clipboard />
+        </svg>
+      </StateContext.Provider>,
+    )
+
+    const lines = container.querySelectorAll("#clipboard line")
+
+    expect(lines).toHaveLength(3)
+    expect([...lines].map((line) => Number(line.getAttribute("x1"))).sort((a, b) => a - b)).toEqual([9, 9, 31])
+    expect([...lines].map((line) => Number(line.getAttribute("x2"))).sort((a, b) => a - b)).toEqual([11, 11, 29])
+  })
 })
 
 describe("Selection option buttons", () => {
