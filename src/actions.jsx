@@ -6,7 +6,7 @@
 
 /* eslint-disable no-unused-vars */
 
-import { viewportWidth, viewportHeight, undoStack, redoStack, MIRROR_ROT, MIRROR_AXIS } from "./globals"
+import { viewportWidth, viewportHeight, undoStack, redoStack, MIRROR_ROT, MIRROR_AXIS, MIRROR_TYPE } from "./globals"
 import {
   getSelected,
   getBoundRect,
@@ -16,6 +16,7 @@ import {
   normalizeLines,
   getPreviewPolys,
   getLinesRect,
+  getHalf,
 } from "./utils"
 import defaultOptions from "./options"
 import {
@@ -569,13 +570,15 @@ export const increment_clipboard_mirror_axis = (state) => ({
 
 // Mirror Actions
 export const add_mirror_origin = (state) => {
-  const { mirrorOrigins, mirrorAxis, mirrorRot, cursorPos } = state
+  const { mirrorOrigins, mirrorAxis, mirrorRot, cursorPos, mirrorType } = state
   if ((mirrorAxis || mirrorRot) && mirrorOrigins.length < defaultOptions.maxMirrorOrigins) {
     // Ensure that the origin is unique
     const existing = mirrorOrigins.findIndex((o) => o.origin.eq(cursorPos))
     if (existing !== -1) return mirrorOrigins.slice(0, existing)
     return {
-      mirrorOrigins: [...mirrorOrigins, { origin: cursorPos, rot: mirrorRot, axis: mirrorAxis }],
+      mirrorOrigins: [...mirrorOrigins,
+        { origin: mirrorType == MIRROR_TYPE.CURSOR ? cursorPos : getHalf(state), rot: mirrorRot, axis: mirrorAxis }
+      ],
       // Reset mirror settings to show that it was added
       mirrorAxis: MIRROR_AXIS.NONE,
       mirrorRot: MIRROR_ROT.NONE,
