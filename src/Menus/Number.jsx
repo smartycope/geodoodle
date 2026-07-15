@@ -24,7 +24,7 @@ export default function Number({
   onPlus,
   onMinus,
   // TODO
-  scrubDirection = "horizontal",
+  // scrubDirection = "horizontal",
   compact,
   vertical,
   style,

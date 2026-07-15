@@ -7,9 +7,8 @@
     "allowImportingTsExtensions": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"],
