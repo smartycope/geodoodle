@@ -12,3 +12,25 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
+/* reactour wraps these labels in its own navigation buttons. */
+.geodoodle-tour-button {
+  display: inline-block;
+  min-width: 4.5rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.5rem;
+  background: #eeeeee;
+  color: #222222;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.geodoodle-tour [data-tour-elem="left-arrow"]:not(:disabled) .geodoodle-tour-button:hover,
+.geodoodle-tour [data-tour-elem="right-arrow"]:not(:disabled) .geodoodle-tour-button:hover {
+  background: #dddddd;
+}
+
+.geodoodle-tour .reactour__close {
+  width: 16px;
+  height: 16px;
+}

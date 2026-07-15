@@ -1,5 +1,9 @@
 import Paper from "./Paper"
-import tour from "./Menus/tour.jsx"
+import tour, {
+  getPreviousVisibleTourStep,
+  prepareTourStep,
+  resetTourProgress,
+} from "./Menus/tour.jsx"
 import Tour from "reactour"
 import { useState } from "react"
 import { localStorageTourTakenName } from "./globals"
@@ -24,6 +28,20 @@ validateStorage()
 // inside Paper, the tour re-renders as well, which re-modifies the state, which causes an infinite loop.
 export default function App() {
   const [inTour, setInTour] = useState(false)
+  const [tourStep, setTourStep] = useState(0)
+
+  const closeTour = () => {
+    dispatch("end_tour")
+    setInTour(false)
+    setTourStep(0)
+    resetTourProgress()
+  }
+
+  const previousTourStep = () => {
+    const previousStep = getPreviousVisibleTourStep(steps, tourStep)
+    resetTourProgress()
+    prepareTourStep(steps, previousStep, () => setTourStep(previousStep))
+  }
   // If we haven't taken the tour before, add a popup that offers it
   if (!localStorage.getItem(localStorageTourTakenName)) {
     localStorage.setItem(localStorageTourTakenName, "1")
@@ -43,16 +61,18 @@ export default function App() {
       <InTourContext.Provider value={setInTour}>
         <Paper setInTour={setInTour} setDispatch={setDispatch} />
         <Tour
+          className="geodoodle-tour"
           steps={steps}
           isOpen={inTour}
-          onRequestClose={() => {
-            dispatch("end_tour")
-            setInTour(false)
-          }}
+          startAt={0}
+          goToStep={tourStep}
+          getCurrentStep={setTourStep}
+          onRequestClose={closeTour}
+          prevStep={previousTourStep}
           // accentColor='#ffddab'
-          // startAt={0}
-          // The prev button doesn't work, so we just hide it
-          prevButton={<></>}
+          prevButton={<span className="geodoodle-tour-button">Back</span>}
+          nextButton={<span className="geodoodle-tour-button">Next</span>}
+          lastStepNextButton={<span className="geodoodle-tour-button">Done</span>}
           rounded={8}
           showNavigationNumber={false}
           showNumber={false}

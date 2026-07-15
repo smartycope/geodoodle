@@ -3,6 +3,32 @@ import { isMobile } from "../utils"
 const LOAD_DELAY = 10
 let alreadyHappened = {}
 
+export const resetTourProgress = () => {
+  alreadyHappened = {}
+}
+
+export function getPreviousVisibleTourStep(steps, currentStep) {
+  let previousStep = Math.max(0, currentStep - 1)
+  while (previousStep > 0 && steps[previousStep].autoAdvance) previousStep--
+  return previousStep
+}
+
+// Hidden tour steps prepare menus and controls before automatically advancing.
+// When going backward, replay the hidden setup immediately before the previous
+// visible step, then navigate there once its DOM has had time to update.
+export function prepareTourStep(steps, targetStep, done) {
+  const setupSteps = []
+  for (let index = targetStep - 1; index >= 0 && steps[index].autoAdvance; index--)
+    setupSteps.unshift(steps[index])
+
+  let elapsed = 0
+  for (const step of setupSteps) {
+    setTimeout(() => step.action?.(), elapsed)
+    elapsed += step.loadDelay
+  }
+  setTimeout(done, elapsed)
+}
+
 // TODO: For some reason *which is a later problem* the tour actions seem to be running *six times*, and with inconsistent
 // timing. Why, I don't know. Probably has something to do with the StrictMode warning it keeps giving me with no
 // stack trace
@@ -12,6 +38,8 @@ const tour = (_dispatch) => {
   // We have to use this, because the selector selects *before* the action runs, so we need to stick an intermediate
   // step in to open the menu, wait for it to load, and then go to the next step
   const dispatch = (args) => ({
+    autoAdvance: true,
+    loadDelay: LOAD_DELAY,
     content: ({ goTo, step }) => {
       setTimeout(() => goTo(step), LOAD_DELAY)
       return <></>
@@ -19,6 +47,8 @@ const tour = (_dispatch) => {
     action: () => _dispatch(args),
   })
   const clickOn = (selector, delay = LOAD_DELAY) => ({
+    autoAdvance: true,
+    loadDelay: delay,
     content: ({ goTo, step }) => {
       setTimeout(() => goTo(step), delay)
       return <></>
@@ -46,7 +76,6 @@ const tour = (_dispatch) => {
           Let&apos;s walk through some of the basics
         </>
       ),
-      actionAfter: () => (alreadyHappened = {}),
     },
     {
       selector: "#menu-selector-mobile",
@@ -148,11 +177,10 @@ const tour = (_dispatch) => {
         </>
       ),
     },
-    menu({ close: "navigation" }),
     {
       selector: "#home-button",
       content: <>Home resets the position and scale to the starting position and scale.</>,
-    },
+     },
     // {   selector: "#nav-selection-button",
     //     content: "This moves you to the current selection.",
     // },
