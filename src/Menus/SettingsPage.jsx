@@ -72,6 +72,7 @@ export default function SettingsPage() {
     allowSnapToIntersections,
     toolbarOpacity,
     disableSelectionCanvasButtons,
+    loopCursorAtEdges,
   } = state
 
   return (
@@ -172,6 +173,21 @@ export default function SettingsPage() {
               dispatch({
                 action: "set_manual_and_save_settings",
                 disableSelectionCanvasButtons: !disableSelectionCanvasButtons,
+              })
+            }
+          />
+        </Setting>
+
+        <Setting
+          label="Loop Cursor at Edges"
+          help="Move the cursor to the opposite side when it reaches a horizontal or vertical screen edge"
+        >
+          <Checkbox
+            checked={loopCursorAtEdges}
+            onChange={() =>
+              dispatch({
+                action: "set_manual_and_save_settings",
+                loopCursorAtEdges: !loopCursorAtEdges,
               })
             }
           />

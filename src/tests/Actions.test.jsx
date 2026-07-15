@@ -55,7 +55,7 @@ import Dist from "../helper/Dist"
 import Line from "../helper/Line"
 import Rect from "../helper/Rect"
 import { getDefaultTestingState, getState } from "./testUtils"
-import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE } from "../globals"
+import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE, viewportHeight, viewportWidth } from "../globals"
 import defaultOptions from "../options"
 import * as utils from "../utils.jsx"
 import { tourState } from "../states"
@@ -139,6 +139,36 @@ describe("Transformation Actions", () => {
       expect(newState.cursorPos).toEqual(point.align(state))
       expect(newState.boundDragging).toBe(true)
       expect(newState.debugDrawPoints.Mouse).toBeDefined()
+    })
+
+    test("loops mouse movement across horizontal and vertical viewport edges", () => {
+      state = { ...state, loopCursorAtEdges: true }
+      const topLeft = Point.fromViewport(state, 0, 0).ceil()
+      const bottomRight = Point.fromViewport(state, viewportWidth() - 1, viewportHeight() - 1).floor()
+
+      const fromTopLeft = cursor_moved(state, { point: Point.fromViewport(state, 0, 0) })
+      expect(fromTopLeft.cursorPos.eq(bottomRight)).toBe(true)
+
+      const fromBottomRight = cursor_moved(state, {
+        point: Point.fromViewport(state, viewportWidth() - 1, viewportHeight() - 1),
+      })
+      expect(fromBottomRight.cursorPos.eq(topLeft)).toBe(true)
+    })
+
+    test("does not loop mouse movement when the setting is disabled", () => {
+      const point = Point.fromViewport(state, 0, 0)
+
+      expect(cursor_moved(state, { point }).cursorPos.eq(point.align(state))).toBe(true)
+    })
+
+    test("translates to keep an offscreen pointer-driven cursor visible", () => {
+      const movement = cursor_moved(state, { point: Point.fromViewport(state, -state.scalex, -state.scaley) })
+      const movedState = { ...state, ...movement }
+      const viewportCursor = movedState.cursorPos.asViewport(movedState)
+
+      expect(movement.translation).toBeDefined()
+      expect(viewportCursor.x).toBeGreaterThanOrEqual(0)
+      expect(viewportCursor.y).toBeGreaterThanOrEqual(0)
     })
   })
 
@@ -224,6 +254,40 @@ describe("Navigation Actions", () => {
 
   beforeEach(() => {
     state = getState()
+  })
+
+  test("loops keyboard movement across all four viewport edges", () => {
+    state = { ...state, loopCursorAtEdges: true }
+    const topLeft = Point.fromViewport(state, 0, 0).ceil()
+    const bottomRight = Point.fromViewport(state, viewportWidth() - 1, viewportHeight() - 1).floor()
+
+    expect(left({ ...state, cursorPos: topLeft }).cursorPos._x).toBe(bottomRight._x)
+    expect(up({ ...state, cursorPos: topLeft }).cursorPos._y).toBe(bottomRight._y)
+    expect(right({ ...state, cursorPos: bottomRight }).cursorPos._x).toBe(topLeft._x)
+    expect(down({ ...state, cursorPos: bottomRight }).cursorPos._y).toBe(topLeft._y)
+  })
+
+  test("translates to keep keyboard movement visible when looping is disabled", () => {
+    const topLeft = Point.fromViewport(state, 0, 0).ceil()
+    const bottomRight = Point.fromViewport(state, viewportWidth() - 1, viewportHeight() - 1).floor()
+
+    const movements = [
+      left({ ...state, cursorPos: topLeft }),
+      up({ ...state, cursorPos: topLeft }),
+      right({ ...state, cursorPos: bottomRight }),
+      down({ ...state, cursorPos: bottomRight }),
+    ]
+
+    for (const movement of movements) {
+      const movedState = { ...state, ...movement }
+      const viewportCursor = movedState.cursorPos.asViewport(movedState)
+      expect(viewportCursor.x).toBeGreaterThanOrEqual(0)
+      expect(viewportCursor.x).toBeLessThan(viewportWidth())
+      expect(viewportCursor.y).toBeGreaterThanOrEqual(0)
+      expect(viewportCursor.y).toBeLessThan(viewportHeight())
+    }
+
+    expect(movements.every((movement) => movement.translation)).toBe(true)
   })
 
   describe("go_to_selection", () => {

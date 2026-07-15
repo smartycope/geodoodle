@@ -51,6 +51,7 @@ const defaultOptions = {
   allowSnapToIntersections: true,
   toolbarOpacity: 0.9,
   disableSelectionCanvasButtons: false,
+  loopCursorAtEdges: false,
 }
 export default defaultOptions
 
@@ -224,6 +225,7 @@ export const preservable = [
   "allowSnapToIntersections",
   "useHSVColorPicker",
   "disableSelectionCanvasButtons",
+  "loopCursorAtEdges",
 ]
 
 // These are parts of the state

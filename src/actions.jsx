@@ -38,14 +38,53 @@ import { tourState } from "./states"
 import * as turf from "@turf/turf"
 import Color from "colorjs.io"
 
+function positionCursorAtEdges(state, point, edgePoint = point) {
+  const width = viewportWidth()
+  const height = viewportHeight()
+  if (state.loopCursorAtEdges) {
+    const edge = edgePoint.asViewport(state)
+    const topLeft = Point.fromViewport(state, 0, 0).ceil()
+    const bottomRight = Point.fromViewport(state, width - 1, height - 1).floor()
+    let [x, y] = point.xy()
+
+    if (edge.x <= 0) x = bottomRight._x
+    else if (edge.x >= width - 1) x = topLeft._x
+
+    if (edge.y <= 0) y = bottomRight._y
+    else if (edge.y >= height - 1) y = topLeft._y
+
+    return { cursorPos: new Point(x, y) }
+  }
+
+  const viewportPoint = point.asViewport(state)
+  let translateX = 0
+  let translateY = 0
+
+  if (viewportPoint.x < 0) translateX = Math.ceil(-viewportPoint.x / state.scalex)
+  else if (viewportPoint.x > width - 1)
+    translateX = -Math.ceil((viewportPoint.x - (width - 1)) / state.scalex)
+
+  if (viewportPoint.y < 0) translateY = Math.ceil(-viewportPoint.y / state.scaley)
+  else if (viewportPoint.y > height - 1)
+    translateY = -Math.ceil((viewportPoint.y - (height - 1)) / state.scaley)
+
+  return {
+    cursorPos: point,
+    ...(translateX || translateY
+      ? { translation: state.translation.add(translateX, translateY) }
+      : {}),
+  }
+}
 
 export const cursor_moved = (state, { point }) => {
   const { cursorPos, debugDrawPoints, fillMode, tempPolys, clipboard, allowSnapToIntersections } = state
   // This is here so when a touch is being held, and has moved enough to move the cursor, it disables the hold action
-  const newPos = point.align(state, clipboard === null && allowSnapToIntersections)
+  const alignedPos = point.align(state, clipboard === null && allowSnapToIntersections)
+  const edgeState = positionCursorAtEdges(state, alignedPos, point)
+  const newPos = edgeState.cursorPos
   if (!cursorPos.eq(newPos)) cursorPosChanged(newPos)
   return {
-    cursorPos: newPos,
+    ...edgeState,
     boundDragging: true,
     // This is only tracked because fillMode uses it
     mousePos: point,
@@ -129,10 +168,15 @@ export const go_to_selection = (state) => {
     }
 }
 
-export const left = (state) => ({ cursorPos: state.cursorPos.add(Dist.fromDeflated(state, -1, 0)) })
-export const right = (state) => ({ cursorPos: state.cursorPos.add(Dist.fromDeflated(state, 1, 0)) })
-export const up = (state) => ({ cursorPos: state.cursorPos.add(Dist.fromDeflated(state, 0, -1)) })
-export const down = (state) => ({ cursorPos: state.cursorPos.add(Dist.fromDeflated(state, 0, 1)) })
+const moveCursor = (state, x, y) => {
+  const cursorPos = state.cursorPos.add(Dist.fromDeflated(state, x, y))
+  return positionCursorAtEdges(state, cursorPos)
+}
+
+export const left = (state) => moveCursor(state, -1, 0)
+export const right = (state) => moveCursor(state, 1, 0)
+export const up = (state) => moveCursor(state, 0, -1)
+export const down = (state) => moveCursor(state, 0, 1)
 
 // Selection Actions
 export const add_specific_selector = (state) => ({

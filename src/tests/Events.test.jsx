@@ -7,6 +7,7 @@ import Point from "../helper/Point"
 import Poly from "../helper/Poly"
 import { getClipboardButtonsPos, getSelectionButtonsPos } from "../canvasButtonUtils"
 import { getState } from "./testUtils"
+import { viewportWidth } from "../globals"
 
 const touch = (pageX, pageY) => ({ pageX, pageY })
 
@@ -312,5 +313,14 @@ describe("touch interactions", () => {
     expect(dispatched.map(actionName)).toContain("cursor_moved")
     expect(dispatched.map(actionName)).toContain("add_line")
     expect(dispatched.map(actionName)).not.toContain("copy")
+  })
+
+  test("mouse movement loops the cursor at a horizontal viewport edge when enabled", () => {
+    state = { ...state, mobile: false, loopCursorAtEdges: true }
+    const expectedRightEdge = Point.fromViewport(state, viewportWidth() - 1, 100).floor()
+
+    onMouseMove(state, dispatch, { clientX: 0, clientY: 100, buttons: 0 })
+
+    expect(state.cursorPos._x).toBe(expectedRightEdge._x)
   })
 })

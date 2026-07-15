@@ -130,6 +130,7 @@ export default function getInitialState() {
     allowSnapToIntersections: options.allowSnapToIntersections,
     toolbarOpacity: options.toolbarOpacity,
     disableSelectionCanvasButtons: options.disableSelectionCanvasButtons,
+    loopCursorAtEdges: options.loopCursorAtEdges,
 
     // TODO: Not currently implemented -- also, this should be in theme probably
     cursorColor: options.cursorColor,
