@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import { onKeyDown, onMouseDown, onMouseMove, onMouseUp, onTouchEnd, onTouchMove, onTouchStart } from "../events"
 import reducer from "../reducer"
-import options from "../options"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
 import Poly from "../helper/Poly"
 import { getClipboardButtonsPos, getSelectionButtonsPos } from "../canvasButtonUtils"
 import { getState } from "./testUtils"
 import { viewportWidth } from "../globals"
+import { themeDefaults } from "../styling/theme"
 
 const touch = (pageX, pageY) => ({ pageX, pageY })
 
@@ -239,7 +239,7 @@ describe("touch interactions", () => {
     }
     const { x: buttonLeft, y: buttonTop } = getClipboardButtonsPos(state).asViewport(state)
     const buttonTouch = touch(
-      buttonLeft + buttonIndex * (options.clipboardButtonWidth + options.clipboardButtonGap) + 1,
+      buttonLeft + buttonIndex * (themeDefaults.canvasButtons.width + themeDefaults.canvasButtons.gap) + 1,
       buttonTop + 1,
     )
     const movedTouch = touch(buttonTouch.pageX + 30, buttonTouch.pageY + 30)
@@ -276,7 +276,7 @@ describe("touch interactions", () => {
     }
     const { x: buttonLeft, y: buttonTop } = getSelectionButtonsPos(state).asViewport(state)
     const buttonTouch = touch(
-      buttonLeft + buttonIndex * (options.clipboardButtonWidth + options.clipboardButtonGap) + 1,
+      buttonLeft + buttonIndex * (themeDefaults.canvasButtons.width + themeDefaults.canvasButtons.gap) + 1,
       buttonTop + 1,
     )
     const movedTouch = touch(buttonTouch.pageX + 30, buttonTouch.pageY + 30)

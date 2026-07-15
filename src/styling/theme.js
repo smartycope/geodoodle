@@ -1,6 +1,30 @@
 import { createTheme } from "@mui/material/styles"
 import Color from "colorjs.io"
 
+// Fixed visual defaults for GeoDoodle's canvas. User-controlled drawing and
+// interaction settings stay in options.jsx/state instead.
+export const themeDefaults = {
+  paperColor: "#ffddab",
+  selection: {
+    borderColor: "#2a56ad",
+    color: "#3367D1",
+    opacity: 0.15,
+  },
+  dots: {
+    size: 2,
+  },
+  canvasButtons: {
+    width: 45,
+    height: 45,
+    gap: 5,
+  },
+  mirrorColor: "green",
+  glowColor: {
+    light: "blue",
+    dark: "red",
+  },
+}
+
 function colorIsVisible(color, background) {
   // 4.5 came from here:
   // https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast-contrast.html
@@ -36,6 +60,7 @@ export default function generateTheme(paperColor, themeMode, systemPreferedTheme
     shape: {
       borderRadius: 4,
     },
+    geodoodle: themeDefaults,
     components: {
       MuiPaper: {
         defaultProps: { elevation: 5 },
@@ -62,8 +87,10 @@ export default function generateTheme(paperColor, themeMode, systemPreferedTheme
   theme.palette.primary.genericSelectors = contrast
   theme.palette.primary.cursor = contrast
   theme.palette.paperIsDark = contrast === "#fff"
-  theme.palette.primary.glow = theme.palette.paperIsDark ? "red" : "blue"
-  theme.palette.primary.mirror = "green"
+  theme.palette.primary.glow = theme.palette.paperIsDark
+    ? themeDefaults.glowColor.dark
+    : themeDefaults.glowColor.light
+  theme.palette.primary.mirror = themeDefaults.mirrorColor
 
   return theme
 }

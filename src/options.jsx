@@ -2,31 +2,18 @@ import { viewportWidth, viewportHeight } from "./globals"
 
 // TODO: Options/defaultOptions needs a refactor
 const defaultOptions = {
-  cursorColor: "black",
   scalex: 20,
   scaley: 20,
   stroke: "#000000",
   fill: "#ffffff",
   commonColorAmt: 5,
   strokeWidth: 0.05,
-  // TODO: these need to be put into theme instead
-  boundColor: "black",
-  mirrorColor: "green",
-  selectionBorderColor: "#2a56ad",
-  selectionOpacity: 0.15,
-  selectionColor: "#3367D1",
-  glowColor: "blue",
   partials: true,
-  dotOffsetx: 0,
-  dotOffsety: 0,
-  dotRadius: 2,
-  dotColor: "black",
   invertedScroll: true,
   scrollSensitivity: 0.3,
   hideHexColor: true,
   useHSVColorPicker: false,
   enableGestureScale: false,
-  paperColor: "#ffddab",
   maxMouseMoveEventsDuringHold: 30,
   doubleTapTimeMS: 500,
   // See note in onTouchEnd in App.jsx to see why this is / 2
@@ -38,11 +25,6 @@ const defaultOptions = {
   maxUndoAmt: 20,
   maxScale: Math.min(viewportWidth(), viewportHeight()) / 2,
   minScale: 4,
-  // Color of the clipboard lines, before they're added as permanent lines
-  clipColor: "grey80",
-  clipboardButtonWidth: 45,
-  clipboardButtonHeight: 45,
-  clipboardButtonGap: 5,
   // In ms
   toastDuration: 6000,
   defaultToMemorableNames: true,

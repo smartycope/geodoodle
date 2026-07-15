@@ -5,6 +5,7 @@ import Line from "./helper/Line"
 import { defaultTrellisControl, isMobile as getIsMobile } from "./utils"
 import Dist from "./helper/Dist"
 import { generateName } from "./fileUtils"
+import { themeDefaults } from "./styling/theme"
 
 // NOTE: when adding to state, go through options.jsx and add them to reversible, preservable, and saveable, if applicable
 
@@ -135,8 +136,6 @@ export default function getInitialState() {
       Object.entries(defaultKeybindings).map(([shortcut, action]) => [shortcut, { ...action }]),
     ),
 
-    // TODO: Not currently implemented -- also, this should be in theme probably
-    cursorColor: options.cursorColor,
     cursor: options.cursor,
 
     // true if the current pattern has unsaved edits
@@ -172,7 +171,7 @@ export default function getInitialState() {
         */
     debugDrawPoints: {},
 
-    paperColor: options.paperColor,
+    paperColor: themeDefaults.paperColor,
     doubleTapTimeMS: options.doubleTapTimeMS,
     holdTapTimeMS: options.holdTapTimeMS,
     // Some browsers (Brave, DuckDuckGo) don't display the mirror icons correctly

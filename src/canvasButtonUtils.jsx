@@ -1,6 +1,8 @@
 import Point from "./helper/Point"
 import {getBoundRect, getClipboardRect} from "./utils"
-import options from "./options"
+import { themeDefaults } from "./styling/theme"
+
+const canvasButtons = themeDefaults.canvasButtons
 
 export const clipboardTransformButtons = [
   { action: "increment_clipboard_rotation", label: "Rotate clipboard" },
@@ -19,7 +21,7 @@ export const selectionOptionButtons = [
 
 export function getClipboardButtonsPos(state) {
   const { cursorPos, scalex } = state
-  const { clipboardButtonHeight: buttonHeight } = options
+  const { height: buttonHeight } = canvasButtons
   const { x: cursorx, y: cursory } = cursorPos.asViewport(state)
   const { width: boundWidth, height: boundHeight } = getClipboardRect(state).asViewport(state, true)
   // x={cursorx - width/2 - scalex/2} y={cursory - height/2 - buttonHeight}
@@ -29,7 +31,7 @@ export function getClipboardButtonsPos(state) {
 export function getSelectionButtonsPos(state) {
   const boundRect = getBoundRect(state).grow(0.5)
   const { left, top } = boundRect.asViewport(state)
-  return Point.fromViewport(state, left, top - options.clipboardButtonHeight)
+  return Point.fromViewport(state, left, top - canvasButtons.height)
 }
 
 export function getClipboardButtonStrip(state) {
@@ -59,7 +61,7 @@ export function getCanvasButtonAt(state, x, y) {
   if (!strip) return null
 
   const { x: left, y: top } = strip.position.asViewport(state)
-  const { clipboardButtonWidth: width, clipboardButtonHeight: height, clipboardButtonGap: gap } = options
+  const { width, height, gap } = canvasButtons
   if (y < top || y > top + height || x < left) return null
 
   const stride = width + gap

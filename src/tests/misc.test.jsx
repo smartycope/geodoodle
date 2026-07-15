@@ -9,7 +9,7 @@ import { getGestureScaleDelta } from "../events"
 import { extraButtons } from "../globals"
 import reducer from "../reducer"
 import Dist from "../helper/Dist"
-import generateTheme from "../styling/theme"
+import generateTheme, { themeDefaults } from "../styling/theme"
 
 // In between each tests, reset the localStorage
 beforeEach(() => {
@@ -207,4 +207,14 @@ test("menu-item hover colors are neutral and independent of the paper color", ()
   expect(orangePaperTheme.palette.action.hover).toBeTypeOf("string")
   expect(orangePaperTheme.palette.action.hover).toBe(bluePaperTheme.palette.action.hover)
   expect(orangePaperTheme.palette.action.hover).not.toBe(orangePaperTheme.palette.primary.main)
+})
+
+test("canvas presentation defaults live on the generated theme", () => {
+  const state = getState()
+  const theme = generateTheme(state.paperColor, "light", "light")
+
+  expect(state.paperColor).toBe(themeDefaults.paperColor)
+  expect(theme.geodoodle).toEqual(themeDefaults)
+  expect(theme.palette.primary.mirror).toBe(themeDefaults.mirrorColor)
+  expect(theme.palette.primary.glow).toBe(themeDefaults.glowColor.light)
 })

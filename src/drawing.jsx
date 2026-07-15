@@ -43,6 +43,7 @@ import ContentCutIcon from "@mui/icons-material/ContentCut"
 import CancelPresentationIcon from "@mui/icons-material/CancelPresentation"
 import CancelPresentationTwoToneIcon from "@mui/icons-material/CancelPresentationTwoTone"
 import useMediaQuery from "@mui/material/useMediaQuery"
+import { themeDefaults } from "./styling/theme"
 
 // For debugging
 function useActiveBreakpoint() {
@@ -294,10 +295,14 @@ export const MirrorMetaLines = () => {
 function CanvasButtonStrip({ state, strip, icons }) {
   if (!strip) return null
 
+  const theme = useTheme()
   const { x, y } = strip.position.asViewport(state)
-  const buttonHeight = options.clipboardButtonHeight
-  const buttonWidth = options.clipboardButtonWidth
-  const stripWidth = buttonWidth * strip.buttons.length + options.clipboardButtonGap * (strip.buttons.length - 1)
+  const {
+    width: buttonWidth,
+    height: buttonHeight,
+    gap: buttonGap,
+  } = (theme.geodoodle ?? themeDefaults).canvasButtons
+  const stripWidth = buttonWidth * strip.buttons.length + buttonGap * (strip.buttons.length - 1)
 
   return (
     <>
@@ -314,7 +319,7 @@ function CanvasButtonStrip({ state, strip, icons }) {
         <div
           id={strip.id}
           className="canvas-option-buttons"
-          style={{ display: "flex", gap: options.clipboardButtonGap, pointerEvents: "all" }}
+          style={{ display: "flex", gap: buttonGap, pointerEvents: "all" }}
         >
           {strip.buttons.map(({ action, label }, index) => (
             <button
@@ -362,6 +367,8 @@ export const SelectionOptionButtons = () => {
 export const SelectionRect = () => {
   const { state } = useContext(StateContext)
   const { partials, scalex } = state
+  const theme = useTheme()
+  const selectionTheme = (theme.geodoodle ?? themeDefaults).selection
   let boundRect = getBoundRect(state)
 
   if (!boundRect) return null
@@ -377,10 +384,9 @@ export const SelectionRect = () => {
         height={height}
         x={left}
         y={top}
-        // TODO: this should get moved to CSS
-        stroke={options.selectionBorderColor}
-        fillOpacity={options.selectionOpacity}
-        fill={options.selectionColor}
+        stroke={selectionTheme.borderColor}
+        fillOpacity={selectionTheme.opacity}
+        fill={selectionTheme.color}
         rx={partials ? scalex / 2 : 0}
         strokeWidth={0.5}
       />
@@ -631,7 +637,13 @@ export const Dots = () => {
           patternUnits="userSpaceOnUse"
           patternTransform={`rotate(${rotate})`}
         >
-          <rect x={0} y={0} width={options.dotRadius} height={options.dotRadius} fill={theme.palette.primary.dots} />
+          <rect
+            x={0}
+            y={0}
+            width={(theme.geodoodle ?? themeDefaults).dots.size}
+            height={(theme.geodoodle ?? themeDefaults).dots.size}
+            fill={theme.palette.primary.dots}
+          />
         </pattern>
         <rect fill="url(#dots)" stroke="black" width="100%" height="100%" />
       </>
