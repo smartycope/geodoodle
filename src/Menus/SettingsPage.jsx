@@ -133,6 +133,7 @@ export default function SettingsPage() {
           >
             <ColorPicker
               color={ColorService.convert("hex", paperColor)}
+              hideAlpha={true}
               hideInput={["hsv", hideHexColor ? "hex" : ""]}
               onChange={(clr) => dispatch({ action: "set_paper_color", color: clr.hex })}
             />
