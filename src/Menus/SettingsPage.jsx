@@ -19,6 +19,7 @@ import { useTheme } from "@mui/material/styles"
 import { extraButtons } from "../globals"
 import { clearPreservedState } from "../fileUtils"
 import { Slider } from "@mui/material"
+import defaultOptions from "../options"
 
 const StyledSubheader = styled(ListSubheader)(({ theme }) => {
   // Yes this inconsistent, but *I like it*
@@ -73,6 +74,7 @@ export default function SettingsPage() {
     toolbarOpacity,
     disableSelectionCanvasButtons,
     loopCursorAtEdges,
+    defaultScalex,
   } = state
 
   return (
@@ -220,6 +222,22 @@ export default function SettingsPage() {
               </MenuItem>
             ))}
           </Select>
+        </Setting>
+
+        <Setting label="Home Scale" help="The zoom level restored by the Home action">
+          <Number
+            value={defaultScalex}
+            min={defaultOptions.minScale}
+            max={defaultOptions.maxScale}
+            step={1}
+            onValueChange={(value) =>
+              dispatch({
+                action: "set_manual_and_save_settings",
+                defaultScalex: value,
+                defaultScaley: value,
+              })
+            }
+          />
         </Setting>
 
         <Setting label="Keyboard Shortcuts" help="Customize which keys perform each action">

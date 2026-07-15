@@ -111,6 +111,18 @@ test("cursor edge looping preference persists for refresh", () => {
   expect(loadPreservedState().loopCursorAtEdges).toBe(true)
 })
 
+test("home scale preference persists and controls the Home action", () => {
+  const state = reducer(getState(), {
+    action: "set_manual_and_save_settings",
+    defaultScalex: 14,
+    defaultScaley: 14,
+  })
+
+  expect(loadPreservedState().defaultScalex).toBe(14)
+  expect(loadPreservedState().defaultScaley).toBe(14)
+  expect(actions.go_home(state)).toMatchObject({ scalex: 14, scaley: 14 })
+})
+
 test("pinch scaling tracks the proportional distance between fingers", () => {
   expect(getGestureScaleDelta(4, 100, 125, 1)).toBeCloseTo(1)
   expect(getGestureScaleDelta(20, 100, 125, 1)).toBeCloseTo(5)

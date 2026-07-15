@@ -224,6 +224,8 @@ export const preservable = [
   "translation",
   "scalex",
   "scaley",
+  "defaultScalex",
+  "defaultScaley",
   "invertedScroll",
   "scrollSensitivity",
   "enableGestureScale",
