@@ -119,8 +119,8 @@ export default function ColorMenu() {
                     gap: 0.1,
                     backgroundColor: swatchBackground,
                     color: getShowableStroke(swatchBackground),
-                    border: "2px solid",
-                    borderColor: i === colorProfile ? "primary.main" : "divider",
+                    border: "6px solid",
+                    borderColor: i === colorProfile ? "primary.main" : "transparent",
                     boxShadow: i === colorProfile ? `0 0 0 1px ${theme.palette.background.paper}` : "none",
                     "&:hover": {
                       backgroundColor: swatchBackground,
