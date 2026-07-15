@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
-import { onMouseDown, onMouseMove, onMouseUp, onTouchEnd, onTouchMove, onTouchStart } from "../events"
+import { onKeyDown, onMouseDown, onMouseMove, onMouseUp, onTouchEnd, onTouchMove, onTouchStart } from "../events"
 import reducer from "../reducer"
 import options from "../options"
 import Line from "../helper/Line"
@@ -18,6 +18,21 @@ const touchEvent = (touches, changedTouches = touches) => ({
 })
 
 const actionName = (action) => (typeof action === "string" ? action : action.action)
+
+describe("keyboard interactions", () => {
+  const keyEvent = (key) => ({ key, ctrlKey: false, metaKey: false, altKey: false, shiftKey: false })
+
+  test("uses the editable state keybindings instead of the defaults", () => {
+    const dispatch = vi.fn()
+    const state = { ...getState(), keybindings: { q: { action: "go_home" } } }
+
+    onKeyDown(state, dispatch, keyEvent("q"))
+    onKeyDown(state, dispatch, keyEvent("h"))
+
+    expect(dispatch).toHaveBeenCalledTimes(1)
+    expect(dispatch).toHaveBeenCalledWith({ action: "go_home" })
+  })
+})
 
 describe("touch interactions", () => {
   let state

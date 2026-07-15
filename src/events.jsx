@@ -1,4 +1,3 @@
-import { keybindings } from "./options"
 import Point from "./helper/Point"
 import Dist from "./helper/Dist"
 import { distCenter, eventMatchesKeycode } from "./utils"
@@ -97,7 +96,7 @@ export function onKeyDown(state, dispatch, e) {
   if (["Shift", "Meta", "Control", "Alt"].includes(e.key)) return
 
   var take = null
-  for (const [shortcut, action] of Object.entries(keybindings))
+  for (const [shortcut, action] of Object.entries(state.keybindings))
     if (eventMatchesKeycode(e, shortcut)) {
       take = action
       break

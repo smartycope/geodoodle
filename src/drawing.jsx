@@ -27,6 +27,7 @@ import HelpPage from "./Menus/HelpPage"
 import ColorMenu from "./Menus/ColorMenu"
 import FilePage from "./Menus/FilePage"
 import SettingsPage from "./Menus/SettingsPage"
+import KeybindingsPage from "./Menus/KeybindingsPage"
 import NavMenu from "./Menus/NavMenu"
 import RepeatMenu from "./Menus/RepeatMenu"
 import MirrorMenu from "./Menus/MirrorMenu"
@@ -686,6 +687,7 @@ export const Menus = () => {
       {openMenus.repeat && <RepeatMenu />}
       {openMenus.file && <FilePage />}
       {openMenus.settings && <SettingsPage />}
+      {openMenus.key && <KeybindingsPage />}
       {openMenus.help && <HelpPage />}
     </>
   )

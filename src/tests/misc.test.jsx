@@ -1,10 +1,10 @@
 import { test, expect, describe, beforeEach } from "vitest"
 import { getState } from "./testUtils"
-import defaultOptions, { keybindings, preservable, reversible, saveable } from "../options"
+import defaultOptions, { defaultKeybindings, keybindable, preservable, reversible, saveable } from "../options"
 import * as actions from "../actions"
 import { reversibleActions, saveSettingActions } from "../options"
 import { loadPreservedState, validateStorage } from "../fileUtils"
-import { eventMatchesKeycode } from "../utils"
+import { eventMatchesKeycode, normalizeShortcut, shortcutFromKeyboardEvent } from "../utils"
 import { getGestureScaleDelta } from "../events"
 import { extraButtons } from "../globals"
 import reducer from "../reducer"
@@ -142,12 +142,46 @@ describe("keybinding modifiers", () => {
 })
 
 test("e is bound to picking up a line endpoint", () => {
-  expect(keybindings.e).toEqual({ action: "pick_up_line_end" })
+  expect(defaultKeybindings.e).toEqual({ action: "pick_up_line_end" })
 })
 
 test("number keys select the five zero-indexed color profiles", () => {
   for (let key = 1; key <= defaultOptions.commonColorAmt; key++)
-    expect(keybindings[key]).toEqual({ action: "set_color_profile_index", index: key - 1 })
+    expect(defaultKeybindings[key]).toEqual({ action: "set_color_profile_index", index: key - 1 })
+})
+
+test("every default keyboard action is available to the shortcut editor", () => {
+  const actionIsBindable = (action) =>
+    keybindable.some((entry) => {
+      const keys = new Set([...Object.keys(action), ...Object.keys(entry.action)])
+      return [...keys].every((key) => action[key] === entry.action[key])
+    })
+
+  for (const action of Object.values(defaultKeybindings)) expect(actionIsBindable(action)).toBe(true)
+  expect(keybindable.flatMap((entry) => entry.default).sort()).toEqual(Object.keys(defaultKeybindings).sort())
+})
+
+test("keyboard shortcuts are copied into state and persist when customized", () => {
+  const state = getState()
+  expect(state.keybindings).toEqual(defaultKeybindings)
+  expect(state.keybindings).not.toBe(defaultKeybindings)
+
+  reducer(state, {
+    action: "set_manual_and_save_settings",
+    keybindings: { q: { action: "go_home" } },
+  })
+
+  expect(loadPreservedState().keybindings).toEqual({ q: { action: "go_home" } })
+})
+
+test("shortcut text and recorded key combinations use the same canonical format", () => {
+  expect(normalizeShortcut("Command + Shift + K")).toBe("ctrl+shift+k")
+  expect(shortcutFromKeyboardEvent({ key: "k", metaKey: true, ctrlKey: false, altKey: false, shiftKey: true })).toBe(
+    "ctrl+shift+k",
+  )
+  expect(
+    eventMatchesKeycode({ key: " ", metaKey: false, ctrlKey: false, altKey: false, shiftKey: false }, "space"),
+  ).toBe(true)
 })
 
 test("dot visibility is available as an Extra Button action", () => {

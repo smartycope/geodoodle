@@ -55,72 +55,82 @@ const defaultOptions = {
 }
 export default defaultOptions
 
-// The default keybindings
-// This should be the names of the JS key strings, all lower case
-// Modifiers are shift, ctrl, meta, and alt
-// Order doesn't matter
-// Multiple keycodes are assignable to the same action
-// If a single keycode is assigned to multiple actions, the last one is used
-export const keybindings = {
-  arrowleft: { action: "left" },
-  arrowright: { action: "right" },
-  arrowup: { action: "up" },
-  arrowdown: { action: "down" },
-  j: { action: "left" },
-  ";": { action: "right" },
-  k: { action: "up" },
-  l: { action: "down" },
-  a: { action: "left" },
-  d: { action: "right" },
-  w: { action: "up" },
-  s: { action: "down" },
+const bindable = (id, label, defaultBindings = [], action = id) => ({
+  id,
+  label,
+  default: Array.isArray(defaultBindings) ? defaultBindings : [defaultBindings],
+  action: typeof action === "string" ? { action } : action,
+})
 
-  "ctrl+arrowup": { action: "increase_scale" },
-  "ctrl+arrowdown": { action: "decrease_scale" },
+// Actions exposed by the keyboard-shortcut editor. Entries use stable IDs
+// because several reducer actions need different parameters or menu targets.
+// Defaults use lower-case JS key names. Ctrl means Control or Command.
+export const keybindable = [
+  bindable("left", "Move cursor left", ["arrowleft", "j", "a"]),
+  bindable("right", "Move cursor right", ["arrowright", ";", "d"]),
+  bindable("up", "Move cursor up", ["arrowup", "k", "w"]),
+  bindable("down", "Move cursor down", ["arrowdown", "l", "s"]),
+  bindable("increase_scale", "Increase scale", "ctrl+arrowup"),
+  bindable("decrease_scale", "Decrease scale", "ctrl+arrowdown"),
+  bindable("delete_at_cursor", "Delete under cursor", "backspace"),
+  bindable("delete_selected_or_cursor", "Delete selection or under cursor", "delete", {
+    action: "delete_at_cursor",
+    allowDeleteSelected: true,
+  }),
+  bindable("add_line", "Start or finish line", "space"),
+  bindable("continue_line", "Continue line", "c"),
+  bindable("pick_up_line_end", "Move line endpoint", "e"),
+  bindable("add_bound", "Add area bound", "b"),
+  bindable("add_generic_selector", "Add generic selector", "n"),
+  bindable("add_specific_selector", "Add specific selector", "shift+n"),
+  bindable("clear_bounds", "Clear area bounds", "shift+b"),
+  bindable("nevermind", "Cancel current operation", "escape"),
+  bindable("toggle_partials", "Toggle partial selection", "p"),
+  bindable("go_home", "Reset position and scale", ["home", "h"]),
+  bindable("increment_clipboard_rotation", "Rotate clipboard", "x"),
+  bindable("increment_clipboard_mirror_axis", "Mirror clipboard", "z"),
+  bindable("add_mirror_origin", "Add mirror origin", "o"),
+  bindable("copy", "Copy selection", "ctrl+c"),
+  bindable("paste", "Paste clipboard", "ctrl+v"),
+  bindable("cut", "Cut selection", "ctrl+x"),
+  bindable("undo", "Undo", "ctrl+z"),
+  bindable("redo", "Redo", ["ctrl+y", "ctrl+shift+z"]),
+  bindable("toggle_fill_mode", "Toggle fill mode", "f"),
+  bindable("debug", "Log debug information", "`"),
+  bindable("toggle_debugging", "Toggle debug mode", "shift+`"),
+  // 1-5 color keyboard shortcuts
+  ...Array.from({ length: defaultOptions.commonColorAmt }, (_, index) =>
+    bindable(`color_profile_${index + 1}`, `Select color profile ${index + 1}`, `${index + 1}`, {
+      action: "set_color_profile_index",
+      index,
+    }),
+  ),
+  // Menu toggles
+  ...[
+    ["main", "Toolbar"],
+    ["extra", "Extra menu"],
+    ["color", "Color menu"],
+    ["mirror", "Mirror menu", "m"],
+    ["select", "Selection menu"],
+    ["clipboard", "Clipboard menu"],
+    ["delete", "Delete menu"],
+    ["navigation", "Navigation menu"],
+    ["repeat", "Repeat menu", "r"],
+    ["file", "Files page"],
+    ["settings", "Settings page", "ctrl+s"],
+    ["help", "Help page"],
+  ].map(([menu, label, defaults = []]) =>
+    bindable(`toggle_menu_${menu}`, `Toggle ${label}`, defaults, { action: "menu", toggle: menu }),
+  ),
+]
 
-  delete: { action: "delete_at_cursor", allowDeleteSelected: true },
-  backspace: { action: "delete_at_cursor" },
-  // 'ctrl+q': {action: "clear"},
-  " ": { action: "add_line" },
-  c: { action: "continue_line" },
-  e: { action: "pick_up_line_end" },
-  b: { action: "add_bound" },
-  n: { action: "add_generic_selector" },
-  "shift+n": { action: "add_specific_selector" },
-  "shift+b": { action: "clear_bounds" },
-  escape: { action: "nevermind" },
-  p: { action: "toggle_partials" },
-  home: { action: "go_home" },
-  h: { action: "go_home" },
-  x: { action: "increment_clipboard_rotation" },
-  z: { action: "increment_clipboard_mirror_axis" },
-  o: { action: "add_mirror_origin" },
-
-  m: { action: "menu", toggle: "mirror" },
-  r: { action: "menu", toggle: "repeat" },
-  "ctrl+s": { action: "menu", toggle: "settings" },
-
-  1: { action: `set_color_profile_index`, index: 0 },
-  2: { action: `set_color_profile_index`, index: 1 },
-  3: { action: `set_color_profile_index`, index: 2 },
-  4: { action: `set_color_profile_index`, index: 3 },
-  5: { action: `set_color_profile_index`, index: 4 },
-  // 6: { action: `set_color_profile_index`, index: 6 },
-  // 7: { action: `set_color_profile_index`, index: 7 },
-  // 8: { action: `set_color_profile_index`, index: 8 },
-  // 9: { action: `set_color_profile_index`, index: 9 },
-
-  "ctrl+c": { action: "copy" },
-  "ctrl+v": { action: "paste" },
-  "ctrl+x": { action: "cut" },
-  "ctrl+z": { action: "undo" },
-  "ctrl+y": { action: "redo" },
-  "ctrl+shift+z": { action: "redo" },
-  f: { action: "toggle_fill_mode" },
-
-  "`": { action: "debug" },
-  "shift+`": { action: "toggle_debugging" },
-}
+// Kept as an object for consumers that need to look up actions by shortcut.
+// If a shortcut is listed more than once above, the last action wins.
+export const defaultKeybindings = Object.fromEntries(
+  keybindable.flatMap(({ default: defaults, action }) =>
+    defaults.map((shortcut) => [shortcut, { ...action }]),
+  ),
+)
 
 // These are actions
 // Only these can be undone, all other actions are ignored by undo/redo
@@ -225,6 +235,7 @@ export const preservable = [
   "allowSnapToIntersections",
   "useHSVColorPicker",
   "disableSelectionCanvasButtons",
+  "keybindings",
   "loopCursorAtEdges",
 ]
 

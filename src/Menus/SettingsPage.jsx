@@ -222,6 +222,12 @@ export default function SettingsPage() {
           </Select>
         </Setting>
 
+        <Setting label="Keyboard Shortcuts" help="Customize which keys perform each action">
+          <Button variant="outlined" onClick={() => dispatch({ action: "menu", open: "key", close: "settings" })}>
+            Customize
+          </Button>
+        </Setting>
+
         {/* Controls */}
         <StyledSubheader>Controls</StyledSubheader>
         <Setting desktopOnly label="Invert Scroll" help="Controls if the scroll is inverted">
@@ -333,11 +339,6 @@ export default function SettingsPage() {
           </Button>
         </Setting>
 
-        <Setting desktopOnly label="Keyboard Shortcuts" help="View the keyboard shortcuts">
-          <Button variant="outlined" onClick={() => dispatch({ action: "menu", open: "key", close: "settings" })}>
-            Keyboard Shortcuts
-          </Button>
-        </Setting>
         <br />
         <footer>v{version}</footer>
       </List>

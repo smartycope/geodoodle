@@ -1,4 +1,4 @@
-import options from "./options"
+import options, { defaultKeybindings } from "./options"
 import { viewportWidth, viewportHeight, START_DEBUGGING, MIRROR_AXIS, MIRROR_TYPE, MIRROR_ROT } from "./globals"
 import Point from "./helper/Point"
 import Line from "./helper/Line"
@@ -131,6 +131,9 @@ export default function getInitialState() {
     toolbarOpacity: options.toolbarOpacity,
     disableSelectionCanvasButtons: options.disableSelectionCanvasButtons,
     loopCursorAtEdges: options.loopCursorAtEdges,
+    keybindings: Object.fromEntries(
+      Object.entries(defaultKeybindings).map(([shortcut, action]) => [shortcut, { ...action }]),
+    ),
 
     // TODO: Not currently implemented -- also, this should be in theme probably
     cursorColor: options.cursorColor,
