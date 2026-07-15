@@ -39,7 +39,7 @@ browser input → src/events.jsx → dispatch → src/reducer.jsx → src/action
 ### Input and drawing
 
 - `src/events.jsx` translates mouse, wheel, keyboard, and touch gestures into actions. Touch handling uses module-level gesture/timer variables because `Paper` must attach non-passive native listeners.
-- `src/transformUtils.js` owns shared canvas rotation math and the SVG transform strings used by drawing layers.
+- `src/transformUtils.js` owns shared canvas rotation math and the canonical SVG transform strings used by drawing layers. Canvas-space rendering should reuse these helpers rather than assembling transforms independently.
 - `src/drawing.jsx` renders all Paper-owned visual pieces: grid dots, lines, in-progress lines, fills, selection/bounds/selectors, cursor, clipboard preview, mirror guides, menus, toast, and debugging overlays.
 - `src/Trellis.jsx` separately renders the repeated background pattern. It derives the seed from the current selection and emits transformed groups until the viewport is covered. Repeat controls use row/column `{ every, val }` structures.
 - `src/Menus/Toolbar.jsx` lays out the responsive toolbar; `ToolButton.jsx` maps button names to icons and toggles menus. `MiniMenu.jsx` is the anchored popover primitive and `Page.jsx` is the full dialog primitive.
@@ -68,6 +68,16 @@ Coordinate terminology:
 
 Do not hand-roll transformations or silently mix coordinate systems. Prefer `Point`/`Dist` conversions and helper methods. `Point`, `Dist`, `Line`, `Pair`, and `Rect` operations return new values; do not depend on mutation. Use `Point.xy()` rather than `_x`/`_y` except when the coordinate system is already intentionally irrelevant (as in some geometry internals).
 
+### Canvas transforms and screen space
+
+- The durable drawing remains in deflated, unrotated canvas coordinates. Translation, scale, and rotation are view transforms; rotating the canvas must not rewrite line, polygon, bound, selector, clipboard, or trellis geometry.
+- Canvas rotation is around the center of the visual viewport. `Point.fromViewport` and `Point.asViewport` apply the inverse and forward view transforms, respectively, and should round-trip even with translation, non-uniform scale, and rotation.
+- A `Dist` is a vector, not a position. Use `Dist.fromInflated` when converting a screen-space drag/scroll delta into canvas space and `Dist.asViewport` when checking where a canvas-space movement points on screen. Rotation of a vector is around `(0, 0)`, not the viewport center.
+- Canvas-space SVG geometry belongs in a `<g transform={getCanvasTransform(state)}>`. Viewport-space overlays such as cursor shapes, bounds, selector markers, mirror icons, and canvas-option buttons remain upright and position themselves with `Point.asViewport(state)`. The dot grid uses `getCanvasRotationTransform` on its pattern.
+- `Rect.asViewport` returns the axis-aligned viewport bounding box of all four transformed corners. This is appropriate for hit regions, button placement, and viewport containment; render a genuinely rotated rectangle as canvas-space geometry inside the shared transform group.
+- Rotation changes the visible logical viewport from a two-corner rectangle to a four-corner polygon. Algorithms that need a conservative canvas-space coverage area, notably `Trellis.jsx`, must inverse-transform all four viewport corners before taking their bounds.
+- Scale and rotation actions compensate translation to keep their chosen logical focal point at the same screen position. For simultaneous two-finger movement, scale, and rotation, use the atomic `gesture_transform` action; separate queued dispatches use different intermediate states and cause the drawing to drift away from the fingers.
+
 ## Important domain behavior
 
 - A line is started/finished through `add_line`; `curLinePos` is the start of an in-progress line and `cursorPos` is the snapped grid cursor, not the physical mouse coordinate.
@@ -76,6 +86,9 @@ Do not hand-roll transformations or silently mix coordinate systems. Prefer `Poi
 - Entering fill mode normalizes and splits line segments, runs Turf polygonization, and previews polygons under the *physical* mouse position. The action is `toggle_fill_mode`; `getPreviewPolys` and `Poly.contains` determine previews.
 - Clipboard lines are copied relative to a selection origin and transformed/mirrored at the cursor. See `actions.jsx` (`copy`, `cut`, `paste`) and `utils.jsx:getAllClipboardLines`.
 - Trellis/repeat requires a completed selection (`bounds.length > 1`). `Trellis.jsx` is the rendering algorithm; `Menus/RepeatMenu.jsx` owns its controls.
+- Clipboard transformation and selection-option controls drawn over the canvas are visual `foreignObject` buttons whose presses are manually hit-tested in `canvasButtonUtils.jsx` and consumed in `events.jsx`. Keep their rendering geometry and mouse/touch hit geometry in sync, and do not let a consumed press also move the cursor or clipboard.
+- Keyboard shortcuts are editable state. `keybindable` is the action catalog and source of each default binding; `defaultKeybindings` is derived from it, while runtime matching reads `state.keybindings`. The shortcut token `ctrl` intentionally accepts either Control or macOS Command.
+- Fixed canvas presentation constants live in `themeDefaults` in `src/styling/theme.js`; user-controlled behavior and drawing choices live in `options.jsx`/state. Components should read generated-theme values so light/dark and paper-color contrast logic remain centralized.
 
 ## Where to make a change
 
@@ -86,7 +99,7 @@ Do not hand-roll transformations or silently mix coordinate systems. Prefer `Poi
 | Add state | `src/states.jsx`; then decide whether it belongs in `reversible`, `preservable`, or `saveable` in `src/options.jsx` |
 | SVG layer, cursor, selection, fill, clipboard, or debug rendering | `src/drawing.jsx`; layer placement in `src/Paper.jsx` |
 | Repeated-pattern algorithm | `src/Trellis.jsx`; controls in `src/Menus/RepeatMenu.jsx`; defaults in `src/utils.jsx:defaultTrellisControl` |
-| Coordinate math, line intersections, or selection semantics | `src/helper/`, especially `Point.js`, `Line.jsx`, and `Rect.jsx`; shared selection helpers in `src/utils.jsx` |
+| Coordinate math, view transforms, line intersections, or selection semantics | `src/helper/`, `src/transformUtils.js`, and shared helpers in `src/utils.jsx` |
 | Save/load/export/upload/image copy | `src/fileUtils.jsx`, actions in `src/actions.jsx`, UI in `src/Menus/FilePage.jsx` |
 | Local persistence schema | `src/fileUtils.jsx` and `preservable`/`saveable` in `src/options.jsx`; do not access `localStorage` elsewhere |
 | Toolbar sizing/placement or tool icons | `src/Menus/Toolbar.jsx`, `ToolButton.jsx`, `ExtraMenu.jsx`, `ExtraButton.jsx`, `src/utils.jsx:extraSlots` |
@@ -128,6 +141,8 @@ npm run build
 
 - `src/tests/HelperClasses.test.jsx` covers Pair, Point, Dist, Line, and Rect behavior.
 - `src/tests/Actions.test.jsx` covers transformations, selection/deletion, line creation, clipboard, persistence/files, menus, tour, and fills.
+- `src/tests/Events.test.jsx` calls the input handlers directly and is the best place for touch lifecycle, combined gesture, wheel-modifier, and manually consumed canvas-button regressions. Its cleanup is important because touch state is module-level.
+- `src/tests/Drawing.test.jsx` covers isolated SVG/UI layers whose geometry or visibility depends on state.
 - `src/tests/Paper.test.jsx` exercises rendered mouse/keyboard/wheel interactions.
 - `src/tests/Fill.test.jsx` covers polygon previews/fills, intersections, mirroring, and repeating.
 - `src/tests/misc.test.jsx` guards that the `options.jsx` action/state registration lists stay valid.
@@ -141,5 +156,6 @@ Vitest is configured for `jsdom` in `vite.config.js`. Storybook stories live in 
 2. Keep geometry in deflated SVG coordinates and convert at the DOM boundary.
 3. Dispatch actions for behavior changes; do not mutate state or geometry instances in place.
 4. If an action/state field affects undo, persistence, or exported patterns, update the matching lists in `src/options.jsx` and tests.
-5. Keep storage access in `fileUtils.jsx` and preserve the intentional SVG layer order in `Paper.jsx`.
-6. Add or update the closest test, then run that test file. Run lint/build when the scope warrants it.
+5. When changing a view transform, audit permanent/preview lines, fills, dots, trellis, clipboard, selection overlays, mirror guides, cursor mapping, hit testing, viewport containment, and image/save semantics together.
+6. Keep storage access in `fileUtils.jsx` and preserve the intentional SVG layer order in `Paper.jsx`.
+7. Add or update the closest test, then run that test file. Run lint/build when the scope warrants it.
