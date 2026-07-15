@@ -41,6 +41,7 @@
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.2.1",
     "@vitest/coverage-v8": "^3.1.4",
+    "baseline-browser-mapping": "^2.10.43",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.34.1",
