@@ -1,9 +1,9 @@
 import "./styling/App.css"
-import { useEffect, useReducer, useRef, useMemo } from "react"
+import { useEffect, useReducer, useRef, useMemo, useState } from "react"
 import { PREVENT_LOADING_STATE } from "./globals"
 import reducer from "./reducer"
 import Toolbar from "./Menus/Toolbar"
-import { loadPreservedState } from "./fileUtils"
+import { loadCloud, loadPreservedState, preserveState, saveLocally } from "./fileUtils"
 import { StateContext } from "./Contexts"
 import generateTheme from "./styling/theme"
 import useMediaQuery from "@mui/material/useMediaQuery"
@@ -31,6 +31,8 @@ import {
 import Trellis from "./Trellis"
 import getInitialState from "./states"
 import * as events from "./events"
+import SharedPatternDialog from "./Menus/SharedPatternDialog"
+import { clearSharedPatternParams, getSharedPatternParams } from "./shareUtils"
 
 // This is for the mouse/touch events that need to be bound non-passively, but also need access to the state
 // This is hacky, but I can't think of a better way
@@ -38,7 +40,9 @@ var _state = {}
 export default function Paper({ setDispatch }) {
   const paper = useRef()
   const initialState = useMemo(() => getInitialState(), [])
+  const sharedPatternParams = useMemo(() => getSharedPatternParams(), [])
   const [state, dispatch] = useReducer(reducer, initialState)
+  const [sharedPatternConflict, setSharedPatternConflict] = useState(null)
   const { dotsAbovefill, paperColor, fillMode, themeMode } = state
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)")
   const theme = useMemo(
@@ -74,11 +78,63 @@ export default function Paper({ setDispatch }) {
     }
   }, [])
 
-  // Perserve state
+  // Restore preserved state, then resolve a shared cloud pattern if the URL points to one.
   useEffect(() => {
-    const local = loadPreservedState()
-    if (!PREVENT_LOADING_STATE && local) dispatch({ action: "deserialize", data: local })
-  }, [])
+    const local = PREVENT_LOADING_STATE ? null : loadPreservedState()
+    if (local) dispatch({ action: "deserialize", data: local })
+
+    if (!sharedPatternParams) return
+
+    let current = true
+    loadCloud(sharedPatternParams.user, sharedPatternParams.pattern)
+      .then((shared) => {
+        if (!current) return
+        if (!shared) {
+          dispatch({ toast: "Shared cloud pattern not found" })
+          return
+        }
+
+        const restoredState = { ...initialState, ...(local ?? {}) }
+        const nextState = { ...restoredState, ...shared, filename: sharedPatternParams.pattern }
+        if (local?.lines?.length) {
+          setSharedPatternConflict({ ...sharedPatternParams, local: restoredState, shared })
+          return
+        }
+
+        dispatch({ action: "deserialize", data: nextState })
+        preserveState(nextState)
+      })
+      .catch((error) => {
+        console.error("Unable to load shared cloud pattern:", error)
+        if (current) dispatch({ toast: "Unable to load shared cloud pattern" })
+      })
+
+    return () => {
+      current = false
+    }
+  }, [initialState, sharedPatternParams])
+
+  const loadPendingSharedPattern = () => {
+    if (!sharedPatternConflict) return
+    const nextState = {
+      ...state,
+      ...sharedPatternConflict.shared,
+      filename: sharedPatternConflict.pattern,
+    }
+    dispatch({ action: "deserialize", data: nextState })
+    preserveState(nextState)
+    setSharedPatternConflict(null)
+  }
+
+  const cancelSharedPatternLoad = () => {
+    clearSharedPatternParams()
+    setSharedPatternConflict(null)
+  }
+
+  const saveCurrentAndLoadSharedPattern = (name) => {
+    saveLocally(name, sharedPatternConflict.local)
+    loadPendingSharedPattern()
+  }
 
   // So the tour can effect state
   useEffect(() => setDispatch(dispatch), [setDispatch])
@@ -89,6 +145,12 @@ export default function Paper({ setDispatch }) {
   return (
     <ThemeProvider theme={theme}>
       <StateContext.Provider value={{ state, dispatch }}>
+        <SharedPatternDialog
+          conflict={sharedPatternConflict}
+          onCancel={cancelSharedPatternLoad}
+          onIgnore={loadPendingSharedPattern}
+          onSave={saveCurrentAndLoadSharedPattern}
+        />
         <div>
           <Toast />
           <Toolbar />

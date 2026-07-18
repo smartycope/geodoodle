@@ -131,6 +131,10 @@ export function serializeState(state) {
   return JSON.stringify({ ...filterObjectByKeys(state, preservable), lines: state.lines, version: version })
 }
 
+export function preservedStatesEqual(left, right) {
+  return serializeState(left) === serializeState(right)
+}
+
 // Returns {} if it can't deserialize properly (like if there's a version mismatch)
 // Deserializes the preservable parts of the state from a JSON string
 export function deserializeState(str) {

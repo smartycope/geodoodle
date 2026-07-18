@@ -3,9 +3,10 @@ import { beforeEach, describe, expect, test, vi } from "vitest"
 import { StateContext } from "../Contexts"
 import FilePage from "../Menus/FilePage"
 import { getState } from "./testUtils"
-import { shareCurrentPage } from "../shareUtils"
+import { sharePatternLink } from "../shareUtils"
+import { deserializeState, loadCloud, serializeState } from "../fileUtils"
 
-vi.mock("../shareUtils", () => ({ shareCurrentPage: vi.fn() }))
+vi.mock("../shareUtils", () => ({ sharePatternLink: vi.fn(() => Promise.resolve("shared")) }))
 
 vi.mock("../fileUtils", async (importOriginal) => {
   const actual = await importOriginal()
@@ -30,7 +31,7 @@ function renderFilePage() {
       <FilePage />
     </StateContext.Provider>,
   )
-  return { dispatch }
+  return { dispatch, state }
 }
 
 beforeEach(() => {
@@ -40,8 +41,9 @@ beforeEach(() => {
 
 describe("File Page", () => {
   test("keeps export and quick-sharing actions available", async () => {
-    const { dispatch } = renderFilePage()
+    const { dispatch, state } = renderFilePage()
     await act(async () => {})
+    loadCloud.mockResolvedValueOnce(deserializeState(serializeState(state)))
 
     fireEvent.click(screen.getByRole("tab", { name: "Import & Export" }))
 
@@ -53,8 +55,21 @@ describe("File Page", () => {
     fireEvent.click(screen.getByRole("button", { name: "Download" }))
 
     expect(dispatch).toHaveBeenCalledWith("copy_image")
-    expect(shareCurrentPage).toHaveBeenCalledOnce()
+    await waitFor(() => expect(sharePatternLink).toHaveBeenCalledWith("cope", state.filename))
     expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ action: "download_file", format: "svg" }))
+  })
+
+  test("requires a current cloud save before sharing", async () => {
+    const { dispatch } = renderFilePage()
+    await act(async () => {})
+    loadCloud.mockResolvedValueOnce(null)
+
+    fireEvent.click(screen.getByRole("button", { name: "Share link" }))
+
+    await waitFor(() =>
+      expect(dispatch).toHaveBeenCalledWith({ toast: "Save this pattern to the cloud before sharing it" }),
+    )
+    expect(sharePatternLink).not.toHaveBeenCalled()
   })
 
   test("lists and operates on patterns saved in this browser", async () => {

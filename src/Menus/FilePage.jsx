@@ -52,11 +52,12 @@ import {
   getSaves,
   loadCloud,
   loadCloudUsername,
+  preservedStatesEqual,
   saveCloud,
   saveCloudUsername,
 } from "../fileUtils.jsx"
 import TabManager from "./TabManager"
-import { shareCurrentPage } from "../shareUtils"
+import { sharePatternLink } from "../shareUtils"
 
 const cloudHelpText =
   "Files are stored on Cope's semi-reliable server. They'll probably be safe? But if you have a pattern you really care about, " +
@@ -194,6 +195,7 @@ export default function FilePage() {
   const [x, setX] = useState(0)
   const [y, setY] = useState(0)
   const [selectedOnly, setSelectedOnly] = useState(true)
+  const [sharing, setSharing] = useState(false)
 
   const localSaveNames = Object.keys(getSaves() ?? {})
   const hasSelection = bounds.length > 1
@@ -265,6 +267,35 @@ export default function FilePage() {
     } catch (error) {
       console.error("Unable to clear cloud saves:", error)
       dispatch({ toast: "Unable to clear cloud saves" })
+    }
+  }
+
+  const handleSharePattern = async () => {
+    const cloudUsername = username.trim()
+    const patternName = filename.trim()
+    const saveFirstToast = "Save this pattern to the cloud before sharing it"
+
+    if (!cloudUsername || !patternName) {
+      dispatch({ toast: saveFirstToast })
+      return
+    }
+
+    setSharing(true)
+    try {
+      const cloudPattern = await loadCloud(cloudUsername, patternName)
+      if (!cloudPattern || !preservedStatesEqual(state, cloudPattern)) {
+        dispatch({ toast: saveFirstToast })
+        return
+      }
+
+      const result = await sharePatternLink(cloudUsername, patternName)
+      if (result === "copied") dispatch({ toast: "Share link copied to clipboard" })
+      else if (result === "failed" || result === "unsupported") dispatch({ toast: "Unable to share this link" })
+    } catch (error) {
+      console.error("Unable to verify the cloud save before sharing:", error)
+      dispatch({ toast: "Unable to verify the cloud save before sharing" })
+    } finally {
+      setSharing(false)
     }
   }
 
@@ -560,15 +591,16 @@ export default function FilePage() {
               Move your pattern between GeoDoodle, this device, and the world.
             </Typography>
           </Box>
-          <Stack direction="row" spacing={.75} flexWrap="wrap" useFlexGap>
+          <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
             <Button
               id="share-button"
               size="small"
               variant="outlined"
               startIcon={<ShareIcon />}
-              onClick={shareCurrentPage}
+              onClick={handleSharePattern}
+              disabled={sharing}
             >
-              Share link
+              {sharing ? "Checking cloud…" : "Share link"}
             </Button>
             <Button size="small" variant="outlined" startIcon={<FileCopyIcon />} onClick={() => dispatch("copy_image")}>
               Copy image

@@ -5,6 +5,7 @@ import {
   loadCloud,
   loadCloudUsername,
   requestServer,
+  preservedStatesEqual,
   serializeState,
   deserializeState,
   saveCloud,
@@ -21,6 +22,14 @@ describe("preserved state", () => {
 
     expect(restored.translation).toBeInstanceOf(Dist)
     expect(restored.translation.eq(translation)).toBe(true)
+  })
+
+  test("compares the current pattern with a serialized cloud copy", () => {
+    const state = { lines: [], bounds: [], filledPolys: [], translation: new Dist(7, -3), filename: "star" }
+    const restored = deserializeState(serializeState(state))
+
+    expect(preservedStatesEqual(state, restored)).toBe(true)
+    expect(preservedStatesEqual({ ...state, filename: "changed" }, restored)).toBe(false)
   })
 })
 
