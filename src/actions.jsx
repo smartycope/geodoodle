@@ -288,6 +288,14 @@ export const delete_selected = (state) => {
     bounds: state.removeSelectionAfterDelete ? [] : state.bounds,
   }
 }
+
+export const delete_specific_line = (state, { start, end }) => ({
+  lines: state.lines.filter(
+    (line) =>
+      !((line.a.eq(start) && line.b.eq(end)) || (line.a.eq(end) && line.b.eq(start))),
+  ),
+})
+
 export const delete_unselected = (state) => {
   const boundRect = getBoundRect(state)
   return {

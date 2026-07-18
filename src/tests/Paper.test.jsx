@@ -154,17 +154,17 @@ describe("Paper interactions", () => {
     expect(getSelectionRect(container)).toBeNull()
   })
 
-  test("middle-button dragging creates and completes a deleting selection", () => {
+  test("right-button dragging creates and completes a deleting selection", () => {
     const { container, paper } = renderPaper()
     createLine(paper, 100, 100, 200, 200)
 
-    mouseDown(paper, 80, 80, 1)
-    mouseMove(paper, 220, 220, { buttons: 4 })
+    mouseDown(paper, 80, 80, 2)
+    mouseMove(paper, 220, 220, { buttons: 2 })
 
     expect(getBounds(container)).toHaveLength(1)
     expect(getSelectionRect(container).getAttribute("fill")).toBe(themeDefaults.deletingSelection.color)
 
-    mouseUp(paper, 220, 220, 1)
+    mouseUp(paper, 220, 220, 2)
 
     expect(getLines(container)).toHaveLength(0)
     expect(getBounds(container)).toHaveLength(0)
@@ -182,14 +182,27 @@ describe("Paper interactions", () => {
     expect(getBounds(container)).toHaveLength(0)
   })
 
-  test("Shift temporarily turns a middle-button drag into a regular selection", () => {
+  test("middle-button dragging deletes only the line matching both drag endpoints", () => {
+    const { container, paper } = renderPaper()
+    createLine(paper, 100, 100, 200, 200)
+    createLine(paper, 100, 100, 200, 100)
+
+    mouseDown(paper, 100, 100, 1)
+    mouseMove(paper, 200, 200, { buttons: 4 })
+    mouseUp(paper, 200, 200, 1)
+
+    expect(getLines(container)).toHaveLength(1)
+    expect(getBounds(container)).toHaveLength(0)
+  })
+
+  test("Shift temporarily turns a right-button drag into a regular selection", () => {
     const { container, paper } = renderPaper()
     createLine(paper, 100, 100, 200, 200)
 
-    mouseDown(paper, 80, 80, 1)
-    mouseMove(paper, 140, 140, { buttons: 4 })
+    mouseDown(paper, 80, 80, 2)
+    mouseMove(paper, 140, 140, { buttons: 2 })
     fireEvent.keyDown(paper, { key: "Shift", code: "ShiftLeft", shiftKey: true })
-    mouseMove(paper, 220, 220, { buttons: 4, shiftKey: true })
+    mouseMove(paper, 220, 220, { buttons: 2, shiftKey: true })
 
     expect(getSelectionRect(container).getAttribute("fill")).toBe(themeDefaults.selection.color)
 
@@ -199,7 +212,7 @@ describe("Paper interactions", () => {
 
     fireEvent.keyDown(paper, { key: "Shift", code: "ShiftLeft", shiftKey: true })
 
-    mouseUp(paper, 220, 220, 1, { shiftKey: true })
+    mouseUp(paper, 220, 220, 2, { shiftKey: true })
     fireEvent.keyUp(paper, { key: "Shift", code: "ShiftLeft" })
 
     expect(getLines(container)).toHaveLength(1)

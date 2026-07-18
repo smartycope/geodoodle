@@ -8,8 +8,11 @@ var dragging = false
 var canvasButtonMouseActive = false
 var activeBoundShortcutPresses = new Map()
 var middleMouseDown = false
-var middleSelectionDragging = false
+var middleLineDragging = false
 var middleDragStart = null
+var rightMouseDown = false
+var rightSelectionDragging = false
+var rightDragStart = null
 
 /* eslint-disable no-unused-vars */
 
@@ -18,16 +21,25 @@ export function onMouseMove(state, dispatch, e) {
   if (canvasButtonMouseActive) return
   const { fillMode } = state
 
-  if (middleMouseDown && (e.buttons & 4) === 4) {
-    if (!middleSelectionDragging) {
-      middleSelectionDragging = true
+  if (rightMouseDown && (e.buttons & 2) === 2) {
+    if (!rightSelectionDragging) {
+      rightSelectionDragging = true
       dispatch({
-        bounds: [middleDragStart],
+        bounds: [rightDragStart],
         boundDragging: true,
         curLinePos: null,
         deletingSelection: !e.shiftKey,
       })
     }
+    dispatch({
+      action: "cursor_moved",
+      point: Point.fromViewport(state, e.clientX, e.clientY),
+    })
+    return
+  }
+
+  if (middleMouseDown && (e.buttons & 4) === 4) {
+    middleLineDragging = true
     dispatch({
       action: "cursor_moved",
       point: Point.fromViewport(state, e.clientX, e.clientY),
@@ -49,8 +61,11 @@ export function onMouseDown(state, dispatch, e) {
     e.preventDefault?.()
     dragging = false
     middleMouseDown = false
-    middleSelectionDragging = false
+    middleLineDragging = false
     middleDragStart = null
+    rightMouseDown = false
+    rightSelectionDragging = false
+    rightDragStart = null
     canvasButtonMouseActive = true
     if (e.button === 0) dispatch(canvasButton.action)
     return
@@ -66,11 +81,15 @@ export function onMouseDown(state, dispatch, e) {
       e.preventDefault?.()
       dragging = false
       middleMouseDown = true
-      middleSelectionDragging = false
+      middleLineDragging = false
       middleDragStart = Point.fromViewport(state, e.clientX, e.clientY).align(state)
       break
     case 2: // Right click
-      fillMode ? null : dispatch("continue_line")
+      e.preventDefault?.()
+      dragging = false
+      rightMouseDown = true
+      rightSelectionDragging = false
+      rightDragStart = Point.fromViewport(state, e.clientX, e.clientY).align(state)
       break
   }
 }
@@ -83,9 +102,11 @@ export function onMouseUp(state, dispatch, e) {
   }
 
   if (e.button === 1 && middleMouseDown) {
-    const wasDragging = middleSelectionDragging
+    const wasDragging = middleLineDragging
+    const start = middleDragStart
+    const end = Point.fromViewport(state, e.clientX, e.clientY).align(state)
     middleMouseDown = false
-    middleSelectionDragging = false
+    middleLineDragging = false
     middleDragStart = null
     dragging = false
     e.preventDefault?.()
@@ -93,7 +114,22 @@ export function onMouseUp(state, dispatch, e) {
       action: "cursor_moved",
       point: Point.fromViewport(state, e.clientX, e.clientY),
     })
-    dispatch(wasDragging ? "add_bound" : "delete_at_cursor")
+    dispatch(wasDragging ? { action: "delete_specific_line", start, end } : "delete_at_cursor")
+    return
+  }
+  if (e.button === 2 && rightMouseDown) {
+    const wasDragging = rightSelectionDragging
+    rightMouseDown = false
+    rightSelectionDragging = false
+    rightDragStart = null
+    dragging = false
+    e.preventDefault?.()
+    dispatch({
+      action: "cursor_moved",
+      point: Point.fromViewport(state, e.clientX, e.clientY),
+    })
+    if (wasDragging) dispatch("add_bound")
+    else if (!state.fillMode) dispatch("continue_line")
     return
   }
   if (dragging) dispatch("add_line")
@@ -155,7 +191,7 @@ export function onKeyDown(state, dispatch, e) {
   // If it's just a modifier key, don't do anything (it'll falsely trigger things)
   if (e.key === "Shift") {
     if (state.bounds.length === 1) {
-      const deletingSelection = !middleSelectionDragging
+      const deletingSelection = !rightSelectionDragging
       if (state.deletingSelection !== deletingSelection) dispatch({ deletingSelection })
     }
     return
@@ -179,7 +215,7 @@ export function onKeyDown(state, dispatch, e) {
 
 export function onKeyUp(state, dispatch, e) {
   if (e.key === "Shift" && state.bounds.length === 1) {
-    const deletingSelection = middleSelectionDragging
+    const deletingSelection = rightSelectionDragging
     if (state.deletingSelection !== deletingSelection) dispatch({ deletingSelection })
     return
   }
@@ -458,8 +494,11 @@ function onDoubleTap(state, dispatch) {
 export function onBlur(state, dispatch, e) {
   activeBoundShortcutPresses.clear()
   middleMouseDown = false
-  middleSelectionDragging = false
+  middleLineDragging = false
   middleDragStart = null
+  rightMouseDown = false
+  rightSelectionDragging = false
+  rightDragStart = null
   if (state.deletingSelection) dispatch({ deletingSelection: false })
   setTimeout(function () {
     if (document.activeElement.nodeName !== "INPUT" || document.activeElement.type === "checkbox") e.target.focus()

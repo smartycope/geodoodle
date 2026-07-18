@@ -23,6 +23,7 @@ import {
   clear_bounds,
   select_all,
   delete_selected,
+  delete_specific_line,
   delete_unselected,
   delete_at_cursor,
   nevermind,
@@ -486,6 +487,19 @@ describe("Deletion Actions", () => {
       expect(newState.lines).toHaveLength(1) // Only one line should remain
       // TODO:
       // expect(newState.bounds).toHaveLength(0); // Bounds should be cleared
+    })
+  })
+
+  describe("delete_specific_line", () => {
+    test("deletes only the line matching both endpoints in either direction", () => {
+      const target = new Line(state, new Point(2, 3), new Point(8, 9))
+      const sharedEndpoint = new Line(state, new Point(2, 3), new Point(12, 14))
+      const unrelated = new Line(state, new Point(20, 21), new Point(22, 23))
+      const lineState = { ...state, lines: [target, sharedEndpoint, unrelated] }
+
+      const result = delete_specific_line(lineState, { start: target.b, end: target.a })
+
+      expect(result.lines).toEqual([sharedEndpoint, unrelated])
     })
   })
 
