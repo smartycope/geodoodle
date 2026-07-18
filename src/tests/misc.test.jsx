@@ -191,6 +191,10 @@ test("e is bound to picking up a line endpoint", () => {
   expect(defaultKeybindings.e).toEqual({ action: "pick_up_line_end" })
 })
 
+test("ctrl+a is bound to selecting all lines", () => {
+  expect(defaultKeybindings["ctrl+a"]).toEqual({ action: "select_all" })
+})
+
 test("number keys select the five zero-indexed color profiles", () => {
   for (let key = 1; key <= defaultOptions.commonColorAmt; key++)
     expect(defaultKeybindings[key]).toEqual({ action: "set_color_profile_index", index: key - 1 })

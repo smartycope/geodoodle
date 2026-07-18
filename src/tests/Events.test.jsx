@@ -30,7 +30,15 @@ const touchEvent = (touches, changedTouches = touches) => ({
 const actionName = (action) => (typeof action === "string" ? action : action.action)
 
 describe("keyboard interactions", () => {
-  const keyEvent = (key) => ({ key, ctrlKey: false, metaKey: false, altKey: false, shiftKey: false })
+  const keyEvent = (key, overrides = {}) => ({
+    key,
+    ctrlKey: false,
+    metaKey: false,
+    altKey: false,
+    shiftKey: false,
+    preventDefault: vi.fn(),
+    ...overrides,
+  })
 
   test("uses the editable state keybindings instead of the defaults", () => {
     const dispatch = vi.fn()
@@ -41,6 +49,17 @@ describe("keyboard interactions", () => {
 
     expect(dispatch).toHaveBeenCalledTimes(1)
     expect(dispatch).toHaveBeenCalledWith({ action: "go_home" })
+  })
+
+  test("dispatches the default ctrl+a binding and prevents browser selection", () => {
+    const dispatch = vi.fn()
+    const state = getState()
+    const event = keyEvent("a", { ctrlKey: true })
+
+    onKeyDown(state, dispatch, event)
+
+    expect(dispatch).toHaveBeenCalledWith({ action: "select_all" })
+    expect(event.preventDefault).toHaveBeenCalledOnce()
   })
 })
 

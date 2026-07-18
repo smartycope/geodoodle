@@ -107,7 +107,10 @@ export function onKeyDown(state, dispatch, e) {
       break
     }
 
-  if (take) dispatch(take)
+  if (take) {
+    e.preventDefault?.()
+    dispatch(take)
+  }
 }
 
 // Touch events

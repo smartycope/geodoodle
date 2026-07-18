@@ -249,6 +249,11 @@ export const clear_bounds = (state) => ({
   bounds: [],
 })
 
+export const select_all = (state) => {
+  const rect = getLinesRect(state.lines)
+  return { bounds: rect ? [rect.topLeft, rect.bottomRight] : [] }
+}
+
 // Destruction Actions
 export const clear = (state) => ({
   translation: Dist.zero(),

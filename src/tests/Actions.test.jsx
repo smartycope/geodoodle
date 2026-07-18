@@ -21,6 +21,7 @@ import {
   down,
   clear,
   clear_bounds,
+  select_all,
   delete_selected,
   delete_unselected,
   delete_at_cursor,
@@ -449,6 +450,23 @@ describe("Deletion Actions", () => {
       const newState = clear_bounds(state)
       expect(newState.bounds).toHaveLength(0)
       expect(newState.clipboard).toBeNull()
+    })
+  })
+
+  describe("select_all", () => {
+    test("sets bounds to the top-left and bottom-right of every line", () => {
+      state.lines = [
+        new Line(state, new Point(4, 12), new Point(10, -3)),
+        new Line(state, new Point(-6, 8), new Point(2, 20)),
+      ]
+
+      expect(select_all(state).bounds).toEqual([new Point(-6, -3), new Point(10, 20)])
+    })
+
+    test("clears bounds when there are no lines", () => {
+      state.lines = []
+
+      expect(select_all(state).bounds).toEqual([])
     })
   })
 
