@@ -7,17 +7,35 @@ import { normalizeAngle } from "./transformUtils"
 var dragging = false
 var canvasButtonMouseActive = false
 var activeBoundShortcutPresses = new Map()
+var middleMouseDown = false
+var middleSelectionDragging = false
+var middleDragStart = null
 
 /* eslint-disable no-unused-vars */
 
-// TODO: middle click & drag starts a line on middle click up event
-// -- make it delete a specific line instead
-// -- not sure if this is still happening
-
 // Mouse events
 export function onMouseMove(state, dispatch, e) {
-  if (canvasButtonMouseActive || getCanvasButtonAt(state, e.clientX, e.clientY)) return
+  if (canvasButtonMouseActive) return
   const { fillMode } = state
+
+  if (middleMouseDown && (e.buttons & 4) === 4) {
+    if (!middleSelectionDragging) {
+      middleSelectionDragging = true
+      dispatch({
+        bounds: [middleDragStart],
+        boundDragging: true,
+        curLinePos: null,
+        deletingSelection: !e.shiftKey,
+      })
+    }
+    dispatch({
+      action: "cursor_moved",
+      point: Point.fromViewport(state, e.clientX, e.clientY),
+    })
+    return
+  }
+
+  if (getCanvasButtonAt(state, e.clientX, e.clientY)) return
   if (e.buttons !== 0) dragging = !fillMode
   dispatch({
     action: "cursor_moved",
@@ -30,6 +48,9 @@ export function onMouseDown(state, dispatch, e) {
   if (canvasButton) {
     e.preventDefault?.()
     dragging = false
+    middleMouseDown = false
+    middleSelectionDragging = false
+    middleDragStart = null
     canvasButtonMouseActive = true
     if (e.button === 0) dispatch(canvasButton.action)
     return
@@ -42,7 +63,11 @@ export function onMouseDown(state, dispatch, e) {
       dispatch(fillMode ? "fill" : bounds.length === 1 ? "add_bound" : "add_line")
       break
     case 1: // Middle click
-      dispatch("delete_at_cursor")
+      e.preventDefault?.()
+      dragging = false
+      middleMouseDown = true
+      middleSelectionDragging = false
+      middleDragStart = Point.fromViewport(state, e.clientX, e.clientY).align(state)
       break
     case 2: // Right click
       fillMode ? null : dispatch("continue_line")
@@ -54,6 +79,21 @@ export function onMouseUp(state, dispatch, e) {
   if (canvasButtonMouseActive) {
     canvasButtonMouseActive = false
     dragging = false
+    return
+  }
+
+  if (e.button === 1 && middleMouseDown) {
+    const wasDragging = middleSelectionDragging
+    middleMouseDown = false
+    middleSelectionDragging = false
+    middleDragStart = null
+    dragging = false
+    e.preventDefault?.()
+    dispatch({
+      action: "cursor_moved",
+      point: Point.fromViewport(state, e.clientX, e.clientY),
+    })
+    dispatch(wasDragging ? "add_bound" : "delete_at_cursor")
     return
   }
   if (dragging) dispatch("add_line")
@@ -114,8 +154,10 @@ export function onKeyDown(state, dispatch, e) {
 
   // If it's just a modifier key, don't do anything (it'll falsely trigger things)
   if (e.key === "Shift") {
-    if (state.bounds.length === 1 && !state.deletingSelection)
-      dispatch({ deletingSelection: true })
+    if (state.bounds.length === 1) {
+      const deletingSelection = !middleSelectionDragging
+      if (state.deletingSelection !== deletingSelection) dispatch({ deletingSelection })
+    }
     return
   }
   if (["Meta", "Control", "Alt"].includes(e.key)) return
@@ -136,8 +178,9 @@ export function onKeyDown(state, dispatch, e) {
 }
 
 export function onKeyUp(state, dispatch, e) {
-  if (e.key === "Shift" && state.deletingSelection) {
-    dispatch({ deletingSelection: false })
+  if (e.key === "Shift" && state.bounds.length === 1) {
+    const deletingSelection = middleSelectionDragging
+    if (state.deletingSelection !== deletingSelection) dispatch({ deletingSelection })
     return
   }
 
@@ -414,6 +457,9 @@ function onDoubleTap(state, dispatch) {
 // This keeps the focus always on the paper element
 export function onBlur(state, dispatch, e) {
   activeBoundShortcutPresses.clear()
+  middleMouseDown = false
+  middleSelectionDragging = false
+  middleDragStart = null
   if (state.deletingSelection) dispatch({ deletingSelection: false })
   setTimeout(function () {
     if (document.activeElement.nodeName !== "INPUT" || document.activeElement.type === "checkbox") e.target.focus()

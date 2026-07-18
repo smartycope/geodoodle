@@ -154,6 +154,59 @@ describe("Paper interactions", () => {
     expect(getSelectionRect(container)).toBeNull()
   })
 
+  test("middle-button dragging creates and completes a deleting selection", () => {
+    const { container, paper } = renderPaper()
+    createLine(paper, 100, 100, 200, 200)
+
+    mouseDown(paper, 80, 80, 1)
+    mouseMove(paper, 220, 220, { buttons: 4 })
+
+    expect(getBounds(container)).toHaveLength(1)
+    expect(getSelectionRect(container).getAttribute("fill")).toBe(themeDefaults.deletingSelection.color)
+
+    mouseUp(paper, 220, 220, 1)
+
+    expect(getLines(container)).toHaveLength(0)
+    expect(getBounds(container)).toHaveLength(0)
+    expect(getSelectionRect(container)).toBeNull()
+  })
+
+  test("middle clicking without dragging still deletes under the cursor", () => {
+    const { container, paper } = renderPaper()
+    createLine(paper, 100, 100, 200, 200)
+
+    mouseMove(paper, 100, 100)
+    mouseClick(paper, 100, 100, 1)
+
+    expect(getLines(container)).toHaveLength(0)
+    expect(getBounds(container)).toHaveLength(0)
+  })
+
+  test("Shift temporarily turns a middle-button drag into a regular selection", () => {
+    const { container, paper } = renderPaper()
+    createLine(paper, 100, 100, 200, 200)
+
+    mouseDown(paper, 80, 80, 1)
+    mouseMove(paper, 140, 140, { buttons: 4 })
+    fireEvent.keyDown(paper, { key: "Shift", code: "ShiftLeft", shiftKey: true })
+    mouseMove(paper, 220, 220, { buttons: 4, shiftKey: true })
+
+    expect(getSelectionRect(container).getAttribute("fill")).toBe(themeDefaults.selection.color)
+
+    fireEvent.keyUp(paper, { key: "Shift", code: "ShiftLeft" })
+
+    expect(getSelectionRect(container).getAttribute("fill")).toBe(themeDefaults.deletingSelection.color)
+
+    fireEvent.keyDown(paper, { key: "Shift", code: "ShiftLeft", shiftKey: true })
+
+    mouseUp(paper, 220, 220, 1, { shiftKey: true })
+    fireEvent.keyUp(paper, { key: "Shift", code: "ShiftLeft" })
+
+    expect(getLines(container)).toHaveLength(1)
+    expect(getBounds(container)).toHaveLength(2)
+    expect(getSelectionRect(container).getAttribute("fill")).toBe(themeDefaults.selection.color)
+  })
+
   // Test that making multiple bounds creates a selection rect
   test("multiple bounds create a selection rect", () => {
     const { container, paper } = renderPaper()

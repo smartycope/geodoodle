@@ -61,7 +61,7 @@ export default function getInitialState() {
     bounds: [],
     // Whether we're currently dragging the selection rect. If we are, we count the cursorPos as a bound
     boundDragging: false,
-    // True while Shift is held during an incomplete area selection. Completing it deletes the selected lines.
+    // True while an incomplete area selection will delete its bounded lines when completed.
     deletingSelection: false,
     // A list of Points. These select lines which have start AND end points which are in this list
     specificSelectors: [],
