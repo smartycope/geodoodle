@@ -149,7 +149,7 @@ export default function SettingsPage() {
 
         <Setting
           label="Snap to Intersections"
-          help="If enabled, this will allow you to draw lines from the intersections of two lines"
+          help="If enabled, this will allow you to draw lines from the intersections of two lines. NOTE: Enabling this may cause performance issues on large patterns."
         >
           <Checkbox
             checked={allowSnapToIntersections}

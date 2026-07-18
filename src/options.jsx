@@ -30,7 +30,7 @@ const defaultOptions = {
   defaultToMemorableNames: true,
   maxMirrorOrigins: 12,
   cursor: "circle",
-  allowSnapToIntersections: true,
+  allowSnapToIntersections: false,
   toolbarOpacity: 0.9,
   disableSelectionCanvasButtons: false,
   loopCursorAtEdges: false,
