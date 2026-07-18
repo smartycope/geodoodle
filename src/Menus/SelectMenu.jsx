@@ -4,7 +4,6 @@ import { StateContext } from "../Contexts"
 import MiniMenu from "./MiniMenu"
 import MenuItem from "@mui/material/MenuItem"
 import ListItemIcon from "@mui/material/ListItemIcon"
-import Typography from "@mui/material/Typography"
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank"
 import CheckBoxIcon from "@mui/icons-material/CheckBox"
 import { SelectorIcon } from "./CustomIcons"
@@ -42,7 +41,12 @@ export default function SelectMenu() {
         </>
       )}
 
-      {!state.mobile && state.bounds.length < 2 && <Typography sx={{ m: 1 }}>Press B to add a bound</Typography>}
+      {!state.mobile && state.bounds.length < 2 && (
+        <MenuItem disabled>
+          Add a bound
+          <ShortcutHint action="add_bound" />
+        </MenuItem>
+      )}
       {state.bounds.length > 1 && (
         <>
           <MenuItem onClick={() => dispatch("clear_bounds")}>
@@ -52,7 +56,7 @@ export default function SelectMenu() {
           </MenuItem>
 
           <MenuItem onClick={() => dispatch("toggle_partials")} id="partials-picker">
-            <ListItemIcon sx={{ ml: 2 }}>
+            <ListItemIcon>
               {state.partials ? <CheckBoxIcon /> : <CheckBoxOutlineBlankIcon />}
             </ListItemIcon>
             Partials
@@ -62,13 +66,13 @@ export default function SelectMenu() {
       )}
       {!state.mobile && state.genericSelectors.length < 1 && (
         <MenuItem disabled>
-          <Typography sx={{ m: 1 }}>Add a generic selector</Typography>
+          Add a generic selector
           <ShortcutHint action="add_generic_selector" />
         </MenuItem>
       )}
       {!state.mobile && state.specificSelectors.length < 1 && (
         <MenuItem disabled>
-          <Typography sx={{ m: 1 }}>Add a specific selector</Typography>
+          Add a specific selector
           <ShortcutHint action="add_specific_selector" />
         </MenuItem>
       )}
