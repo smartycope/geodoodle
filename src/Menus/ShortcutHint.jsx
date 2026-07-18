@@ -27,6 +27,7 @@ const formatShortcut = (shortcut) =>
 
 export default function ShortcutHint({ action, actions }) {
   const { state } = useContext(StateContext)
+  if (state.mobile) return null
   const applicableActions = (actions ?? [action]).filter(Boolean).map(asAction)
   const shortcuts = Object.entries(state.keybindings ?? {})
     .filter(([, binding]) => applicableActions.some((applicableAction) => actionsMatch(binding, applicableAction)))
