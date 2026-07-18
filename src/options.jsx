@@ -18,8 +18,7 @@ const defaultOptions = {
   enableGestureScale: false,
   maxMouseMoveEventsDuringHold: 30,
   doubleTapTimeMS: 500,
-  // See note in onTouchEnd in App.jsx to see why this is / 2
-  holdTapTimeMS: 1000 / 2,
+  holdTapTimeMS: 250,
   // If we remove all the bounds after cut or delete selection
   removeSelectionAfterDelete: true,
   // If we remove all the bounds after copying a selection
