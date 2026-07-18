@@ -8,7 +8,7 @@ import { StateContext } from "../Contexts"
 import KeyboardTabIcon from "@mui/icons-material/KeyboardTab"
 import RedoIcon from "@mui/icons-material/Redo"
 import FlipIcon from "@mui/icons-material/Flip"
-import { Box, Grid, IconButton, SpeedDial, SpeedDialAction, Typography, useTheme } from "@mui/material"
+import { Box, IconButton, SpeedDial, SpeedDialAction, Typography, useTheme } from "@mui/material"
 import ReplayIcon from "@mui/icons-material/Replay"
 import ToggleIconButtonGroup from "./ToggleIconButtonGroup"
 import BlurOnIcon from "@mui/icons-material/BlurOn"
@@ -31,11 +31,13 @@ import CheckIcon from "@mui/icons-material/Check"
  */
 // The grid should act as part of the background, but we still need to interact with the stuff it holds
 const gridItemSx = {
+  display: "flex",
+  alignItems: "center",
   "& *": {
     pointerEvents: "all",
   },
 }
-const numberAlpha = 0.75
+const numberAlpha = 0.8
 const numberProps = (theme) => ({
   textColor: theme.palette.primary.contrast,
   numberColor: theme.palette.text.primary,
@@ -43,6 +45,7 @@ const numberProps = (theme) => ({
   bold: true,
   bgAlpha: numberAlpha,
 })
+const centeredVerticalLabelStyle = { alignItems: "center" }
 function SubMenu({ title, byHorizontal, byVertical, transformation, resetVal, everyMin = 1 }) {
   const { state, dispatch } = useContext(StateContext)
   const theme = useTheme()
@@ -50,103 +53,101 @@ function SubMenu({ title, byHorizontal, byVertical, transformation, resetVal, ev
   const { col, row } = state[transformation]
 
   return (
-    <Grid
-      container
-      direction="row"
-      rowSpacing={1}
-      columnSpacing={1}
+    <Box
+      data-testid="repeat-submenu"
       sx={{
         position: "absolute",
         bottom: ".5rem",
         left: ".5rem",
         zIndex: 3,
         width: "max-content",
+        display: "flex",
+        flexDirection: "column",
+        gap: 1,
         pointerEvents: "none",
         border: state.debug ? "1px solid" : undefined,
         borderColor: state.debug ? "black" : undefined,
         "& > div": {
           border: state.debug ? "1px solid" : undefined,
           borderColor: state.debug ? "black" : undefined,
-          display: "flex",
-          alignItems: "center",
         },
       }}
     >
       {/* By Vertical */}
-      <Grid size={12} sx={gridItemSx}>
-        {byVertical}
-      </Grid>
+      <Box sx={gridItemSx}>{byVertical}</Box>
 
-      {/* Every Column */}
-      <Grid size={"auto"} sx={{ ...gridItemSx, display: "flex", justifyContent: "center" }}>
-        <div id="tour3">
-          <Number
-            onValueChange={(val) => dispatch({ [transformation]: { col: { every: val, val: col.val }, row } })}
-            value={col.every}
-            vertical
-            min={everyMin}
-            max={Math.floor(window.innerWidth / state.scaley)}
-            {...numberProps(theme)}
-          />
-        </div>
-      </Grid>
+      <Box
+        data-testid="repeat-submenu-control-row"
+        sx={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", gap: 1, alignItems: "center" }}
+      >
+        {/* Every Column */}
+        <Box sx={{ ...gridItemSx, justifyContent: "center" }}>
+          <div id="tour3">
+            <Number
+              onValueChange={(val) => dispatch({ [transformation]: { col: { every: val, val: col.val }, row } })}
+              value={col.every}
+              vertical
+              min={everyMin}
+              max={Math.floor(window.innerWidth / state.scaley)}
+              {...numberProps(theme)}
+            />
+          </div>
+        </Box>
 
-      {/* Label */}
-      <Grid size={{ xs: 10, sm: 10, md: 10, lg: 11 }} sx={gridItemSx}>
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: "bold",
-            opacity: 0.5,
-            height: "100%",
-            display: "flex",
-            alignItems: "flex-end",
-            color: theme.palette.primary.contrast,
-            pointerEvents: "none",
-          }}
-        >
-          {title}
-        </Typography>
-      </Grid>
+        {/* Label */}
+        <Box sx={{ ...gridItemSx, alignSelf: "stretch", alignItems: "flex-end", justifyContent: "flex-start" }}>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: "bold",
+              opacity: 0.5,
+              color: theme.palette.primary.contrast,
+              pointerEvents: "none",
+            }}
+          >
+            {title}
+          </Typography>
+        </Box>
+      </Box>
 
-      {/* Reset Button */}
-      <Grid size={"auto"} sx={gridItemSx}>
-        <IconButton
-          onClick={() => dispatch({ [transformation]: defaultTrellisControl(resetVal) })}
-          variant="contained"
-          sx={{
-            // Don't know why borderRadius here is different than in Number
-            borderRadius: theme.shape.borderRadius / 2,
-            bgcolor: theme.alpha(theme.palette.background.default, 0.95),
-            "&:hover": {
-              bgcolor: theme.alpha(theme.palette.background.default, numberAlpha),
-            },
-          }}
-        >
-          <ReplayIcon />
-        </IconButton>
-      </Grid>
+      <Box data-testid="repeat-submenu-horizontal-row" sx={{ display: "flex", gap: 1, alignItems: "center" }}>
 
-      {/* Every Row */}
-      <Grid size="auto" sx={gridItemSx}>
-        <div id="tour2">
-          {" "}
-          {/* I hate everyone */}
-          <Number
-            onValueChange={(val) => dispatch({ [transformation]: { row: { every: val, val: row.val }, col } })}
-            value={row.every}
-            min={everyMin}
-            max={Math.floor(window.innerWidth / state.scaley)}
-            {...numberProps(theme)}
-          />
-        </div>
-      </Grid>
+        {/* Reset Button */}
+        <Box sx={gridItemSx}>
+          <IconButton
+            aria-label={`Reset ${title}`}
+            onClick={() => dispatch({ [transformation]: defaultTrellisControl(resetVal) })}
+            variant="contained"
+            sx={{
+              // Don't know why borderRadius here is different than in Number
+              borderRadius: theme.shape.borderRadius / 2,
+              bgcolor: theme.alpha(theme.palette.background.default, 0.95),
+              "&:hover": {
+                bgcolor: theme.alpha(theme.palette.background.default, numberAlpha),
+              },
+            }}
+          >
+            <ReplayIcon />
+          </IconButton>
+        </Box>
 
-      {/* By Horizontal */}
-      <Grid size="grow" sx={gridItemSx}>
-        {byHorizontal}
-      </Grid>
-    </Grid>
+        {/* Every Row */}
+        <Box sx={gridItemSx}>
+          <div id="tour2">
+            <Number
+              onValueChange={(val) => dispatch({ [transformation]: { row: { every: val, val: row.val }, col } })}
+              value={row.every}
+              min={everyMin}
+              max={Math.floor(window.innerWidth / state.scaley)}
+              {...numberProps(theme)}
+            />
+          </div>
+        </Box>
+
+        {/* By Horizontal */}
+        <Box sx={{ ...gridItemSx, flex: 1 }}>{byHorizontal}</Box>
+      </Box>
+    </Box>
   )
 }
 
@@ -168,13 +169,17 @@ function OffsetMenu() {
       resetVal={{ x: 0, y: 0 }}
       transformation="trellisOverlap"
       byHorizontal={
-        <Grid
-          container
-          direction="row"
+        <Box
+          data-testid="offset-horizontal-controls"
           sx={{
             position: "absolute",
             // This puts it where it already would go, but doesn't take up space in the grid
             bottom: 0,
+            display: "grid",
+            gridTemplateColumns: "auto max-content",
+            gridTemplateRows: "repeat(2, auto)",
+            columnGap: 0.5,
+            alignItems: "center",
             pointerEvents: "none",
             border: state.debug ? "1px solid" : undefined,
             borderColor: state.debug ? "blue" : undefined,
@@ -187,7 +192,7 @@ function OffsetMenu() {
           }}
         >
           {/* We have to make our own labels and put them in a grid so they're aligned how we want */}
-          <Grid size={"auto"}>
+          <Box sx={gridItemSx}>
             <Number
               onValueChange={(newVal) =>
                 dispatch({
@@ -202,8 +207,8 @@ function OffsetMenu() {
               min={minx}
               {...numberProps(theme)}
             />
-          </Grid>
-          <Grid size={"grow"}>
+          </Box>
+          <Box sx={gridItemSx}>
             <label
               htmlFor={"x"}
               style={{
@@ -213,8 +218,8 @@ function OffsetMenu() {
             >
               X
             </label>
-          </Grid>
-          <Grid size={"auto"}>
+          </Box>
+          <Box sx={gridItemSx}>
             <Number
               onValueChange={(newVal) =>
                 dispatch({
@@ -229,8 +234,8 @@ function OffsetMenu() {
               min={miny}
               {...numberProps(theme)}
             />
-          </Grid>
-          <Grid size={"grow"}>
+          </Box>
+          <Box sx={gridItemSx}>
             <label
               htmlFor={"y"}
               style={{
@@ -240,8 +245,8 @@ function OffsetMenu() {
             >
               Y
             </label>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       }
       byVertical={
         <>
@@ -254,6 +259,7 @@ function OffsetMenu() {
             }}
             value={col.val.x}
             label="X"
+            style={centeredVerticalLabelStyle}
             vertical
             max={maxx}
             min={minx}
@@ -267,6 +273,7 @@ function OffsetMenu() {
             }
             value={col.val.y}
             label="Y"
+            style={centeredVerticalLabelStyle}
             vertical
             max={maxy}
             min={miny}
@@ -294,6 +301,7 @@ function SkipMenu() {
         <Number
           onValueChange={(val) => dispatch({ trellisSkip: { col: { every: col.every, val }, row } })}
           label="X"
+          style={centeredVerticalLabelStyle}
           value={col.val}
           min={0}
           max={len}
@@ -303,7 +311,7 @@ function SkipMenu() {
       }
       // Just like in OffsetMenu, we have to make our own labels so they're aligned how we want
       byHorizontal={
-        <Box sx={{ display: "flex", flexDirection: "row", alignItems: "start;" }}>
+        <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
           <Number
             onValueChange={(val) => dispatch({ trellisSkip: { row: { every: row.every, val }, col } })}
             value={row.val}
