@@ -1,0 +1,71 @@
+import { afterEach, describe, expect, test, vi } from "vitest"
+import { render, screen, within } from "@testing-library/react"
+import { StateContext } from "../Contexts"
+import ClipboardMenu from "../Menus/ClipboardMenu"
+import DeleteMenu from "../Menus/DeleteMenu"
+import SelectMenu from "../Menus/SelectMenu"
+import Line from "../helper/Line"
+import Point from "../helper/Point"
+import { getState } from "./testUtils"
+
+const renderMenu = (menu, Component, stateOverrides = {}) => {
+  const anchor = document.createElement("button")
+  anchor.id = `${menu}-tool-button`
+  document.body.appendChild(anchor)
+
+  const state = getState()
+  return render(
+    <StateContext.Provider
+      value={{
+        state: { ...state, ...stateOverrides, openMenus: { ...state.openMenus, [menu]: true } },
+        dispatch: vi.fn(),
+      }}
+    >
+      <Component />
+    </StateContext.Provider>,
+  )
+}
+
+afterEach(() => {
+  for (const menu of ["select", "clipboard", "delete"])
+    document.querySelector(`#${menu}-tool-button`)?.remove()
+})
+
+describe("mini-menu keyboard shortcut hints", () => {
+  test("uses the active customized clipboard shortcuts", () => {
+    renderMenu("clipboard", ClipboardMenu, {
+      keybindings: {
+        "alt+q": { action: "copy" },
+        "shift+v": { action: "paste" },
+      },
+    })
+
+    expect(screen.getByLabelText("Keyboard shortcut: Alt+Q")).not.toBeNull()
+    expect(screen.getByLabelText("Keyboard shortcut: Shift+V")).not.toBeNull()
+    expect(screen.queryByText("Ctrl+C")).toBeNull()
+  })
+
+  test("shows shortcuts beside applicable selection buttons", () => {
+    renderMenu("select", SelectMenu, {
+      mobile: true,
+      bounds: [new Point(0, 0), new Point(10, 10)],
+    })
+
+    expect(within(screen.getByRole("menuitem", { name: /Add Bound/ })).getByText("B")).not.toBeNull()
+    expect(within(screen.getByRole("menuitem", { name: /Clear Area Selection/ })).getByText("Shift+B")).not.toBeNull()
+    expect(within(screen.getByRole("menuitem", { name: /Partials/ })).getByText("P")).not.toBeNull()
+  })
+
+  test("maps the parameterized Delete key to Delete Selected", () => {
+    const state = getState()
+    renderMenu("delete", DeleteMenu, {
+      lines: [new Line(state, new Point(0, 0), new Point(10, 10))],
+      bounds: [new Point(0, 0), new Point(10, 10)],
+    })
+
+    expect(within(screen.getByRole("menuitem", { name: /Delete Selected/ })).getByText("Delete")).not.toBeNull()
+    expect(
+      within(screen.getByRole("menuitem", { name: /Delete Unselected/ })).queryByLabelText(/Keyboard shortcut/),
+    ).toBeNull()
+  })
+})

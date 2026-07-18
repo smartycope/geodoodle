@@ -8,6 +8,7 @@ import MenuItem from "@mui/material/MenuItem"
 import CancelPresentationIcon from "@mui/icons-material/CancelPresentation"
 import CancelPresentationTwoToneIcon from "@mui/icons-material/CancelPresentationTwoTone"
 import { getSelected } from "../utils"
+import ShortcutHint from "./ShortcutHint"
 
 function DeleteMenu() {
   const { dispatch, state } = useContext(StateContext)
@@ -22,6 +23,9 @@ function DeleteMenu() {
               <DeleteIcon />
             </ListItemIcon>
             Delete
+            <ShortcutHint
+              actions={[{ action: "delete_at_cursor" }, { action: "delete_at_cursor", allowDeleteSelected: true }]}
+            />
           </MenuItem>
         </>
       )}
@@ -31,10 +35,14 @@ function DeleteMenu() {
           <MenuItem onClick={() => dispatch("delete_selected")}>
             <CancelPresentationTwoToneIcon sx={{ mr: 1 }} />
             Delete Selected
+            <ShortcutHint
+              actions={[{ action: "delete_selected" }, { action: "delete_at_cursor", allowDeleteSelected: true }]}
+            />
           </MenuItem>
           <MenuItem onClick={() => dispatch("delete_unselected")}>
             <CancelPresentationIcon sx={{ mr: 1 }} />
             Delete Unselected
+            <ShortcutHint action="delete_unselected" />
           </MenuItem>
         </span>
       )}
@@ -47,6 +55,7 @@ function DeleteMenu() {
           <GiNuclear />
         </ListItemIcon>
         Delete All
+        <ShortcutHint action="clear" />
       </MenuItem>
     </MiniMenu>
   )
