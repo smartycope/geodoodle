@@ -4,7 +4,7 @@ import Tabs from "@mui/material/Tabs"
 import Tab from "@mui/material/Tab"
 import Box from "@mui/material/Box"
 
-export default function TabManager({ tabs, id }) {
+export default function TabManager({ tabs, id, contentSx }) {
   const [value, setValue] = React.useState(0)
   const reactId = useId()
   id ||= reactId
@@ -31,7 +31,7 @@ export default function TabManager({ tabs, id }) {
           aria-labelledby={`${id}-tab-${index}`}
           key={`${id}-tabpanel-${index}`}
         >
-          {value === index && <Box sx={{ p: 3 }}>{tab.content}</Box>}
+          {value === index && <Box sx={{ p: 3, ...contentSx }}>{tab.content}</Box>}
         </div>
       ))}
     </>

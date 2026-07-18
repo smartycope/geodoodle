@@ -9,7 +9,7 @@ import CloseIcon from "@mui/icons-material/Close"
 import { useContext } from "react"
 import { StateContext } from "../Contexts"
 
-export default function Page({ menu, title, children, sx }) {
+export default function Page({ menu, title, children, sx, maxWidth = "md" }) {
   const { state, dispatch } = useContext(StateContext)
   if (title === undefined) title = menu.charAt(0).toUpperCase() + menu.slice(1)
 
@@ -18,7 +18,7 @@ export default function Page({ menu, title, children, sx }) {
       open={state.openMenus[menu]}
       onClose={() => dispatch({ action: "menu", close: menu })}
       fullWidth
-      maxWidth="md"
+      maxWidth={maxWidth}
       scroll="paper"
       sx={sx}
     >

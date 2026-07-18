@@ -1,28 +1,81 @@
-import { afterEach, describe, expect, test, vi } from "vitest"
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { beforeEach, describe, expect, test, vi } from "vitest"
+import { StateContext } from "../Contexts"
+import FilePage from "../Menus/FilePage"
+import { getState } from "./testUtils"
 import { shareCurrentPage } from "../shareUtils"
 
-describe("File Page sharing", () => {
-  afterEach(() => {
-    delete navigator.share
-    vi.restoreAllMocks()
+vi.mock("../shareUtils", () => ({ shareCurrentPage: vi.fn() }))
+
+vi.mock("../fileUtils", async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    deleteCloud: vi.fn(() => Promise.resolve()),
+    generateName: vi.fn(() => "Fresh Pattern"),
+    getCloudSaves: vi.fn(() => Promise.resolve([{ name: "Cloud star" }])),
+    getSaves: vi.fn(() => ({ "Local star": "<svg />" })),
+    loadCloud: vi.fn(() => Promise.resolve({ lines: [] })),
+    loadCloudUsername: vi.fn(() => "cope"),
+    saveCloud: vi.fn(() => Promise.resolve()),
+    saveCloudUsername: vi.fn(),
+  }
+})
+
+function renderFilePage() {
+  const state = getState()
+  const dispatch = vi.fn()
+  render(
+    <StateContext.Provider value={{ state: { ...state, openMenus: { ...state.openMenus, file: true } }, dispatch }}>
+      <FilePage />
+    </StateContext.Provider>,
+  )
+  return { dispatch }
+}
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  localStorage.clear()
+})
+
+describe("File Page", () => {
+  test("keeps export and quick-sharing actions available", async () => {
+    const { dispatch } = renderFilePage()
+    await act(async () => {})
+
+    fireEvent.click(screen.getByRole("tab", { name: "Import & Export" }))
+
+    expect(screen.getByText("Download pattern")).not.toBeNull()
+    expect(screen.getByText("Open pattern")).not.toBeNull()
+
+    fireEvent.click(screen.getByRole("button", { name: "Copy image" }))
+    fireEvent.click(screen.getByRole("button", { name: "Share link" }))
+    fireEvent.click(screen.getByRole("button", { name: "Download" }))
+
+    expect(dispatch).toHaveBeenCalledWith("copy_image")
+    expect(shareCurrentPage).toHaveBeenCalledOnce()
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ action: "download_file", format: "svg" }))
   })
 
-  test("shares the current page through the Web Share API", async () => {
-    const share = vi.fn().mockResolvedValue(undefined)
-    Object.defineProperty(navigator, "share", { configurable: true, value: share })
+  test("lists and operates on patterns saved in this browser", async () => {
+    const { dispatch } = renderFilePage()
+    await act(async () => {})
 
-    await expect(shareCurrentPage()).resolves.toBe(true)
-    expect(share).toHaveBeenCalledWith({
-      title: expect.any(String),
-      text: expect.any(String),
-      url: window.location.href,
-    })
+    expect(screen.getByText("Saved on this device")).not.toBeNull()
+    fireEvent.click(screen.getByText("Local star"))
+    fireEvent.click(screen.getByRole("button", { name: "Delete local pattern Local star" }))
+
+    expect(dispatch).toHaveBeenCalledWith({ action: "load_local", name: "Local star" })
+    expect(dispatch).toHaveBeenCalledWith({ action: "delete_local", name: "Local star" })
   })
 
-  test("reports when sharing is unavailable", async () => {
-    const alert = vi.spyOn(window, "alert").mockImplementation(() => {})
+  test("shows cloud patterns for the saved username", async () => {
+    renderFilePage()
 
-    await expect(shareCurrentPage()).resolves.toBe(false)
-    expect(alert).toHaveBeenCalledWith("Share not supported")
+    fireEvent.click(screen.getByRole("tab", { name: "Cloud" }))
+
+    await waitFor(() => expect(screen.getByText("Cloud star")).not.toBeNull())
+    expect(screen.getByDisplayValue("cope")).not.toBeNull()
+    expect(screen.getByRole("button", { name: "Save to cloud" }).disabled).toBe(false)
   })
 })
