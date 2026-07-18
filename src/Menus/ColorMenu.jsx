@@ -78,13 +78,13 @@ export default function ColorMenu() {
             <Tooltip
               describeChild
               enterDelay={0}
-              title="Not truly random: it randomizes hues, while matches the paper value, and increasing the paper saturation."
+              title="Not truly random: it finds a color that could look good on the background using OKLCH"
             >
               <Button
                 id="color-menu-randomize-button"
                 size="small"
                 startIcon={<CasinoOutlinedIcon fontSize="small" />}
-                onClick={() => dispatch("randomize_colors")}
+                onClick={() => dispatch("randomize_color")}
                 sx={{ minHeight: 28, px: 1, py: 0.25, textTransform: "none" }}
               >
                 Randomize

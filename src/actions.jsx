@@ -17,8 +17,9 @@ import {
   getPreviewPolys,
   getLinesRect,
   getHalf,
+  randomizeColor,
 } from "./utils"
-import defaultOptions from "./options"
+import options from "./options"
 import {
   deserializePattern,
   download,
@@ -121,8 +122,8 @@ export const scale = (state, { amtx, amty, center = state.cursorPos }) => {
   // args: amtx, amty (delta values), optional: center (Point) (defaults to cursorPos)
   const { translation, scalex, scaley } = state
 
-  const newScalex = Math.min(defaultOptions.maxScale, Math.max(defaultOptions.minScale, scalex + amtx))
-  const newScaley = Math.min(defaultOptions.maxScale, Math.max(defaultOptions.minScale, scaley + amty))
+  const newScalex = Math.min(options.maxScale, Math.max(options.minScale, scalex + amtx))
+  const newScaley = Math.min(options.maxScale, Math.max(options.minScale, scaley + amty))
 
   const centerViewport = center.asViewport(state)
   const centerAtNewScale = Point.fromViewport(
@@ -153,8 +154,8 @@ export const rotate = (state, { amt = 0, angle, center = state.cursorPos }) => {
 }
 
 export const gesture_transform = (state, { previousCenter, currentCenter, amtx = 0, amty = 0, rotateAmt = 0 }) => {
-  const scalex = Math.min(defaultOptions.maxScale, Math.max(defaultOptions.minScale, state.scalex + amtx))
-  const scaley = Math.min(defaultOptions.maxScale, Math.max(defaultOptions.minScale, state.scaley + amty))
+  const scalex = Math.min(options.maxScale, Math.max(options.minScale, state.scalex + amtx))
+  const scaley = Math.min(options.maxScale, Math.max(options.minScale, state.scaley + amty))
   const nextRotate =
     state.allowCanvasRotation === false ? state.rotate : normalizeAngle((state.rotate ?? 0) + rotateAmt)
   const anchor = Point.fromViewport(state, previousCenter.x, previousCenter.y)
@@ -290,10 +291,7 @@ export const delete_selected = (state) => {
 }
 
 export const delete_specific_line = (state, { start, end }) => ({
-  lines: state.lines.filter(
-    (line) =>
-      !((line.a.eq(start) && line.b.eq(end)) || (line.a.eq(end) && line.b.eq(start))),
-  ),
+  lines: state.lines.filter((line) => !((line.a.eq(start) && line.b.eq(end)) || (line.a.eq(end) && line.b.eq(start)))),
 })
 
 export const delete_unselected = (state) => {
@@ -341,7 +339,9 @@ export const delete_at_cursor = (state, { allowDeleteSelected = false } = {}) =>
   // If there's a current selection, remove it
   if (bounds.length === 1) return clear_bounds(state)
 
-  let linesWithoutStartEndStep = lines.filter((line) => !cursorPos.mirror(state).some((point) => point.in(line.points())))
+  let linesWithoutStartEndStep = lines.filter(
+    (line) => !cursorPos.mirror(state).some((point) => point.in(line.points())),
+  )
   // If there's no lines without a start/end point at the cursor, and we're over an intersection,
   // remove the lines that intersect at that point
   if (linesWithoutStartEndStep.length === lines.length)
@@ -472,16 +472,13 @@ export const set_color = (state, { color }) => {
   return { [state.fillMode ? "fill" : "stroke"]: copy }
 }
 
-export const randomize_colors = (state) => {
-  const background = new Color(state.paperColor)
-  const [, saturation, value] = background.hsv
-  const boostedSaturation = Math.min(saturation + 20, 100)
-  const colors = Array.from({ length: defaultOptions.commonColorAmt }, () =>
-    new Color("hsv", [Math.random() * 360, boostedSaturation, value]).to("srgb").toString({ format: "hex" }),
-  )
+export const randomize_colors = (state) => ({
+  [state.fillMode ? "fill" : "stroke"]: Array.from({ length: options.commonColorAmt }, () =>
+    randomizeColor(state.paperColor),
+  ),
+})
 
-  return { stroke: colors, fill: [...colors] }
-}
+export const randomize_color = (state) => set_color(state, { color: randomizeColor(state.paperColor) })
 
 export const set_stroke_width = (state, { strokeWidth }) => {
   let copy = JSON.parse(JSON.stringify(state.strokeWidth))
@@ -602,7 +599,7 @@ export const increment_clipboard_mirror_axis = (state) => ({
 // Mirror Actions
 export const add_mirror_origin = (state) => {
   const { mirrorOrigins, mirrorAxis, mirrorRot, cursorPos, mirrorType } = state
-  if ((mirrorAxis || mirrorRot) && mirrorOrigins.length < defaultOptions.maxMirrorOrigins) {
+  if ((mirrorAxis || mirrorRot) && mirrorOrigins.length < options.maxMirrorOrigins) {
     // Ensure that the origin is unique
     const existing = mirrorOrigins.findIndex((o) => o.origin.eq(cursorPos))
     if (existing !== -1) return mirrorOrigins.slice(0, existing)

@@ -35,23 +35,21 @@ describe("Color Menu", () => {
     return { dispatch, unmount: rendered.unmount }
   }
 
-  test("the Randomize button dispatches the palette action", () => {
+  test("the Randomize button dispatches the active-color action", () => {
     const { dispatch } = renderColorMenu()
 
     fireEvent.click(screen.getByRole("button", { name: "Randomize" }))
 
-    expect(dispatch).toHaveBeenCalledWith("randomize_colors")
+    expect(dispatch).toHaveBeenCalledWith("randomize_color")
   })
 
-  test("explains how palette randomization is constrained", async () => {
+  test("explains how color randomization is constrained", async () => {
     renderColorMenu()
 
     fireEvent.mouseOver(screen.getByRole("button", { name: "Randomize" }))
 
     expect(
-      await screen.findByText(
-        "Not truly random: it randomizes hues, while matches the paper value, and increasing the paper saturation.",
-      ),
+      await screen.findByText("Not truly random: it finds a color that could look good on the background using OKLCH"),
     ).not.toBeNull()
   })
 

@@ -1,3 +1,4 @@
+import Color from "colorjs.io"
 import { viewportWidth, viewportHeight, MIRROR_AXIS } from "./globals"
 import Point from "./helper/Point"
 import Rect from "./helper/Rect"
@@ -341,4 +342,30 @@ export function getAllIntersections(lines) {
 export function shouldUseFancyGlow(state) {
   const { useFancyGlow } = state
   return useFancyGlow && getSelected(state).length <= defaultOptions.maxFancyGlowingLines
+}
+
+// Source - https://stackoverflow.com/a/36481059
+// Posted by Maxwell Collard, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-07-18, License - CC BY-SA 4.0
+// Standard Normal variate using Box-Muller transform.
+function gaussianRandom(mean = 0, stdev = 1) {
+  const u = 1 - Math.random() // Converting [0,1) to (0,1]
+  const v = Math.random()
+  const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v)
+  // Transform to the desired mean and standard deviation:
+  return z * stdev + mean
+}
+
+export function randomizeColor(basedOn) {
+  const background = new Color(basedOn)
+  const [lightness, chroma] = background.oklch
+  const lightnessChange = gaussianRandom(0.33, 0.1)
+
+  return new Color("oklch", [
+    lightness + (lightness < 0.5 ? lightnessChange : -lightnessChange),
+    chroma + gaussianRandom(0.2, 0.1),
+    Math.random() * 360,
+  ])
+    .to("srgb")
+    .toString({ format: "hex" })
 }

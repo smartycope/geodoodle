@@ -4,7 +4,7 @@ import {
   fill,
   clear_fill,
   toggle_fill_mode,
-  randomize_colors,
+  randomize_color,
   set_color_profile_index,
   translate,
   scale,
@@ -64,7 +64,6 @@ import defaultOptions from "../options"
 import * as utils from "../utils.jsx"
 import { tourState } from "../states"
 import { download, image, validateStorage } from "../fileUtils"
-import Color from "colorjs.io"
 
 // Mock the global objects and functions
 const mockLocalStorage = {
@@ -830,27 +829,18 @@ describe("Color Actions", () => {
     expect(set_color_profile_index(state, { index: defaultOptions.commonColorAmt })).toEqual({})
   })
 
-  test("randomizes all preset hues with the background value and 20 points more saturation", () => {
-    const state = { ...getState(), paperColor: "#996b6b" }
-    const [, backgroundSaturation, backgroundValue] = new Color(state.paperColor).hsv
-    const random = vi
-      .spyOn(Math, "random")
-      .mockReturnValueOnce(0)
-      .mockReturnValueOnce(1 / 6)
-      .mockReturnValueOnce(2 / 6)
-      .mockReturnValueOnce(3 / 6)
-      .mockReturnValueOnce(4 / 6)
+  test("randomizes only the active color with a background-compatible color", () => {
+    const state = { ...getState(), paperColor: "#996b6b", colorProfile: 2 }
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.5)
 
-    const result = randomize_colors(state)
+    const result = randomize_color(state)
 
+    expect(Object.keys(result)).toEqual(["stroke"])
     expect(result.stroke).toHaveLength(defaultOptions.commonColorAmt)
-    expect(result.fill).toEqual(result.stroke)
-    expect(new Set(result.stroke).size).toBe(defaultOptions.commonColorAmt)
-    for (const color of result.stroke) {
-      const [, saturation, value] = new Color(color).hsv
-      expect(saturation).toBeCloseTo(Math.min(backgroundSaturation + 20, 100), 0)
-      expect(value).toBeCloseTo(backgroundValue, 0)
-    }
+    expect(result.stroke.slice(0, 2)).toEqual(state.stroke.slice(0, 2))
+    expect(result.stroke.slice(3)).toEqual(state.stroke.slice(3))
+    expect(result.stroke[2]).toMatch(/^#[\da-f]{6}$/i)
+    expect(result.stroke[2]).not.toBe(state.stroke[2])
 
     random.mockRestore()
   })
