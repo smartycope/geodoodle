@@ -16,12 +16,13 @@ import ClearIcon from "@mui/icons-material/Clear"
 export default function MirrorMenu() {
   const { state, dispatch } = useContext(StateContext)
   const { mirrorType, mirrorAxis, mirrorRot, mirrorOrigins, mobile } = state
+  const showAddOriginButton = mobile || mirrorType === MIRROR_TYPE.PAGE
 
   return (
     <MiniMenu menu="mirror" id="mirror-menu-mobile">
       <Stack spacing={1} sx={{ px: 1.5, py: 0.5 }}>
         {/* Type */}
-        <Stack direction="row" spacing={mobile ? 1 : -2}>
+        <Stack direction="row" spacing={showAddOriginButton ? 1 : -2} useFlexGap={showAddOriginButton}>
           {" "}
           {/* I don't know why this spacing is wonky */}
           <ToggleIconButtonGroup
@@ -38,14 +39,14 @@ export default function MirrorMenu() {
           <ToggleIconButtonGroup
             id="mirror-origin-input"
             buttons={[
-              mobile
+              showAddOriginButton
                 ? { label: "Add", icon: <AddIcon />, value: "add_mirror_origin" }
                 : { label: "Press o to Add", icon: null, value: "ignoreme" },
               { label: "Clear ", icon: <ClearIcon />, value: "clear_mirror_origins" },
             ]}
             disabled={{
               ignoreme: true,
-              add_mirror_origin: !(mirrorAxis || mirrorRot),
+              add_mirror_origin: !(mirrorAxis || mirrorRot || mirrorType === MIRROR_TYPE.PAGE),
               clear_mirror_origins: !mirrorOrigins.length,
             }}
             allowNone
