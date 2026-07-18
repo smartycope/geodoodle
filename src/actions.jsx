@@ -755,6 +755,7 @@ export const menu = (state, { toggle, open, close }) => {
   // If we open the repeat menu, close the toolbar (and it's mini menus). They can both be open at the same time though
   if (open === "repeat" || (toggle === "repeat" && copy[toggle])) {
     copy.main = false
+    copy.navigation = false
     miniMenus.forEach((key) => (copy[key] = false))
   }
 
