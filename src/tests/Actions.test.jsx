@@ -779,12 +779,20 @@ describe("Clipboard Actions", () => {
   })
 
   describe("copy", () => {
-    test("should set clipboard with selected lines", () => {
+    test("should set clipboard with selected lines and retain bounds by default", () => {
       const newState = copy(state)
 
       expect(newState.clipboard).toBeDefined()
       expect(newState.curLinePos).toBeNull()
       expect(newState.clipboardOffset).toBeDefined()
+      expect(newState.bounds).toEqual(state.bounds)
+    })
+
+    test("should clear bounds when removeSelectionAfterCopy is enabled", () => {
+      const newState = copy({ ...state, removeSelectionAfterCopy: true })
+
+      expect(newState.clipboard).toBeDefined()
+      expect(newState.bounds).toEqual([])
     })
   })
 
@@ -795,6 +803,13 @@ describe("Clipboard Actions", () => {
       expect(newState.clipboard).toBeDefined()
       expect(newState.lines).toHaveLength(0) // All lines were in the selection
       expect(newState.bounds).toHaveLength(0) // Bounds should be cleared
+    })
+
+    test("should retain bounds when selection removal after cut is disabled", () => {
+      const newState = cut({ ...state, removeSelectionAfterDelete: false })
+
+      expect(newState.lines).toHaveLength(0)
+      expect(newState.bounds).toEqual(state.bounds)
     })
   })
 

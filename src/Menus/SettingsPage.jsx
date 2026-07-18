@@ -52,6 +52,7 @@ export default function SettingsPage() {
 
   const {
     removeSelectionAfterDelete,
+    removeSelectionAfterCopy,
     side,
     invertedScroll,
     scrollSensitivity,
@@ -158,13 +159,24 @@ export default function SettingsPage() {
         </Setting>
 
         <Setting
-          label="Remove Selection after Cut"
-          help="Controls if the bounds get removed after the selection gets deleted, whether from cutting or by deleting"
+          label="Remove Selection"
+          help="Controls when selection bounds are removed after copying, cutting, or deleting selected lines"
         >
-          <Checkbox
-            checked={removeSelectionAfterDelete}
-            onChange={() => dispatch({ action: "set_manual_and_save_settings", removeSelectionAfterDelete: !removeSelectionAfterDelete })}
-          />
+          <Select
+            value={removeSelectionAfterCopy ? "always" : removeSelectionAfterDelete ? "cut" : "never"}
+            onChange={(e) => {
+              const removeAfterCut = e.target.value !== "never"
+              dispatch({
+                action: "set_manual_and_save_settings",
+                removeSelectionAfterDelete: removeAfterCut,
+                removeSelectionAfterCopy: e.target.value === "always",
+              })
+            }}
+          >
+            <MenuItem value="never">Never Remove</MenuItem>
+            <MenuItem value="cut">Remove only after Cut</MenuItem>
+            <MenuItem value="always">Always Remove</MenuItem>
+          </Select>
         </Setting>
 
         <Setting

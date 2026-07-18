@@ -550,6 +550,7 @@ export const copy = (state) => ({
   clipboard: getSelected(state, "center"),
   curLinePos: null,
   clipboardOffset: getBoundRect(state)?.centerOffset,
+  bounds: state.removeSelectionAfterCopy ? [] : state.bounds,
 })
 export const cut = (state) => {
   const boundRect = getBoundRect(state)
@@ -559,7 +560,6 @@ export const cut = (state) => {
       clipboard: getSelected(state, "center"),
       clipboardOffset: boundRect.centerOffset,
       curLinePos: null,
-      bounds: [],
     }
 }
 

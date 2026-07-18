@@ -20,6 +20,8 @@ const defaultOptions = {
   holdTapTimeMS: 1000 / 2,
   // If we remove all the bounds after cut or delete selection
   removeSelectionAfterDelete: true,
+  // If we remove all the bounds after copying a selection
+  removeSelectionAfterCopy: false,
   lineCap: "round",
   lineJoin: "round",
   maxUndoAmt: 20,
@@ -226,6 +228,8 @@ export const preservable = [
   "mirrorOrigins",
   "allowSnapToIntersections",
   "useHSVColorPicker",
+  "removeSelectionAfterDelete",
+  "removeSelectionAfterCopy",
   "disableSelectionCanvasButtons",
   "keybindings",
   "loopCursorAtEdges",

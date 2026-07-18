@@ -1,0 +1,58 @@
+import { fireEvent, render, screen, within } from "@testing-library/react"
+import { ThemeProvider as EmotionThemeProvider } from "@emotion/react"
+import { describe, expect, test, vi } from "vitest"
+import { ThemeProvider } from "@mui/material/styles"
+import { StateContext } from "../Contexts"
+import SettingsPage from "../Menus/SettingsPage"
+import generateTheme from "../styling/theme"
+import { getState } from "./testUtils"
+
+function renderSettings(overrides = {}) {
+  const baseState = getState()
+  const state = {
+    ...baseState,
+    ...overrides,
+    openMenus: { ...baseState.openMenus, settings: true },
+  }
+  const dispatch = vi.fn()
+  const theme = generateTheme(state.paperColor, state.themeMode, "light")
+  theme.components.MuiButtonBase = { defaultProps: { disableRipple: true } }
+
+  render(
+    <EmotionThemeProvider theme={theme}>
+      <ThemeProvider theme={theme}>
+        <StateContext.Provider value={{ state, dispatch }}>
+          <SettingsPage />
+        </StateContext.Provider>
+      </ThemeProvider>
+    </EmotionThemeProvider>,
+  )
+
+  const setting = screen.getByText("Remove Selection").closest("li")
+  return { dispatch, select: within(setting).getByRole("combobox") }
+}
+
+describe("selection removal setting", () => {
+  test("combines cut and copy behavior into one dropdown", () => {
+    const { dispatch, select } = renderSettings({
+      removeSelectionAfterDelete: true,
+      removeSelectionAfterCopy: false,
+    })
+
+    expect(select.textContent).toBe("Remove only after Cut")
+
+    fireEvent.mouseDown(select)
+    expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
+      "Never Remove",
+      "Remove only after Cut",
+      "Always Remove",
+    ])
+    fireEvent.click(screen.getByRole("option", { name: "Always Remove" }))
+
+    expect(dispatch).toHaveBeenCalledWith({
+      action: "set_manual_and_save_settings",
+      removeSelectionAfterDelete: true,
+      removeSelectionAfterCopy: true,
+    })
+  })
+})

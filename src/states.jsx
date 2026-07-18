@@ -111,6 +111,7 @@ export default function getInitialState() {
 
     // Options
     removeSelectionAfterDelete: options.removeSelectionAfterDelete,
+    removeSelectionAfterCopy: options.removeSelectionAfterCopy,
     partials: options.partials,
     invertedScroll: options.invertedScroll,
     scrollSensitivity: options.scrollSensitivity,

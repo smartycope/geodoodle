@@ -103,6 +103,21 @@ test("selection canvas button preference persists for refresh", () => {
   expect(loadPreservedState().disableSelectionCanvasButtons).toBe(true)
 })
 
+test("selection removal preferences persist for refresh", () => {
+  const state = getState()
+
+  reducer(state, {
+    action: "set_manual_and_save_settings",
+    removeSelectionAfterDelete: true,
+    removeSelectionAfterCopy: true,
+  })
+
+  expect(loadPreservedState()).toMatchObject({
+    removeSelectionAfterDelete: true,
+    removeSelectionAfterCopy: true,
+  })
+})
+
 test("cursor edge looping preference persists for refresh", () => {
   const state = getState()
 
