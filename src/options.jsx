@@ -1,6 +1,7 @@
 import { isMobile, viewportWidth, viewportHeight } from "./globals"
 
 // TODO: Options/defaultOptions needs a refactor
+const mobile = isMobile()
 const defaultOptions = {
   scalex: 20,
   scaley: 20,
@@ -38,9 +39,9 @@ const defaultOptions = {
   disableSelectionCanvasButtons: false,
   loopCursorAtEdges: false,
   allowCanvasRotation: true,
-  useFancyGlow: true,
-  maxFancyGlowingLines: isMobile() ? 0 : 128,
-  maxGlowingLines: isMobile() ? 300 : 1000,
+  useFancyGlow: !mobile,
+  maxFancyGlowingLines: mobile ? 30 : 128,
+  maxGlowingLines: mobile ? 300 : 1000,
 }
 export default defaultOptions
 

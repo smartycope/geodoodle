@@ -50,7 +50,7 @@ export var redoStack = []
 
 // For debugging
 // eslint-disable-next-line no-undef
-export const START_DEBUGGING = process.env.NODE_ENV === "development" && false
+export const START_DEBUGGING = process.env.NODE_ENV === "development" && true
 export const PREVENT_LOADING_STATE = START_DEBUGGING
 
 // This is here for hot refresh reasons
