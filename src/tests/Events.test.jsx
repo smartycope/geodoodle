@@ -167,6 +167,51 @@ describe("mouse deletion interactions", () => {
   })
 })
 
+describe("mouse interactions with an active clipboard", () => {
+  const mouseEvent = (button, clientX, clientY, buttons = 0) => ({
+    button,
+    buttons,
+    clientX,
+    clientY,
+    preventDefault: vi.fn(),
+  })
+
+  test.each([
+    ["left", 0, 1],
+    ["middle", 1, 4],
+    ["right", 2, 2],
+  ])("a %s-button drag only moves the clipboard cursor", (_name, button, buttons) => {
+    const state = getState()
+    state.clipboard = [new Line(state, new Point(-1, 0), new Point(1, 0))]
+    const dispatch = vi.fn()
+
+    onMouseDown(state, dispatch, mouseEvent(button, 100, 100, buttons))
+    onMouseMove(state, dispatch, mouseEvent(button, 200, 200, buttons))
+    onMouseUp(state, dispatch, mouseEvent(button, 200, 200))
+
+    expect(dispatch).toHaveBeenCalled()
+    expect(dispatch.mock.calls.every(([action]) => actionName(action) === "cursor_moved")).toBe(true)
+  })
+
+  test.each([
+    ["left", 0, "add_line"],
+    ["middle", 1, "delete_at_cursor"],
+    ["right", 2, "continue_line"],
+  ])("a %s-button click keeps its existing %s behavior", (_name, button, expectedAction) => {
+    const state = getState()
+    state.clipboard = [new Line(state, new Point(-1, 0), new Point(1, 0))]
+    const dispatch = vi.fn()
+    const event = mouseEvent(button, 100, 100)
+
+    onMouseDown(state, dispatch, event)
+    expect(dispatch).not.toHaveBeenCalled()
+
+    onMouseUp(state, dispatch, event)
+
+    expect(dispatch.mock.calls.map(([action]) => actionName(action))).toContain(expectedAction)
+  })
+})
+
 describe("wheel interactions", () => {
   test("ctrl+shift+scroll rotates instead of translating or scaling", () => {
     const state = getState()

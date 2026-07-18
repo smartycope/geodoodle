@@ -6,14 +6,18 @@ import { normalizeAngle } from "./transformUtils"
 
 var dragging = false
 var leftDragStart = null
+var leftMouseDownAction = null
+var leftClipboardMouseDown = false
 var canvasButtonMouseActive = false
 var activeBoundShortcutPresses = new Map()
 var middleMouseDown = false
 var middleLineDragging = false
 var middleDragStart = null
+var middleClipboardMouseDown = false
 var rightMouseDown = false
 var rightSelectionDragging = false
 var rightDragStart = null
+var rightClipboardMouseDown = false
 
 /* eslint-disable no-unused-vars */
 
@@ -34,12 +38,13 @@ export function onMouseMove(state, dispatch, e) {
   if (rightMouseDown && (e.buttons & 2) === 2) {
     if (!rightSelectionDragging && !rightDragStart.eq(aligned)) {
       rightSelectionDragging = true
-      dispatch({
-        bounds: [rightDragStart],
-        boundDragging: true,
-        curLinePos: null,
-        deletingSelection: !e.shiftKey,
-      })
+      if (!rightClipboardMouseDown)
+        dispatch({
+          bounds: [rightDragStart],
+          boundDragging: true,
+          curLinePos: null,
+          deletingSelection: !e.shiftKey,
+        })
     }
     dispatch({
       action: "cursor_moved",
@@ -72,12 +77,16 @@ export function onMouseDown(state, dispatch, e) {
     e.preventDefault?.()
     dragging = false
     leftDragStart = null
+    leftMouseDownAction = null
+    leftClipboardMouseDown = false
     middleMouseDown = false
     middleLineDragging = false
     middleDragStart = null
+    middleClipboardMouseDown = false
     rightMouseDown = false
     rightSelectionDragging = false
     rightDragStart = null
+    rightClipboardMouseDown = false
     canvasButtonMouseActive = true
     if (e.button === 0) dispatch(canvasButton.action)
     return
@@ -89,7 +98,9 @@ export function onMouseDown(state, dispatch, e) {
     case 0: // Left click
       dragging = false
       leftDragStart = getMousePoint(state, e).aligned
-      dispatch(fillMode ? "fill" : bounds.length === 1 ? "add_bound" : "add_line")
+      leftMouseDownAction = fillMode ? "fill" : bounds.length === 1 ? "add_bound" : "add_line"
+      leftClipboardMouseDown = state.clipboard !== null
+      if (!leftClipboardMouseDown) dispatch(leftMouseDownAction)
       break
     case 1: // Middle click
       e.preventDefault?.()
@@ -97,6 +108,7 @@ export function onMouseDown(state, dispatch, e) {
       middleMouseDown = true
       middleLineDragging = false
       middleDragStart = getMousePoint(state, e).aligned
+      middleClipboardMouseDown = state.clipboard !== null
       break
     case 2: // Right click
       e.preventDefault?.()
@@ -104,6 +116,7 @@ export function onMouseDown(state, dispatch, e) {
       rightMouseDown = true
       rightSelectionDragging = false
       rightDragStart = getMousePoint(state, e).aligned
+      rightClipboardMouseDown = state.clipboard !== null
       break
   }
 }
@@ -113,44 +126,54 @@ export function onMouseUp(state, dispatch, e) {
     canvasButtonMouseActive = false
     dragging = false
     leftDragStart = null
+    leftMouseDownAction = null
+    leftClipboardMouseDown = false
     return
   }
 
   if (e.button === 1 && middleMouseDown) {
     const wasDragging = middleLineDragging
+    const clipboardWasActive = middleClipboardMouseDown
     const start = middleDragStart
     const { point, aligned: end } = getMousePoint(state, e)
     middleMouseDown = false
     middleLineDragging = false
     middleDragStart = null
+    middleClipboardMouseDown = false
     dragging = false
     e.preventDefault?.()
     dispatch({
       action: "cursor_moved",
       point,
     })
-    dispatch(wasDragging ? { action: "delete_specific_line", start, end } : "delete_at_cursor")
+    if (!wasDragging || !clipboardWasActive)
+      dispatch(wasDragging ? { action: "delete_specific_line", start, end } : "delete_at_cursor")
     return
   }
   if (e.button === 2 && rightMouseDown) {
     const wasDragging = rightSelectionDragging
+    const clipboardWasActive = rightClipboardMouseDown
     const { point } = getMousePoint(state, e)
     rightMouseDown = false
     rightSelectionDragging = false
     rightDragStart = null
+    rightClipboardMouseDown = false
     dragging = false
     e.preventDefault?.()
     dispatch({
       action: "cursor_moved",
       point,
     })
-    if (wasDragging) dispatch("add_bound")
-    else if (!state.fillMode) dispatch("continue_line")
+    if (wasDragging) {
+      if (!clipboardWasActive) dispatch("add_bound")
+    } else if (!state.fillMode) dispatch("continue_line")
     return
   }
-  if (dragging) dispatch("add_line")
+  if (leftClipboardMouseDown ? !dragging : dragging) dispatch(leftMouseDownAction)
   dragging = false
   leftDragStart = null
+  leftMouseDownAction = null
+  leftClipboardMouseDown = false
 }
 
 export function onScroll(state, dispatch, e) {
@@ -512,12 +535,16 @@ export function onBlur(state, dispatch, e) {
   activeBoundShortcutPresses.clear()
   dragging = false
   leftDragStart = null
+  leftMouseDownAction = null
+  leftClipboardMouseDown = false
   middleMouseDown = false
   middleLineDragging = false
   middleDragStart = null
+  middleClipboardMouseDown = false
   rightMouseDown = false
   rightSelectionDragging = false
   rightDragStart = null
+  rightClipboardMouseDown = false
   if (state.deletingSelection) dispatch({ deletingSelection: false })
   setTimeout(function () {
     if (document.activeElement.nodeName !== "INPUT" || document.activeElement.type === "checkbox") e.target.focus()
