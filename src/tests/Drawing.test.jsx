@@ -160,8 +160,7 @@ describe("Selection option buttons", () => {
     expect(container.querySelector("#selection-option-buttons")).not.toBeNull()
     expect(screen.getByRole("button", { name: "Copy selection" })).not.toBeNull()
     expect(screen.getByRole("button", { name: "Cut selection" })).not.toBeNull()
-    expect(screen.getByRole("button", { name: "Delete selected lines" })).not.toBeNull()
-    expect(screen.getByRole("button", { name: "Delete unselected lines" })).not.toBeNull()
+    expect(screen.getByRole("button", { name: "Toggle partials" })).not.toBeNull()
     expect(screen.getByRole("button", { name: "Clear bounds" })).not.toBeNull()
   })
 

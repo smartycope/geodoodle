@@ -923,6 +923,10 @@ describe("Clipboard Actions", () => {
       newState = increment_clipboard_rotation(newState)
       expect(newState.clipboardRotation).toBe(0) // Wraps around
     })
+
+    test("can rotate the clipboard counterclockwise", () => {
+      expect(increment_clipboard_rotation({ ...state, clipboardRotation: 0 }, { amt: -90 }).clipboardRotation).toBe(270)
+    })
   })
 
   describe("increment_clipboard_mirror_axis", () => {

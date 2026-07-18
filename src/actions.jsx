@@ -564,7 +564,9 @@ export const cut = (state) => {
     }
 }
 
-export const increment_clipboard_rotation = (state) => ({ clipboardRotation: (state.clipboardRotation + 90) % 360 })
+export const increment_clipboard_rotation = (state, { amt = 90 } = {}) => ({
+  clipboardRotation: (((state.clipboardRotation + amt) % 360) + 360) % 360,
+})
 export const increment_clipboard_mirror_axis = (state) => ({
   clipboardMirrorAxis: incrementMirrorAxis(state.clipboardMirrorAxis, true),
 })

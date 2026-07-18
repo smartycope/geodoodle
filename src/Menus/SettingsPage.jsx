@@ -55,6 +55,7 @@ export default function SettingsPage() {
     removeSelectionAfterCopy,
     side,
     invertedScroll,
+    rotateClipboardOnScroll,
     scrollSensitivity,
     hideHexColor,
     useHSVColorPicker,
@@ -300,6 +301,22 @@ export default function SettingsPage() {
           <Checkbox
             checked={invertedScroll}
             onChange={() => dispatch({ action: "set_manual_and_save_settings", invertedScroll: !invertedScroll })}
+          />
+        </Setting>
+
+        <Setting
+          desktopOnly
+          label="Rotate Clipboard on Scroll"
+          help="Rotate an active clipboard instead of moving the canvas when scrolling"
+        >
+          <Checkbox
+            checked={rotateClipboardOnScroll}
+            onChange={() =>
+              dispatch({
+                action: "set_manual_and_save_settings",
+                rotateClipboardOnScroll: !rotateClipboardOnScroll,
+              })
+            }
           />
         </Setting>
 

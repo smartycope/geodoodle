@@ -114,6 +114,7 @@ export default function getInitialState() {
     removeSelectionAfterCopy: options.removeSelectionAfterCopy,
     partials: options.partials,
     invertedScroll: options.invertedScroll,
+    rotateClipboardOnScroll: options.rotateClipboardOnScroll,
     scrollSensitivity: options.scrollSensitivity,
     gestureTranslateSensitivity: 1,
     // 1 tracks the change in distance between two fingers exactly

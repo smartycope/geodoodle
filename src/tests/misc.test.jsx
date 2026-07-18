@@ -224,6 +224,10 @@ test("keyboard shortcuts are copied into state and persist when customized", () 
   expect(loadPreservedState().keybindings).toEqual({ q: { action: "go_home" } })
 })
 
+test("clipboard scrolling rotates by default", () => {
+  expect(getState().rotateClipboardOnScroll).toBe(true)
+})
+
 test("shortcut text and recorded key combinations use the same canonical format", () => {
   expect(normalizeShortcut("Command + Shift + K")).toBe("ctrl+shift+k")
   expect(shortcutFromKeyboardEvent({ key: "k", metaKey: true, ctrlKey: false, altKey: false, shiftKey: true })).toBe(

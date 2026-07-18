@@ -14,6 +14,7 @@ import {
 import reducer from "../reducer"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
+import Dist from "../helper/Dist"
 import Poly from "../helper/Poly"
 import { getClipboardButtonsPos, getSelectionButtonsPos } from "../canvasButtonUtils"
 import { getState } from "./testUtils"
@@ -126,6 +127,64 @@ describe("wheel interactions", () => {
       amt: (event.deltaY / 8) * state.scrollSensitivity * (state.invertedScroll ? -1 : 1),
     })
     expect(event.preventDefault).toHaveBeenCalled()
+  })
+
+  test("ordinary scroll rotates an active clipboard when enabled", () => {
+    const state = { ...getState(), clipboard: [{}], rotateClipboardOnScroll: true }
+    const dispatch = vi.fn()
+    const event = {
+      ctrlKey: false,
+      metaKey: false,
+      shiftKey: false,
+      deltaX: 0,
+      deltaY: -80,
+      preventDefault: vi.fn(),
+    }
+
+    onScroll(state, dispatch, event)
+
+    expect(dispatch).toHaveBeenCalledWith({ action: "increment_clipboard_rotation", amt: 90 })
+  })
+
+  test("ordinary scroll translates with an active clipboard when rotation is disabled", () => {
+    const state = { ...getState(), clipboard: [{}], rotateClipboardOnScroll: false }
+    const dispatch = vi.fn()
+    const event = {
+      ctrlKey: false,
+      metaKey: false,
+      shiftKey: false,
+      deltaX: 10,
+      deltaY: 20,
+      preventDefault: vi.fn(),
+    }
+
+    onScroll(state, dispatch, event)
+
+    expect(dispatch).toHaveBeenCalledWith({
+      action: "translate",
+      amt: Dist.fromInflated(
+        state,
+        event.deltaX * state.scrollSensitivity * (state.invertedScroll ? -1 : 1),
+        event.deltaY * state.scrollSensitivity * (state.invertedScroll ? -1 : 1),
+      ),
+    })
+  })
+
+  test("modified scroll keeps its canvas behavior with an active clipboard", () => {
+    const state = { ...getState(), clipboard: [{}], rotateClipboardOnScroll: true }
+    const dispatch = vi.fn()
+    const event = {
+      ctrlKey: false,
+      metaKey: false,
+      shiftKey: true,
+      deltaX: 0,
+      deltaY: 20,
+      preventDefault: vi.fn(),
+    }
+
+    onScroll(state, dispatch, event)
+
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ action: "translate" }))
   })
 })
 
@@ -363,9 +422,8 @@ describe("touch interactions", () => {
   test.each([
     [0, "copy"],
     [1, "cut"],
-    [2, "delete_selected"],
-    [3, "delete_unselected"],
-    [4, "clear_bounds"],
+    [2, "toggle_partials"],
+    [3, "clear_bounds"],
   ])("selection option button %i consumes its touch movement", (buttonIndex, expectedAction) => {
     const originalCursor = Point.fromViewport(state, 300, 300).align(state)
     state = {

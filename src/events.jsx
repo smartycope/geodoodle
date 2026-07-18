@@ -85,6 +85,10 @@ export function onScroll(state, dispatch, e) {
       amtx: (e.deltaY / 8) * state.scrollSensitivity * (state.invertedScroll ? -1 : 1),
       amty: (e.deltaY / 8) * state.scrollSensitivity * (state.invertedScroll ? -1 : 1),
     })
+  } else if (state.clipboard?.length && state.rotateClipboardOnScroll) {
+    const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX
+    const direction = Math.sign(delta) * (state.invertedScroll ? -1 : 1)
+    if (direction) dispatch({ action: "increment_clipboard_rotation", amt: direction * 90 })
   } else
     dispatch({
       action: "translate",

@@ -70,3 +70,19 @@ describe("fancy glow setting", () => {
     })
   })
 })
+
+describe("clipboard scroll setting", () => {
+  test("defaults to rotating and can switch scrolling back to translation", () => {
+    const { dispatch } = renderSettings({ rotateClipboardOnScroll: true, mobile: false })
+    const setting = screen.getByText("Rotate Clipboard on Scroll").closest("li")
+    const checkbox = within(setting).getByRole("checkbox")
+
+    expect(checkbox.checked).toBe(true)
+    fireEvent.click(checkbox)
+
+    expect(dispatch).toHaveBeenCalledWith({
+      action: "set_manual_and_save_settings",
+      rotateClipboardOnScroll: false,
+    })
+  })
+})
