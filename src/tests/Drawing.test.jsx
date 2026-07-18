@@ -211,9 +211,9 @@ describe("Clipboard preview", () => {
 
     const lines = container.querySelectorAll("#clipboard line")
 
-    expect(lines).toHaveLength(3)
-    expect([...lines].map((line) => Number(line.getAttribute("x1"))).sort((a, b) => a - b)).toEqual([9, 9, 31])
-    expect([...lines].map((line) => Number(line.getAttribute("x2"))).sort((a, b) => a - b)).toEqual([11, 11, 29])
+    expect(lines).toHaveLength(2)
+    expect([...lines].map((line) => Number(line.getAttribute("x1"))).sort((a, b) => a - b)).toEqual([9, 31])
+    expect([...lines].map((line) => Number(line.getAttribute("x2"))).sort((a, b) => a - b)).toEqual([11, 29])
   })
 })
 

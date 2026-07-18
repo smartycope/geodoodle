@@ -548,6 +548,61 @@ describe("Deletion Actions", () => {
       expect(newState.lines).toHaveLength(1) // One line should be removed
     })
 
+    test.each([
+      [
+        "two saved mirror origins",
+        {
+          mirrorAxis: MIRROR_AXIS.NONE,
+          mirrorRot: MIRROR_ROT.NONE,
+          mirrorOrigins: [
+            { origin: new Point(0, 0), axis: MIRROR_AXIS.Y, rot: MIRROR_ROT.NONE },
+            { origin: new Point(10, 10), axis: MIRROR_AXIS.X, rot: MIRROR_ROT.NONE },
+          ],
+        },
+      ],
+      [
+        "the Page origin",
+        {
+          mirrorType: MIRROR_TYPE.PAGE,
+          mirrorAxis: MIRROR_AXIS.BOTH,
+          mirrorRot: MIRROR_ROT.NONE,
+          mirrorOrigins: [],
+        },
+      ],
+      [
+        "the Cursor origin",
+        {
+          mirrorType: MIRROR_TYPE.CURSOR,
+          mirrorAxis: MIRROR_AXIS.BOTH,
+          mirrorRot: MIRROR_ROT.NONE,
+          mirrorOrigins: [],
+        },
+      ],
+    ])("deletes every line mirrored through %s", (_, mirrorState) => {
+      const start = new Point(2, 3)
+      const end = new Point(5, 7)
+      const drawingState = {
+        ...state,
+        ...mirrorState,
+        curLinePos: start,
+        cursorPos: end,
+        lines: [],
+      }
+      const mirroredLines = add_line(drawingState, {}).lines
+      const unrelated = new Line(state, new Point(123, 127), new Point(131, 137))
+
+      expect(mirroredLines).toHaveLength(4)
+
+      const result = delete_at_cursor({
+        ...drawingState,
+        curLinePos: null,
+        cursorPos: start,
+        lines: [...mirroredLines, unrelated],
+      })
+
+      expect(result.lines).toEqual([unrelated])
+    })
+
     test("should clear clipboard if one exists", () => {
       const withClipboard = {
         ...state,
@@ -941,9 +996,9 @@ describe("Clipboard Actions", () => {
       const newState = paste(withClipboard)
       const positionedLine = clipboardLine.translate(cursorPos)
 
-      expect(newState.lines).toHaveLength(3)
+      expect(newState.lines).toHaveLength(2)
       expect(newState.lines[0].eq(positionedLine)).toBe(true)
-      expect(newState.lines[2].eq(positionedLine.flip(MIRROR_AXIS.Y, origin))).toBe(true)
+      expect(newState.lines[1].eq(positionedLine.flip(MIRROR_AXIS.Y, origin))).toBe(true)
     })
   })
 

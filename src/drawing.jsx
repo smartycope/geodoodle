@@ -487,12 +487,11 @@ export const GenericSelectors = () => {
 
 export const CurrentLines = () => {
   const { state } = useContext(StateContext)
-  const { curLinePos, cursorPos, mirrorOrigins } = state
+  const { curLinePos, cursorPos } = state
   if (!curLinePos) return null
 
   const line = new Line(state, curLinePos, cursorPos)
   const lines = line.mirror(state)
-  for (const { origin, axis, rot } of mirrorOrigins) lines.push(...line.mirrorRaw(axis, rot, origin))
 
   return (
     <g id="cur-lines" transform={getCanvasTransform(state)}>

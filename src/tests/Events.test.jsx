@@ -148,6 +148,25 @@ describe("keyboard interactions", () => {
   })
 })
 
+describe("mouse deletion interactions", () => {
+  test("a middle click dispatches cursor deletion", () => {
+    const dispatch = vi.fn()
+    const state = getState()
+    const event = {
+      button: 1,
+      buttons: 0,
+      clientX: 100,
+      clientY: 100,
+      preventDefault: vi.fn(),
+    }
+
+    onMouseDown(state, dispatch, event)
+    onMouseUp(state, dispatch, event)
+
+    expect(dispatch).toHaveBeenLastCalledWith("delete_at_cursor")
+  })
+})
+
 describe("wheel interactions", () => {
   test("ctrl+shift+scroll rotates instead of translating or scaling", () => {
     const state = getState()

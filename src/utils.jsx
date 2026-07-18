@@ -7,7 +7,7 @@ import defaultOptions from "./options"
 
 // Get all the lines for the clipboard, including mirroring and transformation of the clipboard
 export function getAllClipboardLines(state) {
-  const { clipboard, cursorPos, clipboardMirrorAxis, clipboardRotation, mirrorOrigins } = state
+  const { clipboard, cursorPos, clipboardMirrorAxis, clipboardRotation } = state
   if (!clipboard) return []
   return clipboard.flatMap((line) => {
     const positionedLine = line
@@ -15,24 +15,15 @@ export function getAllClipboardLines(state) {
       .flip(clipboardMirrorAxis, cursorPos)
       .rotate(clipboardRotation, cursorPos)
 
-    const mirroredLines = positionedLine.mirror(state)
-    for (const { origin, axis, rot } of mirrorOrigins)
-      mirroredLines.push(...positionedLine.mirrorRaw(axis, rot, origin))
-
-    return mirroredLines
+    return positionedLine.mirror(state)
   })
 }
 
 export function getAllCursorPoints(state, includeOriginal = true, useMousePos = false) {
-  const { cursorPos, mirrorOrigins, mousePos } = state
+  const { cursorPos, mousePos } = state
   const point = useMousePos ? mousePos : cursorPos
-  const points = includeOriginal ? [point] : []
-  // Add the local mirror points
-  points.push(...point.mirror(state))
-  // Add the mirror origin points
-  for (const { origin, axis, rot } of mirrorOrigins) points.push(...point.mirrorRaw(axis, rot, origin))
-
-  return points
+  const points = point.mirror(state)
+  return includeOriginal ? points : points.slice(1)
 }
 
 // If retranslated is 'center', the lines will be retranslated to be relative to the center of the selection

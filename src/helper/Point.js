@@ -155,13 +155,15 @@ export default class Point extends Pair {
     return this.add(...args)
   }
 
-  // Mirror the point according to the current state
-  // Returns an array of points
-  // If we're not currently mirroring, just returns [this]
+  // Mirror the point through the active origin, then through each saved mirror origin.
+  // Returns [this] only when neither active nor saved mirroring is configured.
   mirror(state) {
     const { mirrorAxis, mirrorRot, mirrorType, curLinePos, cursorPos } = state
     const origin = mirrorType === MIRROR_TYPE.PAGE ? getHalf(state) : curLinePos || cursorPos
-    return this.mirrorRaw(mirrorAxis, mirrorRot, origin)
+    let base = this.mirrorRaw(mirrorAxis, mirrorRot, origin)
+    for (const mo of state.mirrorOrigins)
+      base = base.flatMap((point) => point.mirrorRaw(mo.axis, mo.rot, mo.origin))
+    return base
   }
 
   mirrorRaw(axis, rot, origin) {

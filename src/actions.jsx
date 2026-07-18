@@ -341,7 +341,7 @@ export const delete_at_cursor = (state, { allowDeleteSelected = false } = {}) =>
   // If there's a current selection, remove it
   if (bounds.length === 1) return clear_bounds(state)
 
-  let linesWithoutStartEndStep = lines.filter((line) => !cursorPos.in(line.points()))
+  let linesWithoutStartEndStep = lines.filter((line) => !cursorPos.mirror(state).some((point) => point.in(line.points())))
   // If there's no lines without a start/end point at the cursor, and we're over an intersection,
   // remove the lines that intersect at that point
   if (linesWithoutStartEndStep.length === lines.length)
@@ -415,10 +415,6 @@ export const add_line = (state, args) => {
     if (curLinePos != null) {
       let start = curLinePos.mirror(state)
       let end = point.mirror(state)
-      for (const { origin, axis, rot } of state.mirrorOrigins) {
-        start.push(...curLinePos.mirrorRaw(axis, rot, origin))
-        end.push(...point.mirrorRaw(axis, rot, origin))
-      }
 
       start.map((a, i) => newLines.push(new Line(state, a, end[i])))
     }
