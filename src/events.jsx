@@ -12,8 +12,6 @@ var canvasButtonMouseActive = false
 // TODO: middle click & drag starts a line on middle click up event
 // -- make it delete a specific line instead
 // -- not sure if this is still happening
-// TODO: all these functions (especially the touch functions) desperately need
-// tests. A ton of tests.
 
 // Mouse events
 export function onMouseMove(state, dispatch, e) {
@@ -159,7 +157,7 @@ export function getGestureRotationDelta(previousTouches, newTouches) {
 // we can start the line once we've changed cursorPos. We then start the line from where cursorPos was
 // when the touch started.
 // Lines are finished when the touch ends, we've been dragging (tapDragging), and there's only 1 finger
-// touching the screen. (and also when the position of the touch has changed? shoudl I maybe add that?)
+// touching the screen. (and also when the position of the touch has changed? should I maybe add that?)
 
 // Double tap:
 // we start a timer when we first touch the screen with a single finger. Then, multiple things can
