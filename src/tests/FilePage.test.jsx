@@ -26,12 +26,20 @@ vi.mock("../fileUtils", async (importOriginal) => {
 function renderFilePage() {
   const state = getState()
   const dispatch = vi.fn()
+  const setCloudUsername = vi.fn()
   render(
-    <StateContext.Provider value={{ state: { ...state, openMenus: { ...state.openMenus, file: true } }, dispatch }}>
+    <StateContext.Provider
+      value={{
+        state: { ...state, openMenus: { ...state.openMenus, file: true } },
+        dispatch,
+        cloudUsername: "cope",
+        setCloudUsername,
+      }}
+    >
       <FilePage />
     </StateContext.Provider>,
   )
-  return { dispatch, state }
+  return { dispatch, state, setCloudUsername }
 }
 
 beforeEach(() => {

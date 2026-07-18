@@ -51,10 +51,8 @@ import {
   getCloudSaves,
   getSaves,
   loadCloud,
-  loadCloudUsername,
   preservedStatesEqual,
   saveCloud,
-  saveCloudUsername,
 } from "../fileUtils.jsx"
 import TabManager from "./TabManager"
 import { sharePatternLink } from "../shareUtils"
@@ -183,10 +181,9 @@ function SavedPatternList({ names, emptyMessage, onLoad, onDelete, deleteLabel }
 }
 
 export default function FilePage() {
-  const { state, dispatch } = useContext(StateContext)
+  const { state, dispatch, cloudUsername: username, setCloudUsername } = useContext(StateContext)
   const { filename, bounds } = state
 
-  const [username, setUsername] = useState(loadCloudUsername)
   const [cloudSaves, setCloudSaves] = useState([])
   const [cloudRefresh, setCloudRefresh] = useState(0)
   const [format, setFormat] = useState("svg")
@@ -205,7 +202,6 @@ export default function FilePage() {
     let current = true
     const cloudUsername = username.trim()
 
-    saveCloudUsername(username)
     getCloudSaves(cloudUsername)
       .then((saves) => {
         if (current) setCloudSaves(saves)
@@ -533,7 +529,7 @@ export default function FilePage() {
             fullWidth
             label="Username"
             value={username}
-            onChange={(event) => setUsername(event.target.value)}
+            onChange={(event) => setCloudUsername(event.target.value.trim().toLowerCase())}
             helperText="Anyone using this username can see and change its patterns."
           />
           {patternNameControls({ onSave: handleCloudSave, saveLabel: "Save to cloud", saveDisabled: !username.trim() })}

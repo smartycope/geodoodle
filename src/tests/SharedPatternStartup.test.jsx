@@ -1,9 +1,16 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import Paper from "../Paper"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
-import { getSaves, loadCloud, loadPreservedState, preserveState, validateStorage } from "../fileUtils"
+import {
+  getSaves,
+  loadCloud,
+  loadPreservedState,
+  preserveState,
+  saveCloudUsername,
+  validateStorage,
+} from "../fileUtils"
 import { getState } from "./testUtils"
 
 vi.mock("../fileUtils", async (importOriginal) => {
@@ -36,6 +43,33 @@ beforeEach(() => {
 afterEach(() => window.history.replaceState({}, "", "/geodoodle/"))
 
 describe("shared pattern startup", () => {
+  test("keeps the URL current as the pattern name changes", async () => {
+    const local = pattern("Work in progress", 1)
+    preserveState(local)
+    saveCloudUsername("cope")
+    window.history.replaceState({}, "", "/geodoodle/")
+    let paperDispatch
+
+    render(<Paper setDispatch={(dispatch) => (paperDispatch = dispatch)} />)
+
+    await waitFor(() => expect(window.location.search).toBe("?user=cope&pattern=Work+in+progress"))
+    act(() => paperDispatch({ filename: "Renamed pattern" }))
+    await waitFor(() => expect(window.location.search).toBe("?user=cope&pattern=Renamed+pattern"))
+  })
+
+  test("does not reopen the share dialog when the URL already identifies the local workspace", async () => {
+    const local = pattern("Work in progress", 1)
+    preserveState(local)
+    saveCloudUsername("cope")
+    window.history.replaceState({}, "", "/geodoodle/?user=cope&pattern=Work+in+progress")
+
+    render(<Paper setDispatch={vi.fn()} />)
+
+    await waitFor(() => expect(loadPreservedState().filename).toBe("Work in progress"))
+    expect(loadCloud).not.toHaveBeenCalled()
+    expect(screen.queryByRole("dialog", { name: "Save your current pattern?" })).toBeNull()
+  })
+
   test("loads the shared pattern immediately when there is no preserved drawing", async () => {
     const local = { ...getState(), filename: "Empty", lines: [] }
     const shared = pattern("shared-star", 10)
@@ -81,6 +115,6 @@ describe("shared pattern startup", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }))
 
     expect(loadPreservedState().filename).toBe("Work in progress")
-    expect(window.location.search).toBe("")
+    await waitFor(() => expect(window.location.search).toBe("?user=&pattern=Work+in+progress"))
   })
 })

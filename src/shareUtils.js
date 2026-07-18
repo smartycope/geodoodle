@@ -14,11 +14,13 @@ export function buildPatternShareUrl(user, pattern, location = window.location) 
   return url.toString()
 }
 
-export function clearSharedPatternParams(history = window.history, location = window.location) {
+export function syncPatternQueryParams(user, pattern, history = window.history, location = window.location) {
   const url = new URL(location.href)
-  url.searchParams.delete("user")
-  url.searchParams.delete("pattern")
-  history.replaceState(history.state, "", `${url.pathname}${url.search}${url.hash}`)
+  url.searchParams.set("user", user)
+  url.searchParams.set("pattern", pattern)
+  const nextUrl = `${url.pathname}${url.search}${url.hash}`
+  const currentUrl = `${location.pathname}${location.search}${location.hash}`
+  if (nextUrl !== currentUrl) history.replaceState(history.state, "", nextUrl)
 }
 
 export async function sharePatternLink(user, pattern) {

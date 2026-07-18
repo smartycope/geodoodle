@@ -34,7 +34,7 @@ export default function SharedPatternDialog({ conflict, onCancel, onIgnore, onSa
       <DialogActions sx={{ px: 3, pb: 2, flexWrap: "wrap" }}>
         <Button onClick={onCancel}>Cancel</Button>
         <Button color="error" onClick={onIgnore}>
-          Ignore &amp; load
+          Discard &amp; load
         </Button>
         <Button variant="contained" disabled={!name.trim()} onClick={() => onSave(name.trim())}>
           Save &amp; load

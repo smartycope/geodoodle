@@ -3,7 +3,14 @@ import { useEffect, useReducer, useRef, useMemo, useState } from "react"
 import { PREVENT_LOADING_STATE } from "./globals"
 import reducer from "./reducer"
 import Toolbar from "./Menus/Toolbar"
-import { loadCloud, loadPreservedState, preserveState, saveLocally } from "./fileUtils"
+import {
+  loadCloud,
+  loadCloudUsername,
+  loadPreservedState,
+  preserveState,
+  saveCloudUsername,
+  saveLocally,
+} from "./fileUtils"
 import { StateContext } from "./Contexts"
 import generateTheme from "./styling/theme"
 import useMediaQuery from "@mui/material/useMediaQuery"
@@ -32,7 +39,7 @@ import Trellis from "./Trellis"
 import getInitialState from "./states"
 import * as events from "./events"
 import SharedPatternDialog from "./Menus/SharedPatternDialog"
-import { clearSharedPatternParams, getSharedPatternParams } from "./shareUtils"
+import { getSharedPatternParams, syncPatternQueryParams } from "./shareUtils"
 
 // This is for the mouse/touch events that need to be bound non-passively, but also need access to the state
 // This is hacky, but I can't think of a better way
@@ -41,7 +48,10 @@ export default function Paper({ setDispatch }) {
   const paper = useRef()
   const initialState = useMemo(() => getInitialState(), [])
   const sharedPatternParams = useMemo(() => getSharedPatternParams(), [])
+  const initialCloudUsername = useMemo(() => loadCloudUsername(), [])
   const [state, dispatch] = useReducer(reducer, initialState)
+  const [cloudUsername, setCloudUsername] = useState(initialCloudUsername)
+  const [resolvingSharedLink, setResolvingSharedLink] = useState(Boolean(sharedPatternParams))
   const [sharedPatternConflict, setSharedPatternConflict] = useState(null)
   const { dotsAbovefill, paperColor, fillMode, themeMode } = state
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)")
@@ -55,6 +65,12 @@ export default function Paper({ setDispatch }) {
   window.scrollY = 0
 
   _state = state
+
+  useEffect(() => {
+    if (resolvingSharedLink) return
+    saveCloudUsername(cloudUsername)
+    syncPatternQueryParams(cloudUsername, state.filename)
+  }, [cloudUsername, resolvingSharedLink, state.filename])
 
   // Capture touch events non-passively so we can prevent default
   useEffect(() => {
@@ -84,6 +100,10 @@ export default function Paper({ setDispatch }) {
     if (local) dispatch({ action: "deserialize", data: local })
 
     if (!sharedPatternParams) return
+    if (local && sharedPatternParams.user === initialCloudUsername && sharedPatternParams.pattern === local.filename) {
+      setResolvingSharedLink(false)
+      return
+    }
 
     let current = true
     loadCloud(sharedPatternParams.user, sharedPatternParams.pattern)
@@ -91,6 +111,7 @@ export default function Paper({ setDispatch }) {
         if (!current) return
         if (!shared) {
           dispatch({ toast: "Shared cloud pattern not found" })
+          setResolvingSharedLink(false)
           return
         }
 
@@ -103,16 +124,21 @@ export default function Paper({ setDispatch }) {
 
         dispatch({ action: "deserialize", data: nextState })
         preserveState(nextState)
+        setCloudUsername(sharedPatternParams.user)
+        setResolvingSharedLink(false)
       })
       .catch((error) => {
         console.error("Unable to load shared cloud pattern:", error)
-        if (current) dispatch({ toast: "Unable to load shared cloud pattern" })
+        if (current) {
+          dispatch({ toast: "Unable to load shared cloud pattern" })
+          setResolvingSharedLink(false)
+        }
       })
 
     return () => {
       current = false
     }
-  }, [initialState, sharedPatternParams])
+  }, [initialCloudUsername, initialState, sharedPatternParams])
 
   const loadPendingSharedPattern = () => {
     if (!sharedPatternConflict) return
@@ -123,11 +149,13 @@ export default function Paper({ setDispatch }) {
     }
     dispatch({ action: "deserialize", data: nextState })
     preserveState(nextState)
+    setCloudUsername(sharedPatternConflict.user)
+    setResolvingSharedLink(false)
     setSharedPatternConflict(null)
   }
 
   const cancelSharedPatternLoad = () => {
-    clearSharedPatternParams()
+    setResolvingSharedLink(false)
     setSharedPatternConflict(null)
   }
 
@@ -144,7 +172,7 @@ export default function Paper({ setDispatch }) {
 
   return (
     <ThemeProvider theme={theme}>
-      <StateContext.Provider value={{ state, dispatch }}>
+      <StateContext.Provider value={{ state, dispatch, cloudUsername, setCloudUsername }}>
         <SharedPatternDialog
           conflict={sharedPatternConflict}
           onCancel={cancelSharedPatternLoad}
