@@ -11,8 +11,8 @@ import {
   saveCloud,
   saveCloudUsername,
 } from "../fileUtils"
-import { version } from "../globals"
 import Dist from "../helper/Dist"
+import Point from "../helper/Point"
 
 describe("preserved state", () => {
   test("preserves translation as a Dist through serialization", () => {
@@ -25,7 +25,16 @@ describe("preserved state", () => {
   })
 
   test("compares the current pattern with a serialized cloud copy", () => {
-    const state = { lines: [], bounds: [], filledPolys: [], translation: new Dist(7, -3), filename: "star" }
+    const state = {
+      lines: [],
+      bounds: [],
+      specificSelectors: [],
+      genericSelectors: [],
+      mirrorOrigins: [],
+      filledPolys: [],
+      translation: new Dist(7, -3),
+      filename: "star",
+    }
     const restored = deserializeState(serializeState(state))
 
     expect(preservedStatesEqual(state, restored)).toBe(true)
@@ -75,19 +84,28 @@ describe("cloud storage requests", () => {
   })
 
   test("deserializes a saved cloud pattern instead of returning its database row", async () => {
+    const mirrorOrigin = new Point(4, 7)
     globalThis.fetch.mockResolvedValue({
       ok: true,
       text: vi.fn().mockResolvedValue(
         JSON.stringify([
           {
             name: "star",
-            data: JSON.stringify({ version, lines: [], translation: { x: 0, y: 0 } }),
+            data: serializeState({
+              lines: [],
+              translation: new Dist(0, 0),
+              mirrorOrigins: [{ origin: mirrorOrigin, axis: 1, rot: 0 }],
+            }),
           },
         ]),
       ),
     })
 
-    await expect(loadCloud("cope", "star")).resolves.toMatchObject({ lines: [] })
+    const restored = await loadCloud("cope", "star")
+
+    expect(restored.lines).toEqual([])
+    expect(restored.mirrorOrigins[0].origin).toBeInstanceOf(Point)
+    expect(restored.mirrorOrigins[0].origin.eq(mirrorOrigin)).toBe(true)
   })
 
   test("updates an existing save with the same username and name", async () => {

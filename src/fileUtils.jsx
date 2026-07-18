@@ -40,6 +40,13 @@ export function serializePattern(state, selectedOnly = false, transform = "") {
 // Deserializes parts of the state that can't be done with JSON.parse
 function customDeserialize(state) {
   state.bounds = state?.bounds?.map((i) => Point.fromJSON(i)) || []
+  state.specificSelectors = state?.specificSelectors?.map((i) => Point.fromJSON(i)) || []
+  state.genericSelectors = state?.genericSelectors?.map((i) => Point.fromJSON(i)) || []
+  state.mirrorOrigins =
+    state?.mirrorOrigins?.map((mirrorOrigin) => ({
+      ...mirrorOrigin,
+      origin: Point.fromJSON(mirrorOrigin.origin),
+    })) || []
   state.translation = Dist.fromJSON(state?.translation || { x: 0, y: 0 })
   state.filledPolys = state?.filledPolys?.map((i) => Poly.fromJSON(i)) || []
   return state
