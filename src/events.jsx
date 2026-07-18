@@ -5,6 +5,7 @@ import { getCanvasButtonAt } from "./canvasButtonUtils"
 import { normalizeAngle } from "./transformUtils"
 
 var dragging = false
+var leftDragStart = null
 var canvasButtonMouseActive = false
 var activeBoundShortcutPresses = new Map()
 var middleMouseDown = false
@@ -16,13 +17,22 @@ var rightDragStart = null
 
 /* eslint-disable no-unused-vars */
 
+function getMousePoint(state, e) {
+  const point = Point.fromViewport(state, e.clientX, e.clientY)
+  return {
+    point,
+    aligned: point.align(state, state.clipboard === null && state.allowSnapToIntersections),
+  }
+}
+
 // Mouse events
 export function onMouseMove(state, dispatch, e) {
   if (canvasButtonMouseActive) return
   const { fillMode } = state
+  const { point, aligned } = getMousePoint(state, e)
 
   if (rightMouseDown && (e.buttons & 2) === 2) {
-    if (!rightSelectionDragging) {
+    if (!rightSelectionDragging && !rightDragStart.eq(aligned)) {
       rightSelectionDragging = true
       dispatch({
         bounds: [rightDragStart],
@@ -33,25 +43,26 @@ export function onMouseMove(state, dispatch, e) {
     }
     dispatch({
       action: "cursor_moved",
-      point: Point.fromViewport(state, e.clientX, e.clientY),
+      point,
     })
     return
   }
 
   if (middleMouseDown && (e.buttons & 4) === 4) {
-    middleLineDragging = true
+    if (!middleLineDragging && !middleDragStart.eq(aligned)) middleLineDragging = true
     dispatch({
       action: "cursor_moved",
-      point: Point.fromViewport(state, e.clientX, e.clientY),
+      point,
     })
     return
   }
 
   if (getCanvasButtonAt(state, e.clientX, e.clientY)) return
-  if (e.buttons !== 0) dragging = !fillMode
+  if ((e.buttons & 1) === 1 && !dragging && !fillMode && leftDragStart)
+    dragging = !leftDragStart.eq(aligned)
   dispatch({
     action: "cursor_moved",
-    point: Point.fromViewport(state, e.clientX, e.clientY),
+    point,
   })
 }
 
@@ -60,6 +71,7 @@ export function onMouseDown(state, dispatch, e) {
   if (canvasButton) {
     e.preventDefault?.()
     dragging = false
+    leftDragStart = null
     middleMouseDown = false
     middleLineDragging = false
     middleDragStart = null
@@ -75,6 +87,8 @@ export function onMouseDown(state, dispatch, e) {
   const { fillMode, bounds } = state
   switch (e.button) {
     case 0: // Left click
+      dragging = false
+      leftDragStart = getMousePoint(state, e).aligned
       dispatch(fillMode ? "fill" : bounds.length === 1 ? "add_bound" : "add_line")
       break
     case 1: // Middle click
@@ -82,14 +96,14 @@ export function onMouseDown(state, dispatch, e) {
       dragging = false
       middleMouseDown = true
       middleLineDragging = false
-      middleDragStart = Point.fromViewport(state, e.clientX, e.clientY).align(state)
+      middleDragStart = getMousePoint(state, e).aligned
       break
     case 2: // Right click
       e.preventDefault?.()
       dragging = false
       rightMouseDown = true
       rightSelectionDragging = false
-      rightDragStart = Point.fromViewport(state, e.clientX, e.clientY).align(state)
+      rightDragStart = getMousePoint(state, e).aligned
       break
   }
 }
@@ -98,13 +112,14 @@ export function onMouseUp(state, dispatch, e) {
   if (canvasButtonMouseActive) {
     canvasButtonMouseActive = false
     dragging = false
+    leftDragStart = null
     return
   }
 
   if (e.button === 1 && middleMouseDown) {
     const wasDragging = middleLineDragging
     const start = middleDragStart
-    const end = Point.fromViewport(state, e.clientX, e.clientY).align(state)
+    const { point, aligned: end } = getMousePoint(state, e)
     middleMouseDown = false
     middleLineDragging = false
     middleDragStart = null
@@ -112,13 +127,14 @@ export function onMouseUp(state, dispatch, e) {
     e.preventDefault?.()
     dispatch({
       action: "cursor_moved",
-      point: Point.fromViewport(state, e.clientX, e.clientY),
+      point,
     })
     dispatch(wasDragging ? { action: "delete_specific_line", start, end } : "delete_at_cursor")
     return
   }
   if (e.button === 2 && rightMouseDown) {
     const wasDragging = rightSelectionDragging
+    const { point } = getMousePoint(state, e)
     rightMouseDown = false
     rightSelectionDragging = false
     rightDragStart = null
@@ -126,7 +142,7 @@ export function onMouseUp(state, dispatch, e) {
     e.preventDefault?.()
     dispatch({
       action: "cursor_moved",
-      point: Point.fromViewport(state, e.clientX, e.clientY),
+      point,
     })
     if (wasDragging) dispatch("add_bound")
     else if (!state.fillMode) dispatch("continue_line")
@@ -134,6 +150,7 @@ export function onMouseUp(state, dispatch, e) {
   }
   if (dragging) dispatch("add_line")
   dragging = false
+  leftDragStart = null
 }
 
 export function onScroll(state, dispatch, e) {
@@ -493,6 +510,8 @@ function onDoubleTap(state, dispatch) {
 // This keeps the focus always on the paper element
 export function onBlur(state, dispatch, e) {
   activeBoundShortcutPresses.clear()
+  dragging = false
+  leftDragStart = null
   middleMouseDown = false
   middleLineDragging = false
   middleDragStart = null

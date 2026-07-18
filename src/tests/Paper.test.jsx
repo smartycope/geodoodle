@@ -55,6 +55,18 @@ describe("Paper interactions", () => {
     expect(getLines(container).length).toBe(1)
   })
 
+  test("left-button movement within one cursor position remains a click", () => {
+    const { container, paper } = renderPaper()
+
+    mouseDown(paper, 100, 100)
+    mouseMove(paper, 101, 101, { buttons: 1 })
+    mouseUp(paper, 101, 101)
+    mouseMove(paper, 200, 200)
+
+    expect(getLines(container)).toHaveLength(0)
+    expect(getCurLines(container)).toHaveLength(1)
+  })
+
   test("Ensure localstorage is cleared", () => {
     const { paper, container } = renderPaper()
     createLine(paper)
@@ -171,12 +183,28 @@ describe("Paper interactions", () => {
     expect(getSelectionRect(container)).toBeNull()
   })
 
-  test("middle clicking without dragging still deletes under the cursor", () => {
+  test("right-button movement within one cursor position remains a right click", () => {
+    const { container, paper } = renderPaper()
+
+    mouseDown(paper, 100, 100, 2)
+    mouseMove(paper, 101, 101, { buttons: 2 })
+
+    expect(getBounds(container)).toHaveLength(0)
+    expect(getSelectionRect(container)).toBeNull()
+
+    mouseUp(paper, 101, 101, 2)
+    mouseMove(paper, 200, 200)
+
+    expect(getCurLines(container)).toHaveLength(1)
+  })
+
+  test("middle-button movement within one cursor position remains a middle click", () => {
     const { container, paper } = renderPaper()
     createLine(paper, 100, 100, 200, 200)
 
-    mouseMove(paper, 100, 100)
-    mouseClick(paper, 100, 100, 1)
+    mouseDown(paper, 100, 100, 1)
+    mouseMove(paper, 101, 101, { buttons: 4 })
+    mouseUp(paper, 101, 101, 1)
 
     expect(getLines(container)).toHaveLength(0)
     expect(getBounds(container)).toHaveLength(0)
