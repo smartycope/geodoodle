@@ -72,6 +72,11 @@
   &:active {
     background-color: var(--color-gray-100);
   }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
 }
 
 :root {

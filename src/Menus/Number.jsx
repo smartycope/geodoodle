@@ -3,6 +3,7 @@ import Tooltip from "@mui/material/Tooltip"
 import { useTheme } from "@mui/material/styles"
 import AddIcon from "@mui/icons-material/Add"
 import RemoveIcon from "@mui/icons-material/Remove"
+import ReplayIcon from "@mui/icons-material/Replay"
 import { NumberField } from "@base-ui-components/react/number-field"
 import styles from "../styling/number-field.module.css"
 import { useContext } from "react"
@@ -23,6 +24,8 @@ export default function Number({
   inputId,
   onPlus,
   onMinus,
+  onReset,
+  resetTitle = "Reset",
   // TODO
   // scrubDirection = "horizontal",
   compact,
@@ -115,10 +118,10 @@ export default function Number({
           className={styles.Increment}
           onClick={onPlus}
           style={{
-            borderTopRightRadius: theme.shape.borderRadius,
+            borderTopRightRadius: onReset && !vertical ? 0 : theme.shape.borderRadius,
             borderTopLeftRadius: vertical ? theme.shape.borderRadius : 0,
             borderBottomLeftRadius: 0,
-            borderBottomRightRadius: vertical ? 0 : theme.shape.borderRadius,
+            borderBottomRightRadius: vertical || onReset ? 0 : theme.shape.borderRadius,
             width: other_dim,
             height: other_dim,
             color: theme.palette.primary.main,
@@ -126,6 +129,29 @@ export default function Number({
         >
           <AddIcon fontSize="small" />
         </NumberField.Increment>
+        {onReset && (
+          <Tooltip title={resetTitle}>
+            <button
+              type="button"
+              className={styles.Increment}
+              aria-label={resetTitle}
+              disabled={props.disabled}
+              onClick={onReset}
+              style={{
+                borderTopRightRadius: theme.shape.borderRadius,
+                borderBottomRightRadius: theme.shape.borderRadius,
+                borderTopLeftRadius: vertical ? theme.shape.borderRadius : 0,
+                borderBottomLeftRadius: vertical ? theme.shape.borderRadius : 0,
+                width: other_dim,
+                height: other_dim,
+                marginLeft: vertical ? 0 : -1,
+                color: theme.palette.primary.main,
+              }}
+            >
+              <ReplayIcon fontSize="small" />
+            </button>
+          </Tooltip>
+        )}
       </NumberField.Group>
     </NumberField.Root>
   )

@@ -16,7 +16,17 @@ import { viewportHeight, viewportWidth } from "../globals"
 export default function NavMenu() {
   const { state, dispatch } = useContext(StateContext)
 
-  const { scalex, scaley, translation, rotate, allowCanvasRotation, side } = state
+  const {
+    scalex,
+    scaley,
+    defaultScalex,
+    defaultScaley,
+    translation,
+    rotate,
+    allowCanvasRotation,
+    mobile,
+    side,
+  } = state
   const { x: translationx, y: translationy } = translation.asDeflated(state)
   const half = getHalf(state)
   const rotationCenter = Point.fromViewport(state, viewportWidth() / 2, viewportHeight() / 2)
@@ -40,7 +50,8 @@ export default function NavMenu() {
       id="nav-menu"
       style={style}
       sx={{
-        width: 370,
+        width: 430,
+        maxWidth: "calc(100vw - 16px)",
         height: "min-content",
         /* To center it */
         left: "50%",
@@ -63,9 +74,14 @@ export default function NavMenu() {
             step={1}
             largeStep={10}
             snapOnStep={true}
+            compact={mobile}
             onValueChange={(val) =>
               dispatch({ action: "translate", amt: Dist.fromDeflated(state, translationx - val, 0) })
             }
+            onReset={() =>
+              dispatch({ action: "translate", amt: Dist.fromDeflated(state, -translationx, 0) })
+            }
+            resetTitle="Reset Position x"
           />
         </Grid>
 
@@ -74,8 +90,18 @@ export default function NavMenu() {
           <Number
             value={scalex}
             label="Scale"
+            compact={mobile}
             onMinus={() => dispatch({ action: "scale", amtx: -scalex / 2, amty: -scaley / 2, center: half })}
             onPlus={() => dispatch({ action: "scale", amtx: scalex, amty: scaley, center: half })}
+            onReset={() =>
+              dispatch({
+                action: "scale",
+                amtx: defaultScalex - scalex,
+                amty: defaultScaley - scaley,
+                center: half,
+              })
+            }
+            resetTitle="Reset Scale"
             // See also: "scale" action in the reducer
             min={defaultOptions.minScale}
             max={defaultOptions.maxScale}
@@ -89,10 +115,14 @@ export default function NavMenu() {
             largeStep={10}
             snapOnStep={true}
             step={1}
-            scrubDirection="vertical" // This doesn't work
+            compact={mobile}
             onValueChange={(val) =>
               dispatch({ action: "translate", amt: Dist.fromDeflated(state, 0, translationy - val) })
             }
+            onReset={() =>
+              dispatch({ action: "translate", amt: Dist.fromDeflated(state, 0, -translationy) })
+            }
+            resetTitle="Reset Position y"
           />
         </Grid>
 
@@ -101,11 +131,14 @@ export default function NavMenu() {
           <Number
             value={rotate}
             label="Rotation"
+            compact={mobile}
             step={1}
             min={-180}
             max={180}
             disabled={!allowCanvasRotation}
             onValueChange={(angle) => dispatch({ action: "rotate", angle, center: rotationCenter })}
+            onReset={() => dispatch({ action: "rotate", angle: 0, center: rotationCenter })}
+            resetTitle="Reset Rotation"
           />
         </Grid>
         {/* Buttons */}
