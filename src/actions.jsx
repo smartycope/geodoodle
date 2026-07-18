@@ -338,6 +338,8 @@ export const delete_at_cursor = (state, { allowDeleteSelected = false } = {}) =>
   if (cursorPos.in(mirrorOrigins.map((o) => o.origin))) return remove_mirror_origin(state, { origin: cursorPos })
   // If we have selected lines, delete them
   if (allowDeleteSelected && getSelected(state).length > 0) return delete_selected(state)
+  // If there's a current selection, remove it
+  if (bounds.length === 1) return clear_bounds(state)
 
   let linesWithoutStartEndStep = lines.filter((line) => !cursorPos.in(line.points()))
   // If there's no lines without a start/end point at the cursor, and we're over an intersection,
