@@ -147,8 +147,7 @@ export function getGestureScaleDelta(scale, previousDistance, newDistance, sensi
 
 export function getGestureRotationDelta(previousTouches, newTouches) {
   const angle = (touches) =>
-    Math.atan2(touches[1].pageY - touches[0].pageY, touches[1].pageX - touches[0].pageX) *
-    (180 / Math.PI)
+    Math.atan2(touches[1].pageY - touches[0].pageY, touches[1].pageX - touches[0].pageX) * (180 / Math.PI)
   return normalizeAngle(angle(newTouches) - angle(previousTouches))
 }
 
@@ -259,9 +258,10 @@ export function onTouchEnd(state, dispatch, e) {
     else dispatch("add_line")
 
   if (fillMode && !clipboard?.length && singleTapTouchingScreen)
-    // A fill drag is only a preview. Clear it on release even if the finger is
-    // still inside a polygon; only an unmoved tap commits the fill.
-    if (tapDragging) dispatch({ curPolys: [] })
+    if (tapDragging)
+      // A fill drag is only a preview. Clear it on release even if the finger is
+      // still inside a polygon; only an unmoved tap commits the fill.
+      dispatch({ curPolys: [] })
     else dispatch("fill")
 
   holdAndDragPossible = false
@@ -305,15 +305,9 @@ export function onTouchMove(state, dispatch, e) {
         action: "gesture_transform",
         previousCenter: { x: prevCenterx, y: prevCentery },
         currentCenter: { x: newCenterx, y: newCentery },
-        amtx: shouldScale
-          ? getGestureScaleDelta(state.scalex, prevDist, newDist, state.gestureScaleSensitivity)
-          : 0,
-        amty: shouldScale
-          ? getGestureScaleDelta(state.scaley, prevDist, newDist, state.gestureScaleSensitivity)
-          : 0,
-        rotateAmt: state.allowCanvasRotation
-          ? getGestureRotationDelta(gestureTouches, e.touches)
-          : 0,
+        amtx: shouldScale ? getGestureScaleDelta(state.scalex, prevDist, newDist, state.gestureScaleSensitivity) : 0,
+        amty: shouldScale ? getGestureScaleDelta(state.scaley, prevDist, newDist, state.gestureScaleSensitivity) : 0,
+        rotateAmt: state.allowCanvasRotation ? getGestureRotationDelta(gestureTouches, e.touches) : 0,
       })
     } else dispatch({ curLinePos: null })
 

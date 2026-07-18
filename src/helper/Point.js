@@ -90,13 +90,11 @@ export default class Point extends Pair {
     // Align to regular grid
     const defaultAlignedPoint = Point.fromSvg(state, Math.round(this._x), Math.round(this._y), false)
 
-    if (!allowSnapToIntersections)
-      return defaultAlignedPoint
+    if (!allowSnapToIntersections) return defaultAlignedPoint
 
     // Align to regular grid, or an intersection point, if one is closer
     const intersections = getAllIntersections(state.lines)
-    if (!intersections || !intersections.length)
-      return defaultAlignedPoint
+    if (!intersections || !intersections.length) return defaultAlignedPoint
 
     // Optimization: Filter out any intersection points with an x or y that is not within 1 of the point x or y
     // This is going to be faster than the distance algorithm, and the intersections list could be quite large
@@ -109,10 +107,8 @@ export default class Point extends Pair {
     const smallest = Math.min(...distances)
 
     // Get distance to a point on the regular grid
-    if (smallest > defaultAlignedPoint.dist(this))
-      return defaultAlignedPoint
-    else
-      return applicableIntersections[distances.indexOf(smallest)]
+    if (smallest > defaultAlignedPoint.dist(this)) return defaultAlignedPoint
+    else return applicableIntersections[distances.indexOf(smallest)]
   }
 
   isAlignedWithGrid() {

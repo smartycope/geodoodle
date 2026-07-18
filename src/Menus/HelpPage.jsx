@@ -30,7 +30,9 @@ function AboutContent() {
         <li>✅ Mobile Compatibility</li>
         <li>✅ Allow lines to be drawn from line intersections</li>
         <li>✅ Added backend for saving patterns</li>
-        <s><li>❌ Connect to Google Drive</li></s>
+        <s>
+          <li>❌ Connect to Google Drive</li>
+        </s>
         <li>❌ Custom Keyboard Shortcuts</li>
         <li>❌ Alternate Dot Patterns</li>
         <li>❌ Curved Lines</li>
@@ -91,8 +93,8 @@ function ConceptsContent() {
         </Concept>
         <Concept title="Extra button">
           <Typography>
-            The Extra button is a customizable toolbar shortcut. Choose its action in General Settings—for example,
-            it can quickly return Home or toggle dot visibility. If the toolbar has limited room, the shortcut appears
+            The Extra button is a customizable toolbar shortcut. Choose its action in General Settings—for example, it
+            can quickly return Home or toggle dot visibility. If the toolbar has limited room, the shortcut appears
             inside the Extra menu instead.
           </Typography>
         </Concept>
@@ -154,8 +156,8 @@ function ConceptsContent() {
 
       <Concept title="Selection">
         <Typography>
-          Selection can combine an area and individual point selectors. Bounds define the corners of a rectangular
-          area. With Partials enabled, a line is selected when either endpoint is inside; with Partials disabled, both
+          Selection can combine an area and individual point selectors. Bounds define the corners of a rectangular area.
+          With Partials enabled, a line is selected when either endpoint is inside; with Partials disabled, both
           endpoints must be inside. On desktop, press B to add a bound. On mobile, use Add Bound or tap, hold, and drag.
         </Typography>
         <Typography sx={{ mt: 1 }}>
@@ -182,9 +184,9 @@ function ConceptsContent() {
       <Concept title="Mirroring">
         <Typography>
           Mirroring creates transformed copies as you draw. Flip horizontally, vertically, or across both axes; rotate
-          by 90°, 180°, or into four quarter-turn copies; or combine flipping and rotation. Cursor mode transforms around
-          the current cursor, while Page mode uses the center of the screen. The guide lines show the active axes before
-          a line is placed.
+          by 90°, 180°, or into four quarter-turn copies; or combine flipping and rotation. Cursor mode transforms
+          around the current cursor, while Page mode uses the center of the screen. The guide lines show the active axes
+          before a line is placed.
         </Typography>
         <Concept title="Origins">
           <Typography>
@@ -218,9 +220,9 @@ function ConceptsContent() {
           download important work as a backup.
         </Typography>
         <Typography sx={{ mt: 1 }}>
-          SVG downloads preserve GeoDoodle&apos;s editable pattern data and can be uploaded again. PNG and JPEG are image
-          exports only and cannot be imported as editable patterns. Downloads can include the current selection or a
-          chosen screen area. The Files page can also copy the selected lines—or all lines when nothing is selected—as
+          SVG downloads preserve GeoDoodle&apos;s editable pattern data and can be uploaded again. PNG and JPEG are
+          image exports only and cannot be imported as editable patterns. Downloads can include the current selection or
+          a chosen screen area. The Files page can also copy the selected lines—or all lines when nothing is selected—as
           an image, and its Share button uses the browser&apos;s sharing features when available.
         </Typography>
       </Concept>

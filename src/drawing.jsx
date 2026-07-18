@@ -10,10 +10,7 @@ import {
   isMobile,
   getAllCursorPoints,
 } from "./utils"
-import {
-  getClipboardButtonStrip,
-  getSelectionButtonStrip,
-} from "./canvasButtonUtils"
+import { getClipboardButtonStrip, getSelectionButtonStrip } from "./canvasButtonUtils"
 import Line from "./helper/Line"
 import Point from "./helper/Point"
 import { useContext, useEffect, useMemo } from "react"
@@ -303,11 +300,7 @@ function CanvasButtonStrip({ state, strip, icons }) {
   if (!strip) return null
 
   const { x, y } = strip.position.asViewport(state)
-  const {
-    width: buttonWidth,
-    height: buttonHeight,
-    gap: buttonGap,
-  } = (theme.geodoodle ?? themeDefaults).canvasButtons
+  const { width: buttonWidth, height: buttonHeight, gap: buttonGap } = (theme.geodoodle ?? themeDefaults).canvasButtons
   const stripWidth = buttonWidth * strip.buttons.length + buttonGap * (strip.buttons.length - 1)
 
   return (
@@ -495,53 +488,28 @@ export const CurrentLines = () => {
 
 export const Lines = () => {
   const { state } = useContext(StateContext)
-  const {
-    lines,
-    scalex,
-    scaley,
-    bounds,
-    boundDragging,
-    cursorPos,
-    partials,
-    genericSelectors,
-    specificSelectors,
-  } = state
+  const { lines, scalex, scaley, bounds, boundDragging, cursorPos, partials, genericSelectors, specificSelectors } =
+    state
   // The cursor only affects permanent-line selection while a bound is being
   // dragged. In every other mode, moving it should not rebuild every SVG line.
   const activeBoundCursor = boundDragging && bounds.length === 1 ? cursorPos : null
-  const renderedLines = useMemo(
-    () => {
-      const renderState = {
-        lines,
-        scalex,
-        scaley,
-        bounds,
-        boundDragging,
-        cursorPos: activeBoundCursor,
-        partials,
-        genericSelectors,
-        specificSelectors,
-      }
-      return lines.map((line, i) => line.render(renderState, `line-${i}`))
-    },
-    [
+  const renderedLines = useMemo(() => {
+    const renderState = {
       lines,
       scalex,
       scaley,
       bounds,
       boundDragging,
-      activeBoundCursor,
+      cursorPos: activeBoundCursor,
       partials,
       genericSelectors,
       specificSelectors,
-    ],
-  )
+    }
+    return lines.map((line, i) => line.render(renderState, `line-${i}`))
+  }, [lines, scalex, scaley, bounds, boundDragging, activeBoundCursor, partials, genericSelectors, specificSelectors])
 
   return (
-    <g
-      id="lines"
-      transform={getCanvasTransform(state)}
-    >
+    <g id="lines" transform={getCanvasTransform(state)}>
       {/* Make all the individual lines visible */}
       {renderedLines}
       {/* Show each line as separate lines, for debugging */}

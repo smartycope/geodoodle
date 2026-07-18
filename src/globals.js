@@ -53,8 +53,4 @@ export const extraButtons = {
   toggle_dots: { action: "toggle_dots" },
 }
 
-export const cursors = [
-  "circle",
-  "crosshair",
-  "x",
-]
+export const cursors = ["circle", "crosshair", "x"]

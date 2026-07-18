@@ -57,17 +57,15 @@ export default class Line {
     const _boundRect = boundRect ?? getBoundRect(state)
     return (
       // It's in the bound area
-      ((_boundRect && this.within(_boundRect, state.partials))
+      (_boundRect && this.within(_boundRect, state.partials)) ||
       // A generic selector can select an end or an intersection. Avoid finding
       // intersections at all when there are no generic selectors.
-      || (state.genericSelectors.length > 0
-        && (this.a.in(state.genericSelectors)
-          || this.b.in(state.genericSelectors)
-          || this.findIntersections(state.lines).some((p) => p.in(state.genericSelectors))))
+      (state.genericSelectors.length > 0 &&
+        (this.a.in(state.genericSelectors) ||
+          this.b.in(state.genericSelectors) ||
+          this.findIntersections(state.lines).some((p) => p.in(state.genericSelectors)))) ||
       // An end is selected by specific selectors
-      || (state.specificSelectors.length > 0
-        && this.a.in(state.specificSelectors)
-        && this.b.in(state.specificSelectors)))
+      (state.specificSelectors.length > 0 && this.a.in(state.specificSelectors) && this.b.in(state.specificSelectors))
     )
   }
 

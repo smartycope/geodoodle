@@ -320,11 +320,7 @@ export default function FilePage() {
             <ListItem
               key={save.name}
               secondaryAction={
-                <IconButton
-                  edge="end"
-                  aria-label="delete"
-                  onClick={() => handleCloudDelete(save.name)}
-                >
+                <IconButton edge="end" aria-label="delete" onClick={() => handleCloudDelete(save.name)}>
                   <DeleteIcon />
                 </IconButton>
               }
@@ -332,9 +328,7 @@ export default function FilePage() {
               <ListItemIcon>
                 <FolderIcon />
               </ListItemIcon>
-              <ListItemButton
-                onClick={() => handleCloudLoad(save.name)}
-              >
+              <ListItemButton onClick={() => handleCloudLoad(save.name)}>
                 <ListItemText primary={save.name} />
               </ListItemButton>
             </ListItem>

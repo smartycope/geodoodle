@@ -478,11 +478,9 @@ export default function RepeatMenu() {
   // In the corner
   let pos = { top: 16, left: 16 }
   // Below the toolbar FAB
-  if (side === "top")
-    pos = { top: "5rem", right: 16 }
+  if (side === "top") pos = { top: "5rem", right: 16 }
   // To the left of the toolbar FAB
-  else if (side === "right")
-    pos = { top: 16, right: "5rem" }
+  else if (side === "right") pos = { top: 16, right: "5rem" }
 
   // For the tooltips
   const placement = vertical ? "right" : "bottom-end"
@@ -530,7 +528,7 @@ export default function RepeatMenu() {
           slotProps={{ tooltip: { title: "Apply", open, placement } }}
           onClick={(e) => {
             dispatch("apply_trellis")
-            dispatch({action: 'menu', close: "repeat"})
+            dispatch({ action: "menu", close: "repeat" })
             e.stopPropagation()
           }}
         />

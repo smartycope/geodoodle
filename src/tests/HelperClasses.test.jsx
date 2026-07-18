@@ -363,10 +363,7 @@ describe("Line", () => {
 
   test("memoizes intersections while the lines array is unchanged", () => {
     const state = getState()
-    const lines = [
-      new Line(state, new Point(0, 1), new Point(2, 1)),
-      new Line(state, new Point(1, 0), new Point(1, 2)),
-    ]
+    const lines = [new Line(state, new Point(0, 1), new Point(2, 1)), new Line(state, new Point(1, 0), new Point(1, 2))]
 
     const lineIntersections = lines[0].findIntersections(lines)
     expect(lines[0].findIntersections(lines)).toBe(lineIntersections)

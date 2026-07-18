@@ -18,8 +18,7 @@ export function getPreviousVisibleTourStep(steps, currentStep) {
 // visible step, then navigate there once its DOM has had time to update.
 export function prepareTourStep(steps, targetStep, done) {
   const setupSteps = []
-  for (let index = targetStep - 1; index >= 0 && steps[index].autoAdvance; index--)
-    setupSteps.unshift(steps[index])
+  for (let index = targetStep - 1; index >= 0 && steps[index].autoAdvance; index--) setupSteps.unshift(steps[index])
 
   let elapsed = 0
   for (const step of setupSteps) {
@@ -144,7 +143,8 @@ const tour = (_dispatch) => {
       selector: "#partials-picker",
       content: (
         <>
-          This determines whether you want to include <em>partials</em> in the selected pattern or not. <em>Partials</em>
+          This determines whether you want to include <em>partials</em> in the selected pattern or not.{" "}
+          <em>Partials</em>
           are lines that only have one end inside the selected area.
         </>
       ),
@@ -170,8 +170,8 @@ const tour = (_dispatch) => {
       selector: "#nav-menu-grid",
       content: (
         <>
-          This is the navigation menu. You can set the current position, scale, and rotation here manually. Additionally,
-          you can
+          This is the navigation menu. You can set the current position, scale, and rotation here manually.
+          Additionally, you can
           {mobile
             ? " use 2 fingers to move, pinch to scale, and twist to rotate."
             : " scroll to move vertically, shift+scroll to move horizontally, ctrl+scroll to scale, and ctrl+shift+scroll to rotate."}

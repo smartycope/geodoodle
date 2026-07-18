@@ -7,7 +7,7 @@ import ListItemIcon from "@mui/material/ListItemIcon"
 import Typography from "@mui/material/Typography"
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank"
 import CheckBoxIcon from "@mui/icons-material/CheckBox"
-import {SelectorIcon} from "./CustomIcons"
+import { SelectorIcon } from "./CustomIcons"
 
 export default function SelectMenu() {
   const { dispatch, state } = useContext(StateContext)
@@ -21,22 +21,18 @@ export default function SelectMenu() {
             <ListItemIcon>
               {/* This is so good though... */}
               {/* <PiSelectionPlusDuotone /> */}
-              {SelectorIcon('area')}
+              {SelectorIcon("area")}
             </ListItemIcon>
             Add Bound
           </MenuItem>
 
           <MenuItem onClick={() => dispatch("add_generic_selector")} id="generic-selector">
-            <ListItemIcon>
-              {SelectorIcon('generic')}
-            </ListItemIcon>
+            <ListItemIcon>{SelectorIcon("generic")}</ListItemIcon>
             Add a Generic Selector
           </MenuItem>
 
           <MenuItem onClick={() => dispatch("add_specific_selector")} id="specific-selector">
-            <ListItemIcon>
-              {SelectorIcon('specific')}
-            </ListItemIcon>
+            <ListItemIcon>{SelectorIcon("specific")}</ListItemIcon>
             Add a Specific Selector
           </MenuItem>
         </>
@@ -46,9 +42,7 @@ export default function SelectMenu() {
       {state.bounds.length > 1 && (
         <>
           <MenuItem onClick={() => dispatch("clear_bounds")}>
-            <ListItemIcon>
-              {SelectorIcon('area', true)}
-            </ListItemIcon>
+            <ListItemIcon>{SelectorIcon("area", true)}</ListItemIcon>
             Clear Area Selection
           </MenuItem>
 
@@ -68,17 +62,13 @@ export default function SelectMenu() {
       )}
       {state.genericSelectors.length > 0 && (
         <MenuItem onClick={() => dispatch("clear_generic_selectors")} id="generic-selectors-clear">
-          <ListItemIcon>
-            {SelectorIcon('generic', true)}
-          </ListItemIcon>
+          <ListItemIcon>{SelectorIcon("generic", true)}</ListItemIcon>
           Clear Generic Selectors
         </MenuItem>
       )}
       {state.specificSelectors.length > 0 && (
         <MenuItem onClick={() => dispatch("clear_specific_selectors")} id="specific-selectors-clear">
-          <ListItemIcon>
-            {SelectorIcon('specific', true)}
-          </ListItemIcon>
+          <ListItemIcon>{SelectorIcon("specific", true)}</ListItemIcon>
           Clear Specific Selectors
         </MenuItem>
       )}

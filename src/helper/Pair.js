@@ -1,10 +1,9 @@
 // A basic abstraction for methods shared between Point and Dist
 
 // Used to account for floating point inaccuracy
-function finagleValue(val, epsilon){
+function finagleValue(val, epsilon) {
   const dec = val % 1
-  if (dec < .5 ? dec < epsilon : 1-dec < epsilon)
-    val = Math.round(val)
+  if (dec < 0.5 ? dec < epsilon : 1 - dec < epsilon) val = Math.round(val)
   return val
 }
 
@@ -72,7 +71,10 @@ export default class Pair {
   eq(...args) {
     const [x, y] = this.#interpretArgs(...args)
     const epsilon = 10 ** -6
-    return finagleValue(this._x, epsilon) === finagleValue(x, epsilon) && finagleValue(this._y, epsilon) === finagleValue(y, epsilon)
+    return (
+      finagleValue(this._x, epsilon) === finagleValue(x, epsilon) &&
+      finagleValue(this._y, epsilon) === finagleValue(y, epsilon)
+    )
   }
   // Does *not* account for floating point inaccuracy
   eqExact(...args) {
@@ -111,7 +113,7 @@ export default class Pair {
   }
   // Round to the nearest integer, if the internal floats are off by a small amount
   // Used to account for floating point inaccuracy
-  finagle(digits=6){
+  finagle(digits = 6) {
     const epsilon = 10 ** -digits
     return new this.constructor(finagleValue(this._x, epsilon), finagleValue(this._y, epsilon))
   }

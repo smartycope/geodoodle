@@ -62,12 +62,10 @@ function positionCursorAtEdges(state, point, edgePoint = point) {
   let translateYpx = 0
 
   if (viewportPoint.x < 0) translateXpx = -viewportPoint.x
-  else if (viewportPoint.x > width - 1)
-    translateXpx = -(viewportPoint.x - (width - 1))
+  else if (viewportPoint.x > width - 1) translateXpx = -(viewportPoint.x - (width - 1))
 
   if (viewportPoint.y < 0) translateYpx = -viewportPoint.y
-  else if (viewportPoint.y > height - 1)
-    translateYpx = -(viewportPoint.y - (height - 1))
+  else if (viewportPoint.y > height - 1) translateYpx = -(viewportPoint.y - (height - 1))
 
   return {
     cursorPos: point,
@@ -147,35 +145,22 @@ export const rotate = (state, { amt = 0, angle, center = state.cursorPos }) => {
 
   const nextRotate = normalizeAngle(angle ?? (state.rotate ?? 0) + amt)
   const centerViewport = center.asViewport(state)
-  const centerAtNewRotation = Point.fromViewport(
-    { ...state, rotate: nextRotate },
-    centerViewport.x,
-    centerViewport.y,
-  )
+  const centerAtNewRotation = Point.fromViewport({ ...state, rotate: nextRotate }, centerViewport.x, centerViewport.y)
   return {
     rotate: nextRotate,
     translation: state.translation.add(centerAtNewRotation.sub(center)),
   }
 }
 
-export const gesture_transform = (
-  state,
-  { previousCenter, currentCenter, amtx = 0, amty = 0, rotateAmt = 0 },
-) => {
+export const gesture_transform = (state, { previousCenter, currentCenter, amtx = 0, amty = 0, rotateAmt = 0 }) => {
   const scalex = Math.min(defaultOptions.maxScale, Math.max(defaultOptions.minScale, state.scalex + amtx))
   const scaley = Math.min(defaultOptions.maxScale, Math.max(defaultOptions.minScale, state.scaley + amty))
   const nextRotate =
-    state.allowCanvasRotation === false
-      ? state.rotate
-      : normalizeAngle((state.rotate ?? 0) + rotateAmt)
+    state.allowCanvasRotation === false ? state.rotate : normalizeAngle((state.rotate ?? 0) + rotateAmt)
   const anchor = Point.fromViewport(state, previousCenter.x, previousCenter.y)
   const targetCenter = {
-    x:
-      previousCenter.x +
-      (currentCenter.x - previousCenter.x) * state.gestureTranslateSensitivity,
-    y:
-      previousCenter.y +
-      (currentCenter.y - previousCenter.y) * state.gestureTranslateSensitivity,
+    x: previousCenter.x + (currentCenter.x - previousCenter.x) * state.gestureTranslateSensitivity,
+    y: previousCenter.y + (currentCenter.y - previousCenter.y) * state.gestureTranslateSensitivity,
   }
   const anchorAtNewTransform = Point.fromViewport(
     { ...state, scalex, scaley, rotate: nextRotate },
@@ -214,11 +199,9 @@ export const go_to_selection = (state) => {
   const boundRect = getBoundRect(state)
   if (boundRect)
     return {
-      translation: state.translation
-        .add(
-          Point.fromViewport(state, viewportWidth() / 2, viewportHeight() / 2)
-            .sub(boundRect.center),
-        ),
+      translation: state.translation.add(
+        Point.fromViewport(state, viewportWidth() / 2, viewportHeight() / 2).sub(boundRect.center),
+      ),
     }
 }
 
@@ -235,14 +218,14 @@ export const down = (state) => moveCursor(state, 0, 1)
 // Selection Actions
 export const add_specific_selector = (state) => ({
   specificSelectors: state.cursorPos.in(state.specificSelectors)
-  ? state.specificSelectors
-  : [...state.specificSelectors, state.cursorPos]
+    ? state.specificSelectors
+    : [...state.specificSelectors, state.cursorPos],
 })
 
 export const add_generic_selector = (state) => ({
   genericSelectors: state.cursorPos.in(state.genericSelectors)
-  ? state.genericSelectors
-  : [...state.genericSelectors, state.cursorPos]
+    ? state.genericSelectors
+    : [...state.genericSelectors, state.cursorPos],
 })
 
 export const clear_specific_selectors = (state) => ({
@@ -308,14 +291,27 @@ export const delete_unselected = (state) => {
 }
 
 export const delete_at_cursor = (state, { allowDeleteSelected = false } = {}) => {
-  const { cursorPos, bounds, curLinePos, clipboard, lines, fillMode, mirrorOrigins, specificSelectors, genericSelectors } = state
+  const {
+    cursorPos,
+    bounds,
+    curLinePos,
+    clipboard,
+    lines,
+    fillMode,
+    mirrorOrigins,
+    specificSelectors,
+    genericSelectors,
+  } = state
   // If we're in fill mode, clear the fill of whatever we're over
   if (fillMode) return clear_fill(state)
   // If we're over any selectors, delete them
-  if ((specificSelectors.length > 0 && cursorPos.in(specificSelectors)) || (genericSelectors.length > 0 && cursorPos.in(genericSelectors)))
+  if (
+    (specificSelectors.length > 0 && cursorPos.in(specificSelectors)) ||
+    (genericSelectors.length > 0 && cursorPos.in(genericSelectors))
+  )
     return {
       specificSelectors: specificSelectors.filter((p) => !p.eq(cursorPos)),
-      genericSelectors: genericSelectors.filter((p) => !p.eq(cursorPos))
+      genericSelectors: genericSelectors.filter((p) => !p.eq(cursorPos)),
     }
   // If we're over a bound, delete it
   if (cursorPos.in(bounds)) return { bounds: cursorPos.remove(bounds) }
@@ -337,8 +333,7 @@ export const delete_at_cursor = (state, { allowDeleteSelected = false } = {}) =>
     else return state
   // If we're at an intersection, and we've created a line or lines using that intersection, remove those lines first
   // Otherwise, just remove the lines that start/end at the cursor, as usual
-  else
-    return { lines: linesWithoutStartEndStep }
+  else return { lines: linesWithoutStartEndStep }
 }
 
 export const remove_lines_at_intersection = (state, args) => {
@@ -473,12 +468,13 @@ export const set_paper_color = (state, { color }) => ({ paperColor: color })
 export const fill = (state) => {
   const { fillMode, curPolys, filledPolys, fill, colorProfile } = state
   if (fillMode && curPolys.length)
-    return { filledPolys: [
-      ...filledPolys,
-      // Set the color of the new polys
-      ...curPolys.map((p) => p.withColor(fill[colorProfile]))
-    ]
-  }
+    return {
+      filledPolys: [
+        ...filledPolys,
+        // Set the color of the new polys
+        ...curPolys.map((p) => p.withColor(fill[colorProfile])),
+      ],
+    }
 }
 
 export const clear_fill = (state) => {
@@ -576,8 +572,9 @@ export const add_mirror_origin = (state) => {
     const existing = mirrorOrigins.findIndex((o) => o.origin.eq(cursorPos))
     if (existing !== -1) return mirrorOrigins.slice(0, existing)
     return {
-      mirrorOrigins: [...mirrorOrigins,
-        { origin: mirrorType == MIRROR_TYPE.CURSOR ? cursorPos : getHalf(state), rot: mirrorRot, axis: mirrorAxis }
+      mirrorOrigins: [
+        ...mirrorOrigins,
+        { origin: mirrorType == MIRROR_TYPE.CURSOR ? cursorPos : getHalf(state), rot: mirrorRot, axis: mirrorAxis },
       ],
       // Reset mirror settings to show that it was added
       mirrorAxis: MIRROR_AXIS.NONE,
@@ -728,8 +725,7 @@ export const menu = (state, { toggle, open, close }) => {
 
   // If we close the repeat menu, open the toolbar back up.
   // This is so we don't have to manually open the toolbar after closing the repeat menu
-  if (close === "repeat" || (toggle === "repeat" && !copy[toggle]))
-    copy.main = true
+  if (close === "repeat" || (toggle === "repeat" && !copy[toggle])) copy.main = true
 
   return {
     openMenus: { ...copy },

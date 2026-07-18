@@ -935,10 +935,7 @@ describe("selector-based selection", () => {
 
   test("a generic selector selects every line with an endpoint at that point", () => {
     const selector = new Point(0, 0)
-    const selectedLines = [
-      new Line(state, selector, new Point(10, 0)),
-      new Line(state, selector, new Point(0, 10)),
-    ]
+    const selectedLines = [new Line(state, selector, new Point(10, 0)), new Line(state, selector, new Point(0, 10))]
     const unselectedLine = new Line(state, new Point(20, 20), new Point(30, 30))
     const selectorState = {
       ...state,
@@ -1044,7 +1041,15 @@ describe("copy_image", () => {
 
     copy_image(withoutSelection)
 
-    expect(image).toHaveBeenCalledWith(withoutSelection, "png", expect.any(Rect), false, false, expect.any(Function), true)
+    expect(image).toHaveBeenCalledWith(
+      withoutSelection,
+      "png",
+      expect.any(Rect),
+      false,
+      false,
+      expect.any(Function),
+      true,
+    )
     const rect = image.mock.calls[0][2]
     expect(rect.topLeft.eq(new Point(-5, -7))).toBe(true)
     expect(rect.bottomRight.eq(new Point(20, 15))).toBe(true)

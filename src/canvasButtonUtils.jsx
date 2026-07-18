@@ -1,5 +1,5 @@
 import Point from "./helper/Point"
-import {getBoundRect, getClipboardRect} from "./utils"
+import { getBoundRect, getClipboardRect } from "./utils"
 import { themeDefaults } from "./styling/theme"
 
 const canvasButtons = themeDefaults.canvasButtons
@@ -44,7 +44,8 @@ export function getClipboardButtonStrip(state) {
 }
 
 export function getSelectionButtonStrip(state) {
-  if (state.disableSelectionCanvasButtons || state.clipboard || state.bounds.length < 2 || state.openMenus.repeat) return null
+  if (state.disableSelectionCanvasButtons || state.clipboard || state.bounds.length < 2 || state.openMenus.repeat)
+    return null
   return {
     id: "selection-option-buttons",
     position: getSelectionButtonsPos(state),

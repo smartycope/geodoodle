@@ -112,9 +112,7 @@ export const keybindable = [
 // Kept as an object for consumers that need to look up actions by shortcut.
 // If a shortcut is listed more than once above, the last action wins.
 export const defaultKeybindings = Object.fromEntries(
-  keybindable.flatMap(({ default: defaults, action }) =>
-    defaults.map((shortcut) => [shortcut, { ...action }]),
-  ),
+  keybindable.flatMap(({ default: defaults, action }) => defaults.map((shortcut) => [shortcut, { ...action }])),
 )
 
 // These are actions

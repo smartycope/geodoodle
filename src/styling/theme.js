@@ -87,9 +87,7 @@ export default function generateTheme(paperColor, themeMode, systemPreferedTheme
   theme.palette.primary.genericSelectors = contrast
   theme.palette.primary.cursor = contrast
   theme.palette.paperIsDark = contrast === "#fff"
-  theme.palette.primary.glow = theme.palette.paperIsDark
-    ? themeDefaults.glowColor.dark
-    : themeDefaults.glowColor.light
+  theme.palette.primary.glow = theme.palette.paperIsDark ? themeDefaults.glowColor.dark : themeDefaults.glowColor.light
   theme.palette.primary.mirror = themeDefaults.mirrorColor
 
   return theme

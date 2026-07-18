@@ -1,9 +1,5 @@
 import Paper from "./Paper"
-import tour, {
-  getPreviousVisibleTourStep,
-  prepareTourStep,
-  resetTourProgress,
-} from "./Menus/tour.jsx"
+import tour, { getPreviousVisibleTourStep, prepareTourStep, resetTourProgress } from "./Menus/tour.jsx"
 import Tour from "reactour"
 import { useState } from "react"
 import { localStorageTourTakenName } from "./globals"

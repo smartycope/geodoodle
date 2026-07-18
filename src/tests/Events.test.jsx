@@ -168,12 +168,7 @@ describe("touch interactions", () => {
   })
 
   test("releasing a fill drag inside a polygon clears the preview without filling it", () => {
-    const poly = Poly.fromPoints([
-      new Point(4, 4),
-      new Point(6, 4),
-      new Point(6, 6),
-      new Point(4, 6),
-    ])
+    const poly = Poly.fromPoints([new Point(4, 4), new Point(6, 4), new Point(6, 6), new Point(4, 6)])
     state = {
       ...state,
       fillMode: true,
@@ -196,12 +191,7 @@ describe("touch interactions", () => {
   })
 
   test("tapping without dragging still permanently fills a polygon", () => {
-    const poly = Poly.fromPoints([
-      new Point(4, 4),
-      new Point(6, 4),
-      new Point(6, 6),
-      new Point(4, 6),
-    ])
+    const poly = Poly.fromPoints([new Point(4, 4), new Point(6, 4), new Point(6, 6), new Point(4, 6)])
     state = {
       ...state,
       fillMode: true,
@@ -217,12 +207,7 @@ describe("touch interactions", () => {
   })
 
   test("dragging from inside a polygon does not commit the initial fill", () => {
-    const poly = Poly.fromPoints([
-      new Point(4, 4),
-      new Point(8, 4),
-      new Point(8, 8),
-      new Point(4, 8),
-    ])
+    const poly = Poly.fromPoints([new Point(4, 4), new Point(8, 4), new Point(8, 8), new Point(4, 8)])
     state = {
       ...state,
       fillMode: true,

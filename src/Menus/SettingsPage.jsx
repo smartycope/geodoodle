@@ -83,15 +83,20 @@ export default function SettingsPage() {
     <Page
       menu="settings"
       sx={{
-        "& .MuiListItemText-primary, & .MuiListItemText-secondary, & .MuiListSubheader-root, & .MuiButton-root, & .MuiSelect-select": {
-          fontSize: { xs: "0.70rem", sm: "0.875rem", md: "1rem" },
-        },
+        "& .MuiListItemText-primary, & .MuiListItemText-secondary, & .MuiListSubheader-root, & .MuiButton-root, & .MuiSelect-select":
+          {
+            fontSize: { xs: "0.70rem", sm: "0.875rem", md: "1rem" },
+          },
       }}
     >
       <List subheader={<StyledSubheader>General</StyledSubheader>}>
         {/* General */}
         <Setting label="Extra Button" help="Defines the functionality of the customizable button">
-          <Select required onChange={(e) => dispatch({ action: "set_manual_and_save_settings", extraButton: e.target.value })} value={extraButton}>
+          <Select
+            required
+            onChange={(e) => dispatch({ action: "set_manual_and_save_settings", extraButton: e.target.value })}
+            value={extraButton}
+          >
             {Object.keys(extraButtons).map((i) => (
               <MenuItem sx={{ width: "100%" }} value={i} key={i}>
                 {(i.charAt(0).toUpperCase() + i.slice(1)).replace(/_/g, " ")}
@@ -101,7 +106,11 @@ export default function SettingsPage() {
         </Setting>
 
         <Setting label="Menu Side" help="Controls the side of the screen the menu is on">
-          <Select required onChange={(e) => dispatch({ action: "set_manual_and_save_settings", side: e.target.value })} value={side}>
+          <Select
+            required
+            onChange={(e) => dispatch({ action: "set_manual_and_save_settings", side: e.target.value })}
+            value={side}
+          >
             {["Top", "Left", "Right", "Bottom"].map((i) => (
               <MenuItem sx={{ width: "100%" }} value={i.toLowerCase()} key={i}>
                 {i}
@@ -145,7 +154,7 @@ export default function SettingsPage() {
         </Setting>
 
         <Setting label="Hide Dots" help="Useful for saving images or admiring your creation">
-          <Checkbox checked={hideDots} onChange={() => dispatch({ action: 'toggle_dots' })} />
+          <Checkbox checked={hideDots} onChange={() => dispatch({ action: "toggle_dots" })} />
         </Setting>
 
         <Setting
@@ -154,7 +163,9 @@ export default function SettingsPage() {
         >
           <Checkbox
             checked={allowSnapToIntersections}
-            onChange={() => dispatch({ action: "set_manual_and_save_settings", allowSnapToIntersections: !allowSnapToIntersections })}
+            onChange={() =>
+              dispatch({ action: "set_manual_and_save_settings", allowSnapToIntersections: !allowSnapToIntersections })
+            }
           />
         </Setting>
 
@@ -210,7 +221,10 @@ export default function SettingsPage() {
         </Setting>
 
         <Setting label="Dark Mode" help="Controls if the app is in dark mode or not">
-          <Select value={themeMode} onChange={(e) => dispatch({ action: "set_manual_and_save_settings", themeMode: e.target.value })}>
+          <Select
+            value={themeMode}
+            onChange={(e) => dispatch({ action: "set_manual_and_save_settings", themeMode: e.target.value })}
+          >
             <MenuItem value="system">System</MenuItem>
             <MenuItem value="dark"> Dark</MenuItem>
             <MenuItem value="light"> Light</MenuItem>
@@ -223,12 +237,17 @@ export default function SettingsPage() {
         >
           <Checkbox
             checked={defaultToMemorableNames}
-            onChange={() => dispatch({ action: "set_manual_and_save_settings", defaultToMemorableNames: !defaultToMemorableNames })}
+            onChange={() =>
+              dispatch({ action: "set_manual_and_save_settings", defaultToMemorableNames: !defaultToMemorableNames })
+            }
           />
         </Setting>
 
         <Setting label="Cursor" help="Which cursor to use">
-          <Select value={cursor} onChange={(e) => dispatch({ action: "set_manual_and_save_settings", cursor: e.target.value })}>
+          <Select
+            value={cursor}
+            onChange={(e) => dispatch({ action: "set_manual_and_save_settings", cursor: e.target.value })}
+          >
             {cursors.map((i) => (
               <MenuItem sx={{ width: "100%" }} value={i} key={i}>
                 {i.charAt(0).toUpperCase() + i.slice(1)}
@@ -277,7 +296,10 @@ export default function SettingsPage() {
         </Setting>
 
         <Setting desktopOnly label="Invert Scroll" help="Controls if the scroll is inverted">
-          <Checkbox checked={invertedScroll} onChange={() => dispatch({ action: "set_manual_and_save_settings", invertedScroll: !invertedScroll })} />
+          <Checkbox
+            checked={invertedScroll}
+            onChange={() => dispatch({ action: "set_manual_and_save_settings", invertedScroll: !invertedScroll })}
+          />
         </Setting>
 
         <Setting desktopOnly label="Scroll Sensitivity" help="Controls how fast scroll translates">
@@ -291,7 +313,9 @@ export default function SettingsPage() {
         </Setting>
         <Setting label="Two Finger Move Sensitivity" help="Controls how two finger scroll translates">
           <Number
-            onValueChange={(val) => dispatch({ action: "set_manual_and_save_settings", gestureTranslateSensitivity: val })}
+            onValueChange={(val) =>
+              dispatch({ action: "set_manual_and_save_settings", gestureTranslateSensitivity: val })
+            }
             value={gestureTranslateSensitivity}
             step={0.1}
             min={0}
@@ -310,7 +334,9 @@ export default function SettingsPage() {
         <Setting label="Smooth Scale Gesture" help="Can help smooth out two finger gestures">
           <Checkbox
             checked={smoothGestureScale}
-            onChange={() => dispatch({ action: "set_manual_and_save_settings", smoothGestureScale: !smoothGestureScale })}
+            onChange={() =>
+              dispatch({ action: "set_manual_and_save_settings", smoothGestureScale: !smoothGestureScale })
+            }
           />
         </Setting>
         <Setting
@@ -319,7 +345,9 @@ export default function SettingsPage() {
         >
           <Checkbox
             checked={enableGestureScale}
-            onChange={() => dispatch({ action: "set_manual_and_save_settings", enableGestureScale: !enableGestureScale })}
+            onChange={() =>
+              dispatch({ action: "set_manual_and_save_settings", enableGestureScale: !enableGestureScale })
+            }
           />
         </Setting>
 
@@ -327,7 +355,9 @@ export default function SettingsPage() {
         <StyledSubheader>Advanced</StyledSubheader>
         <Setting label="Toolbar Opacity" help="Controls the opacity of the toolbar">
           <Slider
-            onChange={(e, val) => dispatch({ action: "set_manual_and_save_settings", toolbarOpacity: Math.log10(val) + 1 })}
+            onChange={(e, val) =>
+              dispatch({ action: "set_manual_and_save_settings", toolbarOpacity: Math.log10(val) + 1 })
+            }
             value={toolbarOpacity}
             min={0}
             max={1}
@@ -335,7 +365,10 @@ export default function SettingsPage() {
           />
         </Setting>
         <Setting label="Hide Hex Color" help="Controls if the hex color is displayed in the color menu">
-          <Checkbox checked={hideHexColor} onChange={() => dispatch({ action: "set_manual_and_save_settings", hideHexColor: !hideHexColor })} />
+          <Checkbox
+            checked={hideHexColor}
+            onChange={() => dispatch({ action: "set_manual_and_save_settings", hideHexColor: !hideHexColor })}
+          />
         </Setting>
         <Setting
           label="Use HSV Color Picker"
@@ -343,13 +376,14 @@ export default function SettingsPage() {
         >
           <Checkbox
             checked={useHSVColorPicker}
-            onChange={() =>
-              dispatch({ action: "set_manual_and_save_settings", useHSVColorPicker: !useHSVColorPicker })
-            }
+            onChange={() => dispatch({ action: "set_manual_and_save_settings", useHSVColorPicker: !useHSVColorPicker })}
           />
         </Setting>
         <Setting label="Dots above fill" help="Controls if the dots are displayed above the filled areas or not">
-          <Checkbox checked={dotsAbovefill} onChange={() => dispatch({ action: "set_manual_and_save_settings", dotsAbovefill: !dotsAbovefill })} />
+          <Checkbox
+            checked={dotsAbovefill}
+            onChange={() => dispatch({ action: "set_manual_and_save_settings", dotsAbovefill: !dotsAbovefill })}
+          />
         </Setting>
         <Setting
           label="Disable Mirror Icons"
@@ -357,15 +391,24 @@ export default function SettingsPage() {
         >
           <Checkbox
             checked={state.disableMirrorIcons}
-            onChange={() => dispatch({ action: "set_manual_and_save_settings", disableMirrorIcons: !state.disableMirrorIcons })}
+            onChange={() =>
+              dispatch({ action: "set_manual_and_save_settings", disableMirrorIcons: !state.disableMirrorIcons })
+            }
           />
         </Setting>
         <Setting label="Max Undo Amount" help="Controls how many consecutive undos you can do at once">
-          <Number onValueChange={(val) => dispatch({ action: "set_manual_and_save_settings", maxUndoAmt: val })} value={maxUndoAmt} min={2} />
+          <Number
+            onValueChange={(val) => dispatch({ action: "set_manual_and_save_settings", maxUndoAmt: val })}
+            value={maxUndoAmt}
+            min={2}
+          />
         </Setting>
         {/* TODO: I don't think this will work just like that, some things need to be recalculated */}
         <Setting label="Device Mode" help="Controls if the app is in mobile or desktop mode (experimental)">
-          <Select value={state.mobile} onChange={(e) => dispatch({ action: "set_manual_and_save_settings", mobile: e.target.value })}>
+          <Select
+            value={state.mobile}
+            onChange={(e) => dispatch({ action: "set_manual_and_save_settings", mobile: e.target.value })}
+          >
             <MenuItem value={false}>Desktop</MenuItem>
             <MenuItem value={true}>Mobile</MenuItem>
           </Select>

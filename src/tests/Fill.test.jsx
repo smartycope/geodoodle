@@ -98,17 +98,17 @@ describe("Fill", () => {
     setUpDefaultTestingState(paper)
     // Add another closed polygon
     const scale = 20
-    const a = { x: 10*scale, y: 12*scale }
-    const b = { x: 20*scale, y: 12*scale }
-    const c = { x: 20*scale, y: 10*scale }
-    const d = { x: 10*scale, y: 10*scale }
+    const a = { x: 10 * scale, y: 12 * scale }
+    const b = { x: 20 * scale, y: 12 * scale }
+    const c = { x: 20 * scale, y: 10 * scale }
+    const d = { x: 10 * scale, y: 10 * scale }
     createLine(paper, a.x, a.y, b.x, b.y)
     createLine(paper, b.x, b.y, c.x, c.y)
     createLine(paper, c.x, c.y, d.x, d.y)
     createLine(paper, d.x, d.y, a.x, a.y)
 
-    const p1 = {x: 90, y: 190}
-    const p2 = {x: 11*scale, y: 11*scale}
+    const p1 = { x: 90, y: 190 }
+    const p2 = { x: 11 * scale, y: 11 * scale }
     press(paper, "f")
     mouseMove(paper, p1.x, p1.y)
     saveHtml(container)

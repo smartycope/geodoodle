@@ -342,8 +342,7 @@ export function getAllIntersections(lines) {
   const cached = allIntersectionsCache.get(lines)
   if (cached) return cached
 
-  const intersections =
-    lines.length < 2 ? [] : unique(lines.flatMap((line) => line.findIntersections(lines)))
+  const intersections = lines.length < 2 ? [] : unique(lines.flatMap((line) => line.findIntersections(lines)))
 
   allIntersectionsCache.set(lines, intersections)
   return intersections

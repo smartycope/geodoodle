@@ -24,7 +24,10 @@ export default class Poly {
 
   render(state, key, props = {}) {
     const { colorProfile, fill } = state
-    if (this.points.length < 3) {console.log("invalid poly", this); return null}
+    if (this.points.length < 3) {
+      console.log("invalid poly", this)
+      return null
+    }
     return (
       <polygon
         points={this.points.map((i) => `${i._x} ${i._y}`).join(" ")}
@@ -39,7 +42,10 @@ export default class Poly {
 
   static fromGeoJSON(geojson) {
     // About style: https://gis.stackexchange.com/questions/22474/geojson-styling-information
-    return new Poly(geojson.coordinates[0].map((i) => new Point(i[0], i[1])), geojson.style?.fill)
+    return new Poly(
+      geojson.coordinates[0].map((i) => new Point(i[0], i[1])),
+      geojson.style?.fill,
+    )
   }
 
   contains(point) {

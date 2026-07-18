@@ -26,18 +26,8 @@ export default function ColorMenu() {
   const theme = useTheme()
   const shortViewport = useMediaQuery("@media (max-height: 784px)")
 
-  const {
-    stroke,
-    strokeWidth,
-    dash,
-    colorProfile,
-    scalex,
-    fillMode,
-    fill,
-    mobile,
-    paperColor,
-    useHSVColorPicker,
-  } = state
+  const { stroke, strokeWidth, dash, colorProfile, scalex, fillMode, fill, mobile, paperColor, useHSVColorPicker } =
+    state
   const colors = fillMode ? fill : stroke
   const compact = mobile || shortViewport
 

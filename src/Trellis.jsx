@@ -24,17 +24,7 @@ import { getCanvasTransform } from "./transformUtils"
 // It returns a list of groups of the pattern with appropriate translations
 export default memo(function Trellis() {
   const { state } = useContext(StateContext)
-  const {
-    trellis,
-    openMenus,
-    bounds,
-    trellisOverlap,
-    trellisSkip,
-    trellisFlip,
-    trellisRotate,
-    debug,
-    scalex,
-  } = state
+  const { trellis, openMenus, bounds, trellisOverlap, trellisSkip, trellisFlip, trellisRotate, debug, scalex } = state
 
   if (!(trellis || openMenus.repeat) || bounds.length <= 1) return null
 
@@ -45,12 +35,7 @@ export default memo(function Trellis() {
   // First, calculate all the variables we need
   // A list of Line objects, or null
   const pattern = getSelected(state, "topLeft", true).map((object, index) =>
-    object.render(
-      state,
-      `trellis-pattern-${index}`,
-      debug ? { stroke: "red", strokeWidth: 2 / scalex } : {},
-      false,
-    ),
+    object.render(state, `trellis-pattern-${index}`, debug ? { stroke: "red", strokeWidth: 2 / scalex } : {}, false),
   )
   const { x: width, y: height } = boundRect.wh.asDeflated(state)
 
@@ -124,14 +109,15 @@ export default memo(function Trellis() {
   // The base pattern location
   const { x: seedx, y: seedy } = boundRect.topLeft.asSvg(state, false)
 
-  const area = (debug
-    ? getDebugBox(state)
-    : Rect.fromPoints(
-        Point.fromViewport(state, 0, 0),
-        Point.fromViewport(state, viewportWidth(), 0),
-        Point.fromViewport(state, 0, viewportHeight()),
-        Point.fromViewport(state, viewportWidth(), viewportHeight()),
-      )
+  const area = (
+    debug
+      ? getDebugBox(state)
+      : Rect.fromPoints(
+          Point.fromViewport(state, 0, 0),
+          Point.fromViewport(state, viewportWidth(), 0),
+          Point.fromViewport(state, 0, viewportHeight()),
+          Point.fromViewport(state, viewportWidth(), viewportHeight()),
+        )
   ).asSvg(state, false)
 
   // Instead of gracefully trying to calculate what will be needed, just add all the transformed patterns one at a time

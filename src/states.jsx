@@ -60,7 +60,7 @@ export default function getInitialState() {
     // A list of points specifying the bounderies that define the selection rect
     bounds: [],
     // Whether we're currently dragging the selection rect. If we are, we count the cursorPos as a bound
-    boundDragging:  false,
+    boundDragging: false,
     // A list of Points. These select lines which have start AND end points which are in this list
     specificSelectors: [],
     // A list of Points. These select lines which have start OR end points which are in this list. Also

@@ -31,9 +31,7 @@ export function serializePattern(state, selectedOnly = false, transform = "") {
     " -->\n" +
     `<svg width="100%" height="100%" transform="${transform}" xmlns="http://www.w3.org/2000/svg">\n` +
     `<g id='lines' transform="scale(${scalex} ${scaley})">\n` +
-    renderToStaticMarkup(
-      exportedLines.map((line) => line.relativeTo(origin).render(state)),
-    ) +
+    renderToStaticMarkup(exportedLines.map((line) => line.relativeTo(origin).render(state))) +
     "\n</g>" +
     "\n</svg>"
   return svg

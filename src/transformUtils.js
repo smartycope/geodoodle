@@ -1,7 +1,7 @@
 import { viewportHeight, viewportWidth } from "./globals"
 
 export function normalizeAngle(angle) {
-  const normalized = ((angle + 180) % 360 + 360) % 360 - 180
+  const normalized = ((((angle + 180) % 360) + 360) % 360) - 180
   return Object.is(normalized, -0) ? 0 : normalized
 }
 
@@ -20,8 +20,7 @@ export function rotateCoordinates(x, y, angle, centerx = 0, centery = 0) {
 }
 
 export function rotateViewportCoordinates(state, x, y, angle = state.rotate ?? 0, inflated = true) {
-  if (inflated)
-    return rotateCoordinates(x, y, angle, viewportWidth() / 2, viewportHeight() / 2)
+  if (inflated) return rotateCoordinates(x, y, angle, viewportWidth() / 2, viewportHeight() / 2)
 
   const rotated = rotateCoordinates(
     x * state.scalex,
