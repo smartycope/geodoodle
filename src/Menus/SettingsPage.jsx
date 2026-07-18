@@ -413,17 +413,6 @@ export default function SettingsPage() {
             onChange={() => dispatch({ action: "set_manual_and_save_settings", dotsAbovefill: !dotsAbovefill })}
           />
         </Setting>
-        <Setting
-          label="Disable Mirror Icons"
-          help="Some browsers (Brave, DuckDuckGo) don't display the mirror icons correctly, if you're seeing giant icons when mirroring, enable this"
-        >
-          <Checkbox
-            checked={state.disableMirrorIcons}
-            onChange={() =>
-              dispatch({ action: "set_manual_and_save_settings", disableMirrorIcons: !state.disableMirrorIcons })
-            }
-          />
-        </Setting>
         <Setting label="Max Undo Amount" help="Controls how many consecutive undos you can do at once">
           <Number
             onValueChange={(val) => dispatch({ action: "set_manual_and_save_settings", maxUndoAmt: val })}
