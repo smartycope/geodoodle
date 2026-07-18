@@ -40,7 +40,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import ContentCutIcon from "@mui/icons-material/ContentCut"
 import CancelPresentationIcon from "@mui/icons-material/CancelPresentation"
 import CancelPresentationTwoToneIcon from "@mui/icons-material/CancelPresentationTwoTone"
-import RuleIcon from '@mui/icons-material/Rule'
+import RuleIcon from "@mui/icons-material/Rule"
 import useMediaQuery from "@mui/material/useMediaQuery"
 import { themeDefaults } from "./styling/theme"
 import { getCanvasRotationTransform, getCanvasTransform, rotateCoordinates } from "./transformUtils"

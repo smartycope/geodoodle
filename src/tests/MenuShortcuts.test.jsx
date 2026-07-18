@@ -27,8 +27,7 @@ const renderMenu = (menu, Component, stateOverrides = {}) => {
 }
 
 afterEach(() => {
-  for (const menu of ["select", "clipboard", "delete"])
-    document.querySelector(`#${menu}-tool-button`)?.remove()
+  for (const menu of ["select", "clipboard", "delete"]) document.querySelector(`#${menu}-tool-button`)?.remove()
 })
 
 describe("mini-menu keyboard shortcut hints", () => {
