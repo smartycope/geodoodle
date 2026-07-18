@@ -101,6 +101,7 @@ export default function Paper({ setDispatch }) {
             tabIndex={0}
             ref={paper}
             onKeyDown={(e) => events.onKeyDown(state, dispatch, e)}
+            onKeyUp={(e) => events.onKeyUp(state, dispatch, e)}
             onMouseMove={(e) => events.onMouseMove(state, dispatch, e)}
             onMouseDown={(e) => events.onMouseDown(state, dispatch, e)}
             onMouseUp={(e) => events.onMouseUp(state, dispatch, e)}

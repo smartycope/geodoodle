@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import {
   getGestureRotationDelta,
   onKeyDown,
+  onKeyUp,
   onMouseDown,
   onMouseMove,
   onMouseUp,
@@ -60,6 +61,47 @@ describe("keyboard interactions", () => {
 
     expect(dispatch).toHaveBeenCalledWith({ action: "select_all" })
     expect(event.preventDefault).toHaveBeenCalledOnce()
+  })
+
+  test("adds bounds on the initial press and release without reacting to key repeat", () => {
+    const dispatch = vi.fn()
+    const state = { ...getState(), mobile: false, cursorPos: new Point(2, 3) }
+    const keyDown = keyEvent("b")
+
+    onKeyDown(state, dispatch, keyDown)
+    onKeyDown(state, dispatch, keyEvent("b", { repeat: true }))
+    onKeyDown(state, dispatch, keyEvent("b", { repeat: true }))
+
+    expect(dispatch).toHaveBeenCalledTimes(1)
+    expect(dispatch).toHaveBeenLastCalledWith({ action: "add_bound" })
+
+    onKeyUp({ ...state, cursorPos: new Point(8, 9) }, dispatch, keyEvent("b"))
+
+    expect(dispatch).toHaveBeenCalledTimes(2)
+    expect(dispatch).toHaveBeenLastCalledWith({ action: "add_bound" })
+  })
+
+  test("a quick bound-key tap adds one bound instead of toggling it off", () => {
+    const dispatch = vi.fn()
+    const state = { ...getState(), mobile: false, cursorPos: new Point(2, 3) }
+
+    onKeyDown(state, dispatch, keyEvent("b"))
+    onKeyUp(state, dispatch, keyEvent("b"))
+
+    expect(dispatch).toHaveBeenCalledTimes(1)
+    expect(dispatch).toHaveBeenCalledWith({ action: "add_bound" })
+  })
+
+  test("other held shortcuts retain their key-repeat behavior", () => {
+    const dispatch = vi.fn()
+    const state = { ...getState(), mobile: false }
+
+    onKeyDown(state, dispatch, keyEvent("ArrowRight"))
+    onKeyDown(state, dispatch, keyEvent("ArrowRight", { repeat: true }))
+
+    expect(dispatch).toHaveBeenCalledTimes(2)
+    expect(dispatch).toHaveBeenNthCalledWith(1, { action: "right" })
+    expect(dispatch).toHaveBeenNthCalledWith(2, { action: "right" })
   })
 })
 

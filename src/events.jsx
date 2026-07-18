@@ -6,6 +6,7 @@ import { normalizeAngle } from "./transformUtils"
 
 var dragging = false
 var canvasButtonMouseActive = false
+var activeBoundShortcutPresses = new Map()
 
 /* eslint-disable no-unused-vars */
 
@@ -109,8 +110,23 @@ export function onKeyDown(state, dispatch, e) {
 
   if (take) {
     e.preventDefault?.()
+    if (take.action === "add_bound" && !state.mobile) {
+      const key = e.code ?? e.key.toLowerCase()
+      if (activeBoundShortcutPresses.has(key)) return
+      activeBoundShortcutPresses.set(key, { action: take, cursorPos: state.cursorPos })
+    }
     dispatch(take)
   }
+}
+
+export function onKeyUp(state, dispatch, e) {
+  const key = e.code ?? e.key.toLowerCase()
+  const press = activeBoundShortcutPresses.get(key)
+  if (!press) return
+
+  activeBoundShortcutPresses.delete(key)
+  e.preventDefault?.()
+  if (!press.cursorPos.eq(state.cursorPos)) dispatch(press.action)
 }
 
 // Touch events
@@ -376,6 +392,7 @@ function onDoubleTap(state, dispatch) {
 
 // This keeps the focus always on the paper element
 export function onBlur(state, dispatch, e) {
+  activeBoundShortcutPresses.clear()
   setTimeout(function () {
     if (document.activeElement.nodeName !== "INPUT" || document.activeElement.type === "checkbox") e.target.focus()
   }, 100)

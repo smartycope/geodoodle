@@ -121,6 +121,18 @@ describe("Paper interactions", () => {
     expect(getBounds(container).length).toBe(1)
   })
 
+  test("holding b adds one bound on press and another on release", () => {
+    const { container, paper } = renderPaper()
+
+    fireEvent.keyDown(paper, { key: "b" })
+    fireEvent.keyDown(paper, { key: "b", repeat: true })
+    mouseMove(paper, 350, 300)
+    fireEvent.keyUp(paper, { key: "b" })
+
+    expect(getBounds(container).length).toBe(2)
+    expect(getSelectionRect(container)).not.toBeNull()
+  })
+
   // Test that making multiple bounds creates a selection rect
   test("multiple bounds create a selection rect", () => {
     const { container, paper } = renderPaper()
