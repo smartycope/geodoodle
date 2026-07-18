@@ -39,10 +39,12 @@ browser input → src/events.jsx → dispatch → src/reducer.jsx → src/action
 ### Input and drawing
 
 - `src/events.jsx` translates mouse, wheel, keyboard, and touch gestures into actions. Touch handling uses module-level gesture/timer variables because `Paper` must attach non-passive native listeners.
+- Desktop mouse gestures also keep transient module-level state for button-down and drag arbitration. Right-drag creates a bounded deletion area, while middle-drag identifies one exact line by its two endpoints; both become drags only after the aligned/snapped `cursorPos` changes, not after arbitrary pixel movement. Reset this transient state in `onBlur` and test cleanup paths.
+- The desktop `add_bound` shortcut has a press/release lifecycle: keydown places the first bound and keyup places the second only if the snapped cursor moved. `activeBoundShortcutPresses` suppresses key-repeat and prevents a modifier change such as `b` becoming `shift+b` from clearing the in-progress area. Other shortcuts retain normal repeat behavior.
 - `src/transformUtils.js` owns shared canvas rotation math and the canonical SVG transform strings used by drawing layers. Canvas-space rendering should reuse these helpers rather than assembling transforms independently.
 - `src/drawing.jsx` renders all Paper-owned visual pieces: grid dots, lines, in-progress lines, fills, selection/bounds/selectors, cursor, clipboard preview, mirror guides, menus, toast, and debugging overlays.
 - `src/Trellis.jsx` separately renders the repeated background pattern. It derives the seed from the current selection and emits transformed groups until the viewport is covered. Repeat controls use row/column `{ every, val }` structures.
-- `src/Menus/Toolbar.jsx` lays out the responsive toolbar; `ToolButton.jsx` maps button names to icons and toggles menus. `MiniMenu.jsx` is the anchored popover primitive and `Page.jsx` is the full dialog primitive.
+- `src/Menus/Toolbar.jsx` lays out the responsive toolbar; `ToolButton.jsx` maps button names to icons and toggles menus. `MiniMenu.jsx` is the anchored popover primitive and `Page.jsx` is the full dialog primitive. `Number.jsx` is the shared Base UI number control, including optional joined reset buttons, and `ShortcutHint.jsx` derives menu hints from the active editable keybindings.
 
 `Paper`'s SVG child order is intentional: definitions/grid/trellis/fills/debug/cursor/permanent and preview lines/selection overlays/clipboard. Preserve that order unless the requested visual stacking change is explicit.
 
@@ -82,12 +84,17 @@ Do not hand-roll transformations or silently mix coordinate systems. Prefer `Poi
 
 - A line is started/finished through `add_line`; `curLinePos` is the start of an in-progress line and `cursorPos` is the snapped grid cursor, not the physical mouse coordinate.
 - Selection combines an area defined by `bounds`, generic selectors (endpoints or intersections), and specific selectors (both endpoints). `src/utils.jsx:getSelected` and `src/helper/Line.jsx:isSelected` are the authoritative logic.
-- Mirroring is controlled by axis/rotation and can be centered on the page or cursor; saved mirror origins apply additional transformed copies. `Point.mirror*`, `Line.mirror*`, `drawing.jsx:MirrorMetaLines`, and `Menus/MirrorMenu.jsx` move together.
+- `select_all` selects existing line geometry by setting two bounds to the top-left and bottom-right of `getLinesRect(state.lines)`; it returns no bounds for an empty drawing and exits deletion mode. Its default shortcut is `ctrl+a` through the editable keybinding framework.
+- `deletingSelection` is a transient mode for an incomplete bounded selection. Completing its second bound runs `delete_selected` against a temporary state with selectors cleared, then removes the bounds; selector-only matches outside the rectangle must remain selected normally and must not turn red or be deleted. Holding Shift temporarily inverts an ordinary in-progress bound into deletion mode, while Shift temporarily inverts a right-button deletion drag into a regular selection. Rendering uses the red `themeDefaults.deletingSelection` palette for the bounded area and its basic/fancy glow.
+- A desktop middle click runs `delete_at_cursor`; a middle drag runs `delete_specific_line` and matches both endpoints in either order. A right click retains `continue_line`, while a right drag completes the bounded deletion flow. Preserve click behavior when physical movement stays within the same aligned cursor position.
+- Mirroring is controlled by axis/rotation and can be centered on the page or cursor; saved mirror origins apply additional transformed copies. `Point.mirror(state)` is the shared expansion path: it applies the active page/cursor transform and then each saved origin. Drawing, `delete_at_cursor`, cursor helpers, and clipboard generation should reuse it so all mirrored copies stay consistent. `Point.mirror*`, `Line.mirror*`, `drawing.jsx:MirrorMetaLines`, and `Menus/MirrorMenu.jsx` move together.
+- On desktop, the Mirror menu shows a real **Add origin** control for Page mirroring (and on mobile), but shows the keyboard instruction for Cursor mirroring. The Type and Origins groups share a responsive row, so visibility/label changes must be checked for overlap.
 - Entering fill mode normalizes and splits line segments, runs Turf polygonization, and previews polygons under the *physical* mouse position. The action is `toggle_fill_mode`; `getPreviewPolys` and `Poly.contains` determine previews.
-- Clipboard lines are copied relative to a selection origin and transformed/mirrored at the cursor. See `actions.jsx` (`copy`, `cut`, `paste`) and `utils.jsx:getAllClipboardLines`.
+- Clipboard lines are copied relative to a selection origin and transformed/mirrored at the cursor. `getAllClipboardLines(state)` is shared by paste and preview: position at `cursorPos`, apply the clipboard flip/rotation, then expand through `Point.mirror(state)`, including saved origins. See `actions.jsx` (`copy`, `cut`, `paste`) and `utils.jsx:getAllClipboardLines`.
+- `rotateClipboardOnScroll` is a persisted desktop behavior setting and defaults to `true`. With an active clipboard, unmodified scrolling rotates it in 90-degree steps when enabled and otherwise follows normal canvas translation; Ctrl/Command and Shift wheel modifiers keep their canvas scale/rotate/translate meanings.
 - Trellis/repeat requires a completed selection (`bounds.length > 1`). `Trellis.jsx` is the rendering algorithm; `Menus/RepeatMenu.jsx` owns its controls.
 - Clipboard transformation and selection-option controls drawn over the canvas are visual `foreignObject` buttons whose presses are manually hit-tested in `canvasButtonUtils.jsx` and consumed in `events.jsx`. Keep their rendering geometry and mouse/touch hit geometry in sync, and do not let a consumed press also move the cursor or clipboard.
-- Keyboard shortcuts are editable state. `keybindable` is the action catalog and source of each default binding; `defaultKeybindings` is derived from it, while runtime matching reads `state.keybindings`. The shortcut token `ctrl` intentionally accepts either Control or macOS Command.
+- Keyboard shortcuts are editable state. `keybindable` is the action catalog and source of each default binding; `defaultKeybindings` is derived from it, while runtime matching reads `state.keybindings`. The shortcut token `ctrl` intentionally accepts either Control or macOS Command. Buttons in Select, Clipboard, and Delete menus use `ShortcutHint` so displayed hints reflect customized bindings; parameterized action objects must be matched structurally, not only by action name.
 - Fixed canvas presentation constants live in `themeDefaults` in `src/styling/theme.js`; user-controlled behavior and drawing choices live in `options.jsx`/state. Components should read generated-theme values so light/dark and paper-color contrast logic remain centralized.
 
 ## Where to make a change
@@ -104,6 +111,8 @@ Do not hand-roll transformations or silently mix coordinate systems. Prefer `Poi
 | Local persistence schema | `src/fileUtils.jsx` and `preservable`/`saveable` in `src/options.jsx`; do not access `localStorage` elsewhere |
 | Toolbar sizing/placement or tool icons | `src/Menus/Toolbar.jsx`, `ToolButton.jsx`, `ExtraMenu.jsx`, `ExtraButton.jsx`, `src/utils.jsx:extraSlots` |
 | Menu layout | `MiniMenu.jsx` for popovers, `Page.jsx` for dialogs, and the corresponding feature menu |
+| Number-control behavior or reset affordances | `src/Menus/Number.jsx` and `src/styling/number-field.module.css`; feature-specific reset targets stay in the owning menu |
+| Keyboard shortcut catalog, editor, matching, or visible hints | `src/options.jsx`, `src/utils.jsx`, `src/Menus/KeybindingsPage.jsx`, and `src/Menus/ShortcutHint.jsx` |
 | Theme, colors, or global styles | `src/styling/theme.js`, `src/styling/App.css`, `src/styling/index.css`, `src/styling/number-field.module.css` |
 | Guided tour | `src/Menus/tour.jsx`, `src/App.jsx`, and `tourState` in `src/states.jsx` |
 
@@ -145,6 +154,8 @@ npm run build
 - `src/tests/Drawing.test.jsx` covers isolated SVG/UI layers whose geometry or visibility depends on state.
 - `src/tests/Paper.test.jsx` exercises rendered mouse/keyboard/wheel interactions.
 - `src/tests/Fill.test.jsx` covers polygon previews/fills, intersections, mirroring, and repeating.
+- `src/tests/KeybindingsPage.test.jsx` and `MenuShortcuts.test.jsx` cover editable shortcuts and live menu hints; `SettingsPage.test.jsx` covers persisted setting controls.
+- Focused menu layout/dispatch regressions live beside the feature as `MirrorMenu.test.jsx`, `NavMenu.test.jsx`, `RepeatMenu.test.jsx`, and similar menu test files.
 - `src/tests/misc.test.jsx` guards that the `options.jsx` action/state registration lists stay valid.
 - `src/tests/testUtils.jsx` is the shared Paper renderer and input/SVG-query helper set; prefer extending it instead of duplicating event boilerplate.
 
