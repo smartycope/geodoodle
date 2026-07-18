@@ -100,7 +100,7 @@ describe("shared pattern startup", () => {
     renderSharedLink(local, shared)
 
     await screen.findByRole("dialog", { name: "Save your current pattern?" })
-    fireEvent.click(screen.getByRole("button", { name: "Ignore & load" }))
+    fireEvent.click(screen.getByRole("button", { name: "Discard & load" }))
 
     await waitFor(() => expect(loadPreservedState().filename).toBe("shared-star"))
     expect(Object.keys(getSaves())).toHaveLength(0)
