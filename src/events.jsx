@@ -102,8 +102,23 @@ export function onScroll(state, dispatch, e) {
 
 // Keyboard events
 export function onKeyDown(state, dispatch, e) {
+  const key = e.code || e.key.toLowerCase()
+
+  // Once the desktop bound shortcut is held, modifier changes can alter which
+  // binding its repeat event matches (notably b becoming shift+b/clear_bounds).
+  // Treat every repeat for that physical key as part of the original press.
+  if (!state.mobile && activeBoundShortcutPresses.has(key)) {
+    e.preventDefault?.()
+    return
+  }
+
   // If it's just a modifier key, don't do anything (it'll falsely trigger things)
-  if (["Shift", "Meta", "Control", "Alt"].includes(e.key)) return
+  if (e.key === "Shift") {
+    if (state.bounds.length === 1 && !state.deletingSelection)
+      dispatch({ deletingSelection: true })
+    return
+  }
+  if (["Meta", "Control", "Alt"].includes(e.key)) return
 
   var take = null
   for (const [shortcut, action] of Object.entries(state.keybindings))
@@ -114,17 +129,19 @@ export function onKeyDown(state, dispatch, e) {
 
   if (take) {
     e.preventDefault?.()
-    if (take.action === "add_bound" && !state.mobile) {
-      const key = e.code ?? e.key.toLowerCase()
-      if (activeBoundShortcutPresses.has(key)) return
+    if (take.action === "add_bound" && !state.mobile)
       activeBoundShortcutPresses.set(key, { action: take, cursorPos: state.cursorPos })
-    }
     dispatch(take)
   }
 }
 
 export function onKeyUp(state, dispatch, e) {
-  const key = e.code ?? e.key.toLowerCase()
+  if (e.key === "Shift" && state.deletingSelection) {
+    dispatch({ deletingSelection: false })
+    return
+  }
+
+  const key = e.code || e.key.toLowerCase()
   const press = activeBoundShortcutPresses.get(key)
   if (!press) return
 
@@ -397,6 +414,7 @@ function onDoubleTap(state, dispatch) {
 // This keeps the focus always on the paper element
 export function onBlur(state, dispatch, e) {
   activeBoundShortcutPresses.clear()
+  if (state.deletingSelection) dispatch({ deletingSelection: false })
   setTimeout(function () {
     if (document.activeElement.nodeName !== "INPUT" || document.activeElement.type === "checkbox") e.target.focus()
   }, 100)

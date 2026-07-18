@@ -513,10 +513,12 @@ describe("Deletion Actions", () => {
       const cursorAtBound = {
         ...state,
         cursorPos: new Point(5, 5), // On a bound
+        deletingSelection: true,
       }
 
       const newState = delete_at_cursor(cursorAtBound)
       expect(newState.bounds).toHaveLength(1) // One bound should be removed
+      expect(newState.deletingSelection).toBe(false)
     })
     test("should delete a line under cursor", () => {
       const cursorAtLine = {
@@ -715,6 +717,29 @@ describe("Line Creation Actions", () => {
       })
 
       expect(afterSecondBound.bounds).toHaveLength(2)
+    })
+
+    test("completing a deleting selection removes lines in the area and clears its bounds", () => {
+      const inside = new Line(state, new Point(2, 2), new Point(8, 8))
+      const genericOutside = new Line(state, new Point(20, 20), new Point(30, 30))
+      const specificOutside = new Line(state, new Point(40, 40), new Point(50, 50))
+      const deletingState = {
+        ...state,
+        lines: [inside, genericOutside, specificOutside],
+        bounds: [new Point(0, 0)],
+        cursorPos: new Point(10, 10),
+        deletingSelection: true,
+        removeSelectionAfterDelete: false,
+        genericSelectors: [genericOutside.a],
+        specificSelectors: specificOutside.points(),
+      }
+
+      const result = add_bound(deletingState)
+
+      expect(result.lines).toEqual([genericOutside, specificOutside])
+      expect(result.bounds).toEqual([])
+      expect(result.deletingSelection).toBe(false)
+      expect(result.boundDragging).toBe(false)
     })
   })
 })

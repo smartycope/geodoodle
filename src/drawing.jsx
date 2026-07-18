@@ -9,7 +9,6 @@ import {
   getAllIntersections,
   isMobile,
   getAllCursorPoints,
-  shouldUseFancyGlow,
 } from "./utils"
 import { getClipboardButtonStrip, getSelectionButtonStrip } from "./canvasButtonUtils"
 import Line from "./helper/Line"
@@ -38,8 +37,6 @@ import CheckIcon from "@mui/icons-material/Check"
 import ClearIcon from "@mui/icons-material/Clear"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import ContentCutIcon from "@mui/icons-material/ContentCut"
-import CancelPresentationIcon from "@mui/icons-material/CancelPresentation"
-import CancelPresentationTwoToneIcon from "@mui/icons-material/CancelPresentationTwoTone"
 import RuleIcon from "@mui/icons-material/Rule"
 import useMediaQuery from "@mui/material/useMediaQuery"
 import { themeDefaults } from "./styling/theme"
@@ -129,25 +126,34 @@ export function DebugPoint({
   )
 }
 
+const GlowFilter = ({ id, color }) => (
+  // The userSpaceOnUse filter units make unsloped lines render correctly.
+  <filter id={id} x="-100%" y="-100%" width="200%" height="200%" filterUnits="userSpaceOnUse">
+    <feGaussianBlur in="SourceGraphic" stdDeviation=".2" result="blur" />
+    <feFlood floodColor={color} floodOpacity="1" result="color" />
+    <feComposite in="color" in2="blur" operator="in" result="coloredBlur" />
+    <feMerge>
+      <feMergeNode in="coloredBlur" />
+      <feMergeNode in="coloredBlur" />
+      <feMergeNode in="SourceGraphic" />
+    </feMerge>
+  </filter>
+)
+
 export const GlowEffect = () => {
   const theme = useTheme()
   const { state } = useContext(StateContext)
+  const deletingSelectionTheme = (theme.geodoodle ?? themeDefaults).deletingSelection
+  const glowColor = theme.palette.primary.glow ?? themeDefaults.glowColor.light
 
   // Defining a filter is cheap; browsers only rasterize it when a line references it.
   if (!state.useFancyGlow) return null
   return (
     <defs>
-      {/* the "filterUnits="userSpaceOnUse" makes it so unsloped lines get rendered */}
-      <filter id="glow" x="-100%" y="-100%" width="200%" height="200%" filterUnits="userSpaceOnUse">
-        <feGaussianBlur in="SourceGraphic" stdDeviation=".2" result="blur" />
-        <feFlood floodColor={theme.palette.primary.glow} floodOpacity="1" result="color" />
-        <feComposite in="color" in2="blur" operator="in" result="coloredBlur" />
-        <feMerge>
-          <feMergeNode in="coloredBlur" />
-          <feMergeNode in="coloredBlur" />
-          <feMergeNode in="SourceGraphic" />
-        </feMerge>
-      </filter>
+      <GlowFilter id="glow" color={glowColor} />
+      {state.deletingSelection && (
+        <GlowFilter id="deleting-glow" color={deletingSelectionTheme.glowColor} />
+      )}
     </defs>
   )
 }
@@ -372,9 +378,10 @@ export const SelectionOptionButtons = () => {
 
 export const SelectionRect = () => {
   const { state } = useContext(StateContext)
-  const { partials } = state
+  const { deletingSelection, partials } = state
   const theme = useTheme()
-  const selectionTheme = (theme.geodoodle ?? themeDefaults).selection
+  const geodoodleTheme = theme.geodoodle ?? themeDefaults
+  const selectionTheme = deletingSelection ? geodoodleTheme.deletingSelection : geodoodleTheme.selection
   let boundRect = getBoundRect(state)
 
   if (!boundRect) return null
@@ -406,9 +413,10 @@ export const SelectionRect = () => {
 
 export const Bounds = () => {
   const { state } = useContext(StateContext)
-  const { scalex, bounds, partials } = state
+  const { scalex, bounds, deletingSelection, partials } = state
   const radius = scalex / 1
   const theme = useTheme()
+  const deletingSelectionTheme = (theme.geodoodle ?? themeDefaults).deletingSelection
 
   return (
     <g id="bounds">
@@ -420,7 +428,7 @@ export const Bounds = () => {
           y={bound.asViewport(state).y - radius / 2}
           rx={partials ? 4 : 0}
           // rx={4}
-          stroke={theme.palette.primary.bounds}
+          stroke={deletingSelection ? deletingSelectionTheme.borderColor : theme.palette.primary.bounds}
           fillOpacity={0}
           key={`bound-${bound.hash()}`}
         />
@@ -507,9 +515,12 @@ export const Lines = () => {
     partials,
     genericSelectors,
     specificSelectors,
+    deletingSelection,
   } = state
   const { glowWidth, glowOpacity } = theme.geodoodle ?? themeDefaults
+  const deletingSelectionTheme = (theme.geodoodle ?? themeDefaults).deletingSelection
   const glowColor = theme.palette.primary.glow ?? themeDefaults.glowColor.light
+  const deletingGlowColor = deletingSelectionTheme.glowColor
   // The cursor only affects permanent-line selection while a bound is being
   // dragged. In every other mode, moving it should not rebuild every SVG line.
   const activeBoundCursor = boundDragging && bounds.length === 1 ? cursorPos : null
@@ -528,10 +539,37 @@ export const Lines = () => {
       useFancyGlow,
     }
     const boundRect = bounds?.length > 0 ? getBoundRect(renderState) : null
-    if (shouldUseFancyGlow(renderState))
+    const deletingAreaState = deletingSelection
+      ? { ...renderState, genericSelectors: [], specificSelectors: [] }
+      : null
+    const deletingBoundRect = deletingAreaState ? getBoundRect(deletingAreaState) : null
+    const selectorState = deletingSelection
+      ? { ...renderState, bounds: [], boundDragging: false, cursorPos: null, activeBoundCursor: null }
+      : null
+    const highlightTypes = lines.map((line) => {
+      if (!deletingSelection) return line.isSelected(renderState, boundRect) ? "selected" : null
+      if (line.isSelected(deletingAreaState, deletingBoundRect)) return "deleting"
+      return line.isSelected(selectorState, null) ? "selected" : null
+    })
+    const fancyGlow =
+      useFancyGlow && highlightTypes.filter(Boolean).length <= options.maxFancyGlowingLines
+
+    if (fancyGlow)
       return {
         selectionUnderlays: [],
-        renderedLines: lines.map((line, i) => line.render(renderState, `line-${i}`, {}, true, boundRect)),
+        renderedLines: lines.map((line, i) =>
+          line.render(
+            renderState,
+            `line-${i}`,
+            {
+              filter: highlightTypes[i]
+                ? `url(#${highlightTypes[i] === "deleting" ? "deleting-glow" : "glow"})`
+                : undefined,
+            },
+            false,
+            boundRect,
+          ),
+        ),
       }
 
     const selectionUnderlays = []
@@ -539,7 +577,7 @@ export const Lines = () => {
     let tooManySelectedLines = false
 
     lines.forEach((line, i) => {
-      if (!tooManySelectedLines && line.isSelected(renderState, boundRect)) {
+      if (!tooManySelectedLines && highlightTypes[i]) {
         const reachedHighlightLimit = selectionUnderlays.length >= options.maxGlowingLines
         if (reachedHighlightLimit) {
           selectionUnderlays.length = 0
@@ -550,7 +588,7 @@ export const Lines = () => {
               renderState,
               `selected-line-${i}`,
               {
-                stroke: glowColor,
+                stroke: highlightTypes[i] === "deleting" ? deletingGlowColor : glowColor,
                 strokeWidth: line.aes.width + glowWidth,
                 strokeOpacity: glowOpacity,
                 strokeLinecap: "round",
@@ -574,7 +612,9 @@ export const Lines = () => {
     partials,
     genericSelectors,
     specificSelectors,
+    deletingSelection,
     glowColor,
+    deletingGlowColor,
     glowWidth,
     glowOpacity,
     useFancyGlow,

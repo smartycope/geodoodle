@@ -247,11 +247,12 @@ export const convert_last_generic_selector_to_bound = (state) => ({
 export const clear_bounds = (state) => ({
   ...cancel_clipboard(state),
   bounds: [],
+  deletingSelection: false,
 })
 
 export const select_all = (state) => {
   const rect = getLinesRect(state.lines)
-  return { bounds: rect ? [rect.topLeft, rect.bottomRight] : [] }
+  return { bounds: rect ? [rect.topLeft, rect.bottomRight] : [], deletingSelection: false }
 }
 
 // Destruction Actions
@@ -263,6 +264,7 @@ export const clear = (state) => ({
   rotate: 0,
   lines: [],
   bounds: [],
+  deletingSelection: false,
   openMenus: { ...state.openMenus, delete: false, repeat: false },
   filledPolys: [],
   polygons: [],
@@ -319,7 +321,7 @@ export const delete_at_cursor = (state, { allowDeleteSelected = false } = {}) =>
       genericSelectors: genericSelectors.filter((p) => !p.eq(cursorPos)),
     }
   // If we're over a bound, delete it
-  if (cursorPos.in(bounds)) return { bounds: cursorPos.remove(bounds) }
+  if (cursorPos.in(bounds)) return { bounds: cursorPos.remove(bounds), deletingSelection: false }
   // If we are halfway done drawing a line, delete it
   if (curLinePos) return { curLinePos: null }
   // If we have a clipboard, clear it
@@ -425,9 +427,29 @@ export const add_bound = (state) => {
     ? state.cursorPos.remove(state.bounds)
     : [...state.bounds, state.cursorPos]
   const newBoundRect = Rect.fromPoints(...newBounds)
+  const bounds = newBounds.filter((p) => newBoundRect.onEdge(p))
+
+  if (state.deletingSelection && bounds.length > 1) {
+    const selectionState = {
+      ...state,
+      bounds,
+      boundDragging: false,
+      genericSelectors: [],
+      specificSelectors: [],
+    }
+    return {
+      ...delete_selected(selectionState),
+      bounds: [],
+      boundDragging: false,
+      curLinePos: null,
+      deletingSelection: false,
+    }
+  }
+
   return {
-    bounds: newBounds.filter((p) => newBoundRect.onEdge(p)),
+    bounds,
     curLinePos: null,
+    deletingSelection: state.deletingSelection && bounds.length === 1,
   }
 }
 

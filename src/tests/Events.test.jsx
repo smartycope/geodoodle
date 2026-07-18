@@ -93,6 +93,26 @@ describe("keyboard interactions", () => {
     expect(dispatch).toHaveBeenCalledWith({ action: "add_bound" })
   })
 
+  test("pressing Shift while holding the bound key does not clear the active bound", () => {
+    const dispatch = vi.fn()
+    const initialState = { ...getState(), mobile: false, cursorPos: new Point(2, 3) }
+    const creatingState = { ...initialState, bounds: [initialState.cursorPos] }
+
+    onKeyDown(initialState, dispatch, keyEvent("b", { code: "KeyB" }))
+    onKeyDown(creatingState, dispatch, keyEvent("Shift", { code: "ShiftLeft", shiftKey: true }))
+    onKeyDown(
+      { ...creatingState, deletingSelection: true },
+      dispatch,
+      keyEvent("B", { code: "KeyB", shiftKey: true, repeat: true }),
+    )
+
+    expect(dispatch).toHaveBeenCalledTimes(2)
+    expect(dispatch).toHaveBeenNthCalledWith(1, { action: "add_bound" })
+    expect(dispatch).toHaveBeenNthCalledWith(2, { deletingSelection: true })
+
+    onKeyUp(creatingState, dispatch, keyEvent("b", { code: "KeyB" }))
+  })
+
   test("other held shortcuts retain their key-repeat behavior", () => {
     const dispatch = vi.fn()
     const state = { ...getState(), mobile: false }
@@ -103,6 +123,28 @@ describe("keyboard interactions", () => {
     expect(dispatch).toHaveBeenCalledTimes(2)
     expect(dispatch).toHaveBeenNthCalledWith(1, { action: "right" })
     expect(dispatch).toHaveBeenNthCalledWith(2, { action: "right" })
+  })
+
+  test("Shift temporarily turns an incomplete bound into a deleting selection", () => {
+    const dispatch = vi.fn()
+    const state = { ...getState(), bounds: [new Point(2, 3)], deletingSelection: false }
+
+    onKeyDown(state, dispatch, keyEvent("Shift", { shiftKey: true }))
+
+    expect(dispatch).toHaveBeenCalledWith({ deletingSelection: true })
+
+    dispatch.mockClear()
+    onKeyUp({ ...state, deletingSelection: true }, dispatch, keyEvent("Shift"))
+
+    expect(dispatch).toHaveBeenCalledWith({ deletingSelection: false })
+  })
+
+  test("Shift does nothing when there is not exactly one bound", () => {
+    const dispatch = vi.fn()
+
+    onKeyDown(getState(), dispatch, keyEvent("Shift", { shiftKey: true }))
+
+    expect(dispatch).not.toHaveBeenCalled()
   })
 })
 

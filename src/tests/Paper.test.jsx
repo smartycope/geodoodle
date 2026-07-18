@@ -26,6 +26,7 @@ import {
 import { validateStorage } from "../fileUtils"
 import Point from "../helper/Point"
 import { viewportHeight, viewportWidth } from "../globals"
+import { themeDefaults } from "../styling/theme"
 
 // In between each tests, reset the localStorage
 beforeEach(() => {
@@ -131,6 +132,26 @@ describe("Paper interactions", () => {
 
     expect(getBounds(container).length).toBe(2)
     expect(getSelectionRect(container)).not.toBeNull()
+  })
+
+  test("holding Shift while finishing bounds deletes the selected lines and clears the selection", () => {
+    const { container, paper } = renderPaper()
+    createLine(paper, 100, 100, 200, 200)
+    mouseMove(paper, 80, 80)
+
+    fireEvent.keyDown(paper, { key: "b", code: "KeyB" })
+    fireEvent.keyDown(paper, { key: "Shift", code: "ShiftLeft", shiftKey: true })
+    fireEvent.keyDown(paper, { key: "B", code: "KeyB", shiftKey: true, repeat: true })
+    mouseMove(paper, 220, 220)
+
+    expect(getSelectionRect(container).getAttribute("fill")).toBe(themeDefaults.deletingSelection.color)
+
+    fireEvent.keyUp(paper, { key: "b", code: "KeyB", shiftKey: true })
+    fireEvent.keyUp(paper, { key: "Shift", code: "ShiftLeft" })
+
+    expect(getLines(container)).toHaveLength(0)
+    expect(getBounds(container)).toHaveLength(0)
+    expect(getSelectionRect(container)).toBeNull()
   })
 
   // Test that making multiple bounds creates a selection rect

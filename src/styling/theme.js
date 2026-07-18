@@ -10,6 +10,12 @@ export const themeDefaults = {
     color: "#3367D1",
     opacity: 0.15,
   },
+  deletingSelection: {
+    borderColor: "#8b0000",
+    color: "#d32f2f",
+    glowColor: "#ff0000",
+    opacity: 0.15,
+  },
   dots: {
     size: 2,
   },

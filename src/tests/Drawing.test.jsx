@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, test } from "vitest"
-import { Clipboard, ClipboardTransformButtons, GlowEffect, Lines, SelectionOptionButtons } from "../drawing"
+import { Bounds, Clipboard, ClipboardTransformButtons, GlowEffect, Lines, SelectionOptionButtons, SelectionRect } from "../drawing"
 import { StateContext } from "../Contexts"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
@@ -74,6 +74,87 @@ describe("Selected line highlights", () => {
 
     expect(container.querySelector("#selected-line-highlights")).toBeNull()
     expect(container.querySelectorAll("#lines > line")).toHaveLength(lineCount)
+  })
+
+  test("uses red selection geometry and a red basic glow while deleting", () => {
+    const state = stateWithSelectedLines(1, {
+      bounds: [new Point(-1, -1)],
+      boundDragging: true,
+      cursorPos: new Point(11, 2),
+      deletingSelection: true,
+      useFancyGlow: false,
+    })
+    const { container } = render(
+      <StateContext.Provider value={{ state }}>
+        <svg>
+          <Lines />
+          <Bounds />
+          <SelectionRect />
+        </svg>
+      </StateContext.Provider>,
+    )
+
+    expect(container.querySelector("#selected-line-highlights line").getAttribute("stroke")).toBe(
+      themeDefaults.deletingSelection.glowColor,
+    )
+    expect(container.querySelector("#selection-rect").getAttribute("fill")).toBe(
+      themeDefaults.deletingSelection.color,
+    )
+    expect(container.querySelector("#selection-rect").getAttribute("stroke")).toBe(
+      themeDefaults.deletingSelection.borderColor,
+    )
+    expect(container.querySelector("#bounds rect").getAttribute("stroke")).toBe(
+      themeDefaults.deletingSelection.borderColor,
+    )
+  })
+
+  test("uses a red fancy glow while deleting", () => {
+    const state = stateWithSelectedLines(1, {
+      bounds: [new Point(-1, -1)],
+      boundDragging: true,
+      cursorPos: new Point(11, 2),
+      deletingSelection: true,
+      useFancyGlow: true,
+    })
+    const { container } = renderLines(state)
+
+    expect(container.querySelector("#deleting-glow feFlood").getAttribute("flood-color")).toBe(
+      themeDefaults.deletingSelection.glowColor,
+    )
+    expect(container.querySelectorAll("#lines > line[filter='url(#deleting-glow)']")).toHaveLength(1)
+  })
+
+  test.each([false, true])("keeps selector-only highlights blue while deleting when fancy glow is %s", (useFancyGlow) => {
+    const baseState = getState()
+    const areaLine = new Line(baseState, new Point(1, 1), new Point(5, 5))
+    const genericLine = new Line(baseState, new Point(20, 20), new Point(30, 30))
+    const specificLine = new Line(baseState, new Point(40, 40), new Point(50, 50))
+    const state = {
+      ...baseState,
+      lines: [areaLine, genericLine, specificLine],
+      bounds: [new Point(0, 0)],
+      boundDragging: true,
+      cursorPos: new Point(10, 10),
+      deletingSelection: true,
+      genericSelectors: [genericLine.a],
+      specificSelectors: specificLine.points(),
+      useFancyGlow,
+    }
+    const { container } = renderLines(state)
+
+    if (useFancyGlow) {
+      expect(container.querySelectorAll("#lines > line[filter='url(#deleting-glow)']")).toHaveLength(1)
+      expect(container.querySelectorAll("#lines > line[filter='url(#glow)']")).toHaveLength(2)
+    } else {
+      const colors = [...container.querySelectorAll("#selected-line-highlights line")].map((line) =>
+        line.getAttribute("stroke"),
+      )
+      expect(colors).toEqual([
+        themeDefaults.deletingSelection.glowColor,
+        themeDefaults.glowColor.light,
+        themeDefaults.glowColor.light,
+      ])
+    }
   })
 })
 
