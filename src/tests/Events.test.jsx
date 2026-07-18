@@ -125,7 +125,7 @@ describe("keyboard interactions", () => {
     expect(dispatch).toHaveBeenNthCalledWith(2, { action: "right" })
   })
 
-  test("Shift temporarily turns an incomplete bound into a deleting selection", () => {
+  test("Shift toggles deletion mode for an incomplete bound", () => {
     const dispatch = vi.fn()
     const state = { ...getState(), bounds: [new Point(2, 3)], deletingSelection: false }
 
@@ -135,6 +135,10 @@ describe("keyboard interactions", () => {
 
     dispatch.mockClear()
     onKeyUp({ ...state, deletingSelection: true }, dispatch, keyEvent("Shift"))
+
+    expect(dispatch).not.toHaveBeenCalled()
+
+    onKeyDown({ ...state, deletingSelection: true }, dispatch, keyEvent("Shift", { shiftKey: true }))
 
     expect(dispatch).toHaveBeenCalledWith({ deletingSelection: false })
   })

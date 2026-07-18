@@ -223,7 +223,7 @@ describe("Paper interactions", () => {
     expect(getBounds(container)).toHaveLength(0)
   })
 
-  test("Shift temporarily turns a right-button drag into a regular selection", () => {
+  test("Shift toggles a right-button drag into a regular selection", () => {
     const { container, paper } = renderPaper()
     createLine(paper, 100, 100, 200, 200)
 
@@ -236,12 +236,9 @@ describe("Paper interactions", () => {
 
     fireEvent.keyUp(paper, { key: "Shift", code: "ShiftLeft" })
 
-    expect(getSelectionRect(container).getAttribute("fill")).toBe(themeDefaults.deletingSelection.color)
+    expect(getSelectionRect(container).getAttribute("fill")).toBe(themeDefaults.selection.color)
 
-    fireEvent.keyDown(paper, { key: "Shift", code: "ShiftLeft", shiftKey: true })
-
-    mouseUp(paper, 220, 220, 2, { shiftKey: true })
-    fireEvent.keyUp(paper, { key: "Shift", code: "ShiftLeft" })
+    mouseUp(paper, 220, 220, 2)
 
     expect(getLines(container)).toHaveLength(1)
     expect(getBounds(container)).toHaveLength(2)

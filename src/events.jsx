@@ -230,10 +230,8 @@ export function onKeyDown(state, dispatch, e) {
 
   // If it's just a modifier key, don't do anything (it'll falsely trigger things)
   if (e.key === "Shift") {
-    if (state.bounds.length === 1) {
-      const deletingSelection = !rightSelectionDragging
-      if (state.deletingSelection !== deletingSelection) dispatch({ deletingSelection })
-    }
+    if (state.bounds.length === 1)
+      dispatch({ deletingSelection: !state.deletingSelection })
     return
   }
   if (["Meta", "Control", "Alt"].includes(e.key)) return
@@ -254,12 +252,6 @@ export function onKeyDown(state, dispatch, e) {
 }
 
 export function onKeyUp(state, dispatch, e) {
-  if (e.key === "Shift" && state.bounds.length === 1) {
-    const deletingSelection = rightSelectionDragging
-    if (state.deletingSelection !== deletingSelection) dispatch({ deletingSelection })
-    return
-  }
-
   const key = e.code || e.key.toLowerCase()
   const press = activeBoundShortcutPresses.get(key)
   if (!press) return
