@@ -20,9 +20,12 @@ export const themeDefaults = {
   },
   mirrorColor: "green",
   glowColor: {
-    light: "blue",
-    dark: "red",
+    light: "#0000FF",
+    dark: "#f6ff00",
   },
+  // Only used for the manual glow effect
+  glowWidth: 0.4,
+  glowOpacity: 0.1,
 }
 
 function colorIsVisible(color, background) {

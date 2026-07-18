@@ -56,3 +56,17 @@ describe("selection removal setting", () => {
     })
   })
 })
+
+describe("fancy glow setting", () => {
+  test("toggles the persisted fancy glow preference", () => {
+    const { dispatch } = renderSettings({ useFancyGlow: true })
+    const setting = screen.getByText("Use Fancy Glow").closest("li")
+
+    fireEvent.click(within(setting).getByRole("checkbox"))
+
+    expect(dispatch).toHaveBeenCalledWith({
+      action: "set_manual_and_save_settings",
+      useFancyGlow: false,
+    })
+  })
+})

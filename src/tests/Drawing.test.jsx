@@ -1,11 +1,81 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, test } from "vitest"
-import { Clipboard, ClipboardTransformButtons, SelectionOptionButtons } from "../drawing"
+import { Clipboard, ClipboardTransformButtons, GlowEffect, Lines, SelectionOptionButtons } from "../drawing"
 import { StateContext } from "../Contexts"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
 import { MIRROR_AXIS, MIRROR_TYPE } from "../globals"
 import { getState } from "./testUtils"
+import { themeDefaults } from "../styling/theme"
+import defaultOptions from "../options"
+
+describe("Selected line highlights", () => {
+  const stateWithSelectedLines = (lineCount, overrides = {}) => {
+    const state = getState()
+    return {
+      ...state,
+      lines: Array.from({ length: lineCount }, (_, y) => new Line(state, new Point(0, y), new Point(10, y))),
+      bounds: [new Point(-1, -1), new Point(11, lineCount)],
+      ...overrides,
+    }
+  }
+
+  const renderLines = (state) =>
+    render(
+      <StateContext.Provider value={{ state }}>
+        <svg>
+          <GlowEffect />
+          <Lines />
+        </svg>
+      </StateContext.Provider>,
+    )
+
+  test("renders a thicker under-stroke when fancy glow is disabled", () => {
+    const { container } = renderLines(stateWithSelectedLines(1, { useFancyGlow: false }))
+    const highlight = container.querySelector("#selected-line-highlights line")
+    const renderedLine = container.querySelector("#lines > line")
+
+    expect(highlight).not.toBeNull()
+    expect(highlight.getAttribute("stroke")).toBe(themeDefaults.glowColor.light)
+    expect(Number(highlight.getAttribute("stroke-width"))).toBeCloseTo(
+      Number(renderedLine.getAttribute("stroke-width")) + themeDefaults.glowWidth,
+    )
+    expect(Number(highlight.getAttribute("stroke-opacity"))).toBe(themeDefaults.glowOpacity)
+    expect(container.querySelector("filter")).toBeNull()
+    expect(container.querySelector("[filter]")).toBeNull()
+  })
+
+  test("uses the SVG filter through the configured fancy-glow limit", () => {
+    const lineCount = defaultOptions.maxFancyGlowingLines
+    const { container } = renderLines(stateWithSelectedLines(lineCount, { useFancyGlow: true }))
+
+    const filter = container.querySelector("#glow")
+    expect(filter).not.toBeNull()
+    expect(filter.getAttribute("x")).toBe("-100%")
+    expect(filter.getAttribute("y")).toBe("-100%")
+    expect(filter.getAttribute("width")).toBe("200%")
+    expect(filter.getAttribute("height")).toBe("200%")
+    expect(filter.querySelector("feGaussianBlur").getAttribute("stdDeviation")).toBe(".2")
+    expect(container.querySelector("#selected-line-highlights")).toBeNull()
+    expect(container.querySelectorAll("#lines > line[filter='url(#glow)']")).toHaveLength(lineCount)
+  })
+
+  test("falls back to unfiltered under-strokes above the fancy-glow limit", () => {
+    const lineCount = defaultOptions.maxFancyGlowingLines + 1
+    const { container } = renderLines(stateWithSelectedLines(lineCount, { useFancyGlow: true }))
+
+    expect(container.querySelectorAll("#selected-line-highlights line")).toHaveLength(lineCount)
+    expect(container.querySelectorAll("#lines [filter]")).toHaveLength(0)
+  })
+
+  test("omits selection highlights above the manual safety limit", () => {
+    const lineCount = defaultOptions.maxGlowingLines + 1
+    const { container } = renderLines(stateWithSelectedLines(lineCount, { useFancyGlow: false }))
+
+    expect(container.querySelector("#selected-line-highlights")).toBeNull()
+    expect(container.querySelectorAll("#lines > line")).toHaveLength(lineCount)
+  })
+})
 
 describe("Clipboard preview", () => {
   test("renders mirrored clipboard lines at the same absolute positions used by paste", () => {

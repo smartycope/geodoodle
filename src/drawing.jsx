@@ -9,6 +9,7 @@ import {
   getAllIntersections,
   isMobile,
   getAllCursorPoints,
+  shouldUseFancyGlow,
 } from "./utils"
 import { getClipboardButtonStrip, getSelectionButtonStrip } from "./canvasButtonUtils"
 import Line from "./helper/Line"
@@ -129,12 +130,15 @@ export function DebugPoint({
 
 export const GlowEffect = () => {
   const theme = useTheme()
+  const { state } = useContext(StateContext)
 
+  // Defining a filter is cheap; browsers only rasterize it when a line references it.
+  if (!state.useFancyGlow) return null
   return (
     <defs>
       {/* the "filterUnits="userSpaceOnUse" makes it so unsloped lines get rendered */}
-      <filter id="glow" x="-1000%" y="-1000%" width="2000%" height="2000%" filterUnits="userSpaceOnUse">
-        <feGaussianBlur in="SourceGraphic" stdDeviation=".3" result="blur" />
+      <filter id="glow" x="-100%" y="-100%" width="200%" height="200%" filterUnits="userSpaceOnUse">
+        <feGaussianBlur in="SourceGraphic" stdDeviation=".2" result="blur" />
         <feFlood floodColor={theme.palette.primary.glow} floodOpacity="1" result="color" />
         <feComposite in="color" in2="blur" operator="in" result="coloredBlur" />
         <feMerge>
@@ -488,28 +492,98 @@ export const CurrentLines = () => {
 
 export const Lines = () => {
   const { state } = useContext(StateContext)
-  const { lines, scalex, scaley, bounds, boundDragging, cursorPos, partials, genericSelectors, specificSelectors } =
-    state
+  const theme = useTheme()
+  const {
+    lines,
+    scalex,
+    scaley,
+    bounds,
+    boundDragging,
+    useFancyGlow,
+    cursorPos,
+    partials,
+    genericSelectors,
+    specificSelectors,
+  } = state
+  const { glowWidth, glowOpacity } = theme.geodoodle ?? themeDefaults
+  const glowColor = theme.palette.primary.glow ?? themeDefaults.glowColor.light
   // The cursor only affects permanent-line selection while a bound is being
   // dragged. In every other mode, moving it should not rebuild every SVG line.
   const activeBoundCursor = boundDragging && bounds.length === 1 ? cursorPos : null
-  const renderedLines = useMemo(() => {
+  const { selectionUnderlays, renderedLines } = useMemo(() => {
     const renderState = {
       lines,
-      scalex,
-      scaley,
       bounds,
-      boundDragging,
+      scalex,
       cursorPos: activeBoundCursor,
-      partials,
+      scaley,
       genericSelectors,
       specificSelectors,
+      boundDragging,
+      activeBoundCursor,
+      partials,
+      useFancyGlow,
     }
-    return lines.map((line, i) => line.render(renderState, `line-${i}`))
-  }, [lines, scalex, scaley, bounds, boundDragging, activeBoundCursor, partials, genericSelectors, specificSelectors])
+    const boundRect = bounds?.length > 0 ? getBoundRect(renderState) : null
+    if (shouldUseFancyGlow(renderState))
+      return {
+        selectionUnderlays: [],
+        renderedLines: lines.map((line, i) => line.render(renderState, `line-${i}`, {}, true, boundRect)),
+      }
+
+    const selectionUnderlays = []
+    const renderedLines = []
+    let tooManySelectedLines = false
+
+    lines.forEach((line, i) => {
+      if (!tooManySelectedLines && line.isSelected(renderState, boundRect)) {
+        const reachedHighlightLimit = selectionUnderlays.length >= options.maxGlowingLines
+        if (reachedHighlightLimit) {
+          selectionUnderlays.length = 0
+          tooManySelectedLines = true
+        } else
+          selectionUnderlays.push(
+            line.render(
+              renderState,
+              `selected-line-${i}`,
+              {
+                stroke: glowColor,
+                strokeWidth: line.aes.width + glowWidth,
+                strokeOpacity: glowOpacity,
+                strokeLinecap: "round",
+                strokeLinejoin: "round",
+              },
+              false,
+            ),
+          )
+      }
+      renderedLines.push(line.render(renderState, `line-${i}`, {}, false))
+    })
+
+    return { selectionUnderlays, renderedLines }
+  }, [
+    lines,
+    scalex,
+    scaley,
+    bounds,
+    boundDragging,
+    activeBoundCursor,
+    partials,
+    genericSelectors,
+    specificSelectors,
+    glowColor,
+    glowWidth,
+    glowOpacity,
+    useFancyGlow,
+  ])
 
   return (
     <g id="lines" transform={getCanvasTransform(state)}>
+      {selectionUnderlays.length > 0 && (
+        <g id="selected-line-highlights" pointerEvents="none">
+          {selectionUnderlays}
+        </g>
+      )}
       {/* Make all the individual lines visible */}
       {renderedLines}
       {/* Show each line as separate lines, for debugging */}

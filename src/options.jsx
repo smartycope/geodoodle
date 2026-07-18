@@ -1,4 +1,4 @@
-import { viewportWidth, viewportHeight } from "./globals"
+import { isMobile, viewportWidth, viewportHeight } from "./globals"
 
 // TODO: Options/defaultOptions needs a refactor
 const defaultOptions = {
@@ -37,6 +37,9 @@ const defaultOptions = {
   disableSelectionCanvasButtons: false,
   loopCursorAtEdges: false,
   allowCanvasRotation: true,
+  useFancyGlow: true,
+  maxFancyGlowingLines: isMobile() ? 0 : 128,
+  maxGlowingLines: isMobile() ? 300 : 1000,
 }
 export default defaultOptions
 
@@ -232,6 +235,7 @@ export const preservable = [
   "keybindings",
   "loopCursorAtEdges",
   "allowCanvasRotation",
+  "useFancyGlow",
 ]
 
 // These are parts of the state

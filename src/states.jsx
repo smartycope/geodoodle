@@ -133,6 +133,7 @@ export default function getInitialState() {
     disableSelectionCanvasButtons: options.disableSelectionCanvasButtons,
     loopCursorAtEdges: options.loopCursorAtEdges,
     allowCanvasRotation: options.allowCanvasRotation,
+    useFancyGlow: options.useFancyGlow,
     keybindings: Object.fromEntries(
       Object.entries(defaultKeybindings).map(([shortcut, action]) => [shortcut, { ...action }]),
     ),

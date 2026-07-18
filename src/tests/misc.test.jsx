@@ -4,7 +4,7 @@ import defaultOptions, { defaultKeybindings, keybindable, preservable, reversibl
 import * as actions from "../actions"
 import { reversibleActions, saveSettingActions } from "../options"
 import { loadPreservedState, validateStorage } from "../fileUtils"
-import { eventMatchesKeycode, normalizeShortcut, shortcutFromKeyboardEvent } from "../utils"
+import { eventMatchesKeycode, getSelected, normalizeShortcut, shortcutFromKeyboardEvent } from "../utils"
 import { getGestureScaleDelta } from "../events"
 import { extraButtons } from "../globals"
 import reducer from "../reducer"
@@ -101,6 +101,14 @@ test("selection canvas button preference persists for refresh", () => {
   reducer(state, { action: "set_manual_and_save_settings", disableSelectionCanvasButtons: true })
 
   expect(loadPreservedState().disableSelectionCanvasButtons).toBe(true)
+})
+
+test("fancy glow preference persists for refresh", () => {
+  const state = getState()
+
+  reducer(state, { action: "set_manual_and_save_settings", useFancyGlow: false })
+
+  expect(loadPreservedState().useFancyGlow).toBe(false)
 })
 
 test("selection removal preferences persist for refresh", () => {
@@ -238,9 +246,15 @@ test("menu-item hover colors are neutral and independent of the paper color", ()
 test("canvas presentation defaults live on the generated theme", () => {
   const state = getState()
   const theme = generateTheme(state.paperColor, "light", "light")
+  const darkPaperTheme = generateTheme("#000000", "dark", "dark")
 
   expect(state.paperColor).toBe(themeDefaults.paperColor)
   expect(theme.geodoodle).toEqual(themeDefaults)
   expect(theme.palette.primary.mirror).toBe(themeDefaults.mirrorColor)
   expect(theme.palette.primary.glow).toBe(themeDefaults.glowColor.light)
+  expect(darkPaperTheme.palette.primary.glow).toBe(themeDefaults.glowColor.dark)
+})
+
+test("selection helpers tolerate state without a lines collection", () => {
+  expect(getSelected({ ...getState(), lines: undefined })).toEqual([])
 })

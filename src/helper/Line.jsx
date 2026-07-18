@@ -52,9 +52,9 @@ export default class Line {
     return new Line({}, a, b, { ...this.aes, ...aes }, { ...this.props, ...props })
   }
 
-  isSelected(state, boundRect = null) {
+  isSelected(state, boundRect = undefined) {
     // Don't recaclulate the bound rect if we don't have to (just for a slight optimization)
-    const _boundRect = boundRect ?? getBoundRect(state)
+    const _boundRect = boundRect === undefined ? getBoundRect(state) : boundRect
     return (
       // It's in the bound area
       (_boundRect && this.within(_boundRect, state.partials)) ||
@@ -70,8 +70,9 @@ export default class Line {
   }
 
   // Return a React element, optionally adding/overriding props
-  render(state, key = this.hash(), props = {}, enableGlow = true) {
+  render(state, key = this.hash(), props = {}, enableGlow = true, boundRect = undefined) {
     if (!this.valid) return null
+    if (!state.useFancyGlow) enableGlow = false
 
     const { x: x1, y: y1 } = this.a.asSvg(state, false)
     const { x: x2, y: y2 } = this.b.asSvg(state, false)
@@ -93,7 +94,7 @@ export default class Line {
           .join(",")}
         strokeLinecap={this.aes.lineCap}
         strokeLinejoin={this.aes.lineJoin}
-        filter={enableGlow && this.isSelected(state) ? "url(#glow)" : undefined}
+        filter={enableGlow && this.isSelected(state, boundRect) ? "url(#glow)" : undefined}
         {...this.props}
         {...props}
         key={key}

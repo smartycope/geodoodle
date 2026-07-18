@@ -35,7 +35,7 @@ export default memo(function Trellis() {
   // First, calculate all the variables we need
   // A list of Line objects, or null
   const pattern = getSelected(state, "topLeft", true).map((object, index) =>
-    object.render(state, `trellis-pattern-${index}`, debug ? { stroke: "red", strokeWidth: 2 / scalex } : {}, false),
+    object.render(state, `trellis-pattern-${index}`, debug ? { stroke: "red", strokeWidth: 2 / scalex } : {}, false, boundRect),
   )
   const { x: width, y: height } = boundRect.wh.asDeflated(state)
 

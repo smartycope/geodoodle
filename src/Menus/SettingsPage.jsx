@@ -77,6 +77,7 @@ export default function SettingsPage() {
     loopCursorAtEdges,
     defaultScalex,
     allowCanvasRotation,
+    useFancyGlow,
   } = state
 
   return (
@@ -353,6 +354,13 @@ export default function SettingsPage() {
 
         {/* Advanced */}
         <StyledSubheader>Advanced</StyledSubheader>
+        <Setting label="Use Fancy Glow" help="Uses a prettier glow effect, but may reduce performance on large patterns">
+          <Checkbox
+            checked={useFancyGlow}
+            onChange={() => dispatch({ action: "set_manual_and_save_settings", useFancyGlow: !useFancyGlow })}
+          />
+        </Setting>
+
         <Setting label="Toolbar Opacity" help="Controls the opacity of the toolbar">
           <Slider
             onChange={(e, val) =>

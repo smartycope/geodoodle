@@ -1,6 +1,7 @@
 import { viewportWidth, viewportHeight, MIRROR_AXIS } from "./globals"
 import Point from "./helper/Point"
 import Rect from "./helper/Rect"
+import defaultOptions from "./options"
 
 // TODO: several of these functions are not used anymore and should be removed
 
@@ -38,6 +39,8 @@ export function getAllCursorPoints(state, includeOriginal = true, useMousePos = 
 // If retranslated is 'topLeft', the lines will be retranslated to be relative to the top left of the selection
 // If retranslated is falsey, the lines will be returned as they are
 export function getSelected(state, retranslated, polygons = false) {
+  // Not sure how lines gets undefined (that's a problem for later), but whatever
+  if (!state.lines?.length) return []
   const boundRect = getBoundRect(state)
   const selectedLines = state.lines.filter((obj) => obj.isSelected(state, boundRect))
   let selected = selectedLines
@@ -161,18 +164,7 @@ export function invertObject(obj) {
 // updated once at the beginning (on refresh), and isMobile() is always accurate. Because users typically aren't changing
 // the device they're on, default to using state.mobile (simply because you don't have to re-calculate it) unless you to
 // have an updated value for some reason
-export function isMobile() {
-  // If *either* dimension is small (in case the phone is sideways)
-  const smallDim = 768
-  const smallWidth = window.innerWidth <= smallDim
-  const smallHeight = window.innerHeight <= smallDim
-  // const phoneRatio = Math.abs(window.innerWidth - window.innerHeight) > Math.min(window.innerWidth, window.innerHeight) / 2
-  const phoneRatio =
-    Math.min(window.innerWidth, window.innerHeight) / Math.max(window.innerWidth, window.innerHeight) < 0.6
-  // If the aspect ratio seems to indicate a phone, check if either dimension is small
-  // Otherwise, both of them need to be small
-  return phoneRatio ? smallWidth || smallHeight : smallWidth && smallHeight
-}
+export { isMobile } from "./globals"
 
 export function distCenter(x1, y1, x2, y2) {
   return {
@@ -354,3 +346,8 @@ export function getAllIntersections(lines) {
 // export function getLinesAssociatedWithIntersection(state, intersection) {
 //   return state.lines.filter((line) => line.findIntersections(state.lines).includes(intersection))
 // }
+
+export function shouldUseFancyGlow(state) {
+  const { useFancyGlow } = state
+  return useFancyGlow && getSelected(state).length <= defaultOptions.maxFancyGlowingLines
+}
