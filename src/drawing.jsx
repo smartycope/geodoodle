@@ -40,6 +40,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import ContentCutIcon from "@mui/icons-material/ContentCut"
 import CancelPresentationIcon from "@mui/icons-material/CancelPresentation"
 import CancelPresentationTwoToneIcon from "@mui/icons-material/CancelPresentationTwoTone"
+import RuleIcon from '@mui/icons-material/Rule'
 import useMediaQuery from "@mui/material/useMediaQuery"
 import { themeDefaults } from "./styling/theme"
 import { getCanvasRotationTransform, getCanvasTransform, rotateCoordinates } from "./transformUtils"
@@ -360,8 +361,10 @@ export const SelectionOptionButtons = () => {
   const icons = [
     <ContentCopyIcon key="copy" />,
     <ContentCutIcon key="cut" />,
-    <CancelPresentationTwoToneIcon key="delete-selected" />,
-    <CancelPresentationIcon key="delete-unselected" />,
+    // <CancelPresentationTwoToneIcon key="delete-selected" />,
+    // <CancelPresentationIcon key="delete-unselected" />,
+    // I don't *love* the rule icon, but it's the best I could find for toggle partials
+    <RuleIcon key="toggle-partials" />,
     <ClearIcon key="clear-bounds" />,
   ]
   return <CanvasButtonStrip state={state} strip={strip} icons={icons} />

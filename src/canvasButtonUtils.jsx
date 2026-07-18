@@ -14,8 +14,9 @@ export const clipboardTransformButtons = [
 export const selectionOptionButtons = [
   { action: "copy", label: "Copy selection" },
   { action: "cut", label: "Cut selection" },
-  { action: "delete_selected", label: "Delete selected lines" },
-  { action: "delete_unselected", label: "Delete unselected lines" },
+  // { action: "delete_selected", label: "Delete selected lines" },
+  // { action: "delete_unselected", label: "Delete unselected lines" },
+  { action: "toggle_partials", label: "Toggle partials" },
   { action: "clear_bounds", label: "Clear bounds" },
 ]
 
