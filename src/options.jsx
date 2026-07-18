@@ -147,6 +147,7 @@ export const reversibleActions = [
   "clear_mirror_origins",
   "add_specific_selector",
   "add_generic_selector",
+  "paint_selected",
 ]
 
 // These are actions
@@ -172,6 +173,7 @@ export const saveSettingActions = [
   "set_stroke_width",
   "set_dash",
   "set_color",
+  "paint_selected",
   "randomize_colors",
   "set_manual_and_save_settings",
   "set_canvas_rotation_allowed",

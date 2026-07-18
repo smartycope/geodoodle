@@ -11,7 +11,7 @@ import MiniMenu from "./MiniMenu"
 import Typography from "@mui/material/Typography"
 
 import { StateContext } from "../Contexts"
-import { getShowableStroke } from "../utils"
+import { getSelected, getShowableStroke } from "../utils"
 import useMediaQuery from "@mui/material/useMediaQuery"
 import { useTheme } from "@mui/material/styles"
 import FormControlLabel from "@mui/material/FormControlLabel"
@@ -30,6 +30,7 @@ export default function ColorMenu() {
     state
   const colors = fillMode ? fill : stroke
   const compact = mobile || shortViewport
+  const hasSelection = getSelected(state).length > 0
 
   return (
     <MiniMenu menu="color">
@@ -142,36 +143,46 @@ export default function ColorMenu() {
         </Box>
 
         {!fillMode && (
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: "auto minmax(7rem, 1fr)",
-              alignItems: "end",
-              gap: 1,
-              pt: 0.25,
-            }}
-          >
-            <Number
-              compact
-              id="stroke-input"
-              label="Width"
-              min={1}
-              step={1}
-              largeStep={5}
-              snapOnStep
-              allowWheelScrub
-              value={strokeWidth[colorProfile] * 100}
-              onValueChange={(val) => dispatch({ action: "set_stroke_width", strokeWidth: val / 100 })}
-            />
-            <TextField
-              id="dash-input"
+          <Stack spacing={0.75} sx={{ pt: 0.25 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "auto minmax(7rem, 1fr)",
+                alignItems: "end",
+                gap: 1,
+              }}
+            >
+              <Number
+                compact
+                id="stroke-input"
+                label="Width"
+                min={1}
+                step={1}
+                largeStep={5}
+                snapOnStep
+                allowWheelScrub
+                value={strokeWidth[colorProfile] * 100}
+                onValueChange={(val) => dispatch({ action: "set_stroke_width", strokeWidth: val / 100 })}
+              />
+              <TextField
+                id="dash-input"
+                size="small"
+                label="Dash"
+                value={dash[colorProfile]}
+                onChange={(e) => dispatch({ action: "set_dash", dash: e.target.value })}
+                sx={{ "& .MuiInputBase-root": { height: 32 } }}
+              />
+            </Box>
+            <Button
+              id="color-menu-paint-selection-button"
               size="small"
-              label="Dash"
-              value={dash[colorProfile]}
-              onChange={(e) => dispatch({ action: "set_dash", dash: e.target.value })}
-              sx={{ "& .MuiInputBase-root": { height: 32 } }}
-            />
-          </Box>
+              disabled={!hasSelection}
+              onClick={() => dispatch("paint_selected")}
+              sx={{ alignSelf: "flex-start", px: 1.25, textTransform: "none" }}
+            >
+              Paint selection
+            </Button>
+          </Stack>
         )}
 
         <Divider />

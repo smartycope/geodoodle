@@ -492,6 +492,22 @@ export const set_dash = (state, { dash }) => {
   return { dash: copy }
 }
 
+export const paint_selected = (state) => {
+  const selected = new Set(getSelected(state))
+  if (!selected.size) return {}
+
+  const { colorProfile, stroke, strokeWidth, dash, lineCap, lineJoin } = state
+  const aes = {
+    stroke: stroke[colorProfile],
+    width: strokeWidth[colorProfile],
+    dash: dash[colorProfile],
+    lineCap,
+    lineJoin,
+  }
+
+  return { lines: state.lines.map((line) => (selected.has(line) ? line.copy(undefined, undefined, aes) : line)) }
+}
+
 export const set_paper_color = (state, { color }) => ({ paperColor: color })
 
 // Fill actions

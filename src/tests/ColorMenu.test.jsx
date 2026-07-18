@@ -3,6 +3,8 @@ import { afterEach, describe, expect, test, vi } from "vitest"
 import ColorMenu from "../Menus/ColorMenu"
 import { StateContext } from "../Contexts"
 import { getState } from "./testUtils"
+import Line from "../helper/Line"
+import Point from "../helper/Point"
 
 vi.mock("react-color-palette", () => ({
   ColorPicker: ({ hideInput }) => <div data-testid="color-picker" data-hidden-inputs={hideInput.join(",")} />,
@@ -79,5 +81,22 @@ describe("Color Menu", () => {
     expect(dispatch).toHaveBeenCalledWith({ colorProfile: 2 })
     expect(dispatch).toHaveBeenCalledWith("toggle_fill_mode")
     expect(dispatch).toHaveBeenCalledWith({ action: "menu", close: "color" })
+  })
+
+  test("only enables Paint selection when lines are selected", () => {
+    const { unmount } = renderColorMenu()
+    const paint = screen.getByRole("button", { name: "Paint selection" })
+
+    expect(paint.disabled).toBe(true)
+    unmount()
+
+    const start = new Point(0, 0)
+    const end = new Point(1, 1)
+    const { dispatch } = renderColorMenu({ lines: [new Line(getState(), start, end)], bounds: [start, end] })
+    const enabledPaint = screen.getByRole("button", { name: "Paint selection" })
+    expect(enabledPaint.disabled).toBe(false)
+    fireEvent.click(enabledPaint)
+
+    expect(dispatch).toHaveBeenCalledWith("paint_selected")
   })
 })

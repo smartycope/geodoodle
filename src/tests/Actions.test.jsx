@@ -6,6 +6,7 @@ import {
   toggle_fill_mode,
   randomize_color,
   set_color_profile_index,
+  paint_selected,
   translate,
   scale,
   rotate,
@@ -821,6 +822,41 @@ describe("Color Actions", () => {
     expect(result).toEqual({ colorProfile: index })
     expect(state.stroke).toHaveLength(defaultOptions.commonColorAmt)
     expect(state.fill).toHaveLength(defaultOptions.commonColorAmt)
+  })
+
+  test("paints selected lines with the active line aesthetics", () => {
+    const state = getState()
+    const selected = new Line(state, new Point(0, 0), new Point(10, 10), {
+      stroke: "#111111",
+      width: 0.1,
+      dash: "1, 2",
+      lineCap: "butt",
+      lineJoin: "miter",
+    })
+    const unselected = new Line(state, new Point(20, 20), new Point(30, 30), { stroke: "#222222" })
+    const selectedState = {
+      ...state,
+      colorProfile: 1,
+      stroke: ["#000000", "#abcdef"],
+      strokeWidth: [0.05, 0.25],
+      dash: ["0", "4, 8"],
+      lineCap: "round",
+      lineJoin: "bevel",
+      bounds: [new Point(0, 0), new Point(15, 15)],
+      lines: [selected, unselected],
+    }
+
+    const result = paint_selected(selectedState)
+
+    expect(result.lines[0]).not.toBe(selected)
+    expect(result.lines[0].aes).toEqual({
+      stroke: "#abcdef",
+      width: 0.25,
+      dash: "4, 8",
+      lineCap: "round",
+      lineJoin: "bevel",
+    })
+    expect(result.lines[1]).toBe(unselected)
   })
 
   test("ignores an out-of-range color profile", () => {
