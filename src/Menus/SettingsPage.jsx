@@ -461,12 +461,13 @@ export default function SettingsPage() {
             onChange={() => dispatch({ action: "set_manual_and_save_settings", useHSVColorPicker: !useHSVColorPicker })}
           />
         </Setting>
-        <Setting label="Dots above artwork" help="Display the dot grid above the complete layer stack instead of below it">
+        <Setting
+          label="Dots above artwork"
+          help="Display the dot grid above the complete layer stack instead of below it"
+        >
           <Checkbox
             checked={dotsAboveArtwork}
-            onChange={() =>
-              dispatch({ action: "set_manual_and_save_settings", dotsAboveArtwork: !dotsAboveArtwork })
-            }
+            onChange={() => dispatch({ action: "set_manual_and_save_settings", dotsAboveArtwork: !dotsAboveArtwork })}
           />
         </Setting>
         <Setting label="Max Undo Amount" help="Controls how many consecutive undos you can do at once">

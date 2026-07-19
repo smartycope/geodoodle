@@ -379,9 +379,7 @@ function FlipMenu() {
             vertical
             buttonGroupSx={sharedButtonGroupProps(theme)}
             value={col.val}
-            onChange={(newValue) =>
-              updateDraft(dispatch, "flip", { col: { every: col.every, val: newValue }, row })
-            }
+            onChange={(newValue) => updateDraft(dispatch, "flip", { col: { every: col.every, val: newValue }, row })}
           />
         </Box>
       }
@@ -392,9 +390,7 @@ function FlipMenu() {
             buttonGroupSx={sharedButtonGroupProps(theme)}
             labelInline
             value={row.val}
-            onChange={(newValue) =>
-              updateDraft(dispatch, "flip", { row: { every: row.every, val: newValue }, col })
-            }
+            onChange={(newValue) => updateDraft(dispatch, "flip", { row: { every: row.every, val: newValue }, col })}
           />
         </Box>
       }
@@ -430,9 +426,7 @@ function RotateMenu() {
             vertical
             buttonGroupSx={sharedButtonGroupProps(theme)}
             value={col.val}
-            onChange={(newValue) =>
-              updateDraft(dispatch, "rotate", { col: { every: col.every, val: newValue }, row })
-            }
+            onChange={(newValue) => updateDraft(dispatch, "rotate", { col: { every: col.every, val: newValue }, row })}
           />
         </Box>
       }
@@ -444,9 +438,7 @@ function RotateMenu() {
             buttonGroupSx={sharedButtonGroupProps(theme)}
             labelInline
             value={row.val}
-            onChange={(newValue) =>
-              updateDraft(dispatch, "rotate", { row: { every: row.every, val: newValue }, col })
-            }
+            onChange={(newValue) => updateDraft(dispatch, "rotate", { row: { every: row.every, val: newValue }, col })}
           />
         </Box>
       }

@@ -2,15 +2,7 @@ import { useContext, useEffect, useMemo, useState } from "react"
 import { DragDropProvider } from "@dnd-kit/react"
 import { useSortable } from "@dnd-kit/react/sortable"
 import { move } from "@dnd-kit/helpers"
-import {
-  Box,
-  IconButton,
-  Paper,
-  Stack,
-  TextField,
-  Tooltip,
-  Typography,
-} from "@mui/material"
+import { Box, IconButton, Paper, Stack, TextField, Tooltip, Typography } from "@mui/material"
 import AddIcon from "@mui/icons-material/Add"
 import CloseIcon from "@mui/icons-material/Close"
 import DeleteIcon from "@mui/icons-material/Delete"
@@ -197,7 +189,12 @@ export default function LayersPanel() {
         bgcolor: (theme) => theme.alpha(theme.palette.background.paper, state.toolbarOpacity),
       }}
     >
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1, bgcolor: (theme) => theme.palette.background.paper, p: 1, borderRadius: 2 }}>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ mb: 1, bgcolor: (theme) => theme.palette.background.paper, p: 1, borderRadius: 2 }}
+      >
         <Typography variant="h6">Layers</Typography>
         <Stack direction="row">
           <Tooltip title="Add layer">

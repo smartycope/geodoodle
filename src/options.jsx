@@ -207,12 +207,7 @@ export const saveSettingActions = [
 
 // These are parts of the state
 // When undoing an action, only these parts of the state get undone
-export const reversible = [
-  "layers",
-  "activeLayerId",
-  "curLinePos",
-  "clipboard",
-]
+export const reversible = ["layers", "activeLayerId", "curLinePos", "clipboard"]
 
 // These are parts of the state
 // Only preserve these parts of the state across loads (*not* when saving to a file)
@@ -262,11 +257,4 @@ export const preservable = [
 // These are parts of the state
 // The parts of the state that get serialized to the svg file
 // Think: what does the user want to share with someone else?
-export const saveable = [
-  "layers",
-  "activeLayerId",
-  "translation",
-  "scalex",
-  "scaley",
-  "rotate",
-]
+export const saveable = ["layers", "activeLayerId", "translation", "scalex", "scaley", "rotate"]

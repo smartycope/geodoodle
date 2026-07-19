@@ -602,9 +602,10 @@ export const Lines = ({
     }
     const boundRect = bounds?.length > 0 ? getBoundRect(renderState) : null
     const trellisState = { trellis, openMenus: { repeat: openMenus.repeat }, bounds }
-    let renderedLineIndices = typeof trellis === "boolean" && trellisOwnsSource(trellisState, boundRect)
-      ? visibleLineIndices.filter((lineIndex) => !lines[lineIndex].isSelected(renderState, boundRect))
-      : visibleLineIndices
+    let renderedLineIndices =
+      typeof trellis === "boolean" && trellisOwnsSource(trellisState, boundRect)
+        ? visibleLineIndices.filter((lineIndex) => !lines[lineIndex].isSelected(renderState, boundRect))
+        : visibleLineIndices
     const deletingAreaState = deletingSelection ? { ...renderState, genericSelectors: [], specificSelectors: [] } : null
     const deletingBoundRect = deletingAreaState ? getBoundRect(deletingAreaState) : null
     const selectorState = deletingSelection
@@ -812,9 +813,10 @@ export const Polygons = ({ layerState, id = "filled-polys", transformed = true, 
   const renderedPolys = useMemo(() => {
     const trellisState = { trellis, openMenus: { repeat: openMenus.repeat }, bounds }
     const boundRect = bounds.length > 1 ? getBoundRect(trellisState) : null
-    const legacyPolys = typeof trellis === "boolean" && trellisOwnsSource(trellisState, boundRect)
-      ? filledPolys.filter((poly) => !poly.isSelected({ partials }, boundRect))
-      : filledPolys
+    const legacyPolys =
+      typeof trellis === "boolean" && trellisOwnsSource(trellisState, boundRect)
+        ? filledPolys.filter((poly) => !poly.isSelected({ partials }, boundRect))
+        : filledPolys
     const suppressed = new Set(suppressedIndices)
     return legacyPolys
       .filter((_, index) => !suppressed.has(index))

@@ -62,7 +62,9 @@ function DeleteMenu() {
       </MenuItem>
       <MenuItem
         onClick={() =>
-          state.debug || window.confirm("Delete the entire document and all of its layers?") ? dispatch("clear") : undefined
+          state.debug || window.confirm("Delete the entire document and all of its layers?")
+            ? dispatch("clear")
+            : undefined
         }
       >
         <ListItemIcon>

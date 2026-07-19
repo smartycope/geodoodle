@@ -9,8 +9,7 @@ import Line from "../helper/Line"
 import Point from "../helper/Point"
 import Dist from "../helper/Dist"
 
-const makeLine = (state, offset = 0) =>
-  new Line(state, new Point(offset, offset), new Point(offset + 2, offset + 1))
+const makeLine = (state, offset = 0) => new Line(state, new Point(offset, offset), new Point(offset + 2, offset + 1))
 
 function renderPanel(overrides = {}) {
   const initial = getInitialState()
@@ -21,7 +20,13 @@ function renderPanel(overrides = {}) {
     lines: [makeLine(initial)],
   })
   const top = new Layer({ id: "layer-2", name: "Top", trellis })
-  const state = { ...initial, layers: [bottom, top], activeLayerId: top.id, openMenus: { ...initial.openMenus, layers: true }, ...overrides }
+  const state = {
+    ...initial,
+    layers: [bottom, top],
+    activeLayerId: top.id,
+    openMenus: { ...initial.openMenus, layers: true },
+    ...overrides,
+  }
   const dispatch = vi.fn()
   const rendered = render(
     <StateContext.Provider value={{ state, dispatch }}>

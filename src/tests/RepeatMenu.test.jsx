@@ -139,9 +139,7 @@ describe("Repeat Menu", () => {
     const state = menuState()
 
     render(
-      <StateContext.Provider
-        value={{ state, dispatch: vi.fn() }}
-      >
+      <StateContext.Provider value={{ state, dispatch: vi.fn() }}>
         <RepeatMenu />
       </StateContext.Provider>,
     )

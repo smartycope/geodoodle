@@ -5,11 +5,7 @@ import Poly from "./Poly"
 import Rect from "./Rect"
 import { MIRROR_AXIS, MIRROR_ROT } from "../globals"
 import { defaultTrellisControl, getBoundRect, getSelected } from "../utils"
-import {
-  buildVisibleTrellisTiles,
-  createTrellisTileDescriptor,
-  transformAffinePoint,
-} from "../trellisUtils"
+import { buildVisibleTrellisTiles, createTrellisTileDescriptor, transformAffinePoint } from "../trellisUtils"
 
 const cloneControl = (control, fallback) => ({
   row: { every: control?.row?.every ?? 1, val: control?.row?.val ?? fallback },
@@ -124,7 +120,11 @@ export default class Trellis {
     return {
       lines: this.lines.map((line) => line.copy(transformPoint(matrix, line.a), transformPoint(matrix, line.b))),
       filledPolys: this.filledPolys.map(
-        (poly) => new Poly(poly.points.map((point) => transformPoint(matrix, point)), poly.color),
+        (poly) =>
+          new Poly(
+            poly.points.map((point) => transformPoint(matrix, point)),
+            poly.color,
+          ),
       ),
     }
   }

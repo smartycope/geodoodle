@@ -34,8 +34,7 @@ export function getSelected(state, retranslated, polygons = false) {
   const boundRect = getBoundRect(state)
   const selectedLines = lines.filter((obj) => obj.isSelected(state, boundRect))
   let selected = selectedLines
-  if (polygons && boundRect)
-    selected = selected.concat(filledPolys.filter((obj) => obj.isSelected(state, boundRect)))
+  if (polygons && boundRect) selected = selected.concat(filledPolys.filter((obj) => obj.isSelected(state, boundRect)))
 
   if (!selected.length || !retranslated) return selected
 

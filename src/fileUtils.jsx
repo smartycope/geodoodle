@@ -43,9 +43,7 @@ export function resolveExportRect(state, selectedOnly = false, requestedRect = n
 
   const visibleLayers = visualLayers(state).filter((layer) => layer.visible)
   if (visibleLayers.some((layer) => layer.trellis)) return viewportCanvasRect(state)
-  const points = visibleLayers.flatMap((layer) =>
-    [...layer.lines, ...layer.filledPolys].flatMap(objectPoints),
-  )
+  const points = visibleLayers.flatMap((layer) => [...layer.lines, ...layer.filledPolys].flatMap(objectPoints))
   return points.length ? Rect.fromPoints(...points) : new Rect(Point.svgOrigin(), new Point(1, 1), false)
 }
 
@@ -67,7 +65,12 @@ function renderExportLayer({ layer, state, rect, maxGroups, maxCandidates }) {
       {layer.trellis && (
         <g id={`trellis-${layer.id}`}>
           {tiles.map((tile) => (
-            <g key={`${tile.row}:${tile.column}`} data-row={tile.row} data-column={tile.column} transform={tile.transform}>
+            <g
+              key={`${tile.row}:${tile.column}`}
+              data-row={tile.row}
+              data-column={tile.column}
+              transform={tile.transform}
+            >
               {layer.trellis.filledPolys.map((poly, index) =>
                 poly.render(layerState, `${layer.id}-trellis-poly-${index}`),
               )}
@@ -114,10 +117,7 @@ export function serializePattern(state, selectedOnly = false, requestedRect = nu
       filledPolys: selection.filter((object) => object instanceof Poly),
     })
     artwork = renderExportLayer({ layer, state, rect, maxGroups, maxCandidates })
-  } else
-    artwork = visibleLayers.map((layer) =>
-      renderExportLayer({ layer, state, rect, maxGroups, maxCandidates }),
-    )
+  } else artwork = visibleLayers.map((layer) => renderExportLayer({ layer, state, rect, maxGroups, maxCandidates }))
 
   return (
     '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' +
@@ -267,9 +267,7 @@ export function serializeState(state) {
   if (state.layers) {
     const activeLayer = state.layers.find((layer) => layer.id === state.activeLayerId)
     const layerPatch = Object.fromEntries(
-      layerOwnedKeys
-        .filter((key) => Object.prototype.hasOwnProperty.call(state, key))
-        .map((key) => [key, state[key]]),
+      layerOwnedKeys.filter((key) => Object.prototype.hasOwnProperty.call(state, key)).map((key) => [key, state[key]]),
     )
     documentState = {
       ...state,

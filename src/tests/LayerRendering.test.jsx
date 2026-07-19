@@ -15,8 +15,7 @@ describe("layer artwork compositing", () => {
   test("stacks visible layers bottom-to-top and shares Trellis safety budgets", () => {
     const state = getInitialState()
     const source = new Line(state, new Point(0, 0), new Point(2, 1))
-    const makeTrellis = (origin) =>
-      new Trellis({ sourceOrigin: origin, sourceSize: new Dist(4, 4), lines: [source] })
+    const makeTrellis = (origin) => new Trellis({ sourceOrigin: origin, sourceSize: new Dist(4, 4), lines: [source] })
     const bottom = state.layers[0].copy({ name: "Bottom", trellis: makeTrellis(new Point(0, 0)) })
     const top = new Layer({ id: "layer-2", name: "Top", trellis: makeTrellis(new Point(8, 8)) })
     const hidden = new Layer({ id: "layer-3", name: "Hidden", visible: false, lines: [source] })

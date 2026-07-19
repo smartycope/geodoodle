@@ -11,8 +11,7 @@ import { getLayerState } from "../layerUtils"
 import { deserializeState, serializeState } from "../fileUtils"
 import { redoStack, undoStack } from "../globals"
 
-const line = (state, ax = 1, ay = 1, bx = 3, by = 1) =>
-  new Line(state, new Point(ax, ay), new Point(bx, by))
+const line = (state, ax = 1, ay = 1, bx = 3, by = 1) => new Line(state, new Point(ax, ay), new Point(bx, by))
 
 function selectedState() {
   const state = getInitialState()

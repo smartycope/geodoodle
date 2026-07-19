@@ -42,13 +42,7 @@ import * as turf from "@turf/turf"
 import Color from "colorjs.io"
 import { normalizeAngle } from "./transformUtils"
 import Trellis from "./helper/Trellis"
-import {
-  createLayer,
-  getActiveLayer,
-  nextLayerNumber,
-  updateActiveLayer,
-  updateLayer,
-} from "./layerUtils"
+import { createLayer, getActiveLayer, nextLayerNumber, updateActiveLayer, updateLayer } from "./layerUtils"
 
 function positionCursorAtEdges(state, point, edgePoint = point) {
   const width = viewportWidth()
@@ -318,7 +312,10 @@ const nearestVisibleLayer = (layers, index) => {
 export const add_layer = (state) => {
   const number = nextLayerNumber(state.layers)
   const layer = createLayer(number)
-  const activeIndex = Math.max(0, state.layers.findIndex((item) => item.id === state.activeLayerId))
+  const activeIndex = Math.max(
+    0,
+    state.layers.findIndex((item) => item.id === state.activeLayerId),
+  )
   const layers = [...state.layers]
   layers.splice(activeIndex + 1, 0, layer)
   return { layers, activeLayerId: layer.id, ...cancelledLayerInteraction }
@@ -356,7 +353,9 @@ export const delete_layer = (state, { layerId = state.activeLayerId }) => {
 
   const layers = state.layers.filter((layer) => layer.id !== layerId)
   if (state.activeLayerId !== layerId) return { layers }
-  const next = nearestVisibleLayer(layers, Math.min(targetIndex, layers.length - 1)) ?? layers[Math.min(targetIndex, layers.length - 1)]
+  const next =
+    nearestVisibleLayer(layers, Math.min(targetIndex, layers.length - 1)) ??
+    layers[Math.min(targetIndex, layers.length - 1)]
   return { layers, activeLayerId: next.id, ...cancelledLayerInteraction }
 }
 
@@ -780,9 +779,10 @@ export const delete_local = (state, { name }) => deleteLocally(name)
 
 export const copy_image = (state) => {
   const selection = getSelected(state, false, true)
-  const hasVisibleArtwork = state.layers.some(
-    (layer) => layer.visible && (layer.lines.length || layer.filledPolys.length || layer.trellis),
-  ) || state.lines.length || state.filledPolys.length
+  const hasVisibleArtwork =
+    state.layers.some((layer) => layer.visible && (layer.lines.length || layer.filledPolys.length || layer.trellis)) ||
+    state.lines.length ||
+    state.filledPolys.length
   if (!selection.length && !hasVisibleArtwork) return
   const rect = resolveExportRect(state, selection.length > 0)
 

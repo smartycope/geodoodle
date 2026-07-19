@@ -25,13 +25,13 @@ export default memo(function Trellis({
     if (suppliedTrellis instanceof TrellisModel) return suppliedTrellis
     if (state.trellis instanceof TrellisModel) return state.trellis
     // Legacy tests/files may still supply the old boolean/control shape.
-    if ((state.trellis || state.openMenus?.repeat) && state.bounds?.length > 1) return TrellisModel.fromSelection(state, state)
+    if ((state.trellis || state.openMenus?.repeat) && state.bounds?.length > 1)
+      return TrellisModel.fromSelection(state, state)
     return null
   }, [suppliedTrellis, state])
 
   const result = useMemo(() => {
-    if (!trellis?.valid)
-      return { tiles: [], warning: legacyRequested ? TRELLIS_SIZE_WARNING : null }
+    if (!trellis?.valid) return { tiles: [], warning: legacyRequested ? TRELLIS_SIZE_WARNING : null }
     return trellis.visibleTiles(state, viewportSize.width, viewportSize.height, { maxGroups, maxCandidates })
   }, [trellis, legacyRequested, state, viewportSize.width, viewportSize.height, maxGroups, maxCandidates])
 
