@@ -63,8 +63,7 @@ export function onMouseMove(state, dispatch, e) {
   }
 
   if (getCanvasButtonAt(state, e.clientX, e.clientY)) return
-  if ((e.buttons & 1) === 1 && !dragging && !fillMode && leftDragStart)
-    dragging = !leftDragStart.eq(aligned)
+  if ((e.buttons & 1) === 1 && !dragging && !fillMode && leftDragStart) dragging = !leftDragStart.eq(aligned)
   dispatch({
     action: "cursor_moved",
     point,
@@ -230,8 +229,7 @@ export function onKeyDown(state, dispatch, e) {
 
   // If it's just a modifier key, don't do anything (it'll falsely trigger things)
   if (e.key === "Shift") {
-    if (state.bounds.length === 1)
-      dispatch({ deletingSelection: !state.deletingSelection })
+    if (state.bounds.length === 1) dispatch({ deletingSelection: !state.deletingSelection })
     return
   }
   if (["Meta", "Control", "Alt"].includes(e.key)) return

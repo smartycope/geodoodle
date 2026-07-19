@@ -65,9 +65,7 @@ export default function SelectMenu() {
           </MenuItem>
 
           <MenuItem onClick={() => dispatch("toggle_partials")} id="partials-picker">
-            <ListItemIcon>
-              {state.partials ? <CheckBoxIcon /> : <CheckBoxOutlineBlankIcon />}
-            </ListItemIcon>
+            <ListItemIcon>{state.partials ? <CheckBoxIcon /> : <CheckBoxOutlineBlankIcon />}</ListItemIcon>
             Partials
             <ShortcutHint action="toggle_partials" />
           </MenuItem>

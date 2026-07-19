@@ -177,9 +177,7 @@ export const GlowEffect = () => {
   return (
     <defs>
       <GlowFilter id="glow" color={glowColor} />
-      {state.deletingSelection && (
-        <GlowFilter id="deleting-glow" color={deletingSelectionTheme.glowColor} />
-      )}
+      {state.deletingSelection && <GlowFilter id="deleting-glow" color={deletingSelectionTheme.glowColor} />}
     </defs>
   )
 }
@@ -589,9 +587,7 @@ export const Lines = () => {
     const renderedLineIndices = trellisOwnsSource(trellisState, boundRect)
       ? visibleLineIndices.filter((lineIndex) => !lines[lineIndex].isSelected(renderState, boundRect))
       : visibleLineIndices
-    const deletingAreaState = deletingSelection
-      ? { ...renderState, genericSelectors: [], specificSelectors: [] }
-      : null
+    const deletingAreaState = deletingSelection ? { ...renderState, genericSelectors: [], specificSelectors: [] } : null
     const deletingBoundRect = deletingAreaState ? getBoundRect(deletingAreaState) : null
     const selectorState = deletingSelection
       ? { ...renderState, bounds: [], boundDragging: false, cursorPos: null, activeBoundCursor: null }
@@ -602,8 +598,7 @@ export const Lines = () => {
       if (line.isSelected(deletingAreaState, deletingBoundRect)) return "deleting"
       return line.isSelected(selectorState, null) ? "selected" : null
     })
-    const fancyGlow =
-      useFancyGlow && highlightTypes.filter(Boolean).length <= options.maxFancyGlowingLines
+    const fancyGlow = useFancyGlow && highlightTypes.filter(Boolean).length <= options.maxFancyGlowingLines
 
     if (fancyGlow)
       return {

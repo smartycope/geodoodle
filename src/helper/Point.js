@@ -161,8 +161,7 @@ export default class Point extends Pair {
     const { mirrorAxis, mirrorRot, mirrorType, curLinePos, cursorPos } = state
     const origin = mirrorType === MIRROR_TYPE.PAGE ? getHalf(state) : curLinePos || cursorPos
     let base = this.mirrorRaw(mirrorAxis, mirrorRot, origin)
-    for (const mo of state.mirrorOrigins)
-      base = base.flatMap((point) => point.mirrorRaw(mo.axis, mo.rot, mo.origin))
+    for (const mo of state.mirrorOrigins) base = base.flatMap((point) => point.mirrorRaw(mo.axis, mo.rot, mo.origin))
     return base
   }
 

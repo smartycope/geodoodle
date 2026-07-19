@@ -97,9 +97,7 @@ const ToolButton = forwardRef(function ToolButton({ menu, onClick, inExtraMenu, 
   const { state, dispatch } = useContext(StateContext)
   const tooltip = tooltipMap(state.mobile)[menu] || menu.charAt(0).toUpperCase() + menu.slice(1)
   const isMenuOpen = Boolean(state.openMenus[menu]) && menu !== "main"
-  const activeBackground = state.mobile
-    ? theme.alpha(theme.palette.primary.main, 0.22)
-    : theme.palette.action.selected
+  const activeBackground = state.mobile ? theme.alpha(theme.palette.primary.main, 0.22) : theme.palette.action.selected
 
   const btn = (
     <IconButton

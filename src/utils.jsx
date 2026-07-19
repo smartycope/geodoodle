@@ -4,7 +4,6 @@ import Point from "./helper/Point"
 import Rect from "./helper/Rect"
 import defaultOptions from "./options"
 
-
 // Get all the lines for the clipboard, including mirroring and transformation of the clipboard
 export function getAllClipboardLines(state) {
   const { clipboard, cursorPos, clipboardMirrorAxis, clipboardRotation } = state

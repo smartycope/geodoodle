@@ -16,17 +16,7 @@ import { viewportHeight, viewportWidth } from "../globals"
 export default function NavMenu() {
   const { state, dispatch } = useContext(StateContext)
 
-  const {
-    scalex,
-    scaley,
-    defaultScalex,
-    defaultScaley,
-    translation,
-    rotate,
-    allowCanvasRotation,
-    mobile,
-    side,
-  } = state
+  const { scalex, scaley, defaultScalex, defaultScaley, translation, rotate, allowCanvasRotation, mobile, side } = state
   const { x: translationx, y: translationy } = translation.asDeflated(state)
   const half = getHalf(state)
   const rotationCenter = Point.fromViewport(state, viewportWidth() / 2, viewportHeight() / 2)
@@ -78,9 +68,7 @@ export default function NavMenu() {
             onValueChange={(val) =>
               dispatch({ action: "translate", amt: Dist.fromDeflated(state, translationx - val, 0) })
             }
-            onReset={() =>
-              dispatch({ action: "translate", amt: Dist.fromDeflated(state, -translationx, 0) })
-            }
+            onReset={() => dispatch({ action: "translate", amt: Dist.fromDeflated(state, -translationx, 0) })}
             resetTitle="Reset Position x"
           />
         </Grid>
@@ -119,9 +107,7 @@ export default function NavMenu() {
             onValueChange={(val) =>
               dispatch({ action: "translate", amt: Dist.fromDeflated(state, 0, translationy - val) })
             }
-            onReset={() =>
-              dispatch({ action: "translate", amt: Dist.fromDeflated(state, 0, -translationy) })
-            }
+            onReset={() => dispatch({ action: "translate", amt: Dist.fromDeflated(state, 0, -translationy) })}
             resetTitle="Reset Position y"
           />
         </Grid>

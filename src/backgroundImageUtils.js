@@ -15,7 +15,10 @@ export function averageImageColor(data) {
   }
 
   if (!weight) return "#ffffff"
-  const asHex = (value) => Math.round(value / weight).toString(16).padStart(2, "0")
+  const asHex = (value) =>
+    Math.round(value / weight)
+      .toString(16)
+      .padStart(2, "0")
   return `#${asHex(red)}${asHex(green)}${asHex(blue)}`
 }
 

@@ -112,9 +112,7 @@ describe("Selected line highlights", () => {
     expect(container.querySelector("#selected-line-highlights line").getAttribute("stroke")).toBe(
       themeDefaults.deletingSelection.glowColor,
     )
-    expect(container.querySelector("#selection-rect").getAttribute("fill")).toBe(
-      themeDefaults.deletingSelection.color,
-    )
+    expect(container.querySelector("#selection-rect").getAttribute("fill")).toBe(themeDefaults.deletingSelection.color)
     expect(container.querySelector("#selection-rect").getAttribute("stroke")).toBe(
       themeDefaults.deletingSelection.borderColor,
     )
@@ -139,40 +137,43 @@ describe("Selected line highlights", () => {
     expect(container.querySelectorAll("#lines > line[filter='url(#deleting-glow)']")).toHaveLength(1)
   })
 
-  test.each([false, true])("keeps selector-only highlights blue while deleting when fancy glow is %s", (useFancyGlow) => {
-    const baseState = getState()
-    const areaLine = new Line(baseState, new Point(1, 1), new Point(5, 5))
-    const genericLine = new Line(baseState, new Point(20, 20), new Point(30, 30))
-    const specificLine = new Line(baseState, new Point(40, 40), new Point(50, 50))
-    const state = {
-      ...baseState,
-      lines: [areaLine, genericLine, specificLine],
-      bounds: [new Point(0, 0)],
-      boundDragging: true,
-      cursorPos: new Point(10, 10),
-      deletingSelection: true,
-      genericSelectors: [genericLine.a],
-      specificSelectors: specificLine.points(),
-      useFancyGlow,
-      scalex: 10,
-      scaley: 10,
-    }
-    const { container } = renderLines(state)
+  test.each([false, true])(
+    "keeps selector-only highlights blue while deleting when fancy glow is %s",
+    (useFancyGlow) => {
+      const baseState = getState()
+      const areaLine = new Line(baseState, new Point(1, 1), new Point(5, 5))
+      const genericLine = new Line(baseState, new Point(20, 20), new Point(30, 30))
+      const specificLine = new Line(baseState, new Point(40, 40), new Point(50, 50))
+      const state = {
+        ...baseState,
+        lines: [areaLine, genericLine, specificLine],
+        bounds: [new Point(0, 0)],
+        boundDragging: true,
+        cursorPos: new Point(10, 10),
+        deletingSelection: true,
+        genericSelectors: [genericLine.a],
+        specificSelectors: specificLine.points(),
+        useFancyGlow,
+        scalex: 10,
+        scaley: 10,
+      }
+      const { container } = renderLines(state)
 
-    if (useFancyGlow) {
-      expect(container.querySelectorAll("#lines > line[filter='url(#deleting-glow)']")).toHaveLength(1)
-      expect(container.querySelectorAll("#lines > line[filter='url(#glow)']")).toHaveLength(2)
-    } else {
-      const colors = [...container.querySelectorAll("#selected-line-highlights line")].map((line) =>
-        line.getAttribute("stroke"),
-      )
-      expect(colors).toEqual([
-        themeDefaults.deletingSelection.glowColor,
-        themeDefaults.glowColor.light,
-        themeDefaults.glowColor.light,
-      ])
-    }
-  })
+      if (useFancyGlow) {
+        expect(container.querySelectorAll("#lines > line[filter='url(#deleting-glow)']")).toHaveLength(1)
+        expect(container.querySelectorAll("#lines > line[filter='url(#glow)']")).toHaveLength(2)
+      } else {
+        const colors = [...container.querySelectorAll("#selected-line-highlights line")].map((line) =>
+          line.getAttribute("stroke"),
+        )
+        expect(colors).toEqual([
+          themeDefaults.deletingSelection.glowColor,
+          themeDefaults.glowColor.light,
+          themeDefaults.glowColor.light,
+        ])
+      }
+    },
+  )
 })
 
 describe("Permanent line viewport culling", () => {

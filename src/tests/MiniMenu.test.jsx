@@ -9,7 +9,9 @@ describe("MiniMenu", () => {
     const state = getState()
 
     render(
-      <StateContext.Provider value={{ state: { ...state, openMenus: { ...state.openMenus, color: true } }, dispatch: vi.fn() }}>
+      <StateContext.Provider
+        value={{ state: { ...state, openMenus: { ...state.openMenus, color: true } }, dispatch: vi.fn() }}
+      >
         <button id="color-tool-button">Color</button>
         <MiniMenu menu="color">Restored color menu</MiniMenu>
       </StateContext.Provider>,
