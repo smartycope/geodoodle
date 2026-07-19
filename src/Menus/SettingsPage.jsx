@@ -79,6 +79,7 @@ export default function SettingsPage() {
     defaultScalex,
     allowCanvasRotation,
     useFancyGlow,
+    holdTapAction,
   } = state
 
   return (
@@ -295,6 +296,17 @@ export default function SettingsPage() {
               })
             }
           />
+        </Setting>
+
+        <Setting label="Tap + Hold" help="Choose what a tap and hold adds">
+          <Select
+            value={holdTapAction}
+            onChange={(e) => dispatch({ action: "set_manual_and_save_settings", holdTapAction: e.target.value })}
+          >
+            <MenuItem value="add_generic_selector">Add a generic selector</MenuItem>
+            <MenuItem value="add_specific_selector">Add a specific selector</MenuItem>
+            <MenuItem value="add_bound">Add a bound</MenuItem>
+          </Select>
         </Setting>
 
         <Setting desktopOnly label="Invert Scroll" help="Controls if the scroll is inverted">

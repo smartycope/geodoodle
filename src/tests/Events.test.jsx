@@ -397,6 +397,36 @@ describe("touch interactions", () => {
     expect(state.lines).toHaveLength(0)
   })
 
+  test.each([
+    ["add_specific_selector", "specificSelectors"],
+    ["add_bound", "bounds"],
+  ])("holding without dragging runs the configured %s action", (holdTapAction, stateKey) => {
+    state = { ...state, holdTapAction }
+    const start = touch(100, 100)
+
+    onTouchStart(state, dispatch, touchEvent([start]))
+    vi.advanceTimersByTime(state.holdTapTimeMS)
+    onTouchEnd(state, dispatch, touchEvent([], [start]))
+
+    expect(dispatched.map(actionName)).toContain(holdTapAction)
+    expect(state[stateKey]).toHaveLength(1)
+  })
+
+  test("holding a specific selector then dragging converts it into bounds", () => {
+    state = { ...state, holdTapAction: "add_specific_selector" }
+    const start = touch(100, 100)
+    const end = touch(180, 100)
+
+    onTouchStart(state, dispatch, touchEvent([start]))
+    vi.advanceTimersByTime(state.holdTapTimeMS)
+    onTouchMove(state, dispatch, touchEvent([end]))
+    onTouchEnd(state, dispatch, touchEvent([], [end]))
+
+    expect(dispatched.map(actionName)).toContain("convert_last_specific_selector_to_bound")
+    expect(state.specificSelectors).toHaveLength(0)
+    expect(state.bounds).toHaveLength(2)
+  })
+
   test("releasing a fill drag inside a polygon clears the preview without filling it", () => {
     const poly = Poly.fromPoints([new Point(4, 4), new Point(6, 4), new Point(6, 6), new Point(4, 6)])
     state = {

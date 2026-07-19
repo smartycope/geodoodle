@@ -179,6 +179,7 @@ export default function getInitialState() {
     paperColor: themeDefaults.paperColor,
     doubleTapTimeMS: options.doubleTapTimeMS,
     holdTapTimeMS: options.holdTapTimeMS,
+    holdTapAction: options.holdTapAction,
 
     // Set to a string to show a toast. It will hide itself after options.toastDuration ms
     toast: null,

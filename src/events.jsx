@@ -469,14 +469,16 @@ export function onTouchMove(state, dispatch, e) {
     const touchPoint = Point.fromViewport(state, touch.pageX, touch.pageY)
     const touchPointAligned = touchPoint.align(state, clipboard === null && state.allowSnapToIntersections)
 
+    const holdTapAction = state.holdTapAction ?? "add_generic_selector"
     if (
       holdAndDragPossible &&
       !holdAndDragConverted &&
       !clipboard?.length &&
       !fillMode &&
+      holdTapAction !== "add_bound" &&
       !lastTapPos.eq(touchPointAligned)
     ) {
-      dispatch("convert_last_generic_selector_to_bound")
+      dispatch(`convert_last_${holdTapAction === "add_specific_selector" ? "specific" : "generic"}_selector_to_bound`)
       holdAndDragConverted = true
     }
 
@@ -507,13 +509,14 @@ export function cursorPosChanged(newPos) {
 
 function onTouchHold(state, dispatch) {
   const { fillMode, clipboard } = state
+  const holdTapAction = state.holdTapAction ?? "add_generic_selector"
   holdAndDragPossible = true
   clearTimeout(doubleTapTimer)
   doubleTapIsPossible = false
   // This also only applies to touch events, not mouse events
   if (singleTapTouchingScreen && !fillMode)
     if (clipboard?.length) dispatch("paste")
-    else dispatch("add_generic_selector")
+    else dispatch(holdTapAction)
 }
 
 function onDoubleTap(state, dispatch) {

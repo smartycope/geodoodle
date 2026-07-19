@@ -19,6 +19,7 @@ const defaultOptions = {
   maxMouseMoveEventsDuringHold: 30,
   doubleTapTimeMS: 500,
   holdTapTimeMS: 250,
+  holdTapAction: "add_generic_selector",
   // If we remove all the bounds after cut or delete selection
   removeSelectionAfterDelete: true,
   // If we remove all the bounds after copying a selection
@@ -244,6 +245,7 @@ export const preservable = [
   "loopCursorAtEdges",
   "allowCanvasRotation",
   "useFancyGlow",
+  "holdTapAction",
 ]
 
 // These are parts of the state

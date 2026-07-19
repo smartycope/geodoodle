@@ -240,10 +240,18 @@ export const clear_generic_selectors = (state) => ({
 })
 
 // For touch & hold & drag specifically
-export const convert_last_generic_selector_to_bound = (state) => ({
-  bounds: [state.genericSelectors[state.genericSelectors.length - 1]],
-  genericSelectors: state.genericSelectors.slice(0, state.genericSelectors.length - 1),
-})
+const convertLastSelectorToBound = (state, selectorType) => {
+  const selectorKey = `${selectorType}Selectors`
+  const selectors = state[selectorKey]
+  return {
+    bounds: [selectors[selectors.length - 1]],
+    [selectorKey]: selectors.slice(0, selectors.length - 1),
+  }
+}
+
+export const convert_last_generic_selector_to_bound = (state) => convertLastSelectorToBound(state, "generic")
+
+export const convert_last_specific_selector_to_bound = (state) => convertLastSelectorToBound(state, "specific")
 
 export const clear_bounds = (state) => ({
   ...cancel_clipboard(state),

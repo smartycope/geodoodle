@@ -86,3 +86,24 @@ describe("clipboard scroll setting", () => {
     })
   })
 })
+
+describe("tap and hold setting", () => {
+  test("sets the action performed by a tap and hold", () => {
+    const { dispatch } = renderSettings({ holdTapAction: "add_generic_selector" })
+    const setting = screen.getByText("Tap + Hold").closest("li")
+    const select = within(setting).getByRole("combobox")
+
+    fireEvent.mouseDown(select)
+    expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
+      "Add a generic selector",
+      "Add a specific selector",
+      "Add a bound",
+    ])
+    fireEvent.click(screen.getByRole("option", { name: "Add a specific selector" }))
+
+    expect(dispatch).toHaveBeenCalledWith({
+      action: "set_manual_and_save_settings",
+      holdTapAction: "add_specific_selector",
+    })
+  })
+})
