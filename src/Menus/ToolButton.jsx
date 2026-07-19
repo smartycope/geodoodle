@@ -96,17 +96,23 @@ const ToolButton = forwardRef(function ToolButton({ menu, onClick, inExtraMenu, 
   const theme = useTheme()
   const { state, dispatch } = useContext(StateContext)
   const tooltip = tooltipMap(state.mobile)[menu] || menu.charAt(0).toUpperCase() + menu.slice(1)
+  const isMenuOpen = Boolean(state.openMenus[menu]) && menu !== "main"
+  const activeBackground = state.mobile
+    ? theme.alpha(theme.palette.primary.main, 0.22)
+    : theme.palette.action.selected
 
   const btn = (
     <IconButton
       sx={{
         ...toolButtonStyle(theme),
         // Highlight the currently open menu
-        bgcolor: state.openMenus[menu] && menu !== "main" ? theme.palette.action.selected : "transparent",
-        borderRadius: state.openMenus[menu] && menu !== "main" ? theme.shape.borderRadius / 2 : undefined,
+        backgroundColor: "transparent",
+        "&.tool-button-active": { backgroundColor: activeBackground },
+        borderRadius: isMenuOpen ? theme.shape.borderRadius / 2 : undefined,
       }}
       id={menu + "-tool-button"}
-      className="tool-button"
+      className={`tool-button${isMenuOpen ? " tool-button-active" : ""}`}
+      aria-pressed={isMenuOpen}
       onClick={
         onClick === undefined
           ? () => {
@@ -168,20 +174,6 @@ export const UndoButton = () => {
     e.preventDefault()
     dispatch("redo")
   }
-
-  // const handleTouchStart = () => {
-  //   timerRef.current = setTimeout(() => {
-  //     dispatch("redo");
-  //     timerRef.current = null;
-  //   }, 500); // long press threshold
-  // };
-
-  // const handleTouchEnd = () => {
-  //   if (timerRef.current) {
-  //     clearTimeout(timerRef.current);
-  //     dispatch("undo"); // short press = undo
-  //   }
-  // };
 
   const btn = (
     <IconButton
