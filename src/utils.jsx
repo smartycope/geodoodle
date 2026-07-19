@@ -4,7 +4,6 @@ import Point from "./helper/Point"
 import Rect from "./helper/Rect"
 import defaultOptions from "./options"
 
-// TODO: several of these functions are not used anymore and should be removed
 
 // Get all the lines for the clipboard, including mirroring and transformation of the clipboard
 export function getAllClipboardLines(state) {

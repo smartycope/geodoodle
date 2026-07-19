@@ -207,8 +207,6 @@ export const DebugInfo = () => {
         {" x "}
         {window.innerHeight}
       </text>
-      {openMenus.repeat && debugBox.render(state, { stroke: "green", strokeWidth: 2, fillOpacity: 0 })}
-
       <DebugPoint name="Translation" point={origin} inflated={false} color="green" />
       <DebugPoint name="Scale" point={{ x: scalex, y: scaley }} omitCircle inflated />
       {!state.fillMode && <DebugPoint name="Cursor" point={state.cursorPos} yoff={40} fill="transparent" />}

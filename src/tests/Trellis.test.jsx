@@ -69,7 +69,7 @@ describe("source-phased Trellis cadence", () => {
     ])
   })
 
-  test("anchors cumulative offsets and transforms tile zero on its cadence", () => {
+  test("anchors cumulative offsets and rotates tile zero around its center", () => {
     expect(cumulativeOffsetSteps(-3, 2)).toBe(-1)
     expect(cumulativeOffsetSteps(-1, 2)).toBe(0)
     expect(cumulativeOffsetSteps(0, 2)).toBe(0)
@@ -97,8 +97,9 @@ describe("source-phased Trellis cadence", () => {
     expect(source.matrix.b).toBeCloseTo(1)
     expect(source.matrix.c).toBeCloseTo(-1)
     expect(source.matrix.d).toBeCloseTo(0)
-    expect(source.matrix.e).toBe(10)
-    expect(source.matrix.f).toBe(20)
+    expect(source.matrix.e).toBeCloseTo(14.5)
+    expect(source.matrix.f).toBeCloseTo(22.5)
+    expect(transformAffinePoint(source.matrix, 1, 3.5)).toEqual({ x: 11, y: 23.5 })
 
     const shifted = createTrellisTileDescriptor({
       row: -3,
@@ -302,21 +303,21 @@ describe("finite Trellis visibility", () => {
 
     const sourceTile = container.querySelector('#trellis > g[data-row="0"][data-column="0"]')
     expect(sourceTile).not.toBeNull()
-    expect(sourceTile.getAttribute("transform")).toMatch(/^matrix\(0 1 -1 0 10 10\)$/)
+    expect(sourceTile.getAttribute("transform")).toMatch(/^matrix\(0 1 -1 0 12 10\)$/)
     expect(sourceTile.querySelector("line")).not.toBeNull()
     expect(sourceTile.querySelector("polygon")).not.toBeNull()
     expect(container.querySelectorAll("#lines > line")).toHaveLength(0)
     expect(container.querySelectorAll("#filled-polys > polygon")).toHaveLength(0)
     const selectionRect = container.querySelector("#selection-rect")
-    expect(Number(selectionRect.getAttribute("x"))).toBe(7.5)
+    expect(Number(selectionRect.getAttribute("x"))).toBe(9.5)
     expect(Number(selectionRect.getAttribute("y"))).toBe(9.5)
     expect(Number(selectionRect.getAttribute("width"))).toBe(3)
     expect(Number(selectionRect.getAttribute("height"))).toBe(3)
     expect([...container.querySelectorAll("#bounds > rect")].map((bound) => Number(bound.getAttribute("x")))).toEqual([
-      190, 150,
+      230, 190,
     ])
     const selectionButtons = container.querySelector("#selection-option-buttons").parentElement
-    expect(Number(selectionButtons.getAttribute("x"))).toBe(150)
+    expect(Number(selectionButtons.getAttribute("x"))).toBe(190)
     expect(Number(selectionButtons.getAttribute("y"))).toBe(145)
     expect(JSON.stringify(sourceLine)).toBe(beforeLine)
     expect(JSON.stringify(sourcePoly)).toBe(beforePoly)

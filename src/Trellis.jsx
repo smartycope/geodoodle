@@ -87,7 +87,7 @@ export default memo(function Trellis() {
         object.render(
           state,
           `trellis-pattern-${index}`,
-          state.debug ? { stroke: "red", strokeWidth: 2 / state.scalex } : {},
+          {}, // state.debug ? { stroke: "red", strokeWidth: 2 / state.scalex } : {},
           false,
           boundRect,
         ),

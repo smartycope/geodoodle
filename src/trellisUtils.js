@@ -65,11 +65,18 @@ function translationMatrix(x, y) {
   return { ...IDENTITY_MATRIX, e: x, f: y }
 }
 
-function rotationMatrix(angle) {
+function rotationMatrix(angle, origin = { x: 0, y: 0 }) {
   const radians = finiteNumber(angle) * (Math.PI / 180)
   const cos = Math.cos(radians)
   const sin = Math.sin(radians)
-  return { a: cos, b: sin, c: -sin, d: cos, e: 0, f: 0 }
+  return {
+    a: cos,
+    b: sin,
+    c: -sin,
+    d: cos,
+    e: origin.x * (1 - cos) + origin.y * sin,
+    f: origin.y * (1 - cos) - origin.x * sin,
+  }
 }
 
 function flipMatrix(axis) {
@@ -98,12 +105,13 @@ export function createTrellisTileDescriptor({ row, column, seed, width, height, 
   const columnSteps = cumulativeOffsetSteps(column, overlap?.col?.every)
   const x = seed.x + column * width + rowSteps * rowOffset.x + columnSteps * columnOffset.x
   const y = seed.y + row * height + rowSteps * rowOffset.y + columnSteps * columnOffset.y
+  const center = { x: width / 2, y: height / 2 }
 
   let localMatrix = IDENTITY_MATRIX
   if (isTrellisCadenceActive(row, rotate?.row) && rotate.row.val)
-    localMatrix = multiplyAffine(localMatrix, rotationMatrix(rotate.row.val))
+    localMatrix = multiplyAffine(localMatrix, rotationMatrix(rotate.row.val, center))
   if (isTrellisCadenceActive(column, rotate?.col) && rotate.col.val)
-    localMatrix = multiplyAffine(localMatrix, rotationMatrix(rotate.col.val))
+    localMatrix = multiplyAffine(localMatrix, rotationMatrix(rotate.col.val, center))
   if (isTrellisCadenceActive(row, flip?.row) && flip.row.val)
     localMatrix = multiplyAffine(localMatrix, flipMatrix(flip.row.val))
   if (isTrellisCadenceActive(column, flip?.col) && flip.col.val)
@@ -135,13 +143,18 @@ function isLine(object) {
   return Boolean(object?.a && object?.b)
 }
 
-function getPatternMetrics(pattern) {
+function getPatternMetrics(pattern, center, flip, rotate) {
   let left = Infinity
   let right = -Infinity
   let top = Infinity
   let bottom = -Infinity
   let radius = 0
   let maxStrokeWidth = 0
+  const centerRadius = Math.hypot(center.x, center.y)
+  const hasRotation = Boolean(rotate?.row?.val || rotate?.col?.val)
+  const rowFlips = flip?.row?.val ? [MIRROR_AXIS.NONE, flip.row.val] : [MIRROR_AXIS.NONE]
+  const columnFlips = flip?.col?.val ? [MIRROR_AXIS.NONE, flip.col.val] : [MIRROR_AXIS.NONE]
+  const possibleFlips = new Set(rowFlips.flatMap((rowFlip) => columnFlips.map((columnFlip) => rowFlip ^ columnFlip)))
 
   pattern.forEach((object) => {
     objectPoints(object).forEach((point) => {
@@ -149,7 +162,16 @@ function getPatternMetrics(pattern) {
       right = Math.max(right, point._x)
       top = Math.min(top, point._y)
       bottom = Math.max(bottom, point._y)
-      radius = Math.max(radius, Math.hypot(point._x, point._y))
+      if (!hasRotation) radius = Math.max(radius, Math.hypot(point._x, point._y))
+      else
+        // Rotations preserve distance from the tile center. Account for every
+        // possible configured flip before that rotation so the candidate range
+        // remains conservative for combined flip/rotation controls.
+        for (const axis of possibleFlips) {
+          const x = axis === MIRROR_AXIS.Y || axis === MIRROR_AXIS.BOTH ? -point._x : point._x
+          const y = axis === MIRROR_AXIS.X || axis === MIRROR_AXIS.BOTH ? -point._y : point._y
+          radius = Math.max(radius, centerRadius + Math.hypot(x - center.x, y - center.y))
+        }
     })
     if (isLine(object)) maxStrokeWidth = Math.max(maxStrokeWidth, Math.max(0, finiteNumber(object.aes?.width)))
   })
@@ -437,7 +459,7 @@ export function buildVisibleTrellisTiles({
   const height = boundRect?.wh?._y ?? 0
   if (!(width > 0 && height > 0)) return { tiles: [], warning: TRELLIS_SIZE_WARNING, checked: 0 }
 
-  const metrics = getPatternMetrics(pattern)
+  const metrics = getPatternMetrics(pattern, { x: width / 2, y: height / 2 }, state.trellisFlip, state.trellisRotate)
   if (!metrics) return { tiles: [], warning: null, checked: 0 }
 
   const seed = { x: boundRect.topLeft._x, y: boundRect.topLeft._y }
