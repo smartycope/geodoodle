@@ -18,8 +18,9 @@ import styled from "@emotion/styled"
 import { useTheme } from "@mui/material/styles"
 import { extraButtons } from "../globals"
 import { clearPreservedState } from "../fileUtils"
-import { Slider } from "@mui/material"
+import { Box, Divider, Slider } from "@mui/material"
 import defaultOptions from "../options"
+import { readBackgroundImage } from "../backgroundImageUtils"
 
 const StyledSubheader = styled(ListSubheader)(({ theme }) => {
   // Yes this inconsistent, but *I like it*
@@ -70,6 +71,7 @@ export default function SettingsPage() {
     smoothGestureScale,
     dotsAbovefill,
     paperColor,
+    backgroundImage,
     defaultToMemorableNames,
     themeMode,
     allowSnapToIntersections,
@@ -82,6 +84,21 @@ export default function SettingsPage() {
     holdTapAction,
   } = state
   const reopenMenusWithToolbar = state.reopenMenusWithToolbar ?? true
+
+  const handleBackgroundImageChange = async (event) => {
+    const [file] = event.target.files ?? []
+    if (!file) return
+
+    try {
+      const { image, color } = await readBackgroundImage(file)
+      dispatch({ action: "set_background_image", image, color })
+    } catch (error) {
+      console.error("Failed to set background image", error)
+      dispatch({ toast: "Unable to use that image as a background" })
+    } finally {
+      event.target.value = ""
+    }
+  }
 
   return (
     <Page
@@ -124,14 +141,14 @@ export default function SettingsPage() {
         </Setting>
 
         {/* Color Menu */}
-        <Setting label="Background Color">
+        <Setting label="Background">
           <Button
             ref={colorMenuButton}
             id="color-picker-button"
             onClick={() => setPalletteVisible(!palletteVisible)}
             sx={{ backgroundColor: paperColor, color: theme.palette.getContrastText(paperColor) }}
           >
-            Pick Background Color
+            Pick Background
           </Button>
           <Popover
             open={palletteVisible}
@@ -148,12 +165,26 @@ export default function SettingsPage() {
               horizontal: "right",
             }}
           >
-            <ColorPicker
-              color={ColorService.convert("hex", paperColor)}
-              hideAlpha={true}
-              hideInput={["hsv", hideHexColor ? "hex" : ""]}
-              onChange={(clr) => dispatch({ action: "set_paper_color", color: clr.hex })}
-            />
+            <Box sx={{ p: 0.75 }}>
+              <ColorPicker
+                color={ColorService.convert("hex", paperColor)}
+                hideAlpha={true}
+                hideInput={["hsv", hideHexColor ? "hex" : ""]}
+                onChange={(clr) => dispatch({ action: "set_paper_color", color: clr.hex })}
+              />
+              <Divider sx={{ my: 0.75 }} />
+              <Box sx={{ display: "flex", gap: 0.75, justifyContent: "flex-end" }}>
+                <Button component="label" size="small" variant="outlined">
+                  Upload Image
+                  <input hidden type="file" accept="image/*" onChange={handleBackgroundImageChange} />
+                </Button>
+                {backgroundImage && (
+                  <Button size="small" onClick={() => dispatch("clear_background_image")}>
+                    Remove Image
+                  </Button>
+                )}
+              </Box>
+            </Box>
           </Popover>
         </Setting>
 

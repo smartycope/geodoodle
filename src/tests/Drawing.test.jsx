@@ -1,6 +1,15 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, test } from "vitest"
-import { Bounds, Clipboard, ClipboardTransformButtons, GlowEffect, Lines, SelectionOptionButtons, SelectionRect } from "../drawing"
+import {
+  BackgroundImage,
+  Bounds,
+  Clipboard,
+  ClipboardTransformButtons,
+  GlowEffect,
+  Lines,
+  SelectionOptionButtons,
+  SelectionRect,
+} from "../drawing"
 import { StateContext } from "../Contexts"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
@@ -155,6 +164,23 @@ describe("Selected line highlights", () => {
         themeDefaults.glowColor.light,
       ])
     }
+  })
+})
+
+describe("BackgroundImage", () => {
+  test("renders an uploaded image behind the drawing", () => {
+    const state = { ...getState(), backgroundImage: "data:image/png;base64,background" }
+    const { container } = render(
+      <StateContext.Provider value={{ state }}>
+        <svg>
+          <BackgroundImage />
+        </svg>
+      </StateContext.Provider>,
+    )
+
+    const image = container.querySelector("#background-image")
+    expect(image.getAttribute("href")).toBe(state.backgroundImage)
+    expect(image.getAttribute("preserveAspectRatio")).toBe("xMidYMid slice")
   })
 })
 

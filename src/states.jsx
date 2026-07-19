@@ -178,6 +178,8 @@ export default function getInitialState() {
     debugDrawPoints: {},
 
     paperColor: themeDefaults.paperColor,
+    // Data URLs are kept for the current session only; large images should not be stored in localStorage.
+    backgroundImage: null,
     doubleTapTimeMS: options.doubleTapTimeMS,
     holdTapTimeMS: options.holdTapTimeMS,
     holdTapAction: options.holdTapAction,

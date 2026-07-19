@@ -17,6 +17,7 @@ import useMediaQuery from "@mui/material/useMediaQuery"
 import { ThemeProvider } from "@mui/material/styles"
 import {
   GlowEffect,
+  BackgroundImage,
   DebugInfo,
   MirrorMetaLines,
   ClipboardTransformButtons,
@@ -203,6 +204,7 @@ export default function Paper({ setDispatch }) {
           >
             {/* This order is intentional -- lower elements are on top */}
             <GlowEffect />
+            <BackgroundImage />
             {!dotsAbovefill && <Dots />}
             <Trellis />
             <Polygons />

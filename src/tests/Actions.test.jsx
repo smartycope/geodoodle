@@ -7,6 +7,8 @@ import {
   randomize_color,
   set_color_profile_index,
   paint_selected,
+  set_background_image,
+  clear_background_image,
   translate,
   scale,
   rotate,
@@ -857,6 +859,17 @@ describe("Color Actions", () => {
       lineJoin: "bevel",
     })
     expect(result.lines[1]).toBe(unselected)
+  })
+
+  test("sets and clears a background image while keeping the paper color in sync", () => {
+    const state = getState()
+    const image = "data:image/png;base64,background"
+
+    expect(set_background_image(state, { image, color: "#aabbcc" })).toEqual({
+      backgroundImage: image,
+      paperColor: "#aabbcc",
+    })
+    expect(clear_background_image()).toEqual({ backgroundImage: null })
   })
 
   test("ignores an out-of-range color profile", () => {

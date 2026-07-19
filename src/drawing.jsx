@@ -60,6 +60,24 @@ function useActiveBreakpoint() {
 var debugTextOffset = 80
 const debugTextX = "75%"
 
+export function BackgroundImage() {
+  const { state } = useContext(StateContext)
+  if (!state.backgroundImage) return null
+
+  return (
+    <image
+      id="background-image"
+      href={state.backgroundImage}
+      x="0"
+      y="0"
+      width="100%"
+      height="100%"
+      preserveAspectRatio="xMidYMid slice"
+      pointerEvents="none"
+    />
+  )
+}
+
 // This is slightly inelegant, but it works, and it's just a debug function
 // Color is the color of the text and circle, fill overrides the color of the circle
 export function DebugPoint({

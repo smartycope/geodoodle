@@ -518,6 +518,10 @@ export const paint_selected = (state) => {
 
 export const set_paper_color = (state, { color }) => ({ paperColor: color })
 
+export const set_background_image = (state, { image, color }) => ({ backgroundImage: image, paperColor: color })
+
+export const clear_background_image = () => ({ backgroundImage: null })
+
 // Fill actions
 export const fill = (state) => {
   const { fillMode, curPolys, filledPolys, fill, colorProfile } = state

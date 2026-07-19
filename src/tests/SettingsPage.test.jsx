@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react"
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import { ThemeProvider as EmotionThemeProvider } from "@emotion/react"
 import { describe, expect, test, vi } from "vitest"
 import { ThemeProvider } from "@mui/material/styles"
@@ -6,6 +6,13 @@ import { StateContext } from "../Contexts"
 import SettingsPage from "../Menus/SettingsPage"
 import generateTheme from "../styling/theme"
 import { getState } from "./testUtils"
+import { readBackgroundImage } from "../backgroundImageUtils"
+
+vi.mock("../backgroundImageUtils", () => ({ readBackgroundImage: vi.fn() }))
+vi.mock("react-color-palette", () => ({
+  ColorPicker: () => <div data-testid="background-color-picker" />,
+  ColorService: { convert: vi.fn(() => ({})) },
+}))
 
 function renderSettings(overrides = {}) {
   const baseState = getState()
@@ -121,5 +128,24 @@ describe("toolbar menu restoration setting", () => {
       action: "set_manual_and_save_settings",
       reopenMenusWithToolbar: false,
     })
+  })
+})
+
+describe("background image setting", () => {
+  test("uploads an image from the background picker and applies its average color", async () => {
+    readBackgroundImage.mockResolvedValue({ image: "data:image/png;base64,background", color: "#aabbcc" })
+    const { dispatch } = renderSettings()
+
+    fireEvent.click(screen.getByRole("button", { name: "Pick Background" }))
+    const upload = document.querySelector('input[type="file"]')
+    fireEvent.change(upload, { target: { files: [new File(["image"], "background.png", { type: "image/png" })] } })
+
+    await waitFor(() =>
+      expect(dispatch).toHaveBeenCalledWith({
+        action: "set_background_image",
+        image: "data:image/png;base64,background",
+        color: "#aabbcc",
+      }),
+    )
   })
 })
