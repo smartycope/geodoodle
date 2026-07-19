@@ -81,6 +81,7 @@ export default function SettingsPage() {
     useFancyGlow,
     holdTapAction,
   } = state
+  const reopenMenusWithToolbar = state.reopenMenusWithToolbar ?? true
 
   return (
     <Page
@@ -392,7 +393,17 @@ export default function SettingsPage() {
             onChange={() => dispatch({ action: "set_manual_and_save_settings", useFancyGlow: !useFancyGlow })}
           />
         </Setting>
-
+        <Setting label="Reopen Menus with Toolbar" help="Restore open menus after the toolbar is shown again">
+          <Checkbox
+            checked={reopenMenusWithToolbar}
+            onChange={() =>
+              dispatch({
+                action: "set_manual_and_save_settings",
+                reopenMenusWithToolbar: !reopenMenusWithToolbar,
+              })
+            }
+          />
+        </Setting>
         <Setting label="Toolbar Opacity" help="Controls the opacity of the toolbar">
           <Slider
             onChange={(e, val) =>
@@ -445,7 +456,7 @@ export default function SettingsPage() {
         <Setting label="Debug Mode" help="Adds some visual aids useful for debugging">
           <Checkbox checked={debug} onChange={() => dispatch("toggle_debugging")} />
         </Setting>
-        <Setting label="Reset to Defaults" help="Clear the settings cache">
+        <Setting label="Reset Settings">
           <Button
             variant="outlined"
             onClick={() => {

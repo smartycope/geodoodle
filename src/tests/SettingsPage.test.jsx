@@ -107,3 +107,19 @@ describe("tap and hold setting", () => {
     })
   })
 })
+
+describe("toolbar menu restoration setting", () => {
+  test("defaults to restoring menus and can disable it", () => {
+    const { dispatch } = renderSettings({ reopenMenusWithToolbar: true })
+    const setting = screen.getByText("Reopen Menus with Toolbar").closest("li")
+    const checkbox = within(setting).getByRole("checkbox")
+
+    expect(checkbox.checked).toBe(true)
+    fireEvent.click(checkbox)
+
+    expect(dispatch).toHaveBeenCalledWith({
+      action: "set_manual_and_save_settings",
+      reopenMenusWithToolbar: false,
+    })
+  })
+})

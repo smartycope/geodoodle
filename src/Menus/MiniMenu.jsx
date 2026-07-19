@@ -3,7 +3,7 @@
 
 import Popper from "@mui/material/Popper"
 import Paper from "@mui/material/Paper"
-import { useContext } from "react"
+import { useContext, useLayoutEffect, useState } from "react"
 import { StateContext } from "../Contexts"
 import { useTheme } from "@mui/material/styles"
 
@@ -13,18 +13,23 @@ export default function MiniMenu({ menu, children }) {
   const { state, dispatch } = useContext(StateContext)
   const { side } = state
   const theme = useTheme()
+  const [anchorEl, setAnchorEl] = useState(null)
 
   let placement = `${side}-start`
 
-  const el = document.getElementById(`${menu}-tool-button`)
+  // The toolbar and its restored menu can appear in the same React commit.
+  // Look up the button after that commit, then render Popper with the real anchor.
+  useLayoutEffect(() => {
+    const nextAnchor = document.getElementById(`${menu}-tool-button`)
+    setAnchorEl((currentAnchor) => (currentAnchor === nextAnchor ? currentAnchor : nextAnchor))
+  }, [menu])
 
-  // Don't render the menu if the button doesn't exist (it would otherwise default to top left corner)
-  if (!el) return null
+  if (!anchorEl) return null
 
   return (
     <Popper
       open={state.openMenus[menu]}
-      anchorEl={el}
+      anchorEl={anchorEl}
       onClose={() => dispatch({ action: "menu", close: menu })}
       placement={placement}
       sx={{ zIndex: 2 }}

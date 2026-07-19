@@ -1475,6 +1475,36 @@ describe("UI Actions", () => {
       expect(afterOpenMirror.openMenus.color).toBe(false)
       expect(afterOpenMirror.openMenus.mirror).toBe(true)
     })
+
+    test("restores non-repeat menus when the toolbar is reopened", () => {
+      const withOpenMenus = {
+        ...state,
+        bounds: [new Point(0, 0), new Point(10, 10)],
+        openMenus: { ...state.openMenus, color: true, navigation: true, repeat: true },
+      }
+
+      const afterHidingToolbar = menu(withOpenMenus, { toggle: "main" })
+      expect(afterHidingToolbar.openMenus).toMatchObject({ main: false, color: false, navigation: false, repeat: true })
+      expect(afterHidingToolbar.toolbarHiddenMenus).toEqual(["color", "navigation"])
+
+      const afterShowingToolbar = menu({ ...withOpenMenus, ...afterHidingToolbar }, { toggle: "main" })
+      expect(afterShowingToolbar.openMenus).toMatchObject({ main: true, color: true, navigation: true, repeat: true })
+      expect(afterShowingToolbar.toolbarHiddenMenus).toEqual([])
+    })
+
+    test("does not restore menus when reopening the toolbar preference is disabled", () => {
+      const withOpenMenu = {
+        ...state,
+        reopenMenusWithToolbar: false,
+        openMenus: { ...state.openMenus, color: true },
+      }
+
+      const afterHidingToolbar = menu(withOpenMenu, { toggle: "main" })
+      const afterShowingToolbar = menu({ ...withOpenMenu, ...afterHidingToolbar }, { toggle: "main" })
+
+      expect(afterHidingToolbar.toolbarHiddenMenus).toEqual([])
+      expect(afterShowingToolbar.openMenus.color).toBe(false)
+    })
   })
 })
 

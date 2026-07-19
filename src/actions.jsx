@@ -742,8 +742,12 @@ export const set_manual_and_save_settings = (state, { action, ...data }) => data
 const miniMenus = ["extra", "color", "mirror", "select", "clipboard", "delete"]
 export const menu = (state, { toggle, open, close }) => {
   const { openMenus, hideDots } = state
+  const reopenMenusWithToolbar = state.reopenMenusWithToolbar !== false
+  const shouldCloseToolbar = close === "main" || (toggle === "main" && openMenus.main)
+  const shouldOpenToolbar = open === "main" || (toggle === "main" && !openMenus.main)
 
   let copy = JSON.parse(JSON.stringify(openMenus))
+  let toolbarHiddenMenus = state.toolbarHiddenMenus ?? []
   if (toggle !== undefined) copy[toggle] = !copy[toggle]
   if (open !== undefined) copy[open] = true
   if (close !== undefined) copy[close] = false
@@ -760,11 +764,20 @@ export const menu = (state, { toggle, open, close }) => {
   }
 
   // If we close the toolbar (main), close all the mini menus as well (except repeat)
-  if (close === "main" || (toggle === "main" && !copy[toggle]))
+  if (shouldCloseToolbar) {
+    toolbarHiddenMenus = reopenMenusWithToolbar
+      ? Object.keys(openMenus).filter((key) => !["main", "controls", "repeat"].includes(key) && openMenus[key])
+      : []
     Object.keys(copy).forEach((key) => {
       // Toolbar and repeat menus are independent of each other
       if (key !== "repeat") copy[key] = false
     })
+  }
+
+  if (shouldOpenToolbar) {
+    if (reopenMenusWithToolbar) toolbarHiddenMenus.forEach((key) => (copy[key] = true))
+    toolbarHiddenMenus = []
+  }
 
   let repeatToast = false
   // Don't allow the repeat menu to be opened if we don't have a *finished* selection
@@ -786,6 +799,7 @@ export const menu = (state, { toggle, open, close }) => {
 
   return {
     openMenus: { ...copy },
+    toolbarHiddenMenus,
     curLinePos: null,
     // If we close the repeat menu, and we have dots turned off, turn them back on
     hideDots: !(openMenus.repeat && !copy.repeat) && hideDots,

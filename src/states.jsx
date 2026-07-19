@@ -135,6 +135,7 @@ export default function getInitialState() {
     toolbarOpacity: options.toolbarOpacity,
     disableSelectionCanvasButtons: options.disableSelectionCanvasButtons,
     loopCursorAtEdges: options.loopCursorAtEdges,
+    reopenMenusWithToolbar: options.reopenMenusWithToolbar,
     allowCanvasRotation: options.allowCanvasRotation,
     useFancyGlow: options.useFancyGlow,
     keybindings: Object.fromEntries(
@@ -184,6 +185,8 @@ export default function getInitialState() {
     // Set to a string to show a toast. It will hide itself after options.toastDuration ms
     toast: null,
 
+    // Menus to reopen when the toolbar is brought back after being hidden.
+    toolbarHiddenMenus: [],
     openMenus: {
       // TODO: rename this toolbar eventually
       main: true, // Toolbar
