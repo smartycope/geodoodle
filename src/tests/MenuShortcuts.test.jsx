@@ -46,14 +46,22 @@ describe("mini-menu keyboard shortcut hints", () => {
     expect(screen.queryByText("Ctrl+C")).toBeNull()
   })
 
-  test("shows shortcuts beside applicable selection buttons", () => {
+  test("shows the shortcut beside the desktop add-bound instruction", () => {
     renderMenu("select", SelectMenu, {
-      mobile: true,
+      mobile: false,
+      bounds: [],
+    })
+
+    expect(within(screen.getByRole("menuitem", { name: /Add a bound/i })).getByText("B")).not.toBeNull()
+  })
+
+  test("shows shortcuts beside completed desktop selection controls", () => {
+    renderMenu("select", SelectMenu, {
+      mobile: false,
       bounds: [new Point(0, 0), new Point(10, 10)],
     })
 
-    expect(within(screen.getByRole("menuitem", { name: /Add Bound/ })).getByText("B")).not.toBeNull()
-    expect(within(screen.getByRole("menuitem", { name: /Clear Area Selection/ })).getByText("Shift+B")).not.toBeNull()
+    expect(within(screen.getByRole("menuitem", { name: /Clear Selection/ })).getByText("Shift+B")).not.toBeNull()
     expect(within(screen.getByRole("menuitem", { name: /Partials/ })).getByText("P")).not.toBeNull()
   })
 
