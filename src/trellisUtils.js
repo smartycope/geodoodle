@@ -40,7 +40,7 @@ export function cumulativeOffsetSteps(index, every) {
 }
 
 export function isTrellisCadenceActive(index, control) {
-  return index !== 0 && positiveModulo(index, cadenceEvery(control)) === 0
+  return positiveModulo(index, cadenceEvery(control)) === 0
 }
 
 export function multiplyAffine(left, right) {
@@ -88,9 +88,9 @@ export function matrixToSvg(matrix) {
   return `matrix(${clean(matrix.a)} ${clean(matrix.b)} ${clean(matrix.c)} ${clean(matrix.d)} ${clean(matrix.e)} ${clean(matrix.f)})`
 }
 
-// Row zero and column zero are phase anchors. Their offsets are zero and their
-// flip/rotation schedules are inactive, so the original Paper-owned selection
-// is exactly the conceptual tile at (0, 0).
+// Row zero and column zero remain the cadence phase anchors, but tile (0, 0) is
+// a normal generated tile: any flip/rotation scheduled at zero transforms the
+// source along with the surrounding pattern.
 export function createTrellisTileDescriptor({ row, column, seed, width, height, overlap, flip, rotate }) {
   const rowOffset = offsetValue(overlap?.row)
   const columnOffset = offsetValue(overlap?.col)
@@ -111,6 +111,19 @@ export function createTrellisTileDescriptor({ row, column, seed, width, height, 
 
   const matrix = multiplyAffine(translationMatrix(x, y), localMatrix)
   return { row, column, matrix, transform: matrixToSvg(matrix) }
+}
+
+export function createTrellisSourceTileDescriptor(state, boundRect) {
+  return createTrellisTileDescriptor({
+    row: 0,
+    column: 0,
+    seed: { x: boundRect.topLeft._x, y: boundRect.topLeft._y },
+    width: boundRect.wh._x,
+    height: boundRect.wh._y,
+    overlap: state.trellisOverlap,
+    flip: state.trellisFlip,
+    rotate: state.trellisRotate,
+  })
 }
 
 function objectPoints(object) {
@@ -459,9 +472,6 @@ export function buildVisibleTrellisTiles({
     checked++
     const { row, column } = next.value
 
-    // The original selected geometry owns (0, 0), so Trellis must never emit a
-    // transformed or duplicate copy of the source tile.
-    if (row === 0 && column === 0) continue
     if (!isTrellisIndexKept(row, state.trellisSkip?.row)) continue
     if (!isTrellisIndexKept(column, state.trellisSkip?.col)) continue
 

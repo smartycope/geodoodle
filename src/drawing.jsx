@@ -9,6 +9,7 @@ import {
   getAllIntersections,
   isMobile,
   getAllCursorPoints,
+  trellisOwnsSource,
 } from "./utils"
 import { getClipboardButtonStrip, getSelectionButtonStrip } from "./canvasButtonUtils"
 import Line from "./helper/Line"
@@ -47,6 +48,7 @@ import {
   rotateCoordinates,
 } from "./transformUtils"
 import useViewportSize from "./useViewportSize"
+import { getRenderedBoundRect, getRenderedBounds } from "./trellisSelectionUtils"
 
 // For debugging
 function useActiveBreakpoint() {
@@ -404,7 +406,7 @@ export const SelectionRect = () => {
   const theme = useTheme()
   const geodoodleTheme = theme.geodoodle ?? themeDefaults
   const selectionTheme = deletingSelection ? geodoodleTheme.deletingSelection : geodoodleTheme.selection
-  let boundRect = getBoundRect(state)
+  let boundRect = getRenderedBoundRect(state)
 
   if (!boundRect) return null
 
@@ -439,10 +441,11 @@ export const Bounds = () => {
   const radius = scalex / 1
   const theme = useTheme()
   const deletingSelectionTheme = (theme.geodoodle ?? themeDefaults).deletingSelection
+  const renderedBounds = getRenderedBounds(state)
 
   return (
     <g id="bounds">
-      {bounds.map((bound) => (
+      {renderedBounds.map((bound, index) => (
         <rect
           width={radius}
           height={radius}
@@ -452,7 +455,7 @@ export const Bounds = () => {
           // rx={4}
           stroke={deletingSelection ? deletingSelectionTheme.borderColor : theme.palette.primary.bounds}
           fillOpacity={0}
-          key={`bound-${bound.hash()}`}
+          key={`bound-${bounds[index].hash()}`}
         />
       ))}
     </g>
@@ -540,6 +543,8 @@ export const Lines = () => {
     genericSelectors,
     specificSelectors,
     deletingSelection,
+    trellis,
+    openMenus,
   } = state
   const { glowWidth, glowOpacity } = theme.geodoodle ?? themeDefaults
   const deletingSelectionTheme = (theme.geodoodle ?? themeDefaults).deletingSelection
@@ -582,6 +587,10 @@ export const Lines = () => {
       useFancyGlow,
     }
     const boundRect = bounds?.length > 0 ? getBoundRect(renderState) : null
+    const trellisState = { trellis, openMenus: { repeat: openMenus.repeat }, bounds }
+    const renderedLineIndices = trellisOwnsSource(trellisState, boundRect)
+      ? visibleLineIndices.filter((lineIndex) => !lines[lineIndex].isSelected(renderState, boundRect))
+      : visibleLineIndices
     const deletingAreaState = deletingSelection
       ? { ...renderState, genericSelectors: [], specificSelectors: [] }
       : null
@@ -589,7 +598,7 @@ export const Lines = () => {
     const selectorState = deletingSelection
       ? { ...renderState, bounds: [], boundDragging: false, cursorPos: null, activeBoundCursor: null }
       : null
-    const highlightTypes = visibleLineIndices.map((i) => {
+    const highlightTypes = renderedLineIndices.map((i) => {
       const line = lines[i]
       if (!deletingSelection) return line.isSelected(renderState, boundRect) ? "selected" : null
       if (line.isSelected(deletingAreaState, deletingBoundRect)) return "deleting"
@@ -601,7 +610,7 @@ export const Lines = () => {
     if (fancyGlow)
       return {
         selectionUnderlays: [],
-        renderedLines: visibleLineIndices.map((lineIndex, i) =>
+        renderedLines: renderedLineIndices.map((lineIndex, i) =>
           lines[lineIndex].render(
             renderState,
             `line-${lineIndex}`,
@@ -620,7 +629,7 @@ export const Lines = () => {
     const renderedLines = []
     let tooManySelectedLines = false
 
-    visibleLineIndices.forEach((lineIndex, i) => {
+    renderedLineIndices.forEach((lineIndex, i) => {
       const line = lines[lineIndex]
       if (!tooManySelectedLines && highlightTypes[i]) {
         const reachedHighlightLimit = selectionUnderlays.length >= options.maxGlowingLines
@@ -667,6 +676,8 @@ export const Lines = () => {
     glowWidth,
     glowOpacity,
     useFancyGlow,
+    trellis,
+    openMenus.repeat,
   ])
 
   return (
@@ -778,11 +789,15 @@ export const Dots = () => {
 
 export const Polygons = () => {
   const { state } = useContext(StateContext)
-  const { filledPolys, fill, colorProfile } = state
-  const renderedPolys = useMemo(
-    () => filledPolys.map((poly, i) => poly.render({ fill, colorProfile }, `filled-poly-${i}`)),
-    [filledPolys, fill, colorProfile],
-  )
+  const { filledPolys, fill, colorProfile, bounds, partials, trellis, openMenus } = state
+  const renderedPolys = useMemo(() => {
+    const trellisState = { trellis, openMenus: { repeat: openMenus.repeat }, bounds }
+    const boundRect = bounds.length > 1 ? getBoundRect(trellisState) : null
+    const polys = trellisOwnsSource(trellisState, boundRect)
+      ? filledPolys.filter((poly) => !poly.isSelected({ partials }, boundRect))
+      : filledPolys
+    return polys.map((poly, i) => poly.render({ fill, colorProfile }, `filled-poly-${i}`))
+  }, [filledPolys, fill, colorProfile, bounds, partials, trellis, openMenus.repeat])
 
   return (
     <g id="filled-polys" transform={getCanvasTransform(state)}>

@@ -2,6 +2,7 @@ import { render } from "@testing-library/react"
 import { act } from "react"
 import { describe, expect, test, vi } from "vitest"
 import Trellis from "../Trellis"
+import { Bounds, Lines, Polygons, SelectionOptionButtons, SelectionRect } from "../drawing"
 import { StateContext } from "../Contexts"
 import Dist from "../helper/Dist"
 import Line from "../helper/Line"
@@ -53,7 +54,7 @@ function tileKey({ row, column }) {
   return `${row}:${column}`
 }
 
-describe("source-anchored Trellis cadence", () => {
+describe("source-phased Trellis cadence", () => {
   test("keeps the source index and preserves skip runs across negative indices", () => {
     const control = { every: 2, val: 1 }
 
@@ -68,12 +69,12 @@ describe("source-anchored Trellis cadence", () => {
     ])
   })
 
-  test("anchors cumulative offsets and transformations at zero", () => {
+  test("anchors cumulative offsets and transforms tile zero on its cadence", () => {
     expect(cumulativeOffsetSteps(-3, 2)).toBe(-1)
     expect(cumulativeOffsetSteps(-1, 2)).toBe(0)
     expect(cumulativeOffsetSteps(0, 2)).toBe(0)
     expect(cumulativeOffsetSteps(4, 2)).toBe(2)
-    expect(isTrellisCadenceActive(0, { every: 1 })).toBe(false)
+    expect(isTrellisCadenceActive(0, { every: 1 })).toBe(true)
     expect(isTrellisCadenceActive(-3, { every: 3 })).toBe(true)
 
     const source = createTrellisTileDescriptor({
@@ -86,10 +87,18 @@ describe("source-anchored Trellis cadence", () => {
         row: { every: 2, val: { x: 3, y: 4 } },
         col: { every: 3, val: { x: 5, y: 6 } },
       },
-      flip: defaultTrellisControl(MIRROR_AXIS.BOTH),
-      rotate: defaultTrellisControl(MIRROR_ROT.RIGHT),
+      flip: defaultTrellisControl(MIRROR_AXIS.NONE),
+      rotate: {
+        row: { every: 1, val: MIRROR_ROT.RIGHT },
+        col: { every: 1, val: MIRROR_ROT.NONE },
+      },
     })
-    expect(source.matrix).toEqual({ a: 1, b: 0, c: 0, d: 1, e: 10, f: 20 })
+    expect(source.matrix.a).toBeCloseTo(0)
+    expect(source.matrix.b).toBeCloseTo(1)
+    expect(source.matrix.c).toBeCloseTo(-1)
+    expect(source.matrix.d).toBeCloseTo(0)
+    expect(source.matrix.e).toBe(10)
+    expect(source.matrix.f).toBe(20)
 
     const shifted = createTrellisTileDescriptor({
       row: -3,
@@ -115,13 +124,25 @@ describe("source-anchored Trellis cadence", () => {
       height: 2,
       overlap: defaultTrellisControl({ x: 0, y: 0 }),
       flip: defaultTrellisControl(MIRROR_AXIS.NONE),
+    }
+    const rowTile = createTrellisTileDescriptor({
+      ...shared,
+      row: 1,
+      column: 0,
       rotate: {
         row: { every: 1, val: MIRROR_ROT.RIGHT },
+        col: { every: 1, val: MIRROR_ROT.NONE },
+      },
+    })
+    const columnTile = createTrellisTileDescriptor({
+      ...shared,
+      row: 0,
+      column: 1,
+      rotate: {
+        row: { every: 1, val: MIRROR_ROT.NONE },
         col: { every: 1, val: MIRROR_ROT.STRAIGHT },
       },
-    }
-    const rowTile = createTrellisTileDescriptor({ ...shared, row: 1, column: 0 })
-    const columnTile = createTrellisTileDescriptor({ ...shared, row: 0, column: 1 })
+    })
 
     expect(rowTile.matrix.a).toBeCloseTo(0)
     expect(rowTile.matrix.b).toBeCloseTo(1)
@@ -164,7 +185,6 @@ describe("finite Trellis visibility", () => {
 
     for (let row = -30; row <= 30; row++) {
       for (let column = -30; column <= 30; column++) {
-        if (row === 0 && column === 0) continue
         if (!isTrellisIndexKept(row, state.trellisSkip.row)) continue
         if (!isTrellisIndexKept(column, state.trellisSkip.col)) continue
         const tile = createTrellisTileDescriptor({
@@ -250,29 +270,69 @@ describe("finite Trellis visibility", () => {
     expect(result.warning).toBe(TRELLIS_SIZE_WARNING)
   })
 
-  test("never emits the source group or mutates its selected geometry", () => {
+  test("transforms the source group, suppresses permanent copies, and restores them when repeating stops", () => {
     const sourceLine = new Line({}, new Point(10, 10), new Point(12, 12), aes)
-    const before = JSON.stringify(sourceLine)
+    const sourcePoly = new Poly([new Point(10, 10), new Point(12, 10), new Point(12, 12)])
+    const beforeLine = JSON.stringify(sourceLine)
+    const beforePoly = JSON.stringify(sourcePoly)
     const state = trellisState({
       trellis: true,
       bounds: [new Point(10, 10), new Point(12, 12)],
       lines: [sourceLine],
-      filledPolys: [],
+      filledPolys: [sourcePoly],
+      trellisRotate: {
+        row: { every: 1, val: MIRROR_ROT.RIGHT },
+        col: { every: 1, val: MIRROR_ROT.NONE },
+      },
     })
     const dispatch = vi.fn()
-    const { container } = render(
-      <StateContext.Provider value={{ state, dispatch }}>
+    const renderLayers = (nextState) => (
+      <StateContext.Provider value={{ state: nextState, dispatch }}>
         <svg>
           <Trellis />
+          <Polygons />
+          <Lines />
+          <Bounds />
+          <SelectionRect />
+          <SelectionOptionButtons />
         </svg>
-      </StateContext.Provider>,
+      </StateContext.Provider>
     )
+    const { container, rerender } = render(renderLayers(state))
 
-    expect(container.querySelector("#trellis")).not.toBeNull()
-    expect(container.querySelector('#trellis > g[data-row="0"][data-column="0"]')).toBeNull()
-    expect(JSON.stringify(sourceLine)).toBe(before)
+    const sourceTile = container.querySelector('#trellis > g[data-row="0"][data-column="0"]')
+    expect(sourceTile).not.toBeNull()
+    expect(sourceTile.getAttribute("transform")).toMatch(/^matrix\(0 1 -1 0 10 10\)$/)
+    expect(sourceTile.querySelector("line")).not.toBeNull()
+    expect(sourceTile.querySelector("polygon")).not.toBeNull()
+    expect(container.querySelectorAll("#lines > line")).toHaveLength(0)
+    expect(container.querySelectorAll("#filled-polys > polygon")).toHaveLength(0)
+    const selectionRect = container.querySelector("#selection-rect")
+    expect(Number(selectionRect.getAttribute("x"))).toBe(7.5)
+    expect(Number(selectionRect.getAttribute("y"))).toBe(9.5)
+    expect(Number(selectionRect.getAttribute("width"))).toBe(3)
+    expect(Number(selectionRect.getAttribute("height"))).toBe(3)
+    expect([...container.querySelectorAll("#bounds > rect")].map((bound) => Number(bound.getAttribute("x")))).toEqual([
+      190, 150,
+    ])
+    const selectionButtons = container.querySelector("#selection-option-buttons").parentElement
+    expect(Number(selectionButtons.getAttribute("x"))).toBe(150)
+    expect(Number(selectionButtons.getAttribute("y"))).toBe(145)
+    expect(JSON.stringify(sourceLine)).toBe(beforeLine)
+    expect(JSON.stringify(sourcePoly)).toBe(beforePoly)
     expect(state.bounds[0].eq(new Point(10, 10))).toBe(true)
     expect(state.bounds[1].eq(new Point(12, 12))).toBe(true)
+
+    rerender(renderLayers({ ...state, trellis: false }))
+
+    expect(container.querySelector("#trellis")).toBeNull()
+    expect(container.querySelectorAll("#lines > line")).toHaveLength(1)
+    expect(container.querySelectorAll("#filled-polys > polygon")).toHaveLength(1)
+    expect(Number(container.querySelector("#selection-rect").getAttribute("x"))).toBe(9.5)
+    expect([...container.querySelectorAll("#bounds > rect")].map((bound) => Number(bound.getAttribute("x")))).toEqual([
+      190, 230,
+    ])
+    expect(Number(container.querySelector("#selection-option-buttons").parentElement.getAttribute("x"))).toBe(190)
   })
 
   test("recalculates the finite lattice when the viewport resizes", () => {

@@ -1,6 +1,7 @@
 import Point from "./helper/Point"
-import { getBoundRect, getClipboardRect } from "./utils"
+import { getClipboardRect } from "./utils"
 import { themeDefaults } from "./styling/theme"
+import { getRenderedBoundRect } from "./trellisSelectionUtils"
 
 const canvasButtons = themeDefaults.canvasButtons
 
@@ -30,7 +31,7 @@ export function getClipboardButtonsPos(state) {
 }
 
 export function getSelectionButtonsPos(state) {
-  const boundRect = getBoundRect(state).grow(0.5)
+  const boundRect = getRenderedBoundRect(state).grow(0.5)
   const { left, top } = boundRect.asViewport(state)
   return Point.fromViewport(state, left, top - canvasButtons.height)
 }

@@ -92,6 +92,19 @@ export function getBoundRect(state) {
       : null
 }
 
+// While a valid Trellis is visible, it owns the selected source geometry as
+// tile (0, 0). The normal permanent line/polygon layers omit those objects so
+// the transformed tile is not overdrawn by an untransformed copy.
+export function trellisOwnsSource(state, boundRect = getBoundRect(state)) {
+  return Boolean(
+    (state.trellis || state.openMenus?.repeat) &&
+      state.bounds.length > 1 &&
+      boundRect &&
+      boundRect.wh._x > 0 &&
+      boundRect.wh._y > 0,
+  )
+}
+
 export function getClipboardRect(state) {
   const { clipboard } = state
   if (!clipboard) return null

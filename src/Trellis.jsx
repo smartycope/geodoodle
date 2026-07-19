@@ -6,10 +6,10 @@ import { buildVisibleTrellisTiles } from "./trellisUtils"
 import useViewportSize from "./useViewportSize"
 
 /*
- * Trellis is a finite, source-anchored lattice. The selected lines/polygons in
- * Paper remain the unmodified tile at row 0, column 0; this layer renders only
- * surrounding copies. Every skip/offset/flip/rotation cadence is phased from
- * that source row and column.
+ * Trellis is a finite, source-anchored lattice. This layer owns the selected
+ * lines/polygons while repeating, including the generated tile at row 0,
+ * column 0. Every skip/offset/flip/rotation cadence is phased from that source,
+ * so the base tile transforms and blends into the surrounding pattern.
  *
  * Candidate indices come from the inverse lattice bounds of all four viewport
  * corners. Each candidate is then checked in screen space: lines use
