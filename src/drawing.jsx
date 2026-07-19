@@ -13,7 +13,7 @@ import {
 import { getClipboardButtonStrip, getSelectionButtonStrip } from "./canvasButtonUtils"
 import Line from "./helper/Line"
 import Point from "./helper/Point"
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useContext, useEffect, useMemo } from "react"
 import { StateContext } from "./Contexts"
 import Snackbar from "@mui/material/Snackbar"
 import { useTheme } from "@mui/material/styles"
@@ -46,6 +46,7 @@ import {
   getCanvasTransform,
   rotateCoordinates,
 } from "./transformUtils"
+import useViewportSize from "./useViewportSize"
 
 // For debugging
 function useActiveBreakpoint() {
@@ -64,28 +65,6 @@ function useActiveBreakpoint() {
 
 var debugTextOffset = 80
 const debugTextX = "75%"
-
-function useViewportSize() {
-  const [size, setSize] = useState(() => ({ width: viewportWidth(), height: viewportHeight() }))
-
-  useEffect(() => {
-    const updateSize = () => {
-      const width = viewportWidth()
-      const height = viewportHeight()
-      setSize((current) => (current.width === width && current.height === height ? current : { width, height }))
-    }
-    const visualViewport = window.visualViewport
-
-    window.addEventListener("resize", updateSize)
-    visualViewport?.addEventListener?.("resize", updateSize)
-    return () => {
-      window.removeEventListener("resize", updateSize)
-      visualViewport?.removeEventListener?.("resize", updateSize)
-    }
-  }, [])
-
-  return size
-}
 
 export function BackgroundImage() {
   const { state } = useContext(StateContext)

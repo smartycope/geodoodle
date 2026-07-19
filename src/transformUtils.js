@@ -81,6 +81,53 @@ function viewportOutcode(x, y, left, right, top, bottom) {
   return code
 }
 
+// Cohen-Sutherland clipping for a screen-space segment. Keeping this primitive
+// independent of Line lets repeated patterns cull transformed endpoints without
+// allocating temporary geometry objects.
+export function segmentIntersectsViewport(x1, y1, x2, y2, width, height, padding = 0) {
+  const safePadding = Number.isFinite(padding) ? Math.max(0, padding) : 0
+  const left = -safePadding
+  const right = width + safePadding
+  const top = -safePadding
+  const bottom = height + safePadding
+  let code1 = viewportOutcode(x1, y1, left, right, top, bottom)
+  let code2 = viewportOutcode(x2, y2, left, right, top, bottom)
+
+  while (code1 | code2) {
+    if (code1 & code2) return false
+
+    const outsideCode = code1 || code2
+    let x
+    let y
+
+    if (outsideCode & VIEWPORT_TOP) {
+      x = x1 + ((x2 - x1) * (top - y1)) / (y2 - y1)
+      y = top
+    } else if (outsideCode & VIEWPORT_BOTTOM) {
+      x = x1 + ((x2 - x1) * (bottom - y1)) / (y2 - y1)
+      y = bottom
+    } else if (outsideCode & VIEWPORT_RIGHT) {
+      y = y1 + ((y2 - y1) * (right - x1)) / (x2 - x1)
+      x = right
+    } else {
+      y = y1 + ((y2 - y1) * (left - x1)) / (x2 - x1)
+      x = left
+    }
+
+    if (outsideCode === code1) {
+      x1 = x
+      y1 = y
+      code1 = viewportOutcode(x1, y1, left, right, top, bottom)
+    } else {
+      x2 = x
+      y2 = y
+      code2 = viewportOutcode(x2, y2, left, right, top, bottom)
+    }
+  }
+
+  return true
+}
+
 // Return a low-allocation visibility predicate for canvas-space lines. This is
 // Cohen-Sutherland clipping against the screen rectangle, so it retains lines
 // that cross the viewport even when both endpoints are off screen. Transforming
@@ -91,53 +138,12 @@ export function createViewportLineCuller(state, width = viewportWidth(), height 
   return (line, padding = 0) => {
     if (!line?.valid) return false
 
-    const safePadding = Number.isFinite(padding) ? Math.max(0, padding) : 0
-    const left = -safePadding
-    const right = width + safePadding
-    const top = -safePadding
-    const bottom = height + safePadding
-
     // This is coordinate-system math, so direct access avoids allocating two
     // temporary arrays/objects per line in this render-critical loop.
-    let x1 = a * line.a._x + c * line.a._y + e
-    let y1 = b * line.a._x + d * line.a._y + f
-    let x2 = a * line.b._x + c * line.b._y + e
-    let y2 = b * line.b._x + d * line.b._y + f
-    let code1 = viewportOutcode(x1, y1, left, right, top, bottom)
-    let code2 = viewportOutcode(x2, y2, left, right, top, bottom)
-
-    while (code1 | code2) {
-      if (code1 & code2) return false
-
-      const outsideCode = code1 || code2
-      let x
-      let y
-
-      if (outsideCode & VIEWPORT_TOP) {
-        x = x1 + ((x2 - x1) * (top - y1)) / (y2 - y1)
-        y = top
-      } else if (outsideCode & VIEWPORT_BOTTOM) {
-        x = x1 + ((x2 - x1) * (bottom - y1)) / (y2 - y1)
-        y = bottom
-      } else if (outsideCode & VIEWPORT_RIGHT) {
-        y = y1 + ((y2 - y1) * (right - x1)) / (x2 - x1)
-        x = right
-      } else {
-        y = y1 + ((y2 - y1) * (left - x1)) / (x2 - x1)
-        x = left
-      }
-
-      if (outsideCode === code1) {
-        x1 = x
-        y1 = y
-        code1 = viewportOutcode(x1, y1, left, right, top, bottom)
-      } else {
-        x2 = x
-        y2 = y
-        code2 = viewportOutcode(x2, y2, left, right, top, bottom)
-      }
-    }
-
-    return true
+    const x1 = a * line.a._x + c * line.a._y + e
+    const y1 = b * line.a._x + d * line.a._y + f
+    const x2 = a * line.b._x + c * line.b._y + e
+    const y2 = b * line.b._x + d * line.b._y + f
+    return segmentIntersectsViewport(x1, y1, x2, y2, width, height, padding)
   }
 }
