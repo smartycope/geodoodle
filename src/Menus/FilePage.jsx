@@ -56,7 +56,6 @@ import {
 } from "../fileUtils.jsx"
 import TabManager from "./TabManager"
 import { sharePatternLink } from "../shareUtils"
-import { getLinesViewportBounds } from "../utils.jsx"
 
 const cloudHelpText =
   "Files are stored on Cope's semi-reliable server. They'll probably be safe? But if you have a pattern you really care about, " +
@@ -326,7 +325,12 @@ export default function FilePage() {
       action: "download_file",
       name: filename.trim() || "pattern",
       format,
-      rect: new Rect(Point.fromViewport(state, x, y), Point.fromViewport(state, x + width, y + height)),
+      rect: Rect.fromPoints(
+        Point.fromViewport(state, x, y),
+        Point.fromViewport(state, x + width, y),
+        Point.fromViewport(state, x, y + height),
+        Point.fromViewport(state, x + width, y + height),
+      ),
       selectedOnly: exportingSelection,
     })
 
@@ -338,12 +342,25 @@ export default function FilePage() {
   }
 
   const fitArtwork = () => {
-    const rect = getLinesViewportBounds(state.lines, state)
-    if (!rect) return
-    setWidth(rect.width)
-    setHeight(rect.height)
-    setX(rect.left)
-    setY(rect.top)
+    const visibleLayers = state.layers.filter((layer) => layer.visible)
+    if (visibleLayers.some((layer) => layer.trellis)) {
+      fitCurrentScreen()
+      return
+    }
+    const points = visibleLayers.flatMap((layer) => [
+      ...layer.lines.flatMap((line) => line.points()),
+      ...layer.filledPolys.flatMap((poly) => poly.points),
+    ])
+    if (!points.length) return
+    const viewportPoints = points.map((point) => point.asViewport(state))
+    const left = Math.min(...viewportPoints.map((point) => point.x))
+    const right = Math.max(...viewportPoints.map((point) => point.x))
+    const top = Math.min(...viewportPoints.map((point) => point.y))
+    const bottom = Math.max(...viewportPoints.map((point) => point.y))
+    setWidth(right - left)
+    setHeight(bottom - top)
+    setX(left)
+    setY(top)
   }
 
   const handleFileSelection = (file) => {
@@ -404,7 +421,7 @@ export default function FilePage() {
               />
             )}
 
-            {format !== "svg" && !exportingSelection && (
+            {!exportingSelection && (
               <Box
                 sx={(theme) => ({
                   p: 2,

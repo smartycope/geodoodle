@@ -20,6 +20,7 @@ import { getClipboardButtonsPos, getSelectionButtonsPos } from "../canvasButtonU
 import { getState } from "./testUtils"
 import { viewportWidth } from "../globals"
 import { themeDefaults } from "../styling/theme"
+import { getLayerState } from "../layerUtils"
 
 const touch = (pageX, pageY) => ({ pageX, pageY })
 
@@ -309,7 +310,7 @@ describe("touch interactions", () => {
     dispatched = []
     dispatch = (action) => {
       dispatched.push(action)
-      state = reducer(state, action)
+      state = getLayerState(reducer(state, action))
     }
   })
 

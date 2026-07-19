@@ -69,7 +69,7 @@ export default function SettingsPage() {
     gestureTranslateSensitivity,
     gestureScaleSensitivity,
     smoothGestureScale,
-    dotsAbovefill,
+    dotsAboveArtwork,
     paperColor,
     backgroundImage,
     defaultToMemorableNames,
@@ -461,10 +461,12 @@ export default function SettingsPage() {
             onChange={() => dispatch({ action: "set_manual_and_save_settings", useHSVColorPicker: !useHSVColorPicker })}
           />
         </Setting>
-        <Setting label="Dots above fill" help="Controls if the dots are displayed above the filled areas or not">
+        <Setting label="Dots above artwork" help="Display the dot grid above the complete layer stack instead of below it">
           <Checkbox
-            checked={dotsAbovefill}
-            onChange={() => dispatch({ action: "set_manual_and_save_settings", dotsAbovefill: !dotsAbovefill })}
+            checked={dotsAboveArtwork}
+            onChange={() =>
+              dispatch({ action: "set_manual_and_save_settings", dotsAboveArtwork: !dotsAboveArtwork })
+            }
           />
         </Setting>
         <Setting label="Max Undo Amount" help="Controls how many consecutive undos you can do at once">

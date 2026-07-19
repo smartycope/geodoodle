@@ -91,7 +91,7 @@ describe("shared pattern startup", () => {
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Save your current pattern?" })).toBeNull())
     expect(getSaves().Backup).toBeTruthy()
     expect(loadPreservedState().filename).toBe("shared-star")
-    expect(loadPreservedState().lines[0].a.eq(shared.lines[0].a)).toBe(true)
+    expect(loadPreservedState().layers[0].lines[0].a.eq(shared.lines[0].a)).toBe(true)
   })
 
   test("can ignore the current drawing and load the shared pattern", async () => {

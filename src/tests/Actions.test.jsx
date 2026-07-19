@@ -103,6 +103,13 @@ vi.mock("../fileUtils", () => ({
     return "mocked-image-url"
   }),
   serializePattern: vi.fn(() => "mocked-serialized-pattern"),
+  resolveExportRect: vi.fn((state, selectedOnly) => {
+    const objects = selectedOnly ? utils.getSelected(state, false, true) : [...state.lines, ...state.filledPolys]
+    const points = objects.flatMap((object) =>
+      typeof object.points === "function" ? object.points() : (object.points ?? []),
+    )
+    return points.length ? Rect.fromPoints(...points) : new Rect(new Point(0, 0), new Point(1, 1))
+  }),
   validateStorage: vi.fn(),
   generateName: () => "test name",
   // validateStorage: validateStorage,
@@ -441,8 +448,9 @@ describe("Deletion Actions", () => {
   describe("clear", () => {
     test("should clear all lines and bounds", () => {
       const newState = clear(state)
-      expect(newState.lines).toHaveLength(0)
-      expect(newState.bounds).toHaveLength(0)
+      expect(newState.layers).toHaveLength(1)
+      expect(newState.layers[0].lines).toHaveLength(0)
+      expect(newState.layers[0].bounds).toHaveLength(0)
       expect(newState.openMenus.delete).toBe(false)
       expect(newState.openMenus.repeat).toBe(false)
     })
@@ -1440,8 +1448,20 @@ describe("UI Actions", () => {
   })
 
   describe("apply_trellis", () => {
-    test("keeps the current trellis visible after the Repeat menu closes", () => {
-      expect(apply_trellis({ ...state, trellis: false })).toEqual({ trellis: true })
+    test("moves the selected source into a persistent Trellis", () => {
+      const line = new Line(state, new Point(1, 1), new Point(3, 3))
+      const layer = state.layers[0].copy({
+        lines: [line],
+        bounds: [new Point(0, 0), new Point(4, 4)],
+      })
+      const source = { ...state, layers: [layer], lines: layer.lines, bounds: layer.bounds }
+
+      const result = apply_trellis(source)
+
+      expect(result.layers[0].trellis).not.toBeNull()
+      expect(result.layers[0].trellis.lines).toHaveLength(1)
+      expect(result.layers[0].lines).toHaveLength(0)
+      expect(result.layers[0].bounds).toEqual([])
     })
   })
 

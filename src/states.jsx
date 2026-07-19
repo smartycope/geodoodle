@@ -2,10 +2,11 @@ import options, { defaultKeybindings } from "./options"
 import { viewportWidth, viewportHeight, START_DEBUGGING, MIRROR_AXIS, MIRROR_TYPE, MIRROR_ROT } from "./globals"
 import Point from "./helper/Point"
 import Line from "./helper/Line"
-import { defaultTrellisControl, isMobile as getIsMobile } from "./utils"
+import { isMobile as getIsMobile } from "./utils"
 import Dist from "./helper/Dist"
 import { generateName } from "./fileUtils"
 import { themeDefaults } from "./styling/theme"
+import { createLayer, getActiveLayer, updateActiveLayer } from "./layerUtils"
 
 // NOTE: when adding to state, go through options.jsx and add them to reversible, preservable, and saveable, if applicable
 
@@ -40,8 +41,11 @@ export default function getInitialState() {
     // The polygons that the mouse is over currently (as a list, because there might be multiple due to mirroring)
     // A list of Poly objects
     curPolys: [],
-    // A list of Poly objects that have been filled. We draw these
-    filledPolys: [],
+    // Durable drawing content lives in ordered layers. The active layer is
+    // projected into the state view used by geometry/actions at the boundary.
+    layers: [createLayer(1)],
+    activeLayerId: "layer-1",
+    trellisDraft: null,
 
     filename: generateName(options.defaultToMemorableNames),
     // The side of page we have the menu bound to: left, right, top, or bottom
@@ -53,21 +57,12 @@ export default function getInitialState() {
     // (otherwise, we couldn't fill say, a 1x1 square)
     // IT SHOULD BE USED CAREFULLY. It's currently only used during fill mode. Everything else should use cursorPos.
     mousePos: Point.svgOrigin(),
-    // A list of Line objects, or an empty list
-    lines: [],
     // The starting point of the current line, or null
     curLinePos: null,
-    // A list of points specifying the bounderies that define the selection rect
-    bounds: [],
     // Whether we're currently dragging the selection rect. If we are, we count the cursorPos as a bound
     boundDragging: false,
     // True while an incomplete area selection will delete its bounded lines when completed.
     deletingSelection: false,
-    // A list of Points. These select lines which have start AND end points which are in this list
-    specificSelectors: [],
-    // A list of Points. These select lines which have start OR end points which are in this list. Also
-    // selects intersections
-    genericSelectors: [],
     // A list of Line objects, or null
     clipboard: null,
     // In degrees
@@ -78,25 +73,11 @@ export default function getInitialState() {
     // or the selection gets deleted, we can still transform it
     clipboardOffset: null,
 
-    trellis: false,
-    // See the definition of defaultTrellisControl (in utils.jsx) for what this type looks like
-    // Note that Offset is a synonym for Overlap
-    // Type: object
-    trellisOverlap: defaultTrellisControl({ x: 0, y: 0 }),
-    // Type: number
-    trellisSkip: defaultTrellisControl(0),
-    // Type: MIRROR_AXIS
-    trellisFlip: defaultTrellisControl(MIRROR_AXIS.NONE),
-    // Type: MIRROR_AXIS
-    trellisRotate: defaultTrellisControl(MIRROR_ROT.NONE),
     hideDots: false,
 
     mirrorAxis: MIRROR_AXIS.NONE,
     mirrorRot: MIRROR_ROT.NONE,
     mirrorType: MIRROR_TYPE.CURSOR,
-    // Type: [{origin: Point, rot: MIRROR_ROT, axis: MIRROR_AXIS}]
-    mirrorOrigins: [],
-
     // Transformations
     translation: Dist.zero(),
     // The scale to go back to after we reset
@@ -122,7 +103,7 @@ export default function getInitialState() {
     // 1 tracks the change in distance between two fingers exactly
     gestureScaleSensitivity: 1,
     smoothGestureScale: false,
-    dotsAbovefill: true,
+    dotsAboveArtwork: false,
     // One of options.extraButtons
     extraButton: "home",
     hideHexColor: options.hideHexColor,
@@ -196,6 +177,7 @@ export default function getInitialState() {
       color: false,
       navigation: false,
       repeat: false,
+      layers: false,
       file: false,
       settings: false,
       help: false,
@@ -221,7 +203,7 @@ function debugState(state) {
     lineJoin: "miter",
   }
 
-  return {
+  const layerPatch = {
     lines: [
       new Line({}, new Point(5, 13), new Point(6, 11), debug_aes),
       new Line({}, new Point(5, 13), new Point(4, 11), debug_aes),
@@ -229,6 +211,9 @@ function debugState(state) {
       new Line({}, new Point(5, 9), new Point(4, 11), debug_aes),
     ],
     bounds: [Point.fromSvg(state, 6, 13, false), Point.fromSvg(state, 4, 9, false)],
+  }
+  return {
+    ...updateActiveLayer(state, layerPatch),
     openMenus: {
       ...state.openMenus,
       repeat: false,
@@ -240,6 +225,7 @@ function debugState(state) {
 }
 
 export function tourState(state) {
+  const activeLayer = getActiveLayer(state)
   return {
     inTour: true,
     debug: false,
@@ -256,35 +242,38 @@ export function tourState(state) {
       mirror: false,
     },
     side: "top",
-    bounds: [Point.fromSvg(state, 6, 13, false), Point.fromSvg(state, 4, 9, false)],
+    ...updateActiveLayer(state, {
+      ...activeLayer,
+      bounds: [Point.fromSvg(state, 6, 13, false), Point.fromSvg(state, 4, 9, false)],
+      lines: [
+        new Line(
+          state,
+          Point.fromSvg(state, 5, 13, false),
+          Point.fromSvg(state, 6, 11, false),
+          { stroke: "black", strokeWidth: 0, dash: "1, .5" },
+          { id: "dashed-line" },
+        ),
+        new Line(state, Point.fromSvg(state, 5, 13, false), Point.fromSvg(state, 6, 11, false), {
+          stroke: "black",
+          strokeWidth: 0,
+        }),
+        new Line(state, Point.fromSvg(state, 6, 11, false), Point.fromSvg(state, 5, 9, false), {
+          stroke: "black",
+          strokeWidth: 0,
+        }),
+        new Line(state, Point.fromSvg(state, 5, 9, false), Point.fromSvg(state, 4, 11, false), {
+          stroke: "black",
+          strokeWidth: 0,
+        }),
+        new Line(state, Point.fromSvg(state, 4, 11, false), Point.fromSvg(state, 5, 13, false), {
+          stroke: "black",
+          strokeWidth: 0,
+        }),
+      ],
+    }),
     curLinePos: null,
     dash: ["0", "20, 10", "0", "0", "0"],
     colorProfile: 1,
     stroke: ["#000000", "#000000", "#ddddab", "#ff784b", "#1a31ff"],
-    lines: [
-      new Line(
-        state,
-        Point.fromSvg(state, 5, 13, false),
-        Point.fromSvg(state, 6, 11, false),
-        { stroke: "black", strokeWidth: 0, dash: "1, .5" },
-        { id: "dashed-line" },
-      ),
-      new Line(state, Point.fromSvg(state, 5, 13, false), Point.fromSvg(state, 6, 11, false), {
-        stroke: "black",
-        strokeWidth: 0,
-      }),
-      new Line(state, Point.fromSvg(state, 6, 11, false), Point.fromSvg(state, 5, 9, false), {
-        stroke: "black",
-        strokeWidth: 0,
-      }),
-      new Line(state, Point.fromSvg(state, 5, 9, false), Point.fromSvg(state, 4, 11, false), {
-        stroke: "black",
-        strokeWidth: 0,
-      }),
-      new Line(state, Point.fromSvg(state, 4, 11, false), Point.fromSvg(state, 5, 13, false), {
-        stroke: "black",
-        strokeWidth: 0,
-      }),
-    ],
   }
 }

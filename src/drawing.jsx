@@ -3,7 +3,6 @@ import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE, viewportHeight, viewportWidth } f
 import options from "./options"
 import {
   getHalf,
-  getDebugBox,
   getBoundRect,
   getAllClipboardLines,
   getAllIntersections,
@@ -33,6 +32,9 @@ import ExtraMenu from "./Menus/ExtraMenu"
 import ClipboardMenu from "./Menus/ClipboardMenu"
 import DeleteMenu from "./Menus/DeleteMenu"
 import SelectMenu from "./Menus/SelectMenu"
+import LayersPanel from "./Menus/LayersPanel"
+
+const EMPTY_ARRAY = Object.freeze([])
 import { MirrorAxisIcon, MirrorRotIcon } from "./Menus/CustomIcons"
 import CheckIcon from "@mui/icons-material/Check"
 import ClearIcon from "@mui/icons-material/Clear"
@@ -49,6 +51,9 @@ import {
 } from "./transformUtils"
 import useViewportSize from "./useViewportSize"
 import { getRenderedBoundRect, getRenderedBounds } from "./trellisSelectionUtils"
+import Trellis from "./Trellis"
+import { getLayerState } from "./layerUtils"
+import { MAX_TRELLIS_CANDIDATES, MAX_TRELLIS_GROUPS } from "./trellisUtils"
 
 // For debugging
 function useActiveBreakpoint() {
@@ -188,8 +193,7 @@ export const DebugInfo = () => {
 
   if (!state.debug) return null
 
-  const { debugDrawPoints, translation, scalex, scaley, openMenus } = state
-  const debugBox = getDebugBox(state)
+  const { debugDrawPoints, translation, scalex, scaley } = state
   const origin = Point.fromViewport(state, translation._x, translation._y, false)
   const intersectcions = getAllIntersections(state.lines)
 
@@ -521,8 +525,16 @@ export const CurrentLines = () => {
   )
 }
 
-export const Lines = () => {
-  const { state } = useContext(StateContext)
+export const Lines = ({
+  layerState,
+  id = "lines",
+  transformed = true,
+  interactive = true,
+  selectionOverlayOnly = false,
+  suppressedIndices = [],
+} = {}) => {
+  const { state: contextState } = useContext(StateContext)
+  const state = layerState ?? contextState
   const theme = useTheme()
   const viewportSize = useViewportSize()
   const {
@@ -531,17 +543,21 @@ export const Lines = () => {
     scaley,
     translation,
     rotate,
-    bounds,
+    bounds: storedBounds,
     boundDragging,
     useFancyGlow,
     cursorPos,
     partials,
-    genericSelectors,
-    specificSelectors,
-    deletingSelection,
+    genericSelectors: storedGenericSelectors,
+    specificSelectors: storedSpecificSelectors,
+    deletingSelection: storedDeletingSelection,
     trellis,
     openMenus,
   } = state
+  const bounds = interactive ? storedBounds : EMPTY_ARRAY
+  const genericSelectors = interactive ? storedGenericSelectors : EMPTY_ARRAY
+  const specificSelectors = interactive ? storedSpecificSelectors : EMPTY_ARRAY
+  const deletingSelection = interactive && storedDeletingSelection
   const { glowWidth, glowOpacity } = theme.geodoodle ?? themeDefaults
   const deletingSelectionTheme = (theme.geodoodle ?? themeDefaults).deletingSelection
   const glowColor = theme.palette.primary.glow ?? themeDefaults.glowColor.light
@@ -563,7 +579,9 @@ export const Lines = () => {
     const glowPadding = hasPossibleHighlights ? Math.max(glowWidth / 2, useFancyGlow ? 0.6 : 0) : 0
     const strokeScale = Math.max(Math.abs(scalex), Math.abs(scaley))
     const visibleLineIndices = []
+    const suppressed = new Set(suppressedIndices)
     for (let i = 0; i < lines.length; i++) {
+      if (suppressed.has(i)) continue
       const strokePadding = Math.max(0, Number(lines[i].aes.width) || 0) / 2
       const viewportPadding = (strokePadding + glowPadding) * strokeScale + 1
       if (isLineInViewport(lines[i], viewportPadding)) visibleLineIndices.push(i)
@@ -584,7 +602,7 @@ export const Lines = () => {
     }
     const boundRect = bounds?.length > 0 ? getBoundRect(renderState) : null
     const trellisState = { trellis, openMenus: { repeat: openMenus.repeat }, bounds }
-    const renderedLineIndices = trellisOwnsSource(trellisState, boundRect)
+    let renderedLineIndices = typeof trellis === "boolean" && trellisOwnsSource(trellisState, boundRect)
       ? visibleLineIndices.filter((lineIndex) => !lines[lineIndex].isSelected(renderState, boundRect))
       : visibleLineIndices
     const deletingAreaState = deletingSelection ? { ...renderState, genericSelectors: [], specificSelectors: [] } : null
@@ -592,12 +610,16 @@ export const Lines = () => {
     const selectorState = deletingSelection
       ? { ...renderState, bounds: [], boundDragging: false, cursorPos: null, activeBoundCursor: null }
       : null
-    const highlightTypes = renderedLineIndices.map((i) => {
+    let highlightTypes = renderedLineIndices.map((i) => {
       const line = lines[i]
       if (!deletingSelection) return line.isSelected(renderState, boundRect) ? "selected" : null
       if (line.isSelected(deletingAreaState, deletingBoundRect)) return "deleting"
       return line.isSelected(selectorState, null) ? "selected" : null
     })
+    if (selectionOverlayOnly) {
+      renderedLineIndices = renderedLineIndices.filter((_, index) => Boolean(highlightTypes[index]))
+      highlightTypes = highlightTypes.filter(Boolean)
+    }
     const fancyGlow = useFancyGlow && highlightTypes.filter(Boolean).length <= options.maxFancyGlowingLines
 
     if (fancyGlow)
@@ -606,7 +628,7 @@ export const Lines = () => {
         renderedLines: renderedLineIndices.map((lineIndex, i) =>
           lines[lineIndex].render(
             renderState,
-            `line-${lineIndex}`,
+            `${id}-line-${lineIndex}`,
             {
               filter: highlightTypes[i]
                 ? `url(#${highlightTypes[i] === "deleting" ? "deleting-glow" : "glow"})`
@@ -633,7 +655,7 @@ export const Lines = () => {
           selectionUnderlays.push(
             line.render(
               renderState,
-              `selected-line-${lineIndex}`,
+              `${id}-selected-line-${lineIndex}`,
               {
                 stroke: highlightTypes[i] === "deleting" ? deletingGlowColor : glowColor,
                 strokeWidth: line.aes.width + glowWidth,
@@ -645,7 +667,7 @@ export const Lines = () => {
             ),
           )
       }
-      renderedLines.push(line.render(renderState, `line-${lineIndex}`, {}, false))
+      renderedLines.push(line.render(renderState, `${id}-line-${lineIndex}`, {}, false))
     })
 
     return { selectionUnderlays, renderedLines }
@@ -671,10 +693,13 @@ export const Lines = () => {
     useFancyGlow,
     trellis,
     openMenus.repeat,
+    suppressedIndices,
+    selectionOverlayOnly,
+    id,
   ])
 
   return (
-    <g id="lines" transform={getCanvasTransform(state)}>
+    <g id={id} transform={transformed ? getCanvasTransform(state) : undefined}>
       {selectionUnderlays.length > 0 && (
         <g id="selected-line-highlights" pointerEvents="none">
           {selectionUnderlays}
@@ -780,23 +805,81 @@ export const Dots = () => {
   )
 }
 
-export const Polygons = () => {
-  const { state } = useContext(StateContext)
+export const Polygons = ({ layerState, id = "filled-polys", transformed = true, suppressedIndices = [] } = {}) => {
+  const { state: contextState } = useContext(StateContext)
+  const state = layerState ?? contextState
   const { filledPolys, fill, colorProfile, bounds, partials, trellis, openMenus } = state
   const renderedPolys = useMemo(() => {
     const trellisState = { trellis, openMenus: { repeat: openMenus.repeat }, bounds }
     const boundRect = bounds.length > 1 ? getBoundRect(trellisState) : null
-    const polys = trellisOwnsSource(trellisState, boundRect)
+    const legacyPolys = typeof trellis === "boolean" && trellisOwnsSource(trellisState, boundRect)
       ? filledPolys.filter((poly) => !poly.isSelected({ partials }, boundRect))
       : filledPolys
-    return polys.map((poly, i) => poly.render({ fill, colorProfile }, `filled-poly-${i}`))
-  }, [filledPolys, fill, colorProfile, bounds, partials, trellis, openMenus.repeat])
+    const suppressed = new Set(suppressedIndices)
+    return legacyPolys
+      .filter((_, index) => !suppressed.has(index))
+      .map((poly, i) => poly.render({ fill, colorProfile }, `${id}-poly-${i}`))
+  }, [filledPolys, fill, colorProfile, bounds, partials, trellis, openMenus.repeat, suppressedIndices, id])
 
   return (
-    <g id="filled-polys" transform={getCanvasTransform(state)}>
+    <g id={id} transform={transformed ? getCanvasTransform(state) : undefined}>
       {renderedPolys}
     </g>
   )
+}
+
+export const ArtworkLayers = () => {
+  const { state } = useContext(StateContext)
+  const visibleLayers = state.layers.filter((layer) => layer.visible)
+  const visibleTrellises = visibleLayers.filter(
+    (layer) => (layer.id === state.activeLayerId && state.trellisDraft?.trellis) || layer.trellis,
+  ).length
+  const maxGroups = Math.max(1, Math.floor(MAX_TRELLIS_GROUPS / Math.max(1, visibleTrellises)))
+  const maxCandidates = Math.max(1, Math.floor(MAX_TRELLIS_CANDIDATES / Math.max(1, visibleTrellises)))
+
+  return visibleLayers.map((layer) => {
+    const active = layer.id === state.activeLayerId
+    const layerState = getLayerState(state, layer)
+    const draft = active ? state.trellisDraft : null
+    const trellis = draft?.trellis ?? layer.trellis
+    const suppressDraftSource = draft && ["create", "replace"].includes(draft.mode)
+    const suffix = active ? "" : `-${layer.id}`
+
+    return (
+      <g key={layer.id} id={`artwork-${layer.id}`} data-layer-id={layer.id} transform={getCanvasTransform(state)}>
+        {trellis && (
+          <Trellis
+            trellis={trellis}
+            layerState={layerState}
+            id={`trellis${suffix}`}
+            transformed={false}
+            maxGroups={maxGroups}
+            maxCandidates={maxCandidates}
+          />
+        )}
+        <Polygons
+          layerState={layerState}
+          id={`filled-polys${suffix}`}
+          transformed={false}
+          suppressedIndices={suppressDraftSource ? draft.sourcePolyIndexes : []}
+        />
+        <Lines
+          layerState={layerState}
+          id={`lines${suffix}`}
+          transformed={false}
+          interactive={false}
+          suppressedIndices={suppressDraftSource ? draft.sourceLineIndexes : []}
+        />
+      </g>
+    )
+  })
+}
+
+export const ActiveSelectionLines = () => {
+  const { state } = useContext(StateContext)
+  const draft = state.trellisDraft
+  const suppressedIndices = draft && ["create", "replace"].includes(draft.mode) ? draft.sourceLineIndexes : EMPTY_ARRAY
+  return <Lines id="active-selection-lines" selectionOverlayOnly suppressedIndices={suppressedIndices} />
 }
 
 export const CurrentPolys = () => {
@@ -824,6 +907,7 @@ export const Menus = () => {
       {openMenus.mirror && <MirrorMenu menu="mirror" />}
       {openMenus.color && <ColorMenu menu="color" />}
       {openMenus.extra && <ExtraMenu menu="extra" />}
+      {openMenus.layers && <LayersPanel />}
 
       {/* Pages */}
       {openMenus.navigation && <NavMenu />}

@@ -108,6 +108,7 @@ export const keybindable = [
     ["delete", "Delete menu"],
     ["navigation", "Navigation menu"],
     ["repeat", "Repeat menu", "r"],
+    ["layers", "Layers panel"],
     ["file", "Files page"],
     ["settings", "Settings page", "ctrl+s"],
     ["help", "Help page"],
@@ -150,6 +151,15 @@ export const reversibleActions = [
   "add_specific_selector",
   "add_generic_selector",
   "paint_selected",
+  "add_layer",
+  "delete_layer",
+  "activate_layer",
+  "rename_layer",
+  "set_layer_visibility",
+  "reorder_layers",
+  "clear_active_layer",
+  "apply_trellis",
+  "release_trellis",
 ]
 
 // These are actions
@@ -185,20 +195,23 @@ export const saveSettingActions = [
   "clear_fill",
   "add_specific_selector",
   "add_generic_selector",
+  "add_layer",
+  "delete_layer",
+  "activate_layer",
+  "rename_layer",
+  "set_layer_visibility",
+  "reorder_layers",
+  "clear_active_layer",
+  "release_trellis",
 ]
 
 // These are parts of the state
 // When undoing an action, only these parts of the state get undone
 export const reversible = [
-  "lines",
+  "layers",
+  "activeLayerId",
   "curLinePos",
-  "bounds",
-  "specificSelectors",
-  "genericSelectors",
-  // 'trellis', // contested
   "clipboard",
-  "filledPolys",
-  "mirrorOrigins",
 ]
 
 // These are parts of the state
@@ -214,14 +227,11 @@ export const preservable = [
   "dash",
   "extraButton",
   "partials",
-  "lines",
-  "bounds",
-  "specificSelectors",
-  "genericSelectors",
+  "layers",
+  "activeLayerId",
   "mirrorAxis",
   "mirrorRot",
   "mirrorType",
-  "trellis",
   "translation",
   "scalex",
   "scaley",
@@ -235,8 +245,7 @@ export const preservable = [
   "debug",
   "paperColor",
   "doubleTapTimeMS",
-  "filledPolys",
-  "mirrorOrigins",
+  "dotsAboveArtwork",
   "allowSnapToIntersections",
   "useHSVColorPicker",
   "removeSelectionAfterDelete",
@@ -254,12 +263,8 @@ export const preservable = [
 // The parts of the state that get serialized to the svg file
 // Think: what does the user want to share with someone else?
 export const saveable = [
-  // This is handeled seperately
-  // 'lines',
-  "bounds",
-  "trellis",
-  "specificSelectors",
-  "genericSelectors",
+  "layers",
+  "activeLayerId",
   "translation",
   "scalex",
   "scaley",

@@ -1,75 +1,39 @@
 import { memo, useContext, useEffect, useMemo, useRef } from "react"
 import { StateContext } from "./Contexts"
-import { getBoundRect, getSelected } from "./utils"
+import TrellisModel from "./helper/Trellis"
 import { getCanvasTransform } from "./transformUtils"
-import { buildVisibleTrellisTiles } from "./trellisUtils"
 import useViewportSize from "./useViewportSize"
+import { TRELLIS_SIZE_WARNING } from "./trellisUtils"
 
-/*
- * Trellis is a finite, source-anchored lattice. This layer owns the selected
- * lines/polygons while repeating, including the generated tile at row 0,
- * column 0. Every skip/offset/flip/rotation cadence is phased from that source,
- * so the base tile transforms and blends into the surrounding pattern.
- *
- * Candidate indices come from the inverse lattice bounds of all four viewport
- * corners. Each candidate is then checked in screen space: lines use
- * Cohen-Sutherland clipping and polygons use vertex, edge, and containment
- * tests. This accounts for page rotation and long geometry outside the selected
- * rectangle without creating off-screen React/SVG groups.
- */
-export default memo(function Trellis() {
-  const { state, dispatch } = useContext(StateContext)
+/** Thin React renderer for the serializable Trellis model. */
+export default memo(function Trellis({
+  trellis: suppliedTrellis,
+  layerState,
+  id = "trellis",
+  transformed = true,
+  maxGroups,
+  maxCandidates,
+}) {
+  const context = useContext(StateContext)
+  const state = layerState ?? context.state
+  const dispatch = context.dispatch
   const viewportSize = useViewportSize()
   const lastWarning = useRef(null)
-  const active = Boolean((state.trellis || state.openMenus.repeat) && state.bounds.length > 1)
+  const legacyRequested = Boolean((state.trellis || state.openMenus?.repeat) && state.bounds?.length > 1)
 
-  const boundRect = useMemo(
-    () => (active ? getBoundRect(state) : null),
-    // A completed Trellis selection does not depend on cursorPos.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [active, state.bounds, state.boundDragging],
-  )
-  const pattern = useMemo(
-    () => (active && boundRect ? getSelected(state, "topLeft", true) : []),
-    // Selection membership is fully described by these immutable state fields.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      active,
-      boundRect,
-      state.lines,
-      state.filledPolys,
-      state.partials,
-      state.genericSelectors,
-      state.specificSelectors,
-    ],
-  )
+  const trellis = useMemo(() => {
+    if (suppliedTrellis instanceof TrellisModel) return suppliedTrellis
+    if (state.trellis instanceof TrellisModel) return state.trellis
+    // Legacy tests/files may still supply the old boolean/control shape.
+    if ((state.trellis || state.openMenus?.repeat) && state.bounds?.length > 1) return TrellisModel.fromSelection(state, state)
+    return null
+  }, [suppliedTrellis, state])
 
   const result = useMemo(() => {
-    if (!active || !boundRect) return { tiles: [], warning: null }
-    return buildVisibleTrellisTiles({
-      pattern,
-      state,
-      boundRect,
-      viewportWidth: viewportSize.width,
-      viewportHeight: viewportSize.height,
-    })
-    // Only geometry, repeat controls, and canvas transforms affect culling.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    active,
-    pattern,
-    boundRect,
-    viewportSize.width,
-    viewportSize.height,
-    state.scalex,
-    state.scaley,
-    state.translation,
-    state.rotate,
-    state.trellisOverlap,
-    state.trellisSkip,
-    state.trellisFlip,
-    state.trellisRotate,
-  ])
+    if (!trellis?.valid)
+      return { tiles: [], warning: legacyRequested ? TRELLIS_SIZE_WARNING : null }
+    return trellis.visibleTiles(state, viewportSize.width, viewportSize.height, { maxGroups, maxCandidates })
+  }, [trellis, legacyRequested, state, viewportSize.width, viewportSize.height, maxGroups, maxCandidates])
 
   useEffect(() => {
     if (!result.warning) {
@@ -78,29 +42,26 @@ export default memo(function Trellis() {
     }
     if (lastWarning.current === result.warning) return
     lastWarning.current = result.warning
-    dispatch({ toast: result.warning })
+    dispatch?.({ toast: result.warning })
   }, [dispatch, result.warning])
 
   const renderedPattern = useMemo(
     () =>
-      pattern.map((object, index) =>
-        object.render(
-          state,
-          `trellis-pattern-${index}`,
-          {}, // state.debug ? { stroke: "red", strokeWidth: 2 / state.scalex } : {},
-          false,
-          boundRect,
-        ),
-      ),
-    // Rendering aesthetics do not need to invalidate lattice visibility.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [pattern, boundRect, state.debug, state.scalex, state.colorProfile, state.fill],
+      trellis
+        ? [
+            ...trellis.filledPolys.map((poly, index) => poly.render(state, `${id}-poly-${index}`)),
+            ...trellis.lines.map((line, index) =>
+              line.render(state, `${id}-line-${index}`, {}, false, trellis.boundRect),
+            ),
+          ]
+        : [],
+    [trellis, state, id],
   )
 
-  if (!active || !boundRect || result.tiles.length === 0) return null
+  if (!trellis?.valid || result.tiles.length === 0) return null
 
   return (
-    <g id="trellis" transform={getCanvasTransform(state)}>
+    <g id={id} transform={transformed ? getCanvasTransform(state) : undefined}>
       {result.tiles.map((tile) => (
         <g key={`${tile.row}:${tile.column}`} data-row={tile.row} data-column={tile.column} transform={tile.transform}>
           {renderedPattern}

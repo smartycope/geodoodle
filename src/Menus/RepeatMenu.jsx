@@ -1,8 +1,7 @@
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { MIRROR_AXIS, MIRROR_ROT } from "../globals"
 import { MirrorAxisIcon, MirrorRotIcon } from "./CustomIcons"
 import Number from "./Number"
-import { defaultTrellisControl, getBoundRect } from "../utils"
 
 import { StateContext } from "../Contexts"
 import KeyboardTabIcon from "@mui/icons-material/KeyboardTab"
@@ -15,6 +14,10 @@ import BlurOnIcon from "@mui/icons-material/BlurOn"
 import BlurOffIcon from "@mui/icons-material/BlurOff"
 import DashboardIcon from "@mui/icons-material/Dashboard"
 import CheckIcon from "@mui/icons-material/Check"
+import FindReplaceIcon from "@mui/icons-material/FindReplace"
+import CallMadeIcon from "@mui/icons-material/CallMade"
+
+const updateDraft = (dispatch, key, value) => dispatch({ action: "update_trellis_draft", key, value })
 
 // For reference,
 /*
@@ -50,7 +53,7 @@ function SubMenu({ title, byHorizontal, byVertical, transformation, resetVal, ev
   const { state, dispatch } = useContext(StateContext)
   const theme = useTheme()
 
-  const { col, row } = state[transformation]
+  const { col, row } = state.trellisDraft.trellis[transformation]
 
   return (
     <Box
@@ -84,7 +87,7 @@ function SubMenu({ title, byHorizontal, byVertical, transformation, resetVal, ev
         <Box sx={{ ...gridItemSx, justifyContent: "center" }}>
           <div id="tour3">
             <Number
-              onValueChange={(val) => dispatch({ [transformation]: { col: { every: val, val: col.val }, row } })}
+              onValueChange={(val) => updateDraft(dispatch, transformation, { col: { every: val, val: col.val }, row })}
               value={col.every}
               vertical
               min={everyMin}
@@ -115,7 +118,12 @@ function SubMenu({ title, byHorizontal, byVertical, transformation, resetVal, ev
         <Box sx={gridItemSx}>
           <IconButton
             aria-label={`Reset ${title}`}
-            onClick={() => dispatch({ [transformation]: defaultTrellisControl(resetVal) })}
+            onClick={() =>
+              updateDraft(dispatch, transformation, {
+                row: { every: 1, val: resetVal },
+                col: { every: 1, val: resetVal },
+              })
+            }
             variant="contained"
             sx={{
               // Don't know why borderRadius here is different than in Number
@@ -134,7 +142,7 @@ function SubMenu({ title, byHorizontal, byVertical, transformation, resetVal, ev
         <Box sx={gridItemSx}>
           <div id="tour2">
             <Number
-              onValueChange={(val) => dispatch({ [transformation]: { row: { every: val, val: row.val }, col } })}
+              onValueChange={(val) => updateDraft(dispatch, transformation, { row: { every: val, val: row.val }, col })}
               value={row.every}
               min={everyMin}
               max={Math.floor(window.innerWidth / state.scaley)}
@@ -153,10 +161,8 @@ function SubMenu({ title, byHorizontal, byVertical, transformation, resetVal, ev
 function OffsetMenu() {
   const { state, dispatch } = useContext(StateContext)
   const theme = useTheme()
-  const { col, row } = state.trellisOverlap
-  // Only update when bounds change is intentional, the state changes every render
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const { x: patternW, y: patternH } = useMemo(() => getBoundRect(state).wh.asDeflated(), [state.bounds])
+  const { col, row } = state.trellisDraft.trellis.overlap
+  const { x: patternW, y: patternH } = state.trellisDraft.trellis.sourceSize.asDeflated()
   const minx = -patternW * 2 + 1
   const maxx = patternW * 2 - 1
   const miny = -patternH * 2 + 1
@@ -166,7 +172,7 @@ function OffsetMenu() {
     <SubMenu
       title="Offset"
       resetVal={{ x: 0, y: 0 }}
-      transformation="trellisOverlap"
+      transformation="overlap"
       byHorizontal={
         <Box
           data-testid="offset-horizontal-controls"
@@ -194,11 +200,9 @@ function OffsetMenu() {
           <Box sx={gridItemSx}>
             <Number
               onValueChange={(newVal) =>
-                dispatch({
-                  trellisOverlap: {
-                    row: { every: row.every, val: { x: newVal, y: row.val.y } },
-                    col,
-                  },
+                updateDraft(dispatch, "overlap", {
+                  row: { every: row.every, val: { x: newVal, y: row.val.y } },
+                  col,
                 })
               }
               value={row.val.x}
@@ -221,11 +225,9 @@ function OffsetMenu() {
           <Box sx={gridItemSx}>
             <Number
               onValueChange={(newVal) =>
-                dispatch({
-                  trellisOverlap: {
-                    row: { every: row.every, val: { x: row.val.x, y: newVal } },
-                    col,
-                  },
+                updateDraft(dispatch, "overlap", {
+                  row: { every: row.every, val: { x: row.val.x, y: newVal } },
+                  col,
                 })
               }
               value={row.val.y}
@@ -251,8 +253,9 @@ function OffsetMenu() {
         <>
           <Number
             onValueChange={(newVal) => {
-              dispatch({
-                trellisOverlap: { col: { every: col.every, val: { x: newVal, y: col.val.y } }, row },
+              updateDraft(dispatch, "overlap", {
+                col: { every: col.every, val: { x: newVal, y: col.val.y } },
+                row,
               })
             }}
             value={col.val.x}
@@ -265,8 +268,9 @@ function OffsetMenu() {
           />
           <Number
             onValueChange={(newVal) =>
-              dispatch({
-                trellisOverlap: { col: { every: col.every, val: { x: col.val.x, y: newVal } }, row },
+              updateDraft(dispatch, "overlap", {
+                col: { every: col.every, val: { x: col.val.x, y: newVal } },
+                row,
               })
             }
             value={col.val.y}
@@ -287,17 +291,17 @@ function SkipMenu() {
   const { state, dispatch } = useContext(StateContext)
   const theme = useTheme()
 
-  const { row, col } = state.trellisSkip
+  const { row, col } = state.trellisDraft.trellis.skip
   const len = 10
 
   return (
     <SubMenu
       title="Skip"
       resetVal={MIRROR_AXIS.NONE}
-      transformation="trellisSkip"
+      transformation="skip"
       byVertical={
         <Number
-          onValueChange={(val) => dispatch({ trellisSkip: { col: { every: col.every, val }, row } })}
+          onValueChange={(val) => updateDraft(dispatch, "skip", { col: { every: col.every, val }, row })}
           label="X"
           style={centeredVerticalLabelStyle}
           value={col.val}
@@ -311,7 +315,7 @@ function SkipMenu() {
       byHorizontal={
         <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
           <Number
-            onValueChange={(val) => dispatch({ trellisSkip: { row: { every: row.every, val }, col } })}
+            onValueChange={(val) => updateDraft(dispatch, "skip", { row: { every: row.every, val }, col })}
             value={row.val}
             min={0}
             max={len}
@@ -351,7 +355,7 @@ function FlipMenu() {
   const { state, dispatch } = useContext(StateContext)
   const theme = useTheme()
 
-  const { row, col } = state.trellisFlip
+  const { row, col } = state.trellisDraft.trellis.flip
   const props = {
     ...sharedProps,
     buttons: [
@@ -366,7 +370,7 @@ function FlipMenu() {
     <SubMenu
       title="Flip"
       resetVal={MIRROR_AXIS.NONE}
-      transformation="trellisFlip"
+      transformation="flip"
       byVertical={
         <Box sx={boxSx(theme)}>
           <ToggleIconButtonGroup
@@ -376,9 +380,7 @@ function FlipMenu() {
             buttonGroupSx={sharedButtonGroupProps(theme)}
             value={col.val}
             onChange={(newValue) =>
-              dispatch({
-                trellisFlip: { col: { every: col.every, val: newValue }, row },
-              })
+              updateDraft(dispatch, "flip", { col: { every: col.every, val: newValue }, row })
             }
           />
         </Box>
@@ -391,9 +393,7 @@ function FlipMenu() {
             labelInline
             value={row.val}
             onChange={(newValue) =>
-              dispatch({
-                trellisFlip: { row: { every: row.every, val: newValue }, col },
-              })
+              updateDraft(dispatch, "flip", { row: { every: row.every, val: newValue }, col })
             }
           />
         </Box>
@@ -406,7 +406,7 @@ function RotateMenu() {
   const { state, dispatch } = useContext(StateContext)
   const theme = useTheme()
 
-  const { row, col } = state.trellisRotate
+  const { row, col } = state.trellisDraft.trellis.rotate
   const props = {
     ...sharedProps,
     buttons: [
@@ -420,7 +420,7 @@ function RotateMenu() {
     <SubMenu
       title="Rotate"
       resetVal={MIRROR_ROT.NONE}
-      transformation="trellisRotate"
+      transformation="rotate"
       byVertical={
         <Box sx={boxSx(theme)}>
           <ToggleIconButtonGroup
@@ -431,9 +431,7 @@ function RotateMenu() {
             buttonGroupSx={sharedButtonGroupProps(theme)}
             value={col.val}
             onChange={(newValue) =>
-              dispatch({
-                trellisRotate: { col: { every: col.every, val: newValue }, row },
-              })
+              updateDraft(dispatch, "rotate", { col: { every: col.every, val: newValue }, row })
             }
           />
         </Box>
@@ -447,9 +445,7 @@ function RotateMenu() {
             labelInline
             value={row.val}
             onChange={(newValue) =>
-              dispatch({
-                trellisRotate: { row: { every: row.every, val: newValue }, col },
-              })
+              updateDraft(dispatch, "rotate", { row: { every: row.every, val: newValue }, col })
             }
           />
         </Box>
@@ -468,17 +464,17 @@ export default function RepeatMenu() {
     rotate: false,
   })
   const { side } = state
+  const draft = state.trellisDraft
   const hasCompletedSelection = state.bounds.length > 1
 
-  // Selection-removing actions can clear bounds while this menu (and an open
-  // submenu) is mounted. Stop rendering selection-dependent controls
-  // immediately, then close through the normal menu action so toolbar/dot state
-  // is restored consistently.
+  // Selection-removing actions can discard the draft while this menu (and an
+  // open submenu) is mounted. Close through the normal menu action so toolbar
+  // state is restored consistently.
   useEffect(() => {
-    if (!hasCompletedSelection && state.openMenus.repeat) dispatch({ action: "menu", close: "repeat" })
-  }, [dispatch, hasCompletedSelection, state.openMenus.repeat])
+    if (!draft && state.openMenus.repeat) dispatch({ action: "menu", close: "repeat" })
+  }, [dispatch, draft, state.openMenus.repeat])
 
-  if (!hasCompletedSelection) return null
+  if (!draft) return null
 
   // Be sure to close all the others
   const handleSubMenuClick = (subMenu) => {
@@ -545,20 +541,34 @@ export default function RepeatMenu() {
           slotProps={{ tooltip: { title: "Apply", open, placement } }}
           onClick={(e) => {
             dispatch("apply_trellis")
-            dispatch({ action: "menu", close: "repeat" })
             e.stopPropagation()
           }}
         />
+        {state.trellis && hasCompletedSelection && (
+          <SpeedDialAction
+            icon={<FindReplaceIcon />}
+            slotProps={{ tooltip: { title: "Replace", open, placement } }}
+            onClick={(e) => {
+              dispatch("replace_trellis")
+              e.stopPropagation()
+            }}
+          />
+        )}
+        {state.trellis && (
+          <SpeedDialAction
+            icon={<CallMadeIcon />}
+            slotProps={{ tooltip: { title: "Release", open, placement } }}
+            onClick={(e) => {
+              dispatch("release_trellis")
+              e.stopPropagation()
+            }}
+          />
+        )}
         <SpeedDialAction
           icon={<ReplayIcon />}
           slotProps={{ tooltip: { title: "Reset", open, placement } }}
           onClick={(e) => {
-            dispatch({
-              trellisOverlap: defaultTrellisControl({ x: 0, y: 0 }),
-              trellisSkip: defaultTrellisControl(false),
-              trellisFlip: defaultTrellisControl(MIRROR_AXIS.NONE),
-              trellisRotate: defaultTrellisControl(MIRROR_ROT.NONE),
-            })
+            dispatch("reset_trellis_draft")
             e.stopPropagation()
           }}
           onClickCapture={() => setSpeedDialOpen(true)}

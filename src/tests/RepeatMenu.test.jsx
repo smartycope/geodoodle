@@ -7,33 +7,68 @@ import Point from "../helper/Point"
 import Line from "../helper/Line"
 import reducer from "../reducer"
 import { getState } from "./testUtils"
+import Trellis from "../helper/Trellis"
+import { getLayerState, layerOwnedKeys } from "../layerUtils"
 
 afterEach(() => vi.unstubAllGlobals())
 
 function RepeatingHarness({ action, actionLabel }) {
   const state = getState()
+  const bounds = [new Point(0, 0), new Point(10, 10)]
+  const lines = [
+    new Line(state, new Point(1, 1), new Point(2, 2)),
+    new Line(state, new Point(20, 20), new Point(30, 30)),
+  ]
+  const layer = state.layers[0].copy({ bounds, lines })
+  const layerState = getLayerState({ ...state, layers: [layer] }, layer)
   const initialState = {
     ...state,
-    bounds: [new Point(0, 0), new Point(10, 10)],
-    lines: [new Line(state, new Point(1, 1), new Point(2, 2)), new Line(state, new Point(20, 20), new Point(30, 30))],
+    layers: [layer],
     openMenus: { ...state.openMenus, repeat: true },
+    trellisDraft: {
+      layerId: layer.id,
+      mode: "create",
+      trellis: Trellis.fromSelection(layerState),
+      sourceLineIndexes: [0],
+      sourcePolyIndexes: [],
+    },
     removeSelectionAfterDelete: true,
   }
+  layerOwnedKeys.forEach((key) => delete initialState[key])
   const [currentState, dispatch] = useReducer(reducer, initialState)
+  const view = getLayerState(currentState)
 
   return (
-    <StateContext.Provider value={{ state: currentState, dispatch }}>
+    <StateContext.Provider value={{ state: view, dispatch }}>
       <button onClick={() => dispatch(action)}>{actionLabel}</button>
       <output data-testid="repeat-state">
-        {currentState.bounds.length}:{String(currentState.openMenus.repeat)}:{currentState.lines.length}
+        {view.bounds.length}:{String(view.openMenus.repeat)}:{view.lines.length}
       </output>
-      {currentState.openMenus.repeat && <RepeatMenu />}
+      {view.openMenus.repeat && <RepeatMenu />}
     </StateContext.Provider>
   )
 }
 
+function menuState() {
+  const state = getState()
+  const line = new Line(state, new Point(1, 1), new Point(2, 2))
+  const layer = state.layers[0].copy({ lines: [line], bounds: [new Point(0, 0), new Point(10, 10)] })
+  const view = getLayerState({ ...state, layers: [layer] }, layer)
+  return {
+    ...view,
+    openMenus: { ...view.openMenus, repeat: true },
+    trellisDraft: {
+      layerId: layer.id,
+      mode: "create",
+      trellis: Trellis.fromSelection(view),
+      sourceLineIndexes: [0],
+      sourcePolyIndexes: [],
+    },
+  }
+}
+
 describe("Repeat Menu", () => {
-  test("keeps repeating safely when delete unselected retains the active bounds", () => {
+  test("discards the draft safely when geometry changes", () => {
     render(<RepeatingHarness action="delete_unselected" actionLabel="Delete Unselected" />)
     fireEvent.click(screen.getByRole("button", { name: "Repeat Menu" }))
     fireEvent.click(screen.getByRole("menuitem", { name: "Offset" }))
@@ -41,9 +76,8 @@ describe("Repeat Menu", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Delete Unselected" }))
 
-    expect(screen.getByTestId("repeat-state").textContent).toBe("2:true:1")
-    expect(screen.getByRole("button", { name: "Repeat Menu" })).not.toBeNull()
-    expect(screen.getByTestId("offset-horizontal-controls")).not.toBeNull()
+    expect(screen.getByTestId("repeat-state").textContent).toBe("2:false:1")
+    expect(screen.queryByRole("button", { name: "Repeat Menu" })).toBeNull()
   })
 
   test("closes safely when deleting selected lines removes the active bounds", () => {
@@ -59,16 +93,12 @@ describe("Repeat Menu", () => {
   })
 
   test("the Apply control dispatches the persistent trellis action", () => {
-    const state = getState()
+    const state = menuState()
     const dispatch = vi.fn()
     render(
       <StateContext.Provider
         value={{
-          state: {
-            ...state,
-            bounds: [new Point(0, 0), new Point(10, 10)],
-            openMenus: { ...state.openMenus, repeat: true },
-          },
+          state,
           dispatch,
         }}
       >
@@ -84,8 +114,7 @@ describe("Repeat Menu", () => {
 
   test("keeps the Rotate reset control in its intrinsic row below the lg breakpoint", () => {
     vi.stubGlobal("innerWidth", 1199)
-    const state = getState()
-    const repeatState = { ...state, bounds: [new Point(0, 0), new Point(10, 10)] }
+    const repeatState = menuState()
 
     render(
       <StateContext.Provider value={{ state: repeatState, dispatch: vi.fn() }}>
@@ -107,11 +136,11 @@ describe("Repeat Menu", () => {
   })
 
   test("lays out horizontal Offset controls as number-label pairs", () => {
-    const state = getState()
+    const state = menuState()
 
     render(
       <StateContext.Provider
-        value={{ state: { ...state, bounds: [new Point(0, 0), new Point(10, 10)] }, dispatch: vi.fn() }}
+        value={{ state, dispatch: vi.fn() }}
       >
         <RepeatMenu />
       </StateContext.Provider>,

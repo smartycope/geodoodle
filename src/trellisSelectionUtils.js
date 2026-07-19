@@ -4,6 +4,8 @@ import { getBoundRect, trellisOwnsSource } from "./utils"
 import { createTrellisSourceTileDescriptor, transformAffinePoint } from "./trellisUtils"
 
 function getSourceTransform(state, boundRect) {
+  if (["create", "replace"].includes(state.trellisDraft?.mode))
+    return state.trellisDraft.trellis.sourceTileDescriptor().matrix
   return trellisOwnsSource(state, boundRect) ? createTrellisSourceTileDescriptor(state, boundRect).matrix : null
 }
 

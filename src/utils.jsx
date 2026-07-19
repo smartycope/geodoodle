@@ -29,17 +29,20 @@ export function getAllCursorPoints(state, includeOriginal = true, useMousePos = 
 // If retranslated is 'topLeft', the lines will be retranslated to be relative to the top left of the selection
 // If retranslated is falsey, the lines will be returned as they are
 export function getSelected(state, retranslated, polygons = false) {
-  // Not sure how lines gets undefined (that's a problem for later), but whatever
-  if (!state.lines?.length) return []
+  const lines = state.lines ?? []
+  const filledPolys = state.filledPolys ?? []
   const boundRect = getBoundRect(state)
-  const selectedLines = state.lines.filter((obj) => obj.isSelected(state, boundRect))
+  const selectedLines = lines.filter((obj) => obj.isSelected(state, boundRect))
   let selected = selectedLines
   if (polygons && boundRect)
-    selected = selected.concat(state.filledPolys.filter((obj) => obj.isSelected(state, boundRect)))
+    selected = selected.concat(filledPolys.filter((obj) => obj.isSelected(state, boundRect)))
 
   if (!selected.length || !retranslated) return selected
 
-  const selectionRect = boundRect ?? Rect.fromPoints(...selectedLines.flatMap((line) => line.points()))
+  const selectionPoints = selected.flatMap((object) =>
+    typeof object.points === "function" ? object.points() : (object.points ?? []),
+  )
+  const selectionRect = boundRect ?? Rect.fromPoints(...selectionPoints)
 
   if (retranslated === "center") return selected.map((obj) => obj.relativeTo(selectionRect.center))
   else if (retranslated === "topLeft") return selected.map((obj) => obj.relativeTo(selectionRect.topLeft))
@@ -94,8 +97,9 @@ export function getBoundRect(state) {
 // tile (0, 0). The normal permanent line/polygon layers omit those objects so
 // the transformed tile is not overdrawn by an untransformed copy.
 export function trellisOwnsSource(state, boundRect = getBoundRect(state)) {
+  const ownsDraftSource = ["create", "replace"].includes(state.trellisDraft?.mode)
   return Boolean(
-    (state.trellis || state.openMenus?.repeat) &&
+    (state.trellis === true || ownsDraftSource || (!state.trellis && state.openMenus?.repeat)) &&
       state.bounds.length > 1 &&
       boundRect &&
       boundRect.wh._x > 0 &&
@@ -282,7 +286,7 @@ export function extraSlotsNew(state) {
   // let sideLen = vertical ? viewportHeight() : viewportWidth()
   let sideLen = vertical ? window.innerHeight : window.innerWidth
 
-  const minButtons = 7
+  const minButtons = 8
   const buttonSize = vertical ? extraSlotsCache.buttonHeight : extraSlotsCache.buttonWidth
   const toolbarPadding = extraSlotsCache.toolbarPadding
   // Desired space between edge of toolbar and edge of screen
@@ -316,7 +320,7 @@ export function extraSlots(state) {
   if (state.openMenus.repeat && state.mobile && ["left", "right"].includes(state.side))
     sideLen = window.visualViewport.width
 
-  return Math.floor((sideLen - 500) / 60)
+  return Math.floor((sideLen - 560) / 60)
 }
 
 // Return a color that shows up well on the given color so you can read text

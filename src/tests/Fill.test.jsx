@@ -86,10 +86,11 @@ describe("Fill", () => {
   test("can fill in multiple spaces when repeating", () => {
     const { container, paper } = renderPaper()
     setUpDefaultTestingState(paper)
-    press(paper, "r")
     press(paper, "f")
     const scale = 20
     mouseClick(paper, 5 * scale, 11 * scale)
+    press(paper, "f")
+    press(paper, "r")
     expect(container.querySelectorAll("polygon").length).toBeGreaterThan(3)
   })
 

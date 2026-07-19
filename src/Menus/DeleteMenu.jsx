@@ -9,9 +9,11 @@ import CancelPresentationIcon from "@mui/icons-material/CancelPresentation"
 import CancelPresentationTwoToneIcon from "@mui/icons-material/CancelPresentationTwoTone"
 import { getSelected } from "../utils"
 import ShortcutHint from "./ShortcutHint"
+import LayersClearIcon from "@mui/icons-material/LayersClear"
 
 function DeleteMenu() {
   const { dispatch, state } = useContext(StateContext)
+  const activeLayer = state.layers.find((layer) => layer.id === state.activeLayerId)
 
   return (
     <MiniMenu menu="delete">
@@ -48,13 +50,25 @@ function DeleteMenu() {
       )}
       <MenuItem
         onClick={() =>
-          state.debug || window.confirm("Are you sure you want to delete everything?") ? dispatch("clear") : undefined
+          state.debug || activeLayer?.isEmpty || window.confirm("Clear the active layer?")
+            ? dispatch("clear_active_layer")
+            : undefined
+        }
+      >
+        <ListItemIcon>
+          <LayersClearIcon />
+        </ListItemIcon>
+        Clear Active Layer
+      </MenuItem>
+      <MenuItem
+        onClick={() =>
+          state.debug || window.confirm("Delete the entire document and all of its layers?") ? dispatch("clear") : undefined
         }
       >
         <ListItemIcon>
           <GiNuclear />
         </ListItemIcon>
-        Delete All
+        Delete Entire Document
         <ShortcutHint action="clear" />
       </MenuItem>
     </MiniMenu>

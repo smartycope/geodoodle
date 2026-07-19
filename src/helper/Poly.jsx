@@ -61,19 +61,28 @@ export default class Poly {
   }
 
   toJSON(includeColor = true) {
-    const json = this.points.map((i) => i.toJSON())
-    if (includeColor) json.color = this.color
-    return json
+    if (typeof includeColor !== "boolean") includeColor = true
+    return {
+      points: this.points.map((point) => point.toJSON()),
+      ...(includeColor ? { color: this.color } : {}),
+    }
   }
 
   static fromJSON(json) {
-    const points = json.map((i) => Point.fromJSON(i))
-    const color = json.color // Allow undefined
+    // Version 1 stored polygons as arrays and attached color as a non-index
+    // property. Accept that legacy shape while using an object in schema v2 so
+    // color survives JSON.stringify.
+    const pointData = Array.isArray(json) ? json : (json.points ?? [])
+    const points = pointData.map((i) => Point.fromJSON(i))
+    const color = json.color
     return new Poly(points, color)
   }
 
   relativeTo(point) {
-    return new Poly(this.points.map((i) => i.relativeTo(point)))
+    return new Poly(
+      this.points.map((i) => i.relativeTo(point)),
+      this.color,
+    )
   }
 
   isSelected(state, boundRect) {

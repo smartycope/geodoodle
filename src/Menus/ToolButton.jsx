@@ -23,6 +23,7 @@ import FileCopyIcon from "@mui/icons-material/FileCopy"
 import FlipIcon from "@mui/icons-material/Flip"
 import UndoIcon from "@mui/icons-material/Undo"
 import BlurOnIcon from "@mui/icons-material/BlurOn"
+import LayersIcon from "@mui/icons-material/Layers"
 import { isMobile } from "../utils"
 import { PiSelectionPlusDuotone } from "react-icons/pi"
 
@@ -50,6 +51,7 @@ const iconMap = {
   file: <SaveIcon />,
   navigation: <NearMeIcon />,
   repeat: <DashboardIcon />,
+  layers: <LayersIcon />,
   color: <PaletteIcon />,
   mirror: <FlipIcon />,
   select: <HighlightAltIcon />,

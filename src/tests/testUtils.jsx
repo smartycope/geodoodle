@@ -8,6 +8,7 @@ import Poly from "../helper/Poly"
 import Point from "../helper/Point"
 import Dist from "../helper/Dist"
 import { validateStorage } from "../fileUtils"
+import { getLayerState } from "../layerUtils"
 
 export function renderPaper(startPoint = [100, 100]) {
   let dispatch
@@ -110,7 +111,8 @@ export function saveHtml(container) {
 // A standard function for whenever we need just an average state
 export function getState() {
   validateStorage()
-  return getInitialState()
+  const state = getInitialState()
+  return getLayerState(state)
 }
 
 export function getDefaultTestingState() {

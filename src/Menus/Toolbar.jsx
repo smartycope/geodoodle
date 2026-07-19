@@ -143,6 +143,7 @@ function Toolbar() {
         <ToolButton menu="select" />
         <ToolButton menu="clipboard" />
         <ToolButton menu="delete" />
+        <ToolButton menu="layers" />
         <ToolButton menu="main" />
       </MuiPaper>
     </Box>

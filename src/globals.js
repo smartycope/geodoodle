@@ -1,4 +1,5 @@
 export const version = "1.8.0"
+export const documentSchemaVersion = 2
 
 export const MIRROR_TYPE = {
   PAGE: 1,

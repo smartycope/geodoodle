@@ -103,9 +103,9 @@ describe("cloud storage requests", () => {
 
     const restored = await loadCloud("cope", "star")
 
-    expect(restored.lines).toEqual([])
-    expect(restored.mirrorOrigins[0].origin).toBeInstanceOf(Point)
-    expect(restored.mirrorOrigins[0].origin.eq(mirrorOrigin)).toBe(true)
+    expect(restored.layers[0].lines).toEqual([])
+    expect(restored.layers[0].mirrorOrigins[0].origin).toBeInstanceOf(Point)
+    expect(restored.layers[0].mirrorOrigins[0].origin.eq(mirrorOrigin)).toBe(true)
   })
 
   test("updates an existing save with the same username and name", async () => {

@@ -201,15 +201,24 @@ function ConceptsContent() {
 
       <Concept title="Repeating">
         <Typography>
-          Repeating turns a completed bounded selection into a trellis: a tiled background pattern that fills the
-          visible paper while leaving you free to draw additional lines over it. Open Repeat after placing at least two
-          bounds. The selected lines and fills become the seed pattern.
+          Repeating turns a completed bounded selection into a trellis: a tiled pattern that fills the visible paper.
+          Open Repeat after placing at least two bounds. Pressing Apply moves the selected lines and fills into the
+          active layer&apos;s trellis, so the repeat remains even after its selection bounds are cleared.
         </Typography>
         <Typography sx={{ mt: 1 }}>
           Offset changes how rows or columns overlap, Flip reflects tiles, Rotate turns them, and Skip leaves spaces.
           Each transformation has separate row and column controls: “every” controls how often it is applied, and the
-          other value controls what is applied. Transformations can be combined and reset individually. Press Apply to
-          keep the current trellis visible after closing the Repeat menu.
+          other value controls what is applied. Reopen Repeat to edit an applied trellis, use Replace to capture a new
+          selection, or Release to restore transformed tile zero as ordinary selected geometry.
+        </Typography>
+      </Concept>
+
+      <Concept title="Layers">
+        <Typography>
+          Layers keep separate lines, fills, selections, mirror origins, and one optional trellis. The canvas composites
+          visible layers from bottom to top, while drawing and selection actions affect only the active layer. Open the
+          Layers panel to add, name, show or hide, delete, select, and reorder layers. Hidden layers remain saved but do
+          not appear in the canvas or exported images.
         </Typography>
       </Concept>
 
@@ -221,9 +230,9 @@ function ConceptsContent() {
         </Typography>
         <Typography sx={{ mt: 1 }}>
           SVG downloads preserve GeoDoodle&apos;s editable pattern data and can be uploaded again. PNG and JPEG are
-          image exports only and cannot be imported as editable patterns. Downloads can include the current selection or
-          a chosen screen area. The Files page can also copy the selected lines—or all lines when nothing is selected—as
-          an image, and its Share button uses the browser&apos;s sharing features when available.
+          image exports only and cannot be imported as editable patterns. Every visual format uses the chosen export
+          area and includes visible layers only; editable SVG metadata still preserves hidden layers. The Files page can
+          also copy the current selection or visible artwork as an image.
         </Typography>
       </Concept>
     </>

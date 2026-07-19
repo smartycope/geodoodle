@@ -3,7 +3,9 @@
 There are many terms I throw around because I've been working on this by myself for a long time.
 
 - Trellis
-  - The automatically repeated "background" pattern, not drawn by the user directly (except for the base pattern). `Trellis` came from the idea of a trellis that beans grow on, the idea being that it's the background pattern, and you can draw fancy stuff on top of it.
+  - A captured pattern repeated across the paper. Each Layer can own one Trellis alongside ordinary lines and fills.
+- Layer
+  - One independently named and visible drawing composite. It owns lines, fills, selections, mirror origins, and an optional Trellis.
 - Paper
   - The base class of the drawing part of the program. The thing which is drawn on and handles events. It has dots, and lines, and metalines, and more
 - Metalines
@@ -15,7 +17,7 @@ There are many terms I throw around because I've been working on this by myself 
 - Current line/curLinePos
   - If a line is halfway drawn, it's the point at which the line starts. Otherwise, it's null. The current line is between curLinePos and the cursor.
 - Permanent lines
-  - Lines that are added to the state permanently, not the metalines. Basically, the value of state.lines
+  - Ordinary lines stored on a Layer, not metalines or lines captured inside a Trellis. Active-layer code sees them through `state.lines`.
 
 ## Some code terms
 

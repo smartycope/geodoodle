@@ -9,9 +9,13 @@ These are the most relevant files in the program (these are all in /src/):
 - [actions.jsx](../src/actions.jsx)
   - Contains all the actions that can be dispatched. These are executed by the reducer, and they return modifications to the state.
 - [drawing.jsx](../src/drawing.jsx)
-  - Has all of the components that Paper uses, except for Trellis
+  - Has the Paper drawing components and composes visible Layers.
 - [Trellis.jsx](../src/Trellis.jsx)
-  - The component that draws the trellis. It holds the logic for the repeating algorithm
+  - Thin React renderer for a durable Trellis model.
+- [helper/Layer.js](../src/helper/Layer.js) and [helper/Trellis.js](../src/helper/Trellis.js)
+  - Durable document models for layer-owned artwork and repeated patterns.
+- [layerUtils.js](../src/layerUtils.js)
+  - Active-layer projection and action-result normalization.
 - [events.jsx](../src/events.jsx)
   - Holds all the event handlers.
 - [utils.js](../src/utils.js)

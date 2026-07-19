@@ -294,7 +294,7 @@ describe("Paper interactions", () => {
 
     scroll(paper, -100, 0, { ctrlKey: true, shiftKey: true })
 
-    expect(container.querySelector("#lines").getAttribute("transform")).toMatch(/rotate\((?!0(?:\s|\)))/)
+    expect(container.querySelector("#artwork-layer-1").getAttribute("transform")).toMatch(/rotate\((?!0(?:\s|\)))/)
   })
 
   test("Home resets canvas rotation", () => {
@@ -303,7 +303,7 @@ describe("Paper interactions", () => {
 
     press(paper, "h")
 
-    expect(container.querySelector("#lines").getAttribute("transform")).toMatch(/^rotate\(0 /)
+    expect(container.querySelector("#artwork-layer-1").getAttribute("transform")).toMatch(/^rotate\(0 /)
   })
 
   test("creates lines at the correct logical points after rotation", () => {

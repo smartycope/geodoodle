@@ -27,20 +27,20 @@ import {
   SpecificSelectors,
   GenericSelectors,
   CurrentLines,
-  Lines,
+  ActiveSelectionLines,
+  ArtworkLayers,
   Clipboard,
   Cursor,
   Dots,
-  Polygons,
   CurrentPolys,
   Menus,
   Toast,
 } from "./drawing"
-import Trellis from "./Trellis"
 import getInitialState from "./states"
 import * as events from "./events"
 import SharedPatternDialog from "./Menus/SharedPatternDialog"
 import { getSharedPatternParams, syncPatternQueryParams } from "./shareUtils"
+import { getLayerState } from "./layerUtils"
 
 // This is for the mouse/touch events that need to be bound non-passively, but also need access to the state
 // This is hacky, but I can't think of a better way
@@ -51,10 +51,12 @@ export default function Paper({ setDispatch }) {
   const sharedPatternParams = useMemo(() => getSharedPatternParams(), [])
   const initialCloudUsername = useMemo(() => loadCloudUsername(), [])
   const [state, dispatch] = useReducer(reducer, initialState)
+  const activeState = useMemo(() => getLayerState(state), [state])
   const [cloudUsername, setCloudUsername] = useState(initialCloudUsername)
   const [resolvingSharedLink, setResolvingSharedLink] = useState(Boolean(sharedPatternParams))
   const [sharedPatternConflict, setSharedPatternConflict] = useState(null)
-  const { dotsAbovefill, paperColor, fillMode, themeMode } = state
+  const { dotsAboveArtwork, paperColor, fillMode, themeMode } = activeState
+  const editingEnabled = state.layers.find((layer) => layer.id === state.activeLayerId)?.visible !== false
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)")
   const theme = useMemo(
     () => generateTheme(paperColor, themeMode, prefersDarkMode ? "dark" : "light"),
@@ -65,7 +67,7 @@ export default function Paper({ setDispatch }) {
   window.scrollX = 0
   window.scrollY = 0
 
-  _state = state
+  _state = activeState
 
   useEffect(() => {
     if (resolvingSharedLink) return
@@ -118,7 +120,7 @@ export default function Paper({ setDispatch }) {
 
         const restoredState = { ...initialState, ...(local ?? {}) }
         const nextState = { ...restoredState, ...shared, filename: sharedPatternParams.pattern }
-        if (local?.lines?.length) {
+        if (local?.layers?.some((layer) => !layer.isEmpty)) {
           setSharedPatternConflict({ ...sharedPatternParams, local: restoredState, shared })
           return
         }
@@ -173,7 +175,7 @@ export default function Paper({ setDispatch }) {
 
   return (
     <ThemeProvider theme={theme}>
-      <StateContext.Provider value={{ state, dispatch, cloudUsername, setCloudUsername }}>
+      <StateContext.Provider value={{ state: activeState, dispatch, cloudUsername, setCloudUsername }}>
         <SharedPatternDialog
           conflict={sharedPatternConflict}
           onCancel={cancelSharedPatternLoad}
@@ -191,12 +193,12 @@ export default function Paper({ setDispatch }) {
             height="101vh"
             tabIndex={0}
             ref={paper}
-            onKeyDown={(e) => events.onKeyDown(state, dispatch, e)}
-            onKeyUp={(e) => events.onKeyUp(state, dispatch, e)}
-            onMouseMove={(e) => events.onMouseMove(state, dispatch, e)}
-            onMouseDown={(e) => events.onMouseDown(state, dispatch, e)}
-            onMouseUp={(e) => events.onMouseUp(state, dispatch, e)}
-            onBlur={(e) => events.onBlur(state, dispatch, e)}
+            onKeyDown={(e) => events.onKeyDown(activeState, dispatch, e)}
+            onKeyUp={(e) => events.onKeyUp(activeState, dispatch, e)}
+            onMouseMove={(e) => events.onMouseMove(activeState, dispatch, e)}
+            onMouseDown={(e) => events.onMouseDown(activeState, dispatch, e)}
+            onMouseUp={(e) => events.onMouseUp(activeState, dispatch, e)}
+            onBlur={(e) => events.onBlur(activeState, dispatch, e)}
             style={{
               backgroundColor: paperColor,
               cursor: fillMode ? "pointer" : "none",
@@ -205,23 +207,26 @@ export default function Paper({ setDispatch }) {
             {/* This order is intentional -- lower elements are on top */}
             <GlowEffect />
             <BackgroundImage />
-            {!dotsAbovefill && <Dots />}
-            <Trellis />
-            <Polygons />
-            <CurrentPolys />
-            {dotsAbovefill && <Dots />}
+            {!dotsAboveArtwork && <Dots />}
+            <ArtworkLayers />
+            {dotsAboveArtwork && <Dots />}
             <DebugInfo />
-            <Cursor />
-            <Lines />
-            <CurrentLines />
-            <Bounds />
-            <SpecificSelectors />
-            <GenericSelectors />
-            <SelectionRect />
-            <SelectionOptionButtons />
-            <ClipboardTransformButtons />
-            <MirrorMetaLines />
-            <Clipboard />
+            {editingEnabled && (
+              <>
+                <CurrentPolys />
+                <ActiveSelectionLines />
+                <Cursor />
+                <CurrentLines />
+                <Bounds />
+                <SpecificSelectors />
+                <GenericSelectors />
+                <SelectionRect />
+                <SelectionOptionButtons />
+                <ClipboardTransformButtons />
+                <MirrorMetaLines />
+                <Clipboard />
+              </>
+            )}
           </svg>
           {/* For exporting to images */}
           <canvas id="canvas"></canvas>
