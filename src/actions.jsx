@@ -307,7 +307,8 @@ export const delete_unselected = (state) => {
   return {
     ...cancel_clipboard(state),
     lines: state.lines.filter((line) => line.isSelected(state, boundRect)),
-    bounds: state.removeSelectionAfterDelete ? [] : state.bounds,
+    // Executive decision: this *should* keep the bounds, irrelevant of settings. delete_selected may differ.
+    // bounds: state.removeSelectionAfterDelete ? [] : state.bounds,
   }
 }
 

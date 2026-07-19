@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from "react"
+import { useContext, useEffect, useMemo, useState } from "react"
 import { MIRROR_AXIS, MIRROR_ROT } from "../globals"
 import { MirrorAxisIcon, MirrorRotIcon } from "./CustomIcons"
 import Number from "./Number"
@@ -111,7 +111,6 @@ function SubMenu({ title, byHorizontal, byVertical, transformation, resetVal, ev
       </Box>
 
       <Box data-testid="repeat-submenu-horizontal-row" sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-
         {/* Reset Button */}
         <Box sx={gridItemSx}>
           <IconButton
@@ -252,7 +251,6 @@ function OffsetMenu() {
         <>
           <Number
             onValueChange={(newVal) => {
-              console.log(newVal)
               dispatch({
                 trellisOverlap: { col: { every: col.every, val: { x: newVal, y: col.val.y } }, row },
               })
@@ -470,6 +468,17 @@ export default function RepeatMenu() {
     rotate: false,
   })
   const { side } = state
+  const hasCompletedSelection = state.bounds.length > 1
+
+  // Selection-removing actions can clear bounds while this menu (and an open
+  // submenu) is mounted. Stop rendering selection-dependent controls
+  // immediately, then close through the normal menu action so toolbar/dot state
+  // is restored consistently.
+  useEffect(() => {
+    if (!hasCompletedSelection && state.openMenus.repeat) dispatch({ action: "menu", close: "repeat" })
+  }, [dispatch, hasCompletedSelection, state.openMenus.repeat])
+
+  if (!hasCompletedSelection) return null
 
   // Be sure to close all the others
   const handleSubMenuClick = (subMenu) => {
