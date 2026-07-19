@@ -13,7 +13,7 @@ import {
 import { getClipboardButtonStrip, getSelectionButtonStrip } from "./canvasButtonUtils"
 import Line from "./helper/Line"
 import Point from "./helper/Point"
-import { useContext, useEffect, useMemo } from "react"
+import { useContext, useEffect, useMemo, useState } from "react"
 import { StateContext } from "./Contexts"
 import Snackbar from "@mui/material/Snackbar"
 import { useTheme } from "@mui/material/styles"
@@ -40,7 +40,12 @@ import ContentCutIcon from "@mui/icons-material/ContentCut"
 import RuleIcon from "@mui/icons-material/Rule"
 import useMediaQuery from "@mui/material/useMediaQuery"
 import { themeDefaults } from "./styling/theme"
-import { getCanvasRotationTransform, getCanvasTransform, rotateCoordinates } from "./transformUtils"
+import {
+  createViewportLineCuller,
+  getCanvasRotationTransform,
+  getCanvasTransform,
+  rotateCoordinates,
+} from "./transformUtils"
 
 // For debugging
 function useActiveBreakpoint() {
@@ -59,6 +64,28 @@ function useActiveBreakpoint() {
 
 var debugTextOffset = 80
 const debugTextX = "75%"
+
+function useViewportSize() {
+  const [size, setSize] = useState(() => ({ width: viewportWidth(), height: viewportHeight() }))
+
+  useEffect(() => {
+    const updateSize = () => {
+      const width = viewportWidth()
+      const height = viewportHeight()
+      setSize((current) => (current.width === width && current.height === height ? current : { width, height }))
+    }
+    const visualViewport = window.visualViewport
+
+    window.addEventListener("resize", updateSize)
+    visualViewport?.addEventListener?.("resize", updateSize)
+    return () => {
+      window.removeEventListener("resize", updateSize)
+      visualViewport?.removeEventListener?.("resize", updateSize)
+    }
+  }, [])
+
+  return size
+}
 
 export function BackgroundImage() {
   const { state } = useContext(StateContext)
@@ -519,10 +546,13 @@ export const CurrentLines = () => {
 export const Lines = () => {
   const { state } = useContext(StateContext)
   const theme = useTheme()
+  const viewportSize = useViewportSize()
   const {
     lines,
     scalex,
     scaley,
+    translation,
+    rotate,
     bounds,
     boundDragging,
     useFancyGlow,
@@ -540,6 +570,25 @@ export const Lines = () => {
   // dragged. In every other mode, moving it should not rebuild every SVG line.
   const activeBoundCursor = boundDragging && bounds.length === 1 ? cursorPos : null
   const { selectionUnderlays, renderedLines } = useMemo(() => {
+    const isLineInViewport = createViewportLineCuller(
+      { scalex, scaley, translation, rotate },
+      viewportSize.width,
+      viewportSize.height,
+    )
+    const hasPossibleHighlights = bounds.length > 0 || genericSelectors.length > 0 || specificSelectors.length > 0
+    // The manual underlay extends glowWidth/2 beyond the ordinary stroke. A
+    // Gaussian blur is effectively contained within three standard deviations
+    // (3 * .2 canvas units). Apply the larger allowance to every candidate so
+    // highlighted strokes never pop at a viewport edge.
+    const glowPadding = hasPossibleHighlights ? Math.max(glowWidth / 2, useFancyGlow ? 0.6 : 0) : 0
+    const strokeScale = Math.max(Math.abs(scalex), Math.abs(scaley))
+    const visibleLineIndices = []
+    for (let i = 0; i < lines.length; i++) {
+      const strokePadding = Math.max(0, Number(lines[i].aes.width) || 0) / 2
+      const viewportPadding = (strokePadding + glowPadding) * strokeScale + 1
+      if (isLineInViewport(lines[i], viewportPadding)) visibleLineIndices.push(i)
+    }
+
     const renderState = {
       lines,
       bounds,
@@ -561,7 +610,8 @@ export const Lines = () => {
     const selectorState = deletingSelection
       ? { ...renderState, bounds: [], boundDragging: false, cursorPos: null, activeBoundCursor: null }
       : null
-    const highlightTypes = lines.map((line) => {
+    const highlightTypes = visibleLineIndices.map((i) => {
+      const line = lines[i]
       if (!deletingSelection) return line.isSelected(renderState, boundRect) ? "selected" : null
       if (line.isSelected(deletingAreaState, deletingBoundRect)) return "deleting"
       return line.isSelected(selectorState, null) ? "selected" : null
@@ -572,10 +622,10 @@ export const Lines = () => {
     if (fancyGlow)
       return {
         selectionUnderlays: [],
-        renderedLines: lines.map((line, i) =>
-          line.render(
+        renderedLines: visibleLineIndices.map((lineIndex, i) =>
+          lines[lineIndex].render(
             renderState,
-            `line-${i}`,
+            `line-${lineIndex}`,
             {
               filter: highlightTypes[i]
                 ? `url(#${highlightTypes[i] === "deleting" ? "deleting-glow" : "glow"})`
@@ -591,7 +641,8 @@ export const Lines = () => {
     const renderedLines = []
     let tooManySelectedLines = false
 
-    lines.forEach((line, i) => {
+    visibleLineIndices.forEach((lineIndex, i) => {
+      const line = lines[lineIndex]
       if (!tooManySelectedLines && highlightTypes[i]) {
         const reachedHighlightLimit = selectionUnderlays.length >= options.maxGlowingLines
         if (reachedHighlightLimit) {
@@ -601,7 +652,7 @@ export const Lines = () => {
           selectionUnderlays.push(
             line.render(
               renderState,
-              `selected-line-${i}`,
+              `selected-line-${lineIndex}`,
               {
                 stroke: highlightTypes[i] === "deleting" ? deletingGlowColor : glowColor,
                 strokeWidth: line.aes.width + glowWidth,
@@ -613,7 +664,7 @@ export const Lines = () => {
             ),
           )
       }
-      renderedLines.push(line.render(renderState, `line-${i}`, {}, false))
+      renderedLines.push(line.render(renderState, `line-${lineIndex}`, {}, false))
     })
 
     return { selectionUnderlays, renderedLines }
@@ -621,6 +672,10 @@ export const Lines = () => {
     lines,
     scalex,
     scaley,
+    translation,
+    rotate,
+    viewportSize.width,
+    viewportSize.height,
     bounds,
     boundDragging,
     activeBoundCursor,

@@ -6,7 +6,8 @@ import Line from "../helper/Line"
 import Rect from "../helper/Rect"
 import { getState } from "./testUtils"
 import { MIRROR_AXIS, viewportHeight, viewportWidth } from "../globals"
-import { getAllIntersections } from "../utils"
+import { getAllIntersections, getLinesViewportBounds } from "../utils"
+import { createViewportLineCuller, getCanvasToViewportMatrix } from "../transformUtils"
 
 describe("Pair", () => {
   test("should create a new Pair with x and y coordinates", () => {
@@ -255,6 +256,48 @@ describe("Point", () => {
     expect(inside.within(rect)).toBe(true)
     expect(outside.within(rect)).toBe(false)
     expect(onEdge.within(rect)).toBe(true)
+  })
+})
+
+describe("Viewport line geometry", () => {
+  test("precomputes the same non-uniform rotated transform as Point.asViewport", () => {
+    const state = {
+      translation: new Dist(3, -2),
+      scalex: 12,
+      scaley: 18,
+      rotate: 37,
+    }
+    const point = new Point(11.25, 8.75)
+    const matrix = getCanvasToViewportMatrix(state)
+    const expected = point.asViewport(state)
+
+    expect(matrix.a * point._x + matrix.c * point._y + matrix.e).toBeCloseTo(expected.x)
+    expect(matrix.b * point._x + matrix.d * point._y + matrix.f).toBeCloseTo(expected.y)
+  })
+
+  test("retains crossing and padded-edge lines while rejecting off-screen lines", () => {
+    const state = { ...getState(), scalex: 20, scaley: 20, translation: Dist.zero(), rotate: 0 }
+    const isVisible = createViewportLineCuller(state, 100, 100)
+
+    expect(isVisible(new Line(state, new Point(-1, 2), new Point(6, 2)))).toBe(true)
+    expect(isVisible(new Line(state, new Point(6, 2), new Point(7, 2)))).toBe(false)
+    expect(isVisible(new Line(state, new Point(1, -0.05), new Point(2, -0.05)))).toBe(false)
+    expect(isVisible(new Line(state, new Point(1, -0.05), new Point(2, -0.05)), 1)).toBe(true)
+  })
+
+  test("measures all artwork from state even when it is outside the viewport", () => {
+    const state = { ...getState(), rotate: 30 }
+    const lines = [
+      new Line(state, new Point(1, 2), new Point(3, 4)),
+      new Line(state, new Point(80, 90), new Point(100, 110)),
+    ]
+    const transformedPoints = lines.flatMap((line) => line.points().map((point) => point.asViewport(state)))
+    const bounds = getLinesViewportBounds(lines, state)
+
+    expect(bounds.left).toBeCloseTo(Math.min(...transformedPoints.map((point) => point.x)))
+    expect(bounds.right).toBeCloseTo(Math.max(...transformedPoints.map((point) => point.x)))
+    expect(bounds.top).toBeCloseTo(Math.min(...transformedPoints.map((point) => point.y)))
+    expect(bounds.bottom).toBeCloseTo(Math.max(...transformedPoints.map((point) => point.y)))
   })
 })
 

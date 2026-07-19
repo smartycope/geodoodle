@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react"
-import { describe, expect, test } from "vitest"
+import { describe, expect, test, vi } from "vitest"
 import {
   BackgroundImage,
   Bounds,
@@ -13,6 +13,7 @@ import {
 import { StateContext } from "../Contexts"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
+import Dist from "../helper/Dist"
 import { MIRROR_AXIS, MIRROR_TYPE } from "../globals"
 import { getState } from "./testUtils"
 import { themeDefaults } from "../styling/theme"
@@ -23,8 +24,13 @@ describe("Selected line highlights", () => {
     const state = getState()
     return {
       ...state,
-      lines: Array.from({ length: lineCount }, (_, y) => new Line(state, new Point(0, y), new Point(10, y))),
-      bounds: [new Point(-1, -1), new Point(11, lineCount)],
+      // Keep every line on screen so these tests exercise the glow limits,
+      // independently of viewport culling.
+      lines: Array.from({ length: lineCount }, (_, y) => {
+        const lineY = (y / Math.max(1, lineCount)) * 10
+        return new Line(state, new Point(0, lineY), new Point(10, lineY))
+      }),
+      bounds: [new Point(-1, -1), new Point(11, 11)],
       ...overrides,
     }
   }
@@ -148,6 +154,8 @@ describe("Selected line highlights", () => {
       genericSelectors: [genericLine.a],
       specificSelectors: specificLine.points(),
       useFancyGlow,
+      scalex: 10,
+      scaley: 10,
     }
     const { container } = renderLines(state)
 
@@ -164,6 +172,76 @@ describe("Selected line highlights", () => {
         themeDefaults.glowColor.light,
       ])
     }
+  })
+})
+
+describe("Permanent line viewport culling", () => {
+  const renderLines = (state) =>
+    render(
+      <StateContext.Provider value={{ state }}>
+        <svg>
+          <Lines />
+        </svg>
+      </StateContext.Provider>,
+    )
+
+  test("omits off-screen lines but retains a line crossing the viewport", () => {
+    const state = getState()
+    const visible = new Line(state, new Point(1, 1), new Point(2, 2))
+    const crossing = new Line(state, new Point(-10, 10), new Point(70, 10))
+    const offscreen = new Line(state, new Point(60, 60), new Point(70, 70))
+    const { container } = renderLines({ ...state, lines: [visible, crossing, offscreen], useFancyGlow: false })
+
+    const rendered = [...container.querySelectorAll("#lines > line")]
+    expect(rendered).toHaveLength(2)
+    expect(rendered.map((line) => Number(line.getAttribute("x1")))).toEqual([1, -10])
+  })
+
+  test("culls against the rotated screen rather than its canvas-space bounding box", () => {
+    const state = { ...getState(), scalex: 10, scaley: 10, rotate: 45, useFancyGlow: false }
+    const outsideRotatedViewport = new Line(state, new Point(0, 0), new Point(1, 0))
+    const visibleAtCenter = new Line(state, new Point(51.2, 38.4), new Point(52.2, 38.4))
+    const { container } = renderLines({ ...state, lines: [outsideRotatedViewport, visibleAtCenter] })
+
+    const rendered = [...container.querySelectorAll("#lines > line")]
+    expect(rendered).toHaveLength(1)
+    expect(Number(rendered[0].getAttribute("x1"))).toBe(visibleAtCenter.a._x)
+  })
+
+  test("updates the visible set when canvas translation changes", () => {
+    const state = { ...getState(), useFancyGlow: false }
+    const line = new Line(state, new Point(60, 5), new Point(65, 5))
+    const { container, rerender } = renderLines({ ...state, lines: [line] })
+
+    expect(container.querySelectorAll("#lines > line")).toHaveLength(0)
+
+    rerender(
+      <StateContext.Provider value={{ state: { ...state, lines: [line], translation: new Dist(-20, 0) } }}>
+        <svg>
+          <Lines />
+        </svg>
+      </StateContext.Provider>,
+    )
+
+    expect(container.querySelectorAll("#lines > line")).toHaveLength(1)
+  })
+
+  test("rejects off-screen lines before running selection geometry", () => {
+    const state = getState()
+    const visible = new Line(state, new Point(1, 1), new Point(2, 2))
+    const offscreen = new Line(state, new Point(200, 200), new Point(210, 210))
+    const visibleSelectionCheck = vi.spyOn(visible, "isSelected")
+    const offscreenSelectionCheck = vi.spyOn(offscreen, "isSelected")
+
+    renderLines({
+      ...state,
+      lines: [visible, offscreen],
+      bounds: [new Point(-1, -1), new Point(220, 220)],
+      useFancyGlow: false,
+    })
+
+    expect(visibleSelectionCheck).toHaveBeenCalled()
+    expect(offscreenSelectionCheck).not.toHaveBeenCalled()
   })
 })
 

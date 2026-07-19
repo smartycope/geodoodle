@@ -56,6 +56,7 @@ import {
 } from "../fileUtils.jsx"
 import TabManager from "./TabManager"
 import { sharePatternLink } from "../shareUtils"
+import { getLinesViewportBounds } from "../utils.jsx"
 
 const cloudHelpText =
   "Files are stored on Cope's semi-reliable server. They'll probably be safe? But if you have a pattern you really care about, " +
@@ -337,12 +338,12 @@ export default function FilePage() {
   }
 
   const fitArtwork = () => {
-    const rect = document.querySelector("#lines")?.getBoundingClientRect()
+    const rect = getLinesViewportBounds(state.lines, state)
     if (!rect) return
     setWidth(rect.width)
     setHeight(rect.height)
-    setX(rect.x)
-    setY(rect.y)
+    setX(rect.left)
+    setY(rect.top)
   }
 
   const handleFileSelection = (file) => {

@@ -53,6 +53,30 @@ export function getLinesRect(lines) {
   return Rect.fromPoints(...lines.flatMap((line) => line.points()))
 }
 
+// Unlike Rect.asViewport, this measures the transformed endpoints that actually
+// exist rather than the four corners of their canvas-space bounding rectangle.
+// That keeps artwork fitting accurate when the canvas is rotated and when the
+// rendered DOM intentionally contains only on-screen lines.
+export function getLinesViewportBounds(lines, state) {
+  if (!lines.length) return null
+
+  let left = Infinity
+  let right = -Infinity
+  let top = Infinity
+  let bottom = -Infinity
+  lines.forEach((line) =>
+    line.points().forEach((point) => {
+      const { x, y } = point.asViewport(state)
+      left = Math.min(left, x)
+      right = Math.max(right, x)
+      top = Math.min(top, y)
+      bottom = Math.max(bottom, y)
+    }),
+  )
+
+  return { left, right, top, bottom, width: right - left, height: bottom - top }
+}
+
 // TODO: this should probably use the actually mouse location instead of CursorPos
 // (because it's going to be going in between dots a lot)
 export function getPreviewPolys(state, polys) {
