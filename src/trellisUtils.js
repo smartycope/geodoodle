@@ -79,14 +79,16 @@ function rotationMatrix(angle, origin = { x: 0, y: 0 }) {
   }
 }
 
-function flipMatrix(axis) {
+function flipMatrix(axis, origin = { x: 0, y: 0 }) {
+  const flipX = axis === MIRROR_AXIS.Y || axis === MIRROR_AXIS.BOTH
+  const flipY = axis === MIRROR_AXIS.X || axis === MIRROR_AXIS.BOTH
   return {
-    a: axis === MIRROR_AXIS.Y || axis === MIRROR_AXIS.BOTH ? -1 : 1,
+    a: flipX ? -1 : 1,
     b: 0,
     c: 0,
-    d: axis === MIRROR_AXIS.X || axis === MIRROR_AXIS.BOTH ? -1 : 1,
-    e: 0,
-    f: 0,
+    d: flipY ? -1 : 1,
+    e: flipX ? origin.x * 2 : 0,
+    f: flipY ? origin.y * 2 : 0,
   }
 }
 
@@ -113,9 +115,9 @@ export function createTrellisTileDescriptor({ row, column, seed, width, height, 
   if (isTrellisCadenceActive(column, rotate?.col) && rotate.col.val)
     localMatrix = multiplyAffine(localMatrix, rotationMatrix(rotate.col.val, center))
   if (isTrellisCadenceActive(row, flip?.row) && flip.row.val)
-    localMatrix = multiplyAffine(localMatrix, flipMatrix(flip.row.val))
+    localMatrix = multiplyAffine(localMatrix, flipMatrix(flip.row.val, center))
   if (isTrellisCadenceActive(column, flip?.col) && flip.col.val)
-    localMatrix = multiplyAffine(localMatrix, flipMatrix(flip.col.val))
+    localMatrix = multiplyAffine(localMatrix, flipMatrix(flip.col.val, center))
 
   const matrix = multiplyAffine(translationMatrix(x, y), localMatrix)
   return { row, column, matrix, transform: matrixToSvg(matrix) }
@@ -151,10 +153,7 @@ function getPatternMetrics(pattern, center, flip, rotate) {
   let radius = 0
   let maxStrokeWidth = 0
   const centerRadius = Math.hypot(center.x, center.y)
-  const hasRotation = Boolean(rotate?.row?.val || rotate?.col?.val)
-  const rowFlips = flip?.row?.val ? [MIRROR_AXIS.NONE, flip.row.val] : [MIRROR_AXIS.NONE]
-  const columnFlips = flip?.col?.val ? [MIRROR_AXIS.NONE, flip.col.val] : [MIRROR_AXIS.NONE]
-  const possibleFlips = new Set(rowFlips.flatMap((rowFlip) => columnFlips.map((columnFlip) => rowFlip ^ columnFlip)))
+  const hasCenteredTransform = Boolean(rotate?.row?.val || rotate?.col?.val || flip?.row?.val || flip?.col?.val)
 
   pattern.forEach((object) => {
     objectPoints(object).forEach((point) => {
@@ -162,16 +161,12 @@ function getPatternMetrics(pattern, center, flip, rotate) {
       right = Math.max(right, point._x)
       top = Math.min(top, point._y)
       bottom = Math.max(bottom, point._y)
-      if (!hasRotation) radius = Math.max(radius, Math.hypot(point._x, point._y))
+      if (!hasCenteredTransform) radius = Math.max(radius, Math.hypot(point._x, point._y))
       else
-        // Rotations preserve distance from the tile center. Account for every
-        // possible configured flip before that rotation so the candidate range
-        // remains conservative for combined flip/rotation controls.
-        for (const axis of possibleFlips) {
-          const x = axis === MIRROR_AXIS.Y || axis === MIRROR_AXIS.BOTH ? -point._x : point._x
-          const y = axis === MIRROR_AXIS.X || axis === MIRROR_AXIS.BOTH ? -point._y : point._y
-          radius = Math.max(radius, centerRadius + Math.hypot(x - center.x, y - center.y))
-        }
+        // Every local flip and rotation preserves distance from the shared
+        // tile center. This radius therefore contains every configured
+        // transform state without enumerating their combinations.
+        radius = Math.max(radius, centerRadius + Math.hypot(point._x - center.x, point._y - center.y))
     })
     if (isLine(object)) maxStrokeWidth = Math.max(maxStrokeWidth, Math.max(0, finiteNumber(object.aes?.width)))
   })

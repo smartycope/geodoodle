@@ -154,15 +154,15 @@ Thus `every = 3` applies at `..., -6, -3, 0, 3, 6, ...`. Index `0` is intentiona
 
 The row and column transformations are composed into one affine matrix. If both axes schedule a transformation for a tile, both are applied.
 
-Rotations are around the center of the tile:
+Flips and rotations are around the center of the tile:
 
 ```text
 local center = (tileWidth / 2, tileHeight / 2)
 ```
 
-The translation terms required to rotate around that point are included directly in the rotation matrix. This keeps the tile's center fixed, including for non-square selections, and matches the center-origin behavior used by clipboard rotation.
+The translation terms required to transform around that point are included directly in the flip and rotation matrices. This keeps the tile's center fixed, including for non-square selections, and matches the center-origin behavior used by clipboard flip and rotation.
 
-Flips retain their existing local-origin behavior. Because matrix multiplication order matters, the effective point operation order is column flip, row flip, column rotation, row rotation, and finally tile translation. Both rotations use the same tile center.
+Because matrix multiplication order matters, the effective point operation order is column flip, row flip, column rotation, row rotation, and finally tile translation. Every flip and rotation uses the same tile center.
 
 The final tile descriptor contains:
 
@@ -212,7 +212,7 @@ The candidate padding also includes a conservative envelope of the selected patt
 - Every selected line endpoint and polygon vertex contributes to the local bounds.
 - Line stroke radius is included.
 - Geometry outside the selection rectangle is included, so a long selected line can keep a distant tile alive.
-- When rotation is enabled, the radius accounts for rotation around the tile center and every possible configured combination of row and column flips.
+- When any flip or rotation is enabled, the radius accounts for every transformation around the shared tile center.
 
 This envelope is used to find candidates only. Individual tiles still receive exact visibility checks later.
 
@@ -328,7 +328,7 @@ When changing the Trellis, preserve these rules:
 - The normal line and polygon layers must not duplicate source objects while the Trellis owns them.
 - Row controls use only row indices, and column controls use only column indices.
 - Negative indices must use Euclidean modulo for skip and transform cadence.
-- Tile rotation is around `(tileWidth / 2, tileHeight / 2)`.
+- Tile flips and rotations are around `(tileWidth / 2, tileHeight / 2)`.
 - Rendering, visibility checks, and selection overlays must use the same tile matrix.
 - Page rotation requires inverse-transforming all four viewport corners.
 - Candidate bounds must include protruding geometry, stroke width, configured transforms, and offset staircase error.

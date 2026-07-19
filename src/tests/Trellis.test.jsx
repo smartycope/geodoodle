@@ -150,6 +150,31 @@ describe("source-phased Trellis cadence", () => {
     expect(columnTile.matrix.a).toBeCloseTo(-1)
     expect(columnTile.matrix.d).toBeCloseTo(-1)
   })
+
+  test("flips tile zero around its center", () => {
+    const source = createTrellisTileDescriptor({
+      row: 0,
+      column: 0,
+      seed: { x: 10, y: 20 },
+      width: 4,
+      height: 6,
+      overlap: defaultTrellisControl({ x: 0, y: 0 }),
+      flip: {
+        row: { every: 1, val: MIRROR_AXIS.Y },
+        col: { every: 1, val: MIRROR_AXIS.X },
+      },
+      rotate: defaultTrellisControl(MIRROR_ROT.NONE),
+    })
+
+    expect(source.matrix.a).toBe(-1)
+    expect(source.matrix.b).toBeCloseTo(0)
+    expect(source.matrix.c).toBeCloseTo(0)
+    expect(source.matrix.d).toBe(-1)
+    expect(source.matrix.e).toBe(14)
+    expect(source.matrix.f).toBe(26)
+    expect(transformAffinePoint(source.matrix, 2, 3)).toEqual({ x: 12, y: 23 })
+    expect(transformAffinePoint(source.matrix, 0, 0)).toEqual({ x: 14, y: 26 })
+  })
 })
 
 describe("finite Trellis visibility", () => {
