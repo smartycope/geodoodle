@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest"
-import { render, screen, within } from "@testing-library/react"
+import { fireEvent, render, screen, within } from "@testing-library/react"
 import { StateContext } from "../Contexts"
 import ClipboardMenu from "../Menus/ClipboardMenu"
 import DeleteMenu from "../Menus/DeleteMenu"
@@ -14,16 +14,18 @@ const renderMenu = (menu, Component, stateOverrides = {}) => {
   document.body.appendChild(anchor)
 
   const state = getState()
-  return render(
+  const dispatch = vi.fn()
+  const rendered = render(
     <StateContext.Provider
       value={{
         state: { ...state, ...stateOverrides, openMenus: { ...state.openMenus, [menu]: true } },
-        dispatch: vi.fn(),
+        dispatch,
       }}
     >
       <Component />
     </StateContext.Provider>,
   )
+  return { ...rendered, dispatch }
 }
 
 afterEach(() => {
@@ -53,6 +55,19 @@ describe("mini-menu keyboard shortcut hints", () => {
     expect(within(screen.getByRole("menuitem", { name: /Add Bound/ })).getByText("B")).not.toBeNull()
     expect(within(screen.getByRole("menuitem", { name: /Clear Area Selection/ })).getByText("Shift+B")).not.toBeNull()
     expect(within(screen.getByRole("menuitem", { name: /Partials/ })).getByText("P")).not.toBeNull()
+  })
+
+  test("selects all lines from the Select menu", () => {
+    const state = getState()
+    const { dispatch } = renderMenu("select", SelectMenu, {
+      lines: [new Line(state, new Point(0, 0), new Point(10, 10))],
+    })
+
+    const selectAll = screen.getByRole("menuitem", { name: /Select All/ })
+    expect(within(selectAll).getByText("Ctrl+A")).not.toBeNull()
+    fireEvent.click(selectAll)
+
+    expect(dispatch).toHaveBeenCalledWith("select_all")
   })
 
   test("maps the parameterized Delete key to Delete Selected", () => {

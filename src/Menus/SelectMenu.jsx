@@ -6,6 +6,7 @@ import MenuItem from "@mui/material/MenuItem"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank"
 import CheckBoxIcon from "@mui/icons-material/CheckBox"
+import SelectAllIcon from "@mui/icons-material/SelectAll"
 import { SelectorIcon } from "./CustomIcons"
 import ShortcutHint from "./ShortcutHint"
 
@@ -14,6 +15,14 @@ export default function SelectMenu() {
 
   return (
     <MiniMenu menu="select">
+      <MenuItem onClick={() => dispatch("select_all")} disabled={!state.lines.length}>
+        <ListItemIcon>
+          <SelectAllIcon />
+        </ListItemIcon>
+        Select All
+        <ShortcutHint action="select_all" />
+      </MenuItem>
+
       {/* If we're on desktop, we can't both click the button, and move the cursor to where we want to add the bound */}
       {state.mobile && (
         <>
@@ -51,7 +60,7 @@ export default function SelectMenu() {
         <>
           <MenuItem onClick={() => dispatch("clear_bounds")}>
             <ListItemIcon>{SelectorIcon("area", true)}</ListItemIcon>
-            Clear Area Selection
+            Clear Selection
             <ShortcutHint action="clear_bounds" />
           </MenuItem>
 
