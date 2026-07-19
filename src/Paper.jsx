@@ -201,7 +201,7 @@ export default function Paper({ setDispatch }) {
               cursor: fillMode ? "pointer" : "none",
             }}
           >
-            {/* This order is intentional */}
+            {/* This order is intentional -- lower elements are on top */}
             <GlowEffect />
             {!dotsAbovefill && <Dots />}
             <Trellis />
