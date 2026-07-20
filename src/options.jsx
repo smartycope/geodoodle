@@ -93,6 +93,8 @@ export const keybindable = [
   bindable("increase_scale", "Increase scale", "ctrl+arrowup"),
   bindable("decrease_scale", "Decrease scale", "ctrl+arrowdown"),
   bindable("add_layer", "Add layer", "ctrl+n"),
+  bindable("save_local_and_toast", "Save locally", "ctrl+s"),
+  bindable("save_cloud_and_toast", "Save to cloud", "ctrl+shift+s"),
 
   // Unbound
   bindable("toggle_dots", "Toggle dots"),
@@ -138,8 +140,8 @@ export const keybindable = [
     ["navigation", "Navigation menu"],
     ["repeat", "Repeat menu", "r"],
     ["layers", "Layers panel"],
-    ["file", "Files page"],
-    ["settings", "Settings page", "ctrl+s"],
+    ["file", "Files page", "ctrl+f"],
+    ["settings", "Settings page"],
     ["help", "Help page"],
   ].map(([menu, label, defaults = []]) =>
     bindable(`toggle_menu_${menu}`, `Toggle ${label}`, defaults, { action: "menu", toggle: menu }),
@@ -281,6 +283,7 @@ export const preservable = [
   "allowCanvasRotation",
   "useFancyGlow",
   "holdTapAction",
+  "username",
 ]
 
 // These are parts of the state

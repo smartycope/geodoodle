@@ -181,7 +181,7 @@ function SavedPatternList({ names, emptyMessage, onLoad, onDelete, deleteLabel }
 }
 
 export default function FilePage() {
-  const { state, dispatch, cloudUsername: username, setCloudUsername } = useContext(StateContext)
+  const { state, dispatch } = useContext(StateContext)
   const { filename, bounds } = state
 
   const [cloudSaves, setCloudSaves] = useState([])
@@ -198,11 +198,12 @@ export default function FilePage() {
   const hasSelection = bounds.length > 1
   const exportingSelection = hasSelection && selectedOnly
 
+  const { username } = state
+
   useEffect(() => {
     let current = true
-    const cloudUsername = username.trim()
 
-    getCloudSaves(cloudUsername)
+    getCloudSaves(username)
       .then((saves) => {
         if (current) setCloudSaves(saves)
       })
@@ -222,11 +223,10 @@ export default function FilePage() {
   const refreshCloudSaves = () => setCloudRefresh((refresh) => refresh + 1)
 
   const handleCloudSave = async () => {
-    const cloudUsername = username.trim()
-    if (!cloudUsername) return
+    if (!username) return
 
     try {
-      await saveCloud(state, cloudUsername, filename)
+      await saveCloud(state, username, filename)
       refreshCloudSaves()
     } catch (error) {
       console.error("Unable to save to the cloud:", error)
@@ -236,7 +236,7 @@ export default function FilePage() {
 
   const handleCloudDelete = async (name) => {
     try {
-      await deleteCloud(username.trim(), name)
+      await deleteCloud(username, name)
       refreshCloudSaves()
     } catch (error) {
       console.error("Unable to delete the cloud save:", error)
@@ -246,7 +246,7 @@ export default function FilePage() {
 
   const handleCloudLoad = async (name) => {
     try {
-      const data = await loadCloud(username.trim(), name)
+      const data = await loadCloud(username, name)
       if (data) dispatch({ action: "deserialize", data })
       else dispatch({ toast: "Cloud save not found" })
     } catch (error) {
@@ -258,7 +258,7 @@ export default function FilePage() {
   const clearCloudSaves = async () => {
     if (!confirm("Are you sure you want to delete all your cloud saves? This action is irreversible.")) return
     try {
-      await Promise.all(cloudSaves.map((save) => deleteCloud(username.trim(), save.name)))
+      await Promise.all(cloudSaves.map((save) => deleteCloud(username, save.name)))
       refreshCloudSaves()
     } catch (error) {
       console.error("Unable to clear cloud saves:", error)
@@ -267,24 +267,23 @@ export default function FilePage() {
   }
 
   const handleSharePattern = async () => {
-    const cloudUsername = username.trim()
     const patternName = filename.trim()
     const saveFirstToast = "Save this pattern to the cloud before sharing it"
 
-    if (!cloudUsername || !patternName) {
+    if (!username || !patternName) {
       dispatch({ toast: saveFirstToast })
       return
     }
 
     setSharing(true)
     try {
-      const cloudPattern = await loadCloud(cloudUsername, patternName)
+      const cloudPattern = await loadCloud(username, patternName)
       if (!cloudPattern || !preservedStatesEqual(state, cloudPattern)) {
         dispatch({ toast: saveFirstToast })
         return
       }
 
-      const result = await sharePatternLink(cloudUsername, patternName)
+      const result = await sharePatternLink(username, patternName)
       if (result === "copied") dispatch({ toast: "Share link copied to clipboard" })
       else if (result === "failed" || result === "unsupported") dispatch({ toast: "Unable to share this link" })
     } catch (error) {
@@ -547,7 +546,7 @@ export default function FilePage() {
             fullWidth
             label="Username"
             value={username}
-            onChange={(event) => setCloudUsername(event.target.value.trim().toLowerCase())}
+            onChange={(event) => dispatch({ username: event.target.value.trim().toLowerCase() })}
             helperText="Anyone using this username can see and change its patterns."
           />
           {patternNameControls({ onSave: handleCloudSave, saveLabel: "Save to cloud", saveDisabled: !username.trim() })}

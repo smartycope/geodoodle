@@ -59,10 +59,11 @@ function DeleteMenu() {
           <LayersClearIcon />
         </ListItemIcon>
         Clear Active Layer
+        <ShortcutHint action="clear_active_layer" />
       </MenuItem>
       <MenuItem
         onClick={() =>
-          state.debug || window.confirm("Delete the entire document and all of its layers?")
+          state.debug || window.confirm("Delete the entire pattern and all of its layers?")
             ? dispatch("clear")
             : undefined
         }
@@ -70,7 +71,7 @@ function DeleteMenu() {
         <ListItemIcon>
           <GiNuclear />
         </ListItemIcon>
-        Delete Entire Document
+        Start new pattern
         <ShortcutHint action="clear" />
       </MenuItem>
     </MiniMenu>

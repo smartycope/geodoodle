@@ -17,29 +17,29 @@ vi.mock("../fileUtils", async (importOriginal) => {
     getCloudSaves: vi.fn(() => Promise.resolve([{ name: "Cloud star" }])),
     getSaves: vi.fn(() => ({ "Local star": "<svg />" })),
     loadCloud: vi.fn(() => Promise.resolve({ lines: [] })),
-    loadCloudUsername: vi.fn(() => "cope"),
+    loadUsername: vi.fn(() => "cope"),
     saveCloud: vi.fn(() => Promise.resolve()),
-    saveCloudUsername: vi.fn(),
+    saveUsername: vi.fn(),
   }
 })
 
 function renderFilePage() {
   const state = getState()
   const dispatch = vi.fn()
-  const setCloudUsername = vi.fn()
+  const setUsername = vi.fn()
   render(
     <StateContext.Provider
       value={{
         state: { ...state, openMenus: { ...state.openMenus, file: true } },
         dispatch,
-        cloudUsername: "cope",
-        setCloudUsername,
+        username: "cope",
+        setUsername,
       }}
     >
       <FilePage />
     </StateContext.Provider>,
   )
-  return { dispatch, state, setCloudUsername }
+  return { dispatch, state, setUsername }
 }
 
 beforeEach(() => {

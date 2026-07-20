@@ -48,6 +48,7 @@ export default function getInitialState() {
     trellisDraft: null,
 
     filename: generateName(options.defaultToMemorableNames),
+    username: "",
     // The side of page we have the menu bound to: left, right, top, or bottom
     side: viewportWidth() < viewportHeight() ? "top" : "right",
 

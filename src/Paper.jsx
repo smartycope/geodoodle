@@ -5,10 +5,10 @@ import reducer from "./reducer"
 import Toolbar from "./Menus/Toolbar"
 import {
   loadCloud,
-  loadCloudUsername,
+  loadUsername,
   loadPreservedState,
   preserveState,
-  saveCloudUsername,
+  saveUsername,
   saveLocally,
 } from "./fileUtils"
 import { StateContext } from "./Contexts"
@@ -49,10 +49,9 @@ export default function Paper({ setDispatch }) {
   const paper = useRef()
   const initialState = useMemo(() => getInitialState(), [])
   const sharedPatternParams = useMemo(() => getSharedPatternParams(), [])
-  const initialCloudUsername = useMemo(() => loadCloudUsername(), [])
+  const initialUsername = useMemo(() => loadUsername(), [])
   const [state, dispatch] = useReducer(reducer, initialState)
   const activeState = useMemo(() => getLayerState(state), [state])
-  const [cloudUsername, setCloudUsername] = useState(initialCloudUsername)
   const [resolvingSharedLink, setResolvingSharedLink] = useState(Boolean(sharedPatternParams))
   const [sharedPatternConflict, setSharedPatternConflict] = useState(null)
   const { dotsAboveArtwork, paperColor, fillMode, themeMode } = activeState
@@ -71,9 +70,9 @@ export default function Paper({ setDispatch }) {
 
   useEffect(() => {
     if (resolvingSharedLink) return
-    saveCloudUsername(cloudUsername)
-    syncPatternQueryParams(cloudUsername, state.filename)
-  }, [cloudUsername, resolvingSharedLink, state.filename])
+    saveUsername(state.username)
+    syncPatternQueryParams(state.username, state.filename)
+  }, [state.username, resolvingSharedLink, state.filename])
 
   // Capture touch events non-passively so we can prevent default
   useEffect(() => {
@@ -103,7 +102,7 @@ export default function Paper({ setDispatch }) {
     if (local) dispatch({ action: "deserialize", data: local })
 
     if (!sharedPatternParams) return
-    if (local && sharedPatternParams.user === initialCloudUsername && sharedPatternParams.pattern === local.filename) {
+    if (local && sharedPatternParams.user === initialUsername && sharedPatternParams.pattern === local.filename) {
       setResolvingSharedLink(false)
       return
     }
@@ -127,7 +126,7 @@ export default function Paper({ setDispatch }) {
 
         dispatch({ action: "deserialize", data: nextState })
         preserveState(nextState)
-        setCloudUsername(sharedPatternParams.user)
+        dispatch({ username: sharedPatternParams.user })
         setResolvingSharedLink(false)
       })
       .catch((error) => {
@@ -141,7 +140,7 @@ export default function Paper({ setDispatch }) {
     return () => {
       current = false
     }
-  }, [initialCloudUsername, initialState, sharedPatternParams])
+  }, [initialUsername, initialState, sharedPatternParams])
 
   const loadPendingSharedPattern = () => {
     if (!sharedPatternConflict) return
@@ -152,7 +151,7 @@ export default function Paper({ setDispatch }) {
     }
     dispatch({ action: "deserialize", data: nextState })
     preserveState(nextState)
-    setCloudUsername(sharedPatternConflict.user)
+    dispatch({ username: sharedPatternConflict.user })
     setResolvingSharedLink(false)
     setSharedPatternConflict(null)
   }
@@ -175,7 +174,7 @@ export default function Paper({ setDispatch }) {
 
   return (
     <ThemeProvider theme={theme}>
-      <StateContext.Provider value={{ state: activeState, dispatch, cloudUsername, setCloudUsername }}>
+      <StateContext.Provider value={{ state: activeState, dispatch }}>
         <SharedPatternDialog
           conflict={sharedPatternConflict}
           onCancel={cancelSharedPatternLoad}

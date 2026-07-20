@@ -337,11 +337,11 @@ export function getSaves() {
   return JSON.parse(localStorage.getItem(localStorageName))
 }
 
-export function loadCloudUsername() {
+export function loadUsername() {
   return localStorage.getItem(localStorageCloudUsernameName) ?? ""
 }
 
-export function saveCloudUsername(username) {
+export function saveUsername(username) {
   localStorage.setItem(localStorageCloudUsernameName, username)
 }
 

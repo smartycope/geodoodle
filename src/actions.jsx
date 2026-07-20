@@ -30,6 +30,8 @@ import {
   loadLocally,
   clearSaves,
   deleteLocally,
+  generateName,
+  saveCloud,
 } from "./fileUtils"
 import { cursorPosChanged } from "./events"
 import Point from "./helper/Point"
@@ -381,6 +383,7 @@ export const clear = (state) => ({
   curLinePos: null,
   mirrorAxis: MIRROR_AXIS.NONE,
   mirrorRot: MIRROR_ROT.NONE,
+  filename: generateName(state.defaultToMemorableNames)
 })
 
 export const delete_selected = (state) => {
@@ -777,6 +780,12 @@ export const save_local = (state, { name }) => {
   // setTimeout(() => cursor_moved(state, {point: state.cursorPos}), 100)
   // TODO: why is this required? Is it still?
   return { reloadRequired: true }
+}
+
+export const save_local_and_toast = (state) => ({ ...save_local(state, {name: state.filename}), toast: "✅ Saved pattern locally" })
+export const save_cloud_and_toast = (state) => {
+  saveCloud(state, state.username, state.filename)
+  return { ...save_local(state, {name: state.filename}), toast: "✅ Saved pattern to the cloud" }
 }
 
 export const load_local = (state, { name }) => {

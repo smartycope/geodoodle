@@ -8,7 +8,7 @@ import {
   loadCloud,
   loadPreservedState,
   preserveState,
-  saveCloudUsername,
+  saveUsername,
   validateStorage,
 } from "../fileUtils"
 import { getState } from "./testUtils"
@@ -46,7 +46,7 @@ describe("shared pattern startup", () => {
   test("keeps the URL current as the pattern name changes", async () => {
     const local = pattern("Work in progress", 1)
     preserveState(local)
-    saveCloudUsername("cope")
+    saveUsername("cope")
     window.history.replaceState({}, "", "/geodoodle/")
     let paperDispatch
 
@@ -60,7 +60,7 @@ describe("shared pattern startup", () => {
   test("does not reopen the share dialog when the URL already identifies the local workspace", async () => {
     const local = pattern("Work in progress", 1)
     preserveState(local)
-    saveCloudUsername("cope")
+    saveUsername("cope")
     window.history.replaceState({}, "", "/geodoodle/?user=cope&pattern=Work+in+progress")
 
     render(<Paper setDispatch={vi.fn()} />)

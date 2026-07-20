@@ -3,13 +3,13 @@ import {
   generateName,
   getCloudSaves,
   loadCloud,
-  loadCloudUsername,
+  loadUsername,
   requestServer,
   preservedStatesEqual,
   serializeState,
   deserializeState,
   saveCloud,
-  saveCloudUsername,
+  saveUsername,
 } from "../fileUtils"
 import Dist from "../helper/Dist"
 import Point from "../helper/Point"
@@ -136,9 +136,9 @@ describe("cloud storage requests", () => {
   })
 
   test("persists the previously used cloud username", () => {
-    saveCloudUsername("cope")
+    saveUsername("cope")
 
-    expect(loadCloudUsername()).toBe("cope")
+    expect(loadUsername()).toBe("cope")
   })
 
   test("falls back to an unnamed pattern if memorable-name generation fails", () => {
