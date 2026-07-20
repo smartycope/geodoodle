@@ -6,7 +6,7 @@ import Trellis from "../helper/Trellis"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
 import Poly from "../helper/Poly"
-import { MIRROR_ROT } from "../globals"
+import { MIRROR_AXIS, MIRROR_ROT } from "../globals"
 import { getLayerState } from "../layerUtils"
 import { deserializeState, serializeState } from "../fileUtils"
 import { redoStack, undoStack } from "../globals"
@@ -114,6 +114,62 @@ describe("layer and persistent trellis actions", () => {
     expect(state.layers[0].lines).toHaveLength(1)
     expect(state.layers[0].filledPolys).toHaveLength(1)
     expect(state.layers[0].bounds).toHaveLength(2)
+  })
+
+  test("Release preserves controls for the next trellis captured on that layer", () => {
+    const view = selectedState()
+    let state = { ...getInitialState(), layers: view.layers }
+    const controls = {
+      overlap: {
+        row: { every: 2, val: { x: 1, y: -1 } },
+        col: { every: 3, val: { x: -2, y: 2 } },
+      },
+      skip: { row: { every: 2, val: 1 }, col: { every: 3, val: 2 } },
+      flip: {
+        row: { every: 2, val: MIRROR_AXIS.X },
+        col: { every: 3, val: MIRROR_AXIS.Y },
+      },
+      rotate: {
+        row: { every: 2, val: MIRROR_ROT.RIGHT },
+        col: { every: 3, val: MIRROR_ROT.QUAD },
+      },
+    }
+
+    state = reducer(state, { action: "menu", open: "repeat" })
+    for (const [key, value] of Object.entries(controls))
+      state = reducer(state, { action: "update_trellis_draft", key, value })
+    state = reducer(state, "apply_trellis")
+    state = reducer(state, "release_trellis")
+
+    state = reducer(state, { action: "set_color", color: "#0ea5e9" })
+    state = reducer(state, "paint_selected")
+    state = { ...getInitialState(), ...deserializeState(serializeState(state)) }
+    state = reducer(state, { action: "menu", open: "repeat" })
+
+    expect(state.trellisDraft.mode).toBe("create")
+    expect(state.trellisDraft.trellis.controls).toEqual(controls)
+  })
+
+  test("closing an unapplied draft preserves its controls for that layer", () => {
+    const view = selectedState()
+    let state = { ...getInitialState(), layers: view.layers }
+    const skip = { row: { every: 4, val: 2 }, col: { every: 3, val: 1 } }
+
+    state = reducer(state, { action: "menu", open: "repeat" })
+    state = reducer(state, { action: "update_trellis_draft", key: "skip", value: skip })
+    const rememberedControls = state.trellisDraft.trellis.controls
+    state = reducer(state, { action: "menu", close: "repeat" })
+
+    expect(state.trellisDraft).toBeNull()
+    expect(state.layers[0].trellis).toBeNull()
+    expect(state.layers[0].trellisControls).toEqual(rememberedControls)
+
+    state = reducer(state, { action: "set_color", color: "#f97316" })
+    state = reducer(state, "paint_selected")
+    state = reducer(state, { action: "menu", open: "repeat" })
+
+    expect(state.trellisDraft.mode).toBe("create")
+    expect(state.trellisDraft.trellis.controls).toEqual(rememberedControls)
   })
 
   test("Replace restores the old transformed source while capturing the new selection", () => {

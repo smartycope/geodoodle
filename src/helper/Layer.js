@@ -15,6 +15,7 @@ export default class Layer {
     genericSelectors = [],
     mirrorOrigins = [],
     trellis = null,
+    trellisControls = null,
   } = {}) {
     this.id = id
     this.name = name
@@ -26,6 +27,7 @@ export default class Layer {
     this.genericSelectors = genericSelectors
     this.mirrorOrigins = mirrorOrigins
     this.trellis = trellis
+    this.trellisControls = trellisControls ? new Trellis(trellisControls).controls : (trellis?.controls ?? null)
   }
 
   copy(updates = {}) {
@@ -61,6 +63,7 @@ export default class Layer {
         origin: Point.fromJSON(mirrorOrigin.origin),
       })),
       trellis: Trellis.fromJSON(json.trellis),
+      trellisControls: json.trellisControls,
     })
   }
 }

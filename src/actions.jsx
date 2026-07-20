@@ -829,7 +829,7 @@ export const toggle_partials = (state) => ({ partials: !state.partials })
 export const toggle_dots = (state) => ({ hideDots: !state.hideDots })
 
 const selectionDraft = (state, mode) => {
-  const trellis = Trellis.fromSelection(state)
+  const trellis = Trellis.fromSelection(state, getActiveLayer(state)?.trellisControls ?? {})
   if (!trellis?.valid) return null
   const boundRect = getBoundRect(state)
   return {
@@ -889,7 +889,10 @@ export const apply_trellis = (state) => {
   const layer = getActiveLayer(state)
   if (draft.mode === "edit")
     return {
-      layers: updateLayer(state.layers, layer.id, { trellis: draft.trellis }),
+      layers: updateLayer(state.layers, layer.id, {
+        trellis: draft.trellis,
+        trellisControls: draft.trellis.controls,
+      }),
       trellisDraft: null,
       openMenus: { ...state.openMenus, repeat: false, main: true },
       hideDots: false,
@@ -914,6 +917,7 @@ export const apply_trellis = (state) => {
       specificSelectors: [],
       genericSelectors: [],
       trellis: draft.trellis,
+      trellisControls: draft.trellis.controls,
     }),
     trellisDraft: null,
     openMenus: { ...state.openMenus, repeat: false, main: true },
@@ -937,6 +941,7 @@ export const release_trellis = (state) => {
       lines: [...layer.lines, ...released.lines],
       filledPolys: [...layer.filledPolys, ...released.filledPolys],
       trellis: null,
+      trellisControls: layer.trellis.controls,
       bounds: rect ? [rect.topLeft, rect.bottomRight] : [],
       specificSelectors: [],
       genericSelectors: [],
@@ -995,6 +1000,7 @@ export const menu = (state, { toggle, open, close }) => {
 
   let repeatToast = null
   let trellisDraft = state.trellisDraft
+  let layers = state.layers
   const openingRepeat = !openMenus.repeat && copy.repeat
   const closingRepeat = openMenus.repeat && !copy.repeat
   if (openingRepeat && getActiveLayer(state)?.visible === false) {
@@ -1007,7 +1013,11 @@ export const menu = (state, { toggle, open, close }) => {
       repeatToast = "Please select an area to repeat"
     } else trellisDraft = draftResult.trellisDraft
   }
-  if (closingRepeat) trellisDraft = null
+  if (closingRepeat) {
+    if (trellisDraft?.trellis)
+      layers = updateLayer(layers, trellisDraft.layerId, { trellisControls: trellisDraft.trellis.controls })
+    trellisDraft = null
+  }
 
   // If we open the repeat menu, close the toolbar (and it's mini menus). They can both be open at the same time though
   if (open === "repeat" || (toggle === "repeat" && copy[toggle])) {
@@ -1021,6 +1031,7 @@ export const menu = (state, { toggle, open, close }) => {
   if (close === "repeat" || (toggle === "repeat" && !copy[toggle])) copy.main = true
 
   return {
+    ...(layers !== state.layers ? { layers } : {}),
     openMenus: { ...copy },
     toolbarHiddenMenus,
     trellisDraft,

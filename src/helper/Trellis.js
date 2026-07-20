@@ -68,6 +68,15 @@ export default class Trellis {
     return [...this.lines, ...this.filledPolys]
   }
 
+  get controls() {
+    return {
+      overlap: cloneControl(this.overlap, { x: 0, y: 0 }),
+      skip: cloneControl(this.skip, 0),
+      flip: cloneControl(this.flip, MIRROR_AXIS.NONE),
+      rotate: cloneControl(this.rotate, MIRROR_ROT.NONE),
+    }
+  }
+
   copy(updates = {}) {
     return new Trellis({ ...this, ...updates })
   }
