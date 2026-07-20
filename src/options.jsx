@@ -90,8 +90,6 @@ export const keybindable = [
   bindable("toggle_fill_mode", "Toggle fill mode", "f"),
   bindable("debug", "Log debug information", "`"),
   bindable("toggle_debugging", "Toggle debug mode", "shift+`"),
-  bindable("increase_scale", "Increase scale", "ctrl+arrowup"),
-  bindable("decrease_scale", "Decrease scale", "ctrl+arrowdown"),
   bindable("add_layer", "Add layer", "ctrl+n"),
   bindable("save_local_and_toast", "Save locally", "ctrl+s"),
   bindable("save_cloud_and_toast", "Save to cloud", "ctrl+shift+s"),
