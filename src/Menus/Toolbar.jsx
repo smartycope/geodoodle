@@ -97,6 +97,8 @@ function Toolbar() {
       sx={{
         display: "flex",
         position: "absolute",
+        // TODO: I have no way to test this, remove this warning after it's been tested on a real device
+        paddingTop: 'env(safe-area-inset-top)',
         ...style,
       }}
     >
