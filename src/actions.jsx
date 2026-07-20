@@ -267,28 +267,7 @@ export const select_all = (state) => {
   return { bounds: rect ? [rect.topLeft, rect.bottomRight] : [], deletingSelection: false }
 }
 
-// Destruction Actions
-export const clear = (state) => ({
-  translation: Dist.zero(),
-  // We want to keep the current scale, but reset everything else
-  // scalex: state.defaultScalex,
-  // scaley: state.defaultScaley,
-  rotate: 0,
-  layers: [createLayer(1)],
-  activeLayerId: "layer-1",
-  trellisDraft: null,
-  deletingSelection: false,
-  openMenus: { ...state.openMenus, delete: false, repeat: false },
-  polygons: [],
-  fillMode: false,
-  clipboard: null,
-  clipboardMirrorAxis: MIRROR_AXIS.NONE,
-  clipboardRotation: MIRROR_ROT.NONE,
-  curLinePos: null,
-  mirrorAxis: MIRROR_AXIS.NONE,
-  mirrorRot: MIRROR_ROT.NONE,
-})
-
+// Layer Actions
 const cancelledLayerInteraction = {
   curLinePos: null,
   boundDragging: false,
@@ -345,6 +324,11 @@ export const set_layer_visibility = (state, { layerId, visible }) => {
   }
 }
 
+export const toggle_current_layer_visibility = (state) => {
+  const layer = getActiveLayer(state)
+  return set_layer_visibility(state, { layerId: layer.id, visible: !layer.visible })
+}
+
 export const delete_layer = (state, { layerId = state.activeLayerId }) => {
   const targetIndex = state.layers.findIndex((layer) => layer.id === layerId)
   if (targetIndex === -1) return {}
@@ -376,6 +360,28 @@ export const clear_active_layer = (state) =>
     mirrorOrigins: [],
     trellis: null,
   })
+
+// Destruction Actions
+export const clear = (state) => ({
+  translation: Dist.zero(),
+  // We want to keep the current scale, but reset everything else
+  // scalex: state.defaultScalex,
+  // scaley: state.defaultScaley,
+  rotate: 0,
+  layers: [createLayer(1)],
+  activeLayerId: "layer-1",
+  trellisDraft: null,
+  deletingSelection: false,
+  openMenus: { ...state.openMenus, delete: false, repeat: false },
+  polygons: [],
+  fillMode: false,
+  clipboard: null,
+  clipboardMirrorAxis: MIRROR_AXIS.NONE,
+  clipboardRotation: MIRROR_ROT.NONE,
+  curLinePos: null,
+  mirrorAxis: MIRROR_AXIS.NONE,
+  mirrorRot: MIRROR_ROT.NONE,
+})
 
 export const delete_selected = (state) => {
   const boundRect = getBoundRect(state)
@@ -582,6 +588,9 @@ export const set_stroke_width = (state, { strokeWidth }) => {
   copy[state.colorProfile] = strokeWidth
   return { strokeWidth: copy }
 }
+
+export const increase_stroke_width = (state) => set_stroke_width(state, { strokeWidth: state.strokeWidth[state.colorProfile] + 1 })
+export const decrease_stroke_width = (state) => set_stroke_width(state, { strokeWidth: Math.max(1, state.strokeWidth[state.colorProfile] - 1) })
 
 export const set_dash = (state, { dash }) => {
   let copy = JSON.parse(JSON.stringify(state.dash))

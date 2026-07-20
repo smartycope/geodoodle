@@ -90,6 +90,35 @@ export const keybindable = [
   bindable("toggle_fill_mode", "Toggle fill mode", "f"),
   bindable("debug", "Log debug information", "`"),
   bindable("toggle_debugging", "Toggle debug mode", "shift+`"),
+  bindable("increase_scale", "Increase scale", "ctrl+arrowup"),
+  bindable("decrease_scale", "Decrease scale", "ctrl+arrowdown"),
+  bindable("add_layer", "Add layer", "ctrl+n"),
+
+  // Unbound
+  bindable("toggle_dots", "Toggle dots"),
+  bindable("toggle_dots_above_artwork", "Toggle dots above artwork"),
+  bindable("randomize_color", "Randomize current color"),
+  bindable("randomize_colors", "Randomize all colors"),
+  bindable("go_to_selection", "Go to selection"),
+  // TODO: increment rotation
+  bindable("clear_specific_selectors", "Clear specific selectors"),
+  bindable("clear_generic_selectors", "Clear generic selectors"),
+  bindable("clear", "Start new pattern"),
+  bindable("toggle_current_layer_visibility", "Toggle layer visibility"),
+  bindable("delete_layer", "Delete current layer"),
+  bindable("clear_active_layer", "Clear current layer"),
+  bindable("delete_unselected", "Delete unselected lines"),
+  // bindable("delete_selected", "Delete selected lines"),
+  bindable("increase_stroke_width", "Increase stroke width"),
+  bindable("decrease_stroke_width", "Decrease stroke width"),
+  bindable("paint_selected", "Paint selected lines"),
+  bindable("fill", "Fill area"),
+  bindable("clear_fill", "Clear fill"),
+  bindable("clear_mirror_origins", "Clear all mirror origins"),
+  bindable("copy_image", "Copy image"),
+  bindable("apply_trellis", "Apply trellis"),
+  bindable("release_trellis", "Release trellis"),
+
   // 1-5 color keyboard shortcuts
   ...Array.from({ length: defaultOptions.commonColorAmt }, (_, index) =>
     bindable(`color_profile_${index + 1}`, `Select color profile ${index + 1}`, `${index + 1}`, {
