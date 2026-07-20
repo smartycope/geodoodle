@@ -2,7 +2,7 @@ import { useContext, useEffect, useMemo, useState } from "react"
 import { DragDropProvider } from "@dnd-kit/react"
 import { useSortable } from "@dnd-kit/react/sortable"
 import { move } from "@dnd-kit/helpers"
-import { Box, IconButton, Paper, Stack, TextField, Tooltip, Typography } from "@mui/material"
+import { Badge, Box, IconButton, Paper, Stack, TextField, Tooltip, Typography } from "@mui/material"
 import AddIcon from "@mui/icons-material/Add"
 import CloseIcon from "@mui/icons-material/Close"
 import DeleteIcon from "@mui/icons-material/Delete"
@@ -39,7 +39,7 @@ function LayerPreview({ layer }) {
   const height = Math.max(1, Math.max(...ys) - top)
   const pad = Math.max(width, height) * 0.08 + 0.2
 
-  return (
+  const rtn = (
     <svg
       aria-label={`${layer.name} preview`}
       width={PREVIEW_WIDTH}
@@ -71,6 +71,21 @@ function LayerPreview({ layer }) {
       ))}
     </svg>
   )
+
+  if (layer.trellis)
+    return (
+      <Badge
+        variant="dot"
+        color="primary"
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+      >
+        {rtn}
+      </Badge>
+    )
+  else return rtn
 }
 
 function LayerRow({ layer, index }) {
