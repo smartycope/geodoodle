@@ -112,35 +112,6 @@ export default function SettingsPage() {
     >
       <List subheader={<StyledSubheader>General</StyledSubheader>}>
         {/* General */}
-        <Setting label="Extra Button" help="Defines the functionality of the customizable button">
-          <Select
-            required
-            onChange={(e) => dispatch({ action: "set_manual_and_save_settings", extraButton: e.target.value })}
-            value={extraButton}
-          >
-            {Object.keys(extraButtons).map((i) => (
-              <MenuItem sx={{ width: "100%" }} value={i} key={i}>
-                {(i.charAt(0).toUpperCase() + i.slice(1)).replace(/_/g, " ")}
-              </MenuItem>
-            ))}
-          </Select>
-        </Setting>
-
-        <Setting label="Menu Side" help="Controls the side of the screen the menu is on">
-          <Select
-            required
-            onChange={(e) => dispatch({ action: "set_manual_and_save_settings", side: e.target.value })}
-            value={side}
-          >
-            {["Top", "Left", "Right", "Bottom"].map((i) => (
-              <MenuItem sx={{ width: "100%" }} value={i.toLowerCase()} key={i}>
-                {i}
-              </MenuItem>
-            ))}
-          </Select>
-        </Setting>
-
-        {/* Color Menu */}
         <Setting label="Background">
           <Button
             ref={colorMenuButton}
@@ -192,16 +163,32 @@ export default function SettingsPage() {
           <Checkbox checked={hideDots} onChange={() => dispatch({ action: "toggle_dots" })} />
         </Setting>
 
-        <Setting
-          label="Snap to Intersections"
-          help="If enabled, this will allow you to draw lines from the intersections of two lines. NOTE: Enabling this may cause performance issues on large patterns."
-        >
-          <Checkbox
-            checked={allowSnapToIntersections}
-            onChange={() =>
-              dispatch({ action: "set_manual_and_save_settings", allowSnapToIntersections: !allowSnapToIntersections })
-            }
-          />
+        <Setting label="Menu Side" help="Controls the side of the screen the menu is on">
+          <Select
+            required
+            onChange={(e) => dispatch({ action: "set_manual_and_save_settings", side: e.target.value })}
+            value={side}
+          >
+            {["Top", "Left", "Right", "Bottom"].map((i) => (
+              <MenuItem sx={{ width: "100%" }} value={i.toLowerCase()} key={i}>
+                {i}
+              </MenuItem>
+            ))}
+          </Select>
+        </Setting>
+
+        <Setting label="Extra Button" help="Defines the functionality of the customizable button">
+          <Select
+            required
+            onChange={(e) => dispatch({ action: "set_manual_and_save_settings", extraButton: e.target.value })}
+            value={extraButton}
+          >
+            {Object.keys(extraButtons).map((i) => (
+              <MenuItem sx={{ width: "100%" }} value={i} key={i}>
+                {(i.charAt(0).toUpperCase() + i.slice(1)).replace(/_/g, " ")}
+              </MenuItem>
+            ))}
+          </Select>
         </Setting>
 
         <Setting
@@ -223,36 +210,6 @@ export default function SettingsPage() {
             <MenuItem value="cut">Remove only after Cut</MenuItem>
             <MenuItem value="always">Always Remove</MenuItem>
           </Select>
-        </Setting>
-
-        <Setting
-          label="Disable Selection Canvas Buttons"
-          help="Hide the copy, cut, delete, and clear buttons shown beside a bounded selection"
-        >
-          <Checkbox
-            checked={disableSelectionCanvasButtons}
-            onChange={() =>
-              dispatch({
-                action: "set_manual_and_save_settings",
-                disableSelectionCanvasButtons: !disableSelectionCanvasButtons,
-              })
-            }
-          />
-        </Setting>
-
-        <Setting
-          label="Loop Cursor at Edges"
-          help="Move the cursor to the opposite side when it reaches a horizontal or vertical screen edge"
-        >
-          <Checkbox
-            checked={loopCursorAtEdges}
-            onChange={() =>
-              dispatch({
-                action: "set_manual_and_save_settings",
-                loopCursorAtEdges: !loopCursorAtEdges,
-              })
-            }
-          />
         </Setting>
 
         <Setting label="Dark Mode" help="Controls if the app is in dark mode or not">
@@ -278,19 +235,6 @@ export default function SettingsPage() {
           />
         </Setting>
 
-        <Setting label="Cursor" help="Which cursor to use">
-          <Select
-            value={cursor}
-            onChange={(e) => dispatch({ action: "set_manual_and_save_settings", cursor: e.target.value })}
-          >
-            {cursors.map((i) => (
-              <MenuItem sx={{ width: "100%" }} value={i} key={i}>
-                {i.charAt(0).toUpperCase() + i.slice(1)}
-              </MenuItem>
-            ))}
-          </Select>
-        </Setting>
-
         <Setting label="Home Scale" help="The zoom level restored by the Home action">
           <Number
             value={defaultScalex}
@@ -307,14 +251,26 @@ export default function SettingsPage() {
           />
         </Setting>
 
+        <Setting
+          label="Snap to Intersections"
+          help="If enabled, this will allow you to draw lines from the intersections of two lines. NOTE: Enabling this may cause performance issues on large patterns."
+        >
+          <Checkbox
+            checked={allowSnapToIntersections}
+            onChange={() =>
+              dispatch({ action: "set_manual_and_save_settings", allowSnapToIntersections: !allowSnapToIntersections })
+            }
+          />
+        </Setting>
+
+        {/* Controls */}
+        <StyledSubheader>Controls</StyledSubheader>
         <Setting label="Keyboard Shortcuts" help="Customize which keys perform each action">
           <Button variant="outlined" onClick={() => dispatch({ action: "menu", open: "key", close: "settings" })}>
             Customize
           </Button>
         </Setting>
 
-        {/* Controls */}
-        <StyledSubheader>Controls</StyledSubheader>
         <Setting
           label="Allow Canvas Rotation"
           help="Enable scroll, touch, and navigation controls that rotate the canvas"
@@ -330,6 +286,21 @@ export default function SettingsPage() {
           />
         </Setting>
 
+        <Setting
+          label="Disable Selection Canvas Buttons"
+          help="Hide the copy, cut, delete, and clear buttons shown beside a bounded selection"
+        >
+          <Checkbox
+            checked={disableSelectionCanvasButtons}
+            onChange={() =>
+              dispatch({
+                action: "set_manual_and_save_settings",
+                disableSelectionCanvasButtons: !disableSelectionCanvasButtons,
+              })
+            }
+          />
+        </Setting>
+
         <Setting label="Tap + Hold" help="Choose what a tap and hold adds">
           <Select
             value={holdTapAction}
@@ -339,6 +310,34 @@ export default function SettingsPage() {
             <MenuItem value="add_specific_selector">Add a specific selector</MenuItem>
             <MenuItem value="add_bound">Add a bound</MenuItem>
           </Select>
+        </Setting>
+
+        <Setting label="Cursor" help="Which cursor to use">
+          <Select
+            value={cursor}
+            onChange={(e) => dispatch({ action: "set_manual_and_save_settings", cursor: e.target.value })}
+          >
+            {cursors.map((i) => (
+              <MenuItem sx={{ width: "100%" }} value={i} key={i}>
+                {i.charAt(0).toUpperCase() + i.slice(1)}
+              </MenuItem>
+            ))}
+          </Select>
+        </Setting>
+
+        <Setting
+          label="Loop Cursor at Edges"
+          help="Move the cursor to the opposite side when it reaches a horizontal or vertical screen edge"
+        >
+          <Checkbox
+            checked={loopCursorAtEdges}
+            onChange={() =>
+              dispatch({
+                action: "set_manual_and_save_settings",
+                loopCursorAtEdges: !loopCursorAtEdges,
+              })
+            }
+          />
         </Setting>
 
         <Setting desktopOnly label="Invert Scroll" help="Controls if the scroll is inverted">
@@ -373,6 +372,7 @@ export default function SettingsPage() {
             step={0.1}
           />
         </Setting>
+
         <Setting label="Two Finger Move Sensitivity" help="Controls how two finger scroll translates">
           <Number
             onValueChange={(val) =>
@@ -384,6 +384,7 @@ export default function SettingsPage() {
             max={10}
           />
         </Setting>
+
         <Setting label="Two Finger Scale Sensitivity" help="Controls how closely pinch zoom follows your fingers">
           <Number
             onValueChange={(val) => dispatch({ action: "set_manual_and_save_settings", gestureScaleSensitivity: val })}
@@ -393,6 +394,7 @@ export default function SettingsPage() {
             max={10}
           />
         </Setting>
+
         <Setting label="Smooth Scale Gesture" help="Can help smooth out two finger gestures">
           <Checkbox
             checked={smoothGestureScale}
@@ -401,6 +403,7 @@ export default function SettingsPage() {
             }
           />
         </Setting>
+
         <Setting
           label="Two Finger Spread Gesture Scales Page"
           help="Controls whether the two finger spread gesture scales the page or not"
@@ -417,13 +420,14 @@ export default function SettingsPage() {
         <StyledSubheader>Advanced</StyledSubheader>
         <Setting
           label="Use Fancy Glow"
-          help="Uses a prettier glow effect, but may reduce performance on large patterns"
+          help="Uses a prettier glow effect, but may reduce performance on large patterns or on mobile devices"
         >
           <Checkbox
             checked={useFancyGlow}
             onChange={() => dispatch({ action: "set_manual_and_save_settings", useFancyGlow: !useFancyGlow })}
           />
         </Setting>
+
         <Setting label="Reopen Menus with Toolbar" help="Restore open menus after the toolbar is shown again">
           <Checkbox
             checked={reopenMenusWithToolbar}
@@ -435,6 +439,7 @@ export default function SettingsPage() {
             }
           />
         </Setting>
+
         <Setting label="Toolbar Opacity" help="Controls the opacity of the toolbar">
           <Slider
             onChange={(e, val) =>
@@ -446,12 +451,14 @@ export default function SettingsPage() {
             step={0.1}
           />
         </Setting>
+
         <Setting label="Hide Hex Color" help="Controls if the hex color is displayed in the color menu">
           <Checkbox
             checked={hideHexColor}
             onChange={() => dispatch({ action: "set_manual_and_save_settings", hideHexColor: !hideHexColor })}
           />
         </Setting>
+
         <Setting
           label="Use HSV Color Picker"
           help="Show hue, saturation, and value controls instead of red, green, and blue controls in the color menu"
@@ -461,6 +468,7 @@ export default function SettingsPage() {
             onChange={() => dispatch({ action: "set_manual_and_save_settings", useHSVColorPicker: !useHSVColorPicker })}
           />
         </Setting>
+
         <Setting
           label="Dots above artwork"
           help="Display the dot grid above the complete layer stack instead of below it"
@@ -470,6 +478,7 @@ export default function SettingsPage() {
             onChange={() => dispatch({ action: "set_manual_and_save_settings", dotsAboveArtwork: !dotsAboveArtwork })}
           />
         </Setting>
+
         <Setting label="Max Undo Amount" help="Controls how many consecutive undos you can do at once">
           <Number
             onValueChange={(val) => dispatch({ action: "set_manual_and_save_settings", maxUndoAmt: val })}
@@ -477,8 +486,12 @@ export default function SettingsPage() {
             min={2}
           />
         </Setting>
+
         {/* TODO: I don't think this will work just like that, some things need to be recalculated */}
-        <Setting label="Device Mode" help="Controls if the app is in mobile or desktop mode (experimental)">
+        <Setting
+          label="Device Mode"
+          help="Controls if the app is in mobile or desktop mode (useful for touchscreen laptops)"
+        >
           <Select
             value={state.mobile}
             onChange={(e) => dispatch({ action: "set_manual_and_save_settings", mobile: e.target.value })}
@@ -487,9 +500,11 @@ export default function SettingsPage() {
             <MenuItem value={true}>Mobile</MenuItem>
           </Select>
         </Setting>
+
         <Setting label="Debug Mode" help="Adds some visual aids useful for debugging">
           <Checkbox checked={debug} onChange={() => dispatch("toggle_debugging")} />
         </Setting>
+
         <Setting label="Reset Settings">
           <Button
             variant="outlined"
