@@ -129,21 +129,21 @@ function Toolbar() {
           background: theme.alpha(theme.palette.background.paper, state.toolbarOpacity),
         }}
       >
-        {extraSlots < 5 && <ToolButton menu="extra" disableTooltip={state.openMenus.extra} />}
+        {extraSlots < 9 && <ToolButton menu="extra" disableTooltip={state.openMenus.extra} />}
         {/* This is the button which is dynamically set in settings */}
-        {extraSlots >= 3 && <ExtraButton />}
-        {extraSlots >= 5 && <ToolButton menu="help" />}
-        {extraSlots >= 5 && <ToolButton menu="settings" />}
-        {extraSlots >= 4 && <ToolButton menu="file" />}
-        {extraSlots >= 2 && <ToolButton menu="navigation" />}
-        {extraSlots >= 1 && <ToolButton menu="repeat" />}
-        <ToolButton menu="color" />
-        <ToolButton menu="undo" onClick={handleUndoClick} onContextMenu={handleUndoContextMenu} />
+        {extraSlots >= 1 && <ExtraButton />}
+        {extraSlots >= 9 && <ToolButton menu="help" />}
+        {extraSlots >= 9 && <ToolButton menu="settings" />}
+        {extraSlots >= 6 && <ToolButton menu="file" />}
+        {extraSlots >= 7 && <ToolButton menu="navigation" />}
+        {extraSlots >= 4 && <ToolButton menu="layers" />}
+        {extraSlots >= 3 && <ToolButton menu="repeat" />}
         <ToolButton menu="mirror" />
-        <ToolButton menu="select" />
-        <ToolButton menu="clipboard" />
-        <ToolButton menu="delete" />
-        <ToolButton menu="layers" />
+        {extraSlots >= 8 && <ToolButton menu="clipboard" />}
+        {extraSlots >= 5 && <ToolButton menu="delete" />}
+        {extraSlots >= 2 && <ToolButton menu="select" />}
+        <ToolButton menu="undo" onClick={handleUndoClick} onContextMenu={handleUndoContextMenu} />
+        <ToolButton menu="color" />
         <ToolButton menu="main" />
       </MuiPaper>
     </Box>

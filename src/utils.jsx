@@ -319,7 +319,7 @@ export function extraSlots(state) {
   if (state.openMenus.repeat && state.mobile && ["left", "right"].includes(state.side))
     sideLen = window.visualViewport.width
 
-  return Math.floor((sideLen - 560) / 60)
+  return Math.floor((sideLen - 400) / 60)
 }
 
 // Return a color that shows up well on the given color so you can read text
