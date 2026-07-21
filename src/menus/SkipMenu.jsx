@@ -1,37 +1,20 @@
-import { useContext, useEffect, useState } from "react"
-import { MIRROR_AXIS, MIRROR_ROT } from "../globals"
-import { MirrorAxisIcon, MirrorRotIcon } from "../components/CustomIcons"
+import { useContext } from "react"
+import { MIRROR_AXIS } from "../globals"
 import Number from "../components/Number"
-
 import { StateContext } from "../Contexts"
-import KeyboardTabIcon from "@mui/icons-material/KeyboardTab"
-import RedoIcon from "@mui/icons-material/Redo"
-import FlipIcon from "@mui/icons-material/Flip"
-import { Box, IconButton, SpeedDial, SpeedDialAction, Typography, useTheme } from "@mui/material"
-import ReplayIcon from "@mui/icons-material/Replay"
-import ToggleIconButtonGroup from "../components/ToggleIconButtonGroup"
-import BlurOnIcon from "@mui/icons-material/BlurOn"
-import BlurOffIcon from "@mui/icons-material/BlurOff"
-import DashboardIcon from "@mui/icons-material/Dashboard"
-import CheckIcon from "@mui/icons-material/Check"
-import FindReplaceIcon from "@mui/icons-material/FindReplace"
-import CallMadeIcon from "@mui/icons-material/CallMade"
+import { Box, useTheme } from "@mui/material"
 import TrellisSubMenu from "../components/TrellisSubMenu"
-import {
-  boxSx,
-  sharedProps,
-  sharedButtonGroupProps,
-  centeredVerticalLabelStyle,
-  updateDraft,
-  numberAlpha,
-  numberProps,
-} from "../utils/menus"
+import { centeredVerticalLabelStyle, numberProps } from "../utils/menus"
+import { getActiveLayer } from "../utils/layers"
+import TrellisLayer from "../classes/TrellisLayer"
 
 export default function SkipMenu() {
   const { state, dispatch } = useContext(StateContext)
   const theme = useTheme()
 
-  const { row, col } = state.trellisDraft.trellis.skip
+  const trellis = getActiveLayer(state)
+  if (!(trellis instanceof TrellisLayer)) return null
+  const { row, col } = trellis.skip
   const len = 10
 
   return (
@@ -41,7 +24,9 @@ export default function SkipMenu() {
       transformation="skip"
       byVertical={
         <Number
-          onValueChange={(val) => updateDraft(dispatch, "skip", { col: { every: col.every, val }, row })}
+          onValueChange={(val) =>
+            dispatch({ action: "update_active_layer", skip: { col: { every: col.every, val: val }, row } })
+          }
           label="X"
           style={centeredVerticalLabelStyle}
           value={col.val}
@@ -55,7 +40,9 @@ export default function SkipMenu() {
       byHorizontal={
         <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
           <Number
-            onValueChange={(val) => updateDraft(dispatch, "skip", { row: { every: row.every, val }, col })}
+            onValueChange={(val) =>
+              dispatch({ action: "update_active_layer", skip: { row: { every: row.every, val: val }, col } })
+            }
             value={row.val}
             min={0}
             max={len}

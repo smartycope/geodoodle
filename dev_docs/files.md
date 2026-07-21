@@ -1,30 +1,34 @@
-# Storage
+# Storage and files
 
-There's the current state (stored in RAM), and when the user does something relevant (any of the actions marked as `preservable` in options.jsx), it gets saved to localStorage in the `localStorageSettingsName` (set in globals.js) in plain JSON. When the app is opened, it checks localStorage for the `localStorageSettingsName` and if it exists, it loads it into the state.
+All local/cloud storage, serialization, import, export, and image generation belongs in `src/utils/files.jsx`. Code outside that module should not access `localStorage` or storage services directly.
 
-When the user saves the pattern, it gets saved to localStorage in the `localStorageName` (set in globals.js) in SVG format, which can be loaded by the `deserializePattern` function in fileUtils.js.
+## Current workspace state
 
-## Functions
+Actions listed in `saveSettingActions` in `src/options.jsx` preserve the current document and preferences to `localStorageSettingsName` (`GeoDoodleState`). On startup, `Paper.jsx` loads that state and merges it through the reducer.
 
-### Serialization
+`serializeState` keeps only fields in `preservable`. Durable artwork lives in ordered `layers`; each serialized layer includes the concrete class name in its `type` discriminator. `deserializeState` and `src/utils/layers.js:layerFromJSON` revive `DrawingLayer`, `TrellisLayer`, and their nested geometry instances.
 
-- serializeState/deserializeState
-  - Takes everything `preservable` from the state and serializes it into a JSON string
-- serializePattern/deserializePattern
-  - Takes everything `saveable` (which is less than is `preservable`) from the state and serializes it into SVG format, which everything that isn't directly part of the pattern (everything other than the lines) as a comment in the SVG in JSON format.
+## Named patterns and cloud saves
 
-### Storage
+Named local patterns are stored under `localStorageName` (`GeoDoodleSaves`) as an object mapping names to SVG strings. Cloud rows store the same serialized editable state used by preservation.
 
-Code outside of fileUtils.jsx should not directly interact with localStorage, or other storage APIs. It should use the functions in fileUtils.jsx instead.
+`serializePattern` embeds editable metadata in an SVG comment and renders visible artwork as SVG elements. `deserializePattern` prefers that metadata, while still accepting older comment-free SVG files containing a `#lines` group.
 
-- preserveState
-  - Stores the state in localStorage in the `localStorageSettingsName` (set in globals.js) in JSON format.
-- getSaves
-  - Returns the saved patterns from localStorage in the `localStorageName` (set in globals.js) in SVG format.
+The `saveable` list is intentionally smaller than `preservable`: it contains document content and view transforms, not every application preference.
 
-### Keys
+## Visual export
 
-- localStorageSettingsName
-  - A single string in JSON format
-- localStorageName
-  - An object of filename: SVG string
+SVG, PNG, JPEG, and image-copy output include visible layers only. `DrawingLayer` geometry renders directly; `TrellisLayer` instances are expanded finitely over the requested export rectangle using the same safety budgets as on-screen rendering. Hidden layers remain in editable metadata even though they are absent from the visual output.
+
+## Schema migration
+
+Document schema 3 stores polymorphic `layers` plus `activeLayerId`. Schema-1 flat geometry migrates into `DrawingLayer 1`; schema-2 hybrid layers split into separate concrete layers. Legacy Trellis flags, global controls, or hybrid layers are accepted only as migration input and should normalize into a separate `TrellisLayer`; new saves must not emit a `DrawingLayer` with an optional Trellis.
+
+## Storage helpers
+
+- `preserveState` / `loadPreservedState` — current JSON workspace state.
+- `getSaves`, `saveLocally`, `loadLocally`, `deleteLocally`, `clearSaves` — named browser saves.
+- `saveCloud`, `loadCloud`, `getCloudSaves`, `deleteCloud` — cloud persistence.
+- `serializeState` / `deserializeState` — JSON state encoding and class revival.
+- `serializePattern` / `deserializePattern` — editable SVG encoding and import.
+- `resolveExportRect`, `image`, and `download` — visual export.

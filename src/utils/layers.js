@@ -2,14 +2,13 @@ import DrawingLayer from "../classes/DrawingLayer"
 import TrellisLayer from "../classes/TrellisLayer"
 
 // TODO: does this need to be updated?
-export const layerOwnedKeys = [
+export const drawingLayerOwnedKeys = [
   "lines",
   "filledPolys",
   "bounds",
   "specificSelectors",
   "genericSelectors",
   "mirrorOrigins",
-  "trellis",
 ]
 
 export function nextLayerNumber(layers) {
@@ -24,7 +23,9 @@ export function getActiveLayer(state) {
 }
 
 export function getLayerState(state, layer = getActiveLayer(state)) {
-  return layer ? { ...state, ...Object.fromEntries(layerOwnedKeys.map((key) => [key, layer[key]])) } : state
+  return layer instanceof DrawingLayer
+    ? { ...state, ...Object.fromEntries(drawingLayerOwnedKeys.map((key) => [key, layer[key]])) }
+    : state
 }
 
 export function updateLayer(layers, layerId, patch) {
@@ -36,15 +37,16 @@ export function updateActiveLayer(state, patch) {
   return activeLayer ? { layers: updateLayer(state.layers, activeLayer.id, patch) } : {}
 }
 
-export function setActiveLayer(state, layerInstance, id=layerInstance.id){
+export function setActiveLayer(state, layerInstance, id = layerInstance.id) {
   return state.layers.map((layer) => (layer.id === id ? layerInstance : layer))
 }
 
 export function normalizeLayerActionResult(state, result) {
   if (!result) return result
+  if (!(getActiveLayer(state) instanceof DrawingLayer)) return result
   const layerPatch = {}
   const globalPatch = { ...result }
-  for (const key of layerOwnedKeys)
+  for (const key of drawingLayerOwnedKeys)
     if (Object.prototype.hasOwnProperty.call(globalPatch, key)) {
       layerPatch[key] = globalPatch[key]
       delete globalPatch[key]
@@ -58,17 +60,22 @@ export function normalizeLayerActionResult(state, result) {
 }
 
 export function allVisibleLines(state) {
-  return (state.layers ?? []).filter((layer) => layer.visible).flatMap((layer) => layer.lines)
+  return (state.layers ?? [])
+    .filter((layer) => layer.visible && layer instanceof DrawingLayer)
+    .flatMap((layer) => layer.lines)
 }
 
 export function layerFromJSON(json) {
   if (!json) return
   if (json.type === "TrellisLayer") return TrellisLayer._fromJSON(json)
-  if (json.type === "DrawingLayer") return DrawingLayer._fromJSON(json)
+  if (json.type === "DrawingLayer" || json.type === "Layer" || !json.type) return DrawingLayer._fromJSON(json)
   throw new Error(`Unknown layer type: ${json.type}`)
 }
 
 export function activeLayerIsTrellis(state) {
-  const layer = getActiveLayer(state)
-  return layer instanceof TrellisLayer
+  return getActiveLayer(state) instanceof TrellisLayer
+}
+
+export function activeLayerIsDrawing(state) {
+  return getActiveLayer(state) instanceof DrawingLayer
 }

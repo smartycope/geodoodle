@@ -38,6 +38,8 @@ import SaveIcon from "@mui/icons-material/Save"
 import ScreenshotMonitorIcon from "@mui/icons-material/ScreenshotMonitor"
 import ShareIcon from "@mui/icons-material/Share"
 import StorageOutlinedIcon from "@mui/icons-material/StorageOutlined"
+import DrawingLayer from "../classes/DrawingLayer"
+import TrellisLayer from "../classes/TrellisLayer"
 import SyncIcon from "@mui/icons-material/Sync"
 import Number from "../components/Number.jsx"
 import { StateContext } from "../Contexts.jsx"
@@ -304,7 +306,12 @@ export default function FilePage() {
         value={filename}
         onChange={(event) => dispatch({ filename: event.target.value })}
       />
-      <Button variant="outlined" startIcon={<SyncIcon />} onClick={randomizeName} sx={{ whiteSpace: "nowrap", minWidth: "max-content" }}>
+      <Button
+        variant="outlined"
+        startIcon={<SyncIcon />}
+        onClick={randomizeName}
+        sx={{ whiteSpace: "nowrap", minWidth: "max-content" }}
+      >
         New name
       </Button>
       <Button
@@ -342,14 +349,16 @@ export default function FilePage() {
 
   const fitArtwork = () => {
     const visibleLayers = state.layers.filter((layer) => layer.visible)
-    if (visibleLayers.some((layer) => layer.trellis)) {
+    if (visibleLayers.some((layer) => layer instanceof TrellisLayer)) {
       fitCurrentScreen()
       return
     }
-    const points = visibleLayers.flatMap((layer) => [
-      ...layer.lines.flatMap((line) => line.points()),
-      ...layer.filledPolys.flatMap((poly) => poly.points),
-    ])
+    const points = visibleLayers
+      .filter((layer) => layer instanceof DrawingLayer)
+      .flatMap((layer) => [
+        ...layer.lines.flatMap((line) => line.points()),
+        ...layer.filledPolys.flatMap((poly) => poly.points),
+      ])
     if (!points.length) return
     const viewportPoints = points.map((point) => point.asViewport(state))
     const left = Math.min(...viewportPoints.map((point) => point.x))

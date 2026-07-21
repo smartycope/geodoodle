@@ -29,7 +29,6 @@ export const sharedButtonGroupProps = (theme) => ({
 
 export const centeredVerticalLabelStyle = { alignItems: "center" }
 
-export const updateDraft = (dispatch, key, value) => dispatch({ action: "update_trellis_draft", key, value })
 export const numberAlpha = 0.8
 export const numberProps = (theme) => ({
   textColor: theme.palette.primary.contrast,

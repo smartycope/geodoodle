@@ -564,7 +564,8 @@ describe("touch interactions", () => {
     [0, "copy"],
     [1, "cut"],
     [2, "toggle_partials"],
-    [3, "clear_bounds"],
+    [3, "add_trellis_layer"],
+    [4, "clear_bounds"],
   ])("selection option button %i consumes its touch movement", (buttonIndex, expectedAction) => {
     const originalCursor = Point.fromViewport(state, 300, 300).align(state)
     state = {

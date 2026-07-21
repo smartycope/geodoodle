@@ -1,8 +1,7 @@
 import Point from "../classes/Point"
 import { themeDefaults } from "../styling/theme"
-import {activeLayerIsTrellis} from "./layers"
-import { getClipboardRect } from "./lines"
-import { getRenderedBoundRect } from "./trellisSelection"
+import { activeLayerIsTrellis } from "./layers"
+import { getBoundRect, getClipboardRect } from "./lines"
 
 const canvasButtons = themeDefaults.canvasButtons
 
@@ -20,7 +19,7 @@ export const selectionOptionButtons = [
   // { action: "delete_selected", label: "Delete selected lines" },
   // { action: "delete_unselected", label: "Delete unselected lines" },
   { action: "toggle_partials", label: "Toggle partials" },
-  { action: "add_trellis_layer", label: "Toggle partials" },
+  { action: "add_trellis_layer", label: "Create Trellis layer" },
   { action: "clear_bounds", label: "Clear bounds" },
 ]
 
@@ -34,7 +33,7 @@ export function getClipboardButtonsPos(state) {
 }
 
 export function getSelectionButtonsPos(state) {
-  const boundRect = getRenderedBoundRect(state).grow(0.5)
+  const boundRect = getBoundRect(state).grow(0.5)
   const { left, top } = boundRect.asViewport(state)
   return Point.fromViewport(state, left, top - canvasButtons.height)
 }

@@ -28,11 +28,6 @@ function ExtraMenuMui() {
             <ToolButton inExtraMenu menu="navigation" />
           </Grid>
         )}
-        {extraSlots < 1 && (
-          <Grid {...gridProps}>
-            <ToolButton inExtraMenu menu="repeat" />
-          </Grid>
-        )}
         {extraSlots < 4 && (
           <Grid {...gridProps}>
             <ToolButton inExtraMenu menu="file" />

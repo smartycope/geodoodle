@@ -1,38 +1,19 @@
-import { useContext, useEffect, useState } from "react"
-import { MIRROR_AXIS, MIRROR_ROT } from "../globals"
-import { MirrorAxisIcon, MirrorRotIcon } from "../components/CustomIcons"
+import { useContext } from "react"
 import Number from "../components/Number"
-
 import { StateContext } from "../Contexts"
-import KeyboardTabIcon from "@mui/icons-material/KeyboardTab"
-import RedoIcon from "@mui/icons-material/Redo"
-import FlipIcon from "@mui/icons-material/Flip"
-import { Box, IconButton, SpeedDial, SpeedDialAction, Typography, useTheme } from "@mui/material"
-import ReplayIcon from "@mui/icons-material/Replay"
-import ToggleIconButtonGroup from "../components/ToggleIconButtonGroup"
-import BlurOnIcon from "@mui/icons-material/BlurOn"
-import BlurOffIcon from "@mui/icons-material/BlurOff"
-import DashboardIcon from "@mui/icons-material/Dashboard"
-import CheckIcon from "@mui/icons-material/Check"
-import FindReplaceIcon from "@mui/icons-material/FindReplace"
-import CallMadeIcon from "@mui/icons-material/CallMade"
+import { Box, useTheme } from "@mui/material"
 import TrellisSubMenu from "../components/TrellisSubMenu"
-import {
-  boxSx,
-  sharedProps,
-  sharedButtonGroupProps,
-  centeredVerticalLabelStyle,
-  updateDraft,
-  numberAlpha,
-  gridItemSx,
-  numberProps,
-} from "../utils/menus"
+import { centeredVerticalLabelStyle, gridItemSx, numberProps } from "../utils/menus"
+import { getActiveLayer } from "../utils/layers"
+import TrellisLayer from "../classes/TrellisLayer"
 
 export default function OffsetMenu() {
   const { state, dispatch } = useContext(StateContext)
   const theme = useTheme()
-  const { col, row } = state.trellisDraft.trellis.overlap
-  const { x: patternW, y: patternH } = state.trellisDraft.trellis.sourceSize.asDeflated()
+  const trellis = getActiveLayer(state)
+  if (!(trellis instanceof TrellisLayer)) return null
+  const { col, row } = trellis.overlap
+  const { x: patternW, y: patternH } = trellis.sourceSize.asDeflated()
   const minx = -patternW * 2 + 1
   const maxx = patternW * 2 - 1
   const miny = -patternH * 2 + 1
@@ -70,9 +51,9 @@ export default function OffsetMenu() {
           <Box sx={gridItemSx}>
             <Number
               onValueChange={(newVal) =>
-                updateDraft(dispatch, "overlap", {
-                  row: { every: row.every, val: { x: newVal, y: row.val.y } },
-                  col,
+                dispatch({
+                  action: "update_active_layer",
+                  overlap: { row: { every: row.every, val: { x: newVal, y: row.val.y } }, col },
                 })
               }
               value={row.val.x}
@@ -95,9 +76,9 @@ export default function OffsetMenu() {
           <Box sx={gridItemSx}>
             <Number
               onValueChange={(newVal) =>
-                updateDraft(dispatch, "overlap", {
-                  row: { every: row.every, val: { x: row.val.x, y: newVal } },
-                  col,
+                dispatch({
+                  action: "update_active_layer",
+                  overlap: { row: { every: row.every, val: { x: row.val.x, y: newVal } }, col },
                 })
               }
               value={row.val.y}
@@ -123,9 +104,9 @@ export default function OffsetMenu() {
         <>
           <Number
             onValueChange={(newVal) => {
-              updateDraft(dispatch, "overlap", {
-                col: { every: col.every, val: { x: newVal, y: col.val.y } },
-                row,
+              dispatch({
+                action: "update_active_layer",
+                overlap: { col: { every: col.every, val: { x: newVal, y: col.val.y } }, row },
               })
             }}
             value={col.val.x}
@@ -138,9 +119,9 @@ export default function OffsetMenu() {
           />
           <Number
             onValueChange={(newVal) =>
-              updateDraft(dispatch, "overlap", {
-                col: { every: col.every, val: { x: col.val.x, y: newVal } },
-                row,
+              dispatch({
+                action: "update_active_layer",
+                overlap: { col: { every: col.every, val: { x: col.val.x, y: newVal } }, row },
               })
             }
             value={col.val.y}

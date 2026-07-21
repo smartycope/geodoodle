@@ -3,7 +3,6 @@ import { describe, expect, test, vi } from "vitest"
 import { ArtworkLayers } from "../drawing"
 import { StateContext } from "../Contexts"
 import getInitialState from "../states"
-import DrawingLayer from "../classes/Layer"
 import TrellisLayer from "../classes/TrellisLayer"
 import Line from "../classes/Line"
 import Point from "../classes/Point"
@@ -15,10 +14,11 @@ describe("layer artwork compositing", () => {
   test("stacks visible layers bottom-to-top and shares Trellis safety budgets", () => {
     const state = getInitialState()
     const source = new Line(state, new Point(0, 0), new Point(2, 1))
-    const makeTrellis = (origin) => new TrellisLayer({ sourceOrigin: origin, sourceSize: new Dist(4, 4), lines: [source] })
-    const bottom = state.layers[0].copy({ name: "Bottom", trellis: makeTrellis(new Point(0, 0)) })
-    const top = new DrawingLayer({ id: "layer-2", name: "Top", trellis: makeTrellis(new Point(8, 8)) })
-    const hidden = new DrawingLayer({ id: "layer-3", name: "Hidden", visible: false, lines: [source] })
+    const makeTrellis = (id, name, origin) =>
+      new TrellisLayer({ id, name, sourceOrigin: origin, sourceSize: new Dist(4, 4), lines: [source] })
+    const bottom = makeTrellis("layer-1", "Bottom", new Point(0, 0))
+    const top = makeTrellis("layer-2", "Top", new Point(8, 8))
+    const hidden = state.layers[0].copy({ id: "layer-3", name: "Hidden", visible: false, lines: [source] })
     const document = { ...state, layers: [bottom, top, hidden], activeLayerId: top.id }
     const view = getLayerState(document, top)
     const visibleTiles = vi.spyOn(TrellisLayer.prototype, "visibleTiles")

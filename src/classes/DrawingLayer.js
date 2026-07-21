@@ -38,14 +38,18 @@ export default class DrawingLayer extends Layer {
   static _fromJSON(json) {
     return new DrawingLayer({
       ...json,
-      lines: (json.lines ?? []).map((line) => Line.fromJSON(line)),
-      filledPolys: (json.filledPolys ?? []).map((poly) => Poly.fromJSON(poly)),
-      bounds: (json.bounds ?? []).map((point) => Point.fromJSON(point)),
-      specificSelectors: (json.specificSelectors ?? []).map((point) => Point.fromJSON(point)),
-      genericSelectors: (json.genericSelectors ?? []).map((point) => Point.fromJSON(point)),
+      lines: (json.lines ?? []).map((line) => (line instanceof Line ? line : Line.fromJSON(line))),
+      filledPolys: (json.filledPolys ?? []).map((poly) => (poly instanceof Poly ? poly : Poly.fromJSON(poly))),
+      bounds: (json.bounds ?? []).map((point) => (point instanceof Point ? point : Point.fromJSON(point))),
+      specificSelectors: (json.specificSelectors ?? []).map((point) =>
+        point instanceof Point ? point : Point.fromJSON(point),
+      ),
+      genericSelectors: (json.genericSelectors ?? []).map((point) =>
+        point instanceof Point ? point : Point.fromJSON(point),
+      ),
       mirrorOrigins: (json.mirrorOrigins ?? []).map((mirrorOrigin) => ({
         ...mirrorOrigin,
-        origin: Point.fromJSON(mirrorOrigin.origin),
+        origin: mirrorOrigin.origin instanceof Point ? mirrorOrigin.origin : Point.fromJSON(mirrorOrigin.origin),
       })),
     })
   }

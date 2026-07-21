@@ -3,7 +3,6 @@ import { afterEach, describe, expect, test, vi } from "vitest"
 import LayersPanel from "../menus/LayersPanel"
 import { StateContext } from "../Contexts"
 import getInitialState from "../states"
-import DrawingLayer from "../classes/Layer"
 import TrellisLayer from "../classes/TrellisLayer"
 import Line from "../classes/Line"
 import Point from "../classes/Point"
@@ -19,7 +18,7 @@ function renderPanel(overrides = {}) {
     sourceSize: new Dist(4, 4),
     lines: [makeLine(initial)],
   })
-  const top = new DrawingLayer({ id: "layer-2", name: "Top", trellis })
+  const top = trellis.copy({ id: "layer-2", name: "Top" })
   const state = {
     ...initial,
     layers: [bottom, top],

@@ -1,27 +1,18 @@
 # Terms
 
-There are many terms I throw around because I've been working on this by myself for a long time.
+- **Layer** — one independently named, visible document item. `Layer` is the abstract base class; every stored layer is concretely a `DrawingLayer` or `TrellisLayer`.
+- **Drawing layer** — a layer containing ordinary lines, filled polygons, selections, and mirror origins. It cannot contain a Trellis.
+- **Trellis layer** — a layer containing one captured source pattern and the controls that repeat it across the paper. It cannot contain ordinary drawing/selection state.
+- **Trellis** — the repeated pattern represented by a `TrellisLayer`; it is no longer a separate object attached to another layer.
+- **Paper** — the main interactive drawing surface and its React composition root. It contains the dot grid, artwork stack, and interaction overlays.
+- **Metalines** — lines shown as UI guidance rather than user artwork, such as mirror guides.
+- **Bounds** — user-specified points defining a rectangular selection area on a `DrawingLayer`.
+- **Cursor** — the snapped graph intersection shown by the app, not the physical mouse location.
+- **Current line / `curLinePos`** — the start point of a half-drawn line; `null` when no line is in progress.
+- **Permanent lines** — ordinary lines stored on a `DrawingLayer`, excluding metalines and source lines inside a `TrellisLayer`. Active drawing code sees them through the projected `state.lines` field.
 
-- Trellis
-  - A captured pattern repeated across the paper. Each Layer can own one Trellis alongside ordinary lines and fills.
-- Layer
-  - One independently named and visible drawing composite. It owns lines, fills, selections, mirror origins, and an optional Trellis.
-- Paper
-  - The base class of the drawing part of the program. The thing which is drawn on and handles events. It has dots, and lines, and metalines, and more
-- Metalines
-  - Lines that are not drawn by the user, but are shown to the user. For example, the mirror lines.
-- Bounds
-  - Points specified by the user which define the selection area
-- Cursor
-  - In this context, the cursor is coordinates of the dot which the mouse is currently shown over, i.e. the little circle. It's _not_ the actual mouse position.
-- Current line/curLinePos
-  - If a line is halfway drawn, it's the point at which the line starts. Otherwise, it's null. The current line is between curLinePos and the cursor.
-- Permanent lines
-  - Ordinary lines stored on a Layer, not metalines or lines captured inside a Trellis. Active-layer code sees them through `state.lines`.
+## UI terms
 
-## Some code terms
-
-- Menu
-  - UI elements which are part of the main control bar, which popup when their button is pressed
-- Page
-  - A full screen UI element, like a modal dialog
+- **Menu** — a feature control associated with the main toolbar, usually displayed as an anchored popover.
+- **Page** — a full-screen modal UI, such as Files or Settings.
+- **Trellis control menu** — one of the Offset, Skip, Flip, or Rotate menus shown when a `TrellisLayer` is active. The former umbrella Repeat menu is being removed.

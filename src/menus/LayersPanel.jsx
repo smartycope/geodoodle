@@ -10,14 +10,17 @@ import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
 import VisibilityIcon from "@mui/icons-material/Visibility"
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff"
 import { StateContext } from "../Contexts"
+import DrawingLayer from "../classes/DrawingLayer"
+import TrellisLayer from "../classes/TrellisLayer"
 
 const PREVIEW_WIDTH = 76
 const PREVIEW_HEIGHT = 56
 
 function LayerPreview({ layer }) {
   const geometry = useMemo(() => {
-    if (layer.trellis) return layer.trellis.materializeSource()
-    return { lines: layer.lines, filledPolys: layer.filledPolys }
+    if (layer instanceof TrellisLayer) return layer.materializeSource()
+    if (layer instanceof DrawingLayer) return { lines: layer.lines, filledPolys: layer.filledPolys }
+    return { lines: [], filledPolys: [] }
   }, [layer])
   const points = [
     ...geometry.lines.flatMap((line) => line.points()),
@@ -72,7 +75,7 @@ function LayerPreview({ layer }) {
     </svg>
   )
 
-  if (layer.trellis)
+  if (layer instanceof TrellisLayer)
     return (
       <Badge
         variant="dot"

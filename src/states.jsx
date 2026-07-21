@@ -179,7 +179,6 @@ export default function getInitialState() {
       controls: true,
       color: false,
       navigation: false,
-      // repeat: false,
       layers: false,
       file: false,
       settings: false,
@@ -223,7 +222,6 @@ function debugState(state) {
     ...updateActiveLayer(state, layerPatch),
     openMenus: {
       ...state.openMenus,
-      repeat: false,
       main: true,
     },
     side: "top",
@@ -242,7 +240,6 @@ export function tourState(state) {
       controls: false,
       color: false,
       navigation: false,
-      repeat: false,
       file: false,
       settings: false,
       help: false,

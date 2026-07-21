@@ -11,11 +11,10 @@ import Rect from "../classes/Rect"
 import { name as nameGenerator } from "naampje"
 import { localStorageCloudUsernameName, localStorageName, localStorageSettingsName } from "../globals"
 import getInitialState from "../states"
-import DrawingLayer from "../classes/Layer"
+import DrawingLayer from "../classes/DrawingLayer"
 import TrellisLayer from "../classes/TrellisLayer"
-import { getLayerState, layerFromJSON, layerOwnedKeys } from "../utils/layers"
+import { drawingLayerOwnedKeys, getLayerState, layerFromJSON } from "../utils/layers"
 import { MAX_TRELLIS_CANDIDATES, MAX_TRELLIS_GROUPS } from "./trellis"
-import Layer from "../classes/Layer"
 
 function viewportCanvasRect(state) {
   return Rect.fromPoints(
@@ -30,8 +29,8 @@ const objectPoints = (object) => (typeof object.points === "function" ? object.p
 
 function visualLayers(state) {
   return (state.layers ?? []).map((layer) =>
-    layer.id === state.activeLayerId && state.lines && state.filledPolys
-      ? layer.copy({ lines: state.lines, filledPolys: state.filledPolys, trellis: state.trellis ?? layer.trellis })
+    layer instanceof DrawingLayer && layer.id === state.activeLayerId && state.lines && state.filledPolys
+      ? layer.copy(Object.fromEntries(drawingLayerOwnedKeys.map((key) => [key, state[key] ?? layer[key]])))
       : layer,
   )
 }
@@ -44,8 +43,10 @@ export function resolveExportRect(state, selectedOnly = false, requestedRect = n
   if (requestedRect) return requestedRect
 
   const visibleLayers = visualLayers(state).filter((layer) => layer.visible)
-  if (visibleLayers.some((layer) => layer.trellis)) return viewportCanvasRect(state)
-  const points = visibleLayers.flatMap((layer) => [...layer.lines, ...layer.filledPolys].flatMap(objectPoints))
+  if (visibleLayers.some((layer) => layer instanceof TrellisLayer)) return viewportCanvasRect(state)
+  const points = visibleLayers
+    .filter((layer) => layer instanceof DrawingLayer)
+    .flatMap((layer) => [...layer.lines, ...layer.filledPolys].flatMap(objectPoints))
   return points.length ? Rect.fromPoints(...points) : new Rect(Point.svgOrigin(), new Point(1, 1), false)
 }
 
@@ -58,13 +59,14 @@ function renderExportLayer({ layer, state, rect, maxGroups, maxCandidates }) {
     scaley: 1,
     rotate: 0,
   }
-  const tiles = layer.trellis
-    ? layer.trellis.visibleTiles(exportState, rect.wh._x, rect.wh._y, { maxGroups, maxCandidates }).tiles
-    : []
+  const tiles =
+    layer instanceof TrellisLayer
+      ? layer.visibleTiles(exportState, rect.wh._x, rect.wh._y, { maxGroups, maxCandidates }).tiles
+      : []
 
   return (
     <g key={layer.id} id={`layer-${layer.id}`} data-layer-name={layer.name}>
-      {layer.trellis && (
+      {layer instanceof TrellisLayer && (
         <g id={`trellis-${layer.id}`}>
           {tiles.map((tile) => (
             <g
@@ -73,22 +75,24 @@ function renderExportLayer({ layer, state, rect, maxGroups, maxCandidates }) {
               data-column={tile.column}
               transform={tile.transform}
             >
-              {layer.trellis.filledPolys.map((poly, index) =>
-                poly.render(layerState, `${layer.id}-trellis-poly-${index}`),
-              )}
-              {layer.trellis.lines.map((line, index) =>
+              {layer.filledPolys.map((poly, index) => poly.render(layerState, `${layer.id}-trellis-poly-${index}`))}
+              {layer.lines.map((line, index) =>
                 line.render(layerState, `${layer.id}-trellis-line-${index}`, {}, false),
               )}
             </g>
           ))}
         </g>
       )}
-      <g id={`filled-polys-${layer.id}`}>
-        {layer.filledPolys.map((poly, index) => poly.render(layerState, `${layer.id}-poly-${index}`))}
-      </g>
-      <g id={layer.id === state.activeLayerId ? "lines" : `lines-${layer.id}`}>
-        {layer.lines.map((line, index) => line.render(layerState, `${layer.id}-line-${index}`, {}, false))}
-      </g>
+      {layer instanceof DrawingLayer && (
+        <>
+          <g id={`filled-polys-${layer.id}`}>
+            {layer.filledPolys.map((poly, index) => poly.render(layerState, `${layer.id}-poly-${index}`))}
+          </g>
+          <g id={layer.id === state.activeLayerId ? "lines" : `lines-${layer.id}`}>
+            {layer.lines.map((line, index) => line.render(layerState, `${layer.id}-line-${index}`, {}, false))}
+          </g>
+        </>
+      )}
     </g>
   )
 }
@@ -99,7 +103,7 @@ export function serializePattern(state, selectedOnly = false, requestedRect = nu
   const width = Math.max(1, rect.wh._x * state.scalex)
   const height = Math.max(1, rect.wh._y * state.scaley)
   const visibleLayers = visualLayers(state).filter((layer) => layer.visible)
-  const trellisCount = Math.max(1, visibleLayers.filter((layer) => layer.trellis).length)
+  const trellisCount = Math.max(1, visibleLayers.filter((layer) => layer instanceof TrellisLayer).length)
   const maxGroups = Math.max(1, Math.floor(MAX_TRELLIS_GROUPS / trellisCount))
   const maxCandidates = Math.max(1, Math.floor(MAX_TRELLIS_CANDIDATES / trellisCount))
   const saveme = {
@@ -130,57 +134,111 @@ export function serializePattern(state, selectedOnly = false, requestedRect = nu
   )
 }
 
-// Deserializes parts of the state that can't be done with JSON.parse
+function reviveLayerDocument(serializedLayers, activeLayerId) {
+  const layers = []
+  const usedIds = new Set()
+  let migratedActiveLayerId = activeLayerId
+
+  const uniqueId = (preferred) => {
+    const base = preferred || `layer-${layers.length + 1}`
+    let id = base
+    let suffix = 2
+    while (usedIds.has(id)) id = `${base}-${suffix++}`
+    usedIds.add(id)
+    return id
+  }
+
+  for (const serialized of serializedLayers) {
+    if (serialized instanceof TrellisLayer || serialized?.type === "TrellisLayer") {
+      const revived = serialized instanceof TrellisLayer ? serialized : TrellisLayer._fromJSON(serialized)
+      const id = uniqueId(revived.id)
+      layers.push(id === revived.id ? revived : revived.copy({ id }))
+      continue
+    }
+
+    const embeddedTrellis = serialized?.trellis && typeof serialized.trellis === "object" ? serialized.trellis : null
+    const revived = serialized instanceof DrawingLayer ? serialized : layerFromJSON(serialized)
+    const drawingId = uniqueId(revived.id)
+    const drawing = drawingId === revived.id ? revived : revived.copy({ id: drawingId })
+    layers.push(drawing)
+
+    if (embeddedTrellis) {
+      const trellisId = uniqueId(embeddedTrellis.id || `${drawing.id}-trellis`)
+      const trellis = TrellisLayer._fromJSON({
+        ...embeddedTrellis,
+        id: trellisId,
+        name:
+          !embeddedTrellis.name || embeddedTrellis.name === "Layer" ? `${drawing.name} Trellis` : embeddedTrellis.name,
+        visible: drawing.visible,
+      })
+      layers.push(trellis)
+      if (activeLayerId === serialized.id) migratedActiveLayerId = trellis.id
+    }
+  }
+
+  return { layers, activeLayerId: migratedActiveLayerId }
+}
+
+// Revives custom classes and migrates schema-1 flat documents and schema-2
+// DrawingLayer-with-trellis documents into the concrete schema-3 layer model.
 function customDeserialize(state) {
   state.translation =
     state.translation instanceof Dist ? state.translation : Dist.fromJSON(state?.translation || { x: 0, y: 0 })
 
   if (state.layers?.length) {
-    state.layers = state.layers.map((layer) => (layer instanceof Layer ? layer : layerFromJSON(layer)))
-    if (!state.layers.some((layer) => layer.id === state.activeLayerId)) state.activeLayerId = state.layers[0].id
+    const revived = reviveLayerDocument(state.layers, state.activeLayerId)
+    state.layers = revived.layers
+    state.activeLayerId = revived.activeLayerId
   } else {
-    const legacyLayer = DrawingLayer.createFromIndex(1, {
-      lines: (state.lines ?? []).map((line) => (line instanceof Line ? line : Line.fromJSON(line))),
-      filledPolys: (state.filledPolys ?? []).map((poly) => (poly instanceof Poly ? poly : Poly.fromJSON(poly))),
-      bounds: (state.bounds ?? []).map((point) => (point instanceof Point ? point : Point.fromJSON(point))),
-      specificSelectors: (state.specificSelectors ?? []).map((point) =>
-        point instanceof Point ? point : Point.fromJSON(point),
-      ),
-      genericSelectors: (state.genericSelectors ?? []).map((point) =>
-        point instanceof Point ? point : Point.fromJSON(point),
-      ),
-      mirrorOrigins: (state.mirrorOrigins ?? []).map((mirrorOrigin) => ({
-        ...mirrorOrigin,
-        origin: mirrorOrigin.origin instanceof Point ? mirrorOrigin.origin : Point.fromJSON(mirrorOrigin.origin),
-      })),
+    const legacyLayer = DrawingLayer._fromJSON({
+      id: "layer-1",
+      name: "Layer 1",
+      lines: state.lines ?? [],
+      filledPolys: state.filledPolys ?? [],
+      bounds: state.bounds ?? [],
+      specificSelectors: state.specificSelectors ?? [],
+      genericSelectors: state.genericSelectors ?? [],
+      mirrorOrigins: state.mirrorOrigins ?? [],
     })
     state.layers = [legacyLayer]
     state.activeLayerId = legacyLayer.id
 
-    // TODO: I feel like this will have issues and will need to be updated
     if (state.trellis) {
       const legacyState = getLayerState(state, legacyLayer)
-      const trellis = TrellisLayer.fromSelection(legacyState, state)
+      const trellis =
+        typeof state.trellis === "object"
+          ? TrellisLayer._fromJSON({ ...state.trellis, id: "layer-2", name: "Trellis 2" })
+          : TrellisLayer.fromSelection(legacyState, state)
       if (trellis?.valid) {
         const boundRect = getBoundRect(legacyState)
         state.layers = [
           legacyLayer.copy({
             lines: legacyLayer.lines.filter((line) => !line.isSelected(legacyState, boundRect)),
             filledPolys: legacyLayer.filledPolys.filter((poly) => !poly.isSelected(legacyState, boundRect)),
-            trellis,
+            bounds: [],
+            specificSelectors: [],
+            genericSelectors: [],
           }),
+          trellis,
         ]
+        state.activeLayerId = trellis.id
       }
     }
   }
 
-  console.log(state.layers)
-
-  for (const key of [...layerOwnedKeys, "trellisOverlap", "trellisSkip", "trellisFlip", "trellisRotate"])
+  if (!state.layers.some((layer) => layer.id === state.activeLayerId)) state.activeLayerId = state.layers[0].id
+  for (const key of [
+    ...drawingLayerOwnedKeys,
+    "trellis",
+    "trellisDraft",
+    "trellisOverlap",
+    "trellisSkip",
+    "trellisFlip",
+    "trellisRotate",
+  ])
     delete state[key]
   state.dotsAboveArtwork = state.dotsAboveArtwork ?? state.dotsAbovefill ?? false
   delete state.dotsAbovefill
-  state.trellisDraft = null
   return state
 }
 
@@ -272,12 +330,16 @@ export function serializeState(state) {
   if (state.layers) {
     const activeLayer = state.layers.find((layer) => layer.id === state.activeLayerId)
     const layerPatch = Object.fromEntries(
-      layerOwnedKeys.filter((key) => Object.prototype.hasOwnProperty.call(state, key)).map((key) => [key, state[key]]),
+      drawingLayerOwnedKeys
+        .filter((key) => Object.prototype.hasOwnProperty.call(state, key))
+        .map((key) => [key, state[key]]),
     )
     documentState = {
       ...state,
       layers: state.layers.map((layer) =>
-        layer.id === activeLayer?.id && Object.keys(layerPatch).length ? layer.copy(layerPatch) : layer,
+        layer instanceof DrawingLayer && layer.id === activeLayer?.id && Object.keys(layerPatch).length
+          ? layer.copy(layerPatch)
+          : layer,
       ),
     }
   } else documentState = customDeserialize({ ...state })

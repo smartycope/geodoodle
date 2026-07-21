@@ -20,12 +20,6 @@ const transformPoint = (matrix, point) => {
   return new Point(transformed.x, transformed.y)
 }
 
-// These might be necissary later
-// sourceLineIndexes: state.lines.flatMap((line, index) => (line.isSelected(state, boundRect) ? [index] : [])),
-// sourcePolyIndexes: state.filledPolys.flatMap((poly, index) =>
-//   boundRect && poly.isSelected(state, boundRect) ? [index] : [],
-// ),
-
 /** Durable, serializable repeated-pattern model. */
 export default class TrellisLayer extends Layer {
   constructor({
@@ -61,6 +55,7 @@ export default class TrellisLayer extends Layer {
     const selected = getSelected(state, "topLeft", true)
 
     return this.createFromIndex(index, {
+      name: `Trellis ${index}`,
       sourceOrigin: boundRect.topLeft,
       sourceSize: boundRect.wh,
       lines: selected.filter((object) => object instanceof Line),
@@ -74,6 +69,10 @@ export default class TrellisLayer extends Layer {
 
   get valid() {
     return this.sourceSize._x > 0 && this.sourceSize._y > 0 && Boolean(this.lines.length || this.filledPolys.length)
+  }
+
+  get isEmpty() {
+    return !this.valid
   }
 
   get boundRect() {
@@ -159,15 +158,14 @@ export default class TrellisLayer extends Layer {
     }
   }
 
-  // TODO: update this
   static _fromJSON(json) {
     if (!json) return null
     return new TrellisLayer({
       ...json,
-      sourceOrigin: Point.fromJSON(json.sourceOrigin),
-      sourceSize: Dist.fromJSON(json.sourceSize),
-      lines: (json.lines ?? []).map((line) => Line.fromJSON(line)),
-      filledPolys: (json.filledPolys ?? []).map((poly) => Poly.fromJSON(poly)),
+      sourceOrigin: json.sourceOrigin instanceof Point ? json.sourceOrigin : Point.fromJSON(json.sourceOrigin),
+      sourceSize: json.sourceSize instanceof Dist ? json.sourceSize : Dist.fromJSON(json.sourceSize),
+      lines: (json.lines ?? []).map((line) => (line instanceof Line ? line : Line.fromJSON(line))),
+      filledPolys: (json.filledPolys ?? []).map((poly) => (poly instanceof Poly ? poly : Poly.fromJSON(poly))),
     })
   }
 }

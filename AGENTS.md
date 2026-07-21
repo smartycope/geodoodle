@@ -2,25 +2,27 @@
 
 ## What this project is
 
-GeoDoodle is a React 18/Vite single-page drawing app that recreates drawing on graph paper. Users create SVG lines between grid intersections, then can select, mirror, copy, fill, save, export, and repeat a selected pattern as a trellis. The deployed base path is `/geodoodle/`.
+GeoDoodle is a React 18/Vite single-page drawing app that recreates drawing on graph paper. Users create SVG lines between grid intersections, then select, mirror, copy, fill, save, export, and repeat a selected pattern through a Trellis layer. The deployed base path is `/geodoodle/`.
 
-The UI is deliberately stateful and geometry-heavy. Most behavior follows this path:
+Most behavior follows this path:
 
 ```text
 browser input → src/events.jsx → dispatch → src/reducer.jsx → src/actions.jsx
                                       ↓
                            React state in src/Paper.jsx
                                       ↓
-                  SVG layers in src/drawing.jsx and src/Trellis.jsx
+                         SVG in src/drawing.jsx
 ```
 
 ## Start here
 
 - `README.md` — product intent and npm commands.
-- `dev_docs/terms.md` — project vocabulary: Paper, trellis, metalines, bounds, cursor, current line, and permanent lines.
-- `dev_docs/coodinate_systems.md` — the coordinate-system glossary (the filename is intentionally misspelled).
-- `dev_docs/selection.md`, `filling_in.md`, and `files.md` — focused descriptions of selection, polygon filling, and storage.
-- `src/Paper.jsx` — the composition root for the interactive app; read its SVG child order before moving a rendering layer.
+- `dev_docs/terms.md` — project vocabulary.
+- `dev_docs/layers.md` and `dev_docs/trellis.md` — the polymorphic document model and the in-progress Trellis-layer conversion.
+- `dev_docs/coodinate_systems.md` — coordinate glossary (the filename is intentionally misspelled).
+- `dev_docs/selection.md`, `filling_in.md`, and `files.md` — selection, polygon filling, and storage.
+- `dev_docs/relevant_files.md` — current directory/ownership map.
+- `src/Paper.jsx` — interactive composition root; read its SVG child order before moving a rendering layer.
 
 ## Architecture and ownership
 
@@ -28,154 +30,171 @@ browser input → src/events.jsx → dispatch → src/reducer.jsx → src/action
 
 - `src/index.jsx` mounts `<App />` in `StrictMode`.
 - `src/App.jsx` disables the browser context menu, initializes local storage, and hosts the guided tour outside `Paper` to avoid a tour/state render loop.
-- `src/Paper.jsx` creates state with `getInitialState()`, keeps the `useReducer` dispatch, installs non-passive wheel/touch listeners, loads preserved state, provides `StateContext`, and defines the SVG layer order.
+- `src/Paper.jsx` creates state with `getInitialState()`, owns `useReducer`, installs non-passive wheel/touch listeners, loads preserved/shared state, provides `StateContext`, and defines SVG layer order.
 - `src/Contexts.jsx` exports `StateContext` (`{ state, dispatch }`) and the tour context.
-- `src/states.jsx` is the canonical state shape and default values. New state fields belong here first.
-- `src/helper/Layer.js` and `src/helper/Trellis.js` are the durable document models. `state.layers` is ordered bottom-to-top, `activeLayerId` identifies the editing target, and `trellisDraft` is transient.
-- `src/layerUtils.js` projects the active Layer onto familiar geometry fields for existing algorithms, then normalizes layer-owned action results back into the canonical Layer array.
-- `src/reducer.jsx` accepts a string action, `{ action, ...args }`, or a plain partial state object. It handles undo snapshots, invokes `actions[action]`, merges the returned partial state, and persists designated changes.
-- `src/actions.jsx` contains reducer-only action functions. An action receives `(state, data)` and normally returns a partial state object. The actual file is `actions.jsx` (not `actions.jsc`).
-- `src/options.jsx` contains defaults, keybindings, and the registration lists that control undo and persistence.
-- `src/globals.js` contains constants, mirror enums, storage keys, viewport helpers, undo/redo stacks, and debug flags.
+- `src/states.jsx` is the canonical global state shape. Durable artwork belongs in `state.layers`; temporary pointer/menu state remains global.
+- `src/classes/Layer.js` is an abstract base that owns only `id`, `name`, and `visible` plus polymorphic contracts.
+- `src/classes/DrawingLayer.js` owns ordinary lines, polygons, bounds, selectors, and mirror origins.
+- `src/classes/TrellisLayer.js` owns repeated source geometry and overlap/skip/flip/rotate controls. It is the Trellis; it is not stored on another layer.
+- `state.layers` is ordered bottom-to-top and `activeLayerId` identifies the active item.
+- `src/utils/layers.js` owns active-layer lookup/projection, immutable replacement, subclass detection, and JSON revival. Keep its projection and result normalization type-aware.
+- `src/reducer.jsx` accepts a string action, `{ action, ...args }`, or a plain partial state object. It handles undo snapshots, invokes `actions[action]`, normalizes layer results, merges state, and triggers persistence.
+- `src/actions.jsx` contains reducer-only action functions. An action receives `(state, data)` and normally returns a partial state object.
+- `src/options.jsx` contains defaults, editable keybindings, and undo/persistence registration lists.
+- `src/globals.js` contains enums, storage keys, viewport helpers, undo/redo stacks, and debug flags.
+
+### Layer invariants
+
+- Every durable layer must be either `DrawingLayer` or `TrellisLayer`; do not instantiate the abstract base directly.
+- A `DrawingLayer` cannot contain a Trellis or Trellis controls.
+- A `TrellisLayer` cannot contain drawing selection, mirror origins, or unrelated permanent geometry.
+- Branch on the concrete subclass, not the presence of `layer.trellis`.
+- Layer methods return new instances. Replace the affected layer in `state.layers`; never mutate it in place.
+- `Layer.toJSON()` writes a `type` discriminator. `src/utils/layers.js:layerFromJSON` must revive the correct subclass and each nested geometry class.
+- `getLayerState` is a compatibility boundary for algorithms that consume familiar fields such as `state.lines`; it is not a second durable document shape.
+
+### Trellis layer workflow
+
+The concrete layer architecture has no optional Trellis on a drawing layer, no separate durable Trellis object, no `trellisDraft`, and no umbrella Repeat menu or Apply/Edit/Replace/Release lifecycle. Those names may occur only in schema migration code for older saved documents.
+
+The intended flow is:
+
+1. A completed non-zero selection on a `DrawingLayer` dispatches `add_trellis_layer`.
+2. `TrellisLayer.fromSelection` captures relative source geometry and inserts a new Trellis layer above the source layer.
+3. Activating a Trellis layer makes the toolbar show direct Offset, Skip, Flip, and Rotate controls.
+4. Those controls immutably update the active `TrellisLayer`; Reset calls its `reset()` method.
+5. Activating a Drawing layer restores the ordinary drawing tools.
+
+Tests and serializers must construct the concrete subclass they exercise; import `DrawingLayer` from `classes/DrawingLayer`.
 
 ### Input and drawing
 
-- `src/events.jsx` translates mouse, wheel, keyboard, and touch gestures into actions. Touch handling uses module-level gesture/timer variables because `Paper` must attach non-passive native listeners.
-- Desktop mouse gestures also keep transient module-level state for button-down and drag arbitration. Right-drag creates a bounded deletion area, while middle-drag identifies one exact line by its two endpoints; both become drags only after the aligned/snapped `cursorPos` changes, not after arbitrary pixel movement. Reset this transient state in `onBlur` and test cleanup paths.
-- The desktop `add_bound` shortcut has a press/release lifecycle: keydown places the first bound and keyup places the second only if the snapped cursor moved. `activeBoundShortcutPresses` suppresses key-repeat and prevents a modifier change such as `b` becoming `shift+b` from clearing the in-progress area. Other shortcuts retain normal repeat behavior.
-- `src/utils/transform.js` owns shared canvas rotation math and the canonical SVG transform strings used by drawing layers. Canvas-space rendering should reuse these helpers rather than assembling transforms independently.
-- `src/utils/transform.js:createViewportLineCuller` owns permanent-line visibility math. It precomputes the canvas-to-viewport affine transform once, then clips line segments against the viewport without allocating transformed `Point`s per line. Keep crossing-line, rotation, translation, and stroke/glow padding coverage when changing it.
-- `src/drawing.jsx` renders all Paper-owned visual pieces: grid dots, lines, in-progress lines, fills, selection/bounds/selectors, cursor, clipboard preview, mirror guides, menus, toast, and debugging overlays.
-- `src/helper/Trellis.js` owns captured source geometry, controls, tile transforms, finite generation, release, and JSON revival. `src/Trellis.jsx` only handles React rendering and warnings. Applied Trellises live on Layers; create/edit/replace previews live in `state.trellisDraft`.
-- `src/drawing.jsx:ArtworkLayers` renders every visible Layer as one bottom-to-top composite of Trellis, fills, and lines. It divides Trellis safety budgets across visible Trellises. Active interaction/selection overlays render above the complete artwork stack.
-- `src/menus/LayersPanel.jsx` owns layer creation, activation, inline rename, visibility, deletion, previews, and dnd-kit reordering. The panel lists the top layer first even though state order is bottom-to-top.
-- `src/menus/Toolbar.jsx` lays out the responsive toolbar; `ToolButton.jsx` maps button names to icons and toggles menus. `MiniMenu.jsx` is the anchored popover primitive and `Page.jsx` is the full dialog primitive. `Number.jsx` is the shared Base UI number control, including optional joined reset buttons, and `ShortcutHint.jsx` derives menu hints from the active editable keybindings.
+- `src/events.jsx` translates mouse, wheel, keyboard, and touch gestures into actions. Touch handling uses module-level gesture/timer variables because `Paper` attaches non-passive native listeners.
+- Desktop gestures also keep module-level state for button-down and drag arbitration. Right-drag creates a bounded deletion area; middle-drag identifies one exact line. Both become drags only after snapped `cursorPos` changes. Reset transient state in `onBlur` and test cleanup paths.
+- The desktop `add_bound` shortcut has a press/release lifecycle: keydown places the first bound and keyup places the second only if the snapped cursor moved. `activeBoundShortcutPresses` suppresses repeat and modifier-change cancellation.
+- `src/drawing.jsx` owns all Paper SVG pieces: grid dots, visible artwork layers, the memoized `Trellis` renderer, in-progress geometry, fills, cursor, selection, clipboard, mirror guides, menus, toast, and debug overlays.
+- `src/drawing.jsx:ArtworkLayers` renders visible layers bottom-to-top. It renders polygons/lines for `DrawingLayer` and finite repeated tiles for `TrellisLayer`, sharing Trellis safety budgets across visible Trellis layers.
+- `src/menus/LayersPanel.jsx` owns creation, activation, rename, visibility, deletion, subclass-aware previews, and dnd-kit reordering. The panel lists topmost first.
+- `src/menus/Toolbar.jsx` owns responsive layout and switches available tools by active layer subclass.
+- Feature-specific controls live in `src/menus/`; reusable UI primitives live in `src/components/`.
+- `src/components/ToolButton.jsx` maps tool names to icons and menu actions. `MiniMenu.jsx`, `Page.jsx`, `Number.jsx`, `ShortcutHint.jsx`, and `TrellisSubMenu.jsx` are shared primitives.
+- Trellis control menus are `src/menus/OffsetMenu.jsx`, `SkipMenu.jsx`, `FlipMenu.jsx`, and `RotateMenu.jsx`.
 
-`Paper`'s SVG child order is intentional: definitions/background, dots below (optional), complete artwork layer stack, dots above (optional), then active debug/cursor/preview/selection/clipboard overlays. Preserve that order unless the requested visual stacking change is explicit.
+`Paper`'s SVG order is intentional: definitions/background, dots below (optional), complete artwork stack, dots above (optional), then active debug/cursor/preview/selection/clipboard overlays.
 
 ## Geometry model: do not bypass it
 
-All geometry classes live in `src/helper/` and are used throughout state, actions, rendering, persistence, and tests.
+All durable classes live in `src/classes/`.
 
 | File | Use it for |
 | --- | --- |
-| `Pair.js` | Base immutable two-value operations: comparison with floating-point tolerance, arithmetic, rounding, clipping, JSON, and collection membership. |
-| `Point.js` | Coordinates. Internally stores deflated SVG values; create/display values through `fromViewport`, `fromSvg`, `asViewport`, and `asSvg`. Also handles grid/intersection snapping, rotation, flipping, and mirroring. |
-| `Dist.js` | A scaled distance/translation rather than a location; use `fromInflated`/`fromDeflated` and conversion methods. |
-| `Line.jsx` | Line aesthetics, SVG rendering, selection logic, transforms, hashing/deduplication, and Turf intersection/splitting helpers. |
-| `Rect.jsx` | Selection/extents from Points; conversion, corners/center, growth, and containment. |
-| `Poly.jsx` | Filled polygon rendering, serialization, GeoJSON conversion, containment, and selection. |
+| `Pair.js` | Immutable two-value operations, tolerance, arithmetic, rounding, clipping, JSON, and collection helpers. |
+| `Point.js` | Locations, coordinate conversions, snapping, rotation, flipping, and mirroring. |
+| `Dist.js` | Scaled vectors/translations rather than locations. |
+| `Line.jsx` | Line aesthetics/rendering, selection, transforms, hashing/deduplication, and Turf intersection/splitting. |
+| `Rect.jsx` | Bounds/extents, corners/center, growth, conversion, and containment. |
+| `Poly.jsx` | Filled polygon rendering, serialization, containment, and selection. |
+| `Layer.js` | Abstract layer identity/visibility contract. |
+| `DrawingLayer.js` | Ordinary editable drawing content. |
+| `TrellisLayer.js` | Durable repeated-pattern content and controls. |
 
 Coordinate terminology:
 
 - **Viewport**: browser-window coordinates, origin at top-left.
 - **SVG**: coordinates relative to the SVG origin.
-- **Deflated**: one unit per grid step; this is the durable geometry representation.
+- **Deflated**: one unit per grid step; durable geometry representation.
 - **Inflated**: pixel-scaled values using `scalex`/`scaley`.
 
-Do not hand-roll transformations or silently mix coordinate systems. Prefer `Point`/`Dist` conversions and helper methods. `Point`, `Dist`, `Line`, `Pair`, and `Rect` operations return new values; do not depend on mutation. Use `Point.xy()` rather than `_x`/`_y` except when the coordinate system is already intentionally irrelevant (as in some geometry internals).
+Use `Point`/`Dist` conversions and shared helpers; do not hand-roll transforms or mix coordinate systems. These geometry operations return new values. Prefer `Point.xy()` over `_x`/`_y` unless coordinate-system identity is intentionally irrelevant inside low-level geometry code.
 
 ### Canvas transforms and screen space
 
-- The durable drawing remains in deflated, unrotated canvas coordinates. Translation, scale, and rotation are view transforms; rotating the canvas must not rewrite line, polygon, bound, selector, clipboard, or trellis geometry.
-- Canvas rotation is around the center of the visual viewport. `Point.fromViewport` and `Point.asViewport` apply the inverse and forward view transforms, respectively, and should round-trip even with translation, non-uniform scale, and rotation.
-- A `Dist` is a vector, not a position. Use `Dist.fromInflated` when converting a screen-space drag/scroll delta into canvas space and `Dist.asViewport` when checking where a canvas-space movement points on screen. Rotation of a vector is around `(0, 0)`, not the viewport center.
-- Canvas-space SVG geometry belongs in a `<g transform={getCanvasTransform(state)}>`. Viewport-space overlays such as cursor shapes, bounds, selector markers, mirror icons, and canvas-option buttons remain upright and position themselves with `Point.asViewport(state)`. The dot grid uses `getCanvasRotationTransform` on its pattern.
-- `drawing.jsx:Lines` intentionally omits off-screen permanent lines from the SVG DOM before doing selection/glow work. Code that needs the complete artwork, such as FilePage's **Fit artwork**, must derive it from `state.lines` rather than measuring `#lines` in the DOM.
-- `Rect.asViewport` returns the axis-aligned viewport bounding box of all four transformed corners. This is appropriate for hit regions, button placement, and viewport containment; render a genuinely rotated rectangle as canvas-space geometry inside the shared transform group.
-- Rotation changes the visible logical viewport from a two-corner rectangle to a four-corner polygon. Algorithms that need a conservative canvas-space coverage area, notably `Trellis.jsx`, must inverse-transform all four viewport corners before taking their bounds.
-- Scale and rotation actions compensate translation to keep their chosen logical focal point at the same screen position. For simultaneous two-finger movement, scale, and rotation, use the atomic `gesture_transform` action; separate queued dispatches use different intermediate states and cause the drawing to drift away from the fingers.
+- Durable geometry remains deflated and unrotated. Translation, scale, and rotation are view transforms and must not rewrite either layer subclass.
+- Canvas rotation is around the visual viewport center. `Point.fromViewport` and `Point.asViewport` apply inverse/forward view transforms and should round-trip with translation, non-uniform scale, and rotation.
+- `Dist` is a vector. Use `Dist.fromInflated` for screen-space deltas and `Dist.asViewport` to inspect a canvas-space movement on screen; rotate vectors around `(0, 0)`.
+- `src/utils/transform.js` owns canvas rotation math, canonical SVG transform strings, viewport matrices, and permanent-line culling. Canvas-space geometry belongs under `getCanvasTransform(state)`.
+- Viewport-space overlays such as cursor shapes, selector markers, mirror icons, and canvas-option buttons remain upright and position with `Point.asViewport(state)`.
+- `drawing.jsx:Lines` culls off-screen permanent lines before selection/glow work. Complete-artwork operations must derive geometry from layers, not measure `#lines` in the DOM.
+- `Rect.asViewport` returns the axis-aligned viewport box of all four transformed corners. Render genuinely rotated rectangles in canvas space.
+- Trellis coverage must inverse-transform all four viewport corners before taking conservative bounds.
+- Scale/rotation actions compensate translation around their focal point. Simultaneous two-finger move/scale/rotation uses atomic `gesture_transform`.
 
 ## Important domain behavior
 
-- A line is started/finished through `add_line`; `curLinePos` is the start of an in-progress line and `cursorPos` is the snapped grid cursor, not the physical mouse coordinate.
-- Selection combines an area defined by `bounds`, generic selectors (endpoints or intersections), and specific selectors (both endpoints). `src/utils.jsx:getSelected` and `src/helper/Line.jsx:isSelected` are the authoritative logic.
-- `select_all` selects existing line geometry by setting two bounds to the top-left and bottom-right of `getLinesRect(state.lines)`; it returns no bounds for an empty drawing and exits deletion mode. Its default shortcut is `ctrl+a` through the editable keybinding framework.
-- `deletingSelection` is a transient mode for an incomplete bounded selection. Completing its second bound runs `delete_selected` against a temporary state with selectors cleared, then removes the bounds; selector-only matches outside the rectangle must remain selected normally and must not turn red or be deleted. Holding Shift temporarily inverts an ordinary in-progress bound into deletion mode, while Shift temporarily inverts a right-button deletion drag into a regular selection. Rendering uses the red `themeDefaults.deletingSelection` palette for the bounded area and its basic/fancy glow.
-- A desktop middle click runs `delete_at_cursor`; a middle drag runs `delete_specific_line` and matches both endpoints in either order. A right click retains `continue_line`, while a right drag completes the bounded deletion flow. Preserve click behavior when physical movement stays within the same aligned cursor position.
-- Mirroring is controlled by axis/rotation and can be centered on the page or cursor; saved mirror origins apply additional transformed copies. `Point.mirror(state)` is the shared expansion path: it applies the active page/cursor transform and then each saved origin. Drawing, `delete_at_cursor`, cursor helpers, and clipboard generation should reuse it so all mirrored copies stay consistent. `Point.mirror*`, `Line.mirror*`, `drawing.jsx:MirrorMetaLines`, and `Menus/MirrorMenu.jsx` move together.
-- On desktop, the Mirror menu shows a real **Add origin** control for Page mirroring (and on mobile), but shows the keyboard instruction for Cursor mirroring. The Type and Origins groups share a responsive row, so visibility/label changes must be checked for overlap.
-- Entering fill mode normalizes and splits line segments, runs Turf polygonization, and previews polygons under the *physical* mouse position. The action is `toggle_fill_mode`; `getPreviewPolys` and `Poly.contains` determine previews.
-- Clipboard lines are copied relative to a selection origin and transformed/mirrored at the cursor. `getAllClipboardLines(state)` is shared by paste and preview: position at `cursorPos`, apply the clipboard flip/rotation, then expand through `Point.mirror(state)`, including saved origins. See `actions.jsx` (`copy`, `cut`, `paste`) and `utils.jsx:getAllClipboardLines`.
-- `rotateClipboardOnScroll` is a persisted desktop behavior setting and defaults to `true`. With an active clipboard, unmodified scrolling rotates it in 90-degree steps when enabled and otherwise follows normal canvas translation; Ctrl/Command and Shift wheel modifiers keep their canvas scale/rotate/translate meanings.
-- Creating or replacing a Trellis requires a completed non-zero selection. Editing an applied Trellis does not require bounds. Apply moves captured objects into the Trellis; Release materializes transformed tile zero and selects it. There is no destructive Trellis delete.
-- Ordinary content actions operate only on the active visible Layer. Hiding the active layer chooses a visible neighbor; with every layer hidden, editing is disabled until a layer is shown or added.
-- Clipboard transformation and selection-option controls drawn over the canvas are visual `foreignObject` buttons whose presses are manually hit-tested in `canvasButtonUtils.jsx` and consumed in `events.jsx`. Keep their rendering geometry and mouse/touch hit geometry in sync, and do not let a consumed press also move the cursor or clipboard.
-- Keyboard shortcuts are editable state. `keybindable` is the action catalog and source of each default binding; `defaultKeybindings` is derived from it, while runtime matching reads `state.keybindings`. The shortcut token `ctrl` intentionally accepts either Control or macOS Command. Buttons in Select, Clipboard, and Delete menus use `ShortcutHint` so displayed hints reflect customized bindings; parameterized action objects must be matched structurally, not only by action name.
-- Fixed canvas presentation constants live in `themeDefaults` in `src/styling/theme.js`; user-controlled behavior and drawing choices live in `options.jsx`/state. Components should read generated-theme values so light/dark and paper-color contrast logic remain centralized.
+- A line starts/finishes through `add_line`; `curLinePos` is its start and `cursorPos` is the snapped grid cursor.
+- Selection exists only on `DrawingLayer` and combines bounds, generic selectors, and specific selectors. `src/utils/lines.js:getSelected` and `src/classes/Line.jsx:isSelected` are authoritative.
+- `select_all` sets bounds to `getLinesRect(state.lines)` corners, yields empty bounds for no lines, and exits deletion mode. Default shortcut is `ctrl+a`.
+- `deletingSelection` marks an incomplete bounded deletion. Completing it deletes only bounded matches and clears bounds; selector-only matches outside remain selected. Shift temporarily inverts ordinary selection/deletion gestures.
+- Middle click runs `delete_at_cursor`; middle drag runs `delete_specific_line`. Right click retains `continue_line`; right drag completes bounded deletion. Preserve clicks when pixel movement stays within the same snapped point.
+- Mirroring uses `Point.mirror(state)` as the shared expansion path for active page/cursor transforms and saved origins. Keep `Point`, `Line`, `drawing.jsx:MirrorMetaLines`, and `src/menus/MirrorMenu.jsx` aligned.
+- Fill mode operates only on `DrawingLayer`: normalize/split lines, Turf-polygonize, and preview `Poly` instances under physical `mousePos`.
+- Clipboard paste and preview share `src/utils/lines.js:getAllClipboardLines`: position at `cursorPos`, apply clipboard flip/rotation, then expand with `Point.mirror(state)`.
+- `rotateClipboardOnScroll` defaults true. With a clipboard, unmodified wheel rotates in 90-degree steps when enabled; modifiers retain canvas transform meanings.
+- Ordinary content actions must reject a hidden active layer and must not write drawing fields onto `TrellisLayer`.
+- Canvas transformation/selection controls are SVG `foreignObject` buttons rendered in `drawing.jsx` and manually hit-tested through `src/utils/canvasButton.jsx`; rendering and hit geometry must stay synchronized.
+- Keyboard shortcuts are editable. `keybindable` is the catalog/default source; runtime matching reads `state.keybindings`. `ctrl` accepts Control or macOS Command. `src/components/ShortcutHint.jsx` resolves live hints.
+- Fixed presentation constants live in `themeDefaults` in `src/styling/theme.js`; user behavior/drawing choices live in `options.jsx` and state.
 
 ## Where to make a change
 
 | Change | Primary locations |
 | --- | --- |
-| Mouse, keyboard, wheel, touch, pinch, double-tap, or long-press behavior | `src/events.jsx`; resulting state behavior in `src/actions.jsx` |
-| Add or change a reducer action | `src/actions.jsx`, then check `reversibleActions` and `saveSettingActions` in `src/options.jsx` |
-| Add state | `src/states.jsx`; then decide whether it belongs in `reversible`, `preservable`, or `saveable` in `src/options.jsx` |
-| SVG layer, cursor, selection, fill, clipboard, or debug rendering | `src/drawing.jsx`; layer placement in `src/Paper.jsx` |
-| Repeated-pattern model or algorithm | `src/helper/Trellis.js`, `src/trellisUtils.js`; thin renderer in `src/Trellis.jsx`; controls in `src/menus/RepeatMenu.jsx` |
-| Layer model, actions, rendering, or panel | `src/helper/Layer.js`, `src/layerUtils.js`, `src/actions.jsx`, `src/drawing.jsx:ArtworkLayers`, `src/menus/LayersPanel.jsx` |
-| Coordinate math, view transforms, line intersections, or selection semantics | `src/helper/`, `src/utils/transform.js`, and shared helpers in `src/utils.jsx` |
-| Save/load/export/upload/image copy | `src/fileUtils.jsx`, actions in `src/actions.jsx`, UI in `src/menus/FilePage.jsx` |
-| Local persistence schema | `src/fileUtils.jsx` and `preservable`/`saveable` in `src/options.jsx`; do not access `localStorage` elsewhere |
-| Toolbar sizing/placement or tool icons | `src/menus/Toolbar.jsx`, `ToolButton.jsx`, `ExtraMenu.jsx`, `ExtraButton.jsx`, `src/utils.jsx:extraSlots` |
-| Menu layout | `MiniMenu.jsx` for popovers, `Page.jsx` for dialogs, and the corresponding feature menu |
-| Number-control behavior or reset affordances | `src/menus/Number.jsx` and `src/styling/number-field.module.css`; feature-specific reset targets stay in the owning menu |
-| Keyboard shortcut catalog, editor, matching, or visible hints | `src/options.jsx`, `src/utils.jsx`, `src/menus/KeybindingsPage.jsx`, and `src/menus/ShortcutHint.jsx` |
-| Theme, colors, or global styles | `src/styling/theme.js`, `src/styling/App.css`, `src/styling/index.css`, `src/styling/number-field.module.css` |
-| Guided tour | `src/menus/tour.jsx`, `src/App.jsx`, and `tourState` in `src/states.jsx` |
-
-Feature menus are intentionally small, focused components:
-
-- `ColorMenu.jsx` — palette, stroke width/dash, fill-mode toggle.
-- `SelectMenu.jsx` and `DeleteMenu.jsx` — bounds/selectors and destructive selection commands.
-- `ClipboardMenu.jsx` — copy/cut/paste actions.
-- `MirrorMenu.jsx` — mirror type, axis, rotation, and stored origins.
-- `NavMenu.jsx` — translation, scale, rotation, home, and go-to-selection.
-- `FilePage.jsx` — SVG/image import/export, local saves, cloud-save UI, and image copy.
-- `SettingsPage.jsx` — user-configurable state and reset-preserved-state UI.
-- `HelpPage.jsx` and `tour.jsx` — user education; `KeyMenu.jsx` is currently unused.
+| Mouse, keyboard, wheel, touch, pinch, double-tap, long-press | `src/events.jsx`; state behavior in `src/actions.jsx` |
+| Reducer action | `src/actions.jsx`; registration in `src/options.jsx` |
+| Global state | `src/states.jsx`; `reversible`/`preservable`/`saveable` decisions in `src/options.jsx` |
+| Layer hierarchy or projection | `src/classes/Layer.js`, `DrawingLayer.js`, `TrellisLayer.js`, `src/utils/layers.js`, reducer/actions |
+| Repeated-pattern math/model | `src/classes/TrellisLayer.js`, `src/utils/trellis.js`, renderer in `src/drawing.jsx` |
+| Trellis controls | `src/menus/OffsetMenu.jsx`, `SkipMenu.jsx`, `FlipMenu.jsx`, `RotateMenu.jsx`, `src/components/TrellisSubMenu.jsx` |
+| SVG rendering/stacking | `src/drawing.jsx`; placement in `src/Paper.jsx` |
+| Coordinate math, transforms, selection | `src/classes/`, `src/utils/transform.js`, `src/utils/lines.js`, `src/utils/math.js` |
+| Save/load/export/upload/image copy | `src/utils/files.jsx`; actions in `src/actions.jsx`; UI in `src/menus/FilePage.jsx` |
+| Toolbar/icon placement | `src/menus/Toolbar.jsx`, `src/components/ToolButton.jsx`, `src/menus/ExtraMenu.jsx`, `ExtraButton.jsx` |
+| Popover/dialog/number primitives | `src/components/MiniMenu.jsx`, `Page.jsx`, `Number.jsx`, and relevant feature menu |
+| Keyboard catalog/editor/hints | `src/options.jsx`, `src/utils/shortcuts.js`, `src/menus/KeybindingsPage.jsx`, `src/components/ShortcutHint.jsx` |
+| Theme/global styles | `src/styling/theme.js`, `App.css`, `index.css`, `number-field.module.css` |
+| Guided tour | `src/components/tour.jsx`, `src/App.jsx`, `tourState` in `src/states.jsx` |
 
 ## Storage and serialization
 
-Keep all storage and file I/O inside `src/fileUtils.jsx`.
+Keep all storage and file I/O inside `src/utils/files.jsx`.
 
-- Preserved application settings/state use JSON in `localStorageSettingsName` (`GeoDoodleState`).
-- Named local patterns use SVG strings in `localStorageName` (`GeoDoodleSaves`).
-- SVG exports embed saveable metadata as a comment and serialize lines as SVG elements; `deserializePattern` reconstructs custom classes.
-- `serializeState`/`deserializeState` handle long-lived state and version checks. Update serializers or the appropriate allowlists whenever a persisted custom class or field changes.
-- Document schema 2 stores `layers` and `activeLayerId`; schema-1 flat geometry migrates into `Layer 1`. Drafts are transient. Editable metadata preserves hidden layers, while visual exports include visible layers only and finitely expand Trellises over the export rectangle.
+- Preserved state uses JSON in `GeoDoodleState`; named local patterns use SVG strings in `GeoDoodleSaves`.
+- SVG exports embed editable metadata and render visible layers. Hidden layers remain in metadata.
+- Document schema 3 stores polymorphic `layers` and `activeLayerId`; `type` selects `DrawingLayer` or `TrellisLayer` during revival. Schema-2 hybrid layers migrate into separate concrete layers.
+- Legacy flat/hybrid documents are migration input. Normalize them to concrete subclasses; never serialize a new hybrid layer.
+- Visual exports render visible `DrawingLayer` geometry and finitely expand visible `TrellisLayer` instances over the export rectangle.
+- `backgroundImage` is transient and must not be persisted.
 
 ## Validation and tests
 
 Use the smallest relevant command first:
 
 ```bash
-npm test                         # Vitest watch mode
-npx vitest run src/tests/Paper.test.jsx
-npx vitest run src/tests/Actions.test.jsx
+npx vitest run src/tests/DocumentModels.test.jsx
+npx vitest run src/tests/LayerRendering.test.jsx src/tests/LayersPanel.test.jsx
+npx vitest run src/tests/Trellis.test.jsx
 npm run lint
 npm run build
 ```
 
-- `src/tests/HelperClasses.test.jsx` covers Pair, Point, Dist, Line, and Rect behavior.
-- `src/tests/Actions.test.jsx` covers transformations, selection/deletion, line creation, clipboard, persistence/files, menus, tour, and fills.
-- `src/tests/Events.test.jsx` calls the input handlers directly and is the best place for touch lifecycle, combined gesture, wheel-modifier, and manually consumed canvas-button regressions. Its cleanup is important because touch state is module-level.
-- `src/tests/Drawing.test.jsx` covers isolated SVG/UI layers whose geometry or visibility depends on state.
-- `src/tests/Paper.test.jsx` exercises rendered mouse/keyboard/wheel interactions.
-- `src/tests/Fill.test.jsx` covers polygon previews/fills, intersections, mirroring, and repeating.
-- `src/tests/KeybindingsPage.test.jsx` and `MenuShortcuts.test.jsx` cover editable shortcuts and live menu hints; `SettingsPage.test.jsx` covers persisted setting controls.
-- Focused menu layout/dispatch regressions live beside the feature as `MirrorMenu.test.jsx`, `NavMenu.test.jsx`, `RepeatMenu.test.jsx`, and similar menu test files.
-- `src/tests/misc.test.jsx` guards that the `options.jsx` action/state registration lists stay valid.
-- `src/tests/testUtils.jsx` is the shared Paper renderer and input/SVG-query helper set; prefer extending it instead of duplicating event boilerplate.
+- `HelperClasses.test.jsx` covers coordinate/drawing classes.
+- `Actions.test.jsx` covers transformations, selection/deletion, creation, clipboard, persistence, menus, tour, and fills.
+- `Events.test.jsx` is best for direct gesture handlers and module-level touch cleanup.
+- `Drawing.test.jsx` covers isolated SVG/UI layers.
+- `Paper.test.jsx` covers rendered mouse/keyboard/wheel interaction.
+- `DocumentModels.test.jsx`, `LayerRendering.test.jsx`, `LayersPanel.test.jsx`, `Trellis.test.jsx`, and `TrellisMenus.test.jsx` are the primary concrete-layer suites.
+- `FileUtils.test.jsx`, `LayerExport.test.jsx`, and `ImageExport.test.jsx` cover persistence and visual export.
+- `misc.test.jsx` guards action/state registration lists.
 
-Vitest is configured for `jsdom` in `vite.config.js`. Storybook stories live in `src/stories/` and are useful for isolated toolbar, tool-button, number-control, and repeat-menu visual work.
+Vitest uses `jsdom` through `vite.config.js`. Storybook stories live in `src/stories/`.
 
 ## Practical change checklist
 
-1. Read the relevant developer doc and the owning component/action before editing.
-2. Keep geometry in deflated SVG coordinates and convert at the DOM boundary.
-3. Dispatch actions for behavior changes; do not mutate state or geometry instances in place.
-4. If an action/state field affects undo, persistence, or exported patterns, update the matching lists in `src/options.jsx` and tests.
-5. When changing a view transform, audit permanent/preview lines, fills, dots, trellis, clipboard, selection overlays, mirror guides, cursor mapping, hit testing, viewport containment, and image/save semantics together.
-6. Keep storage access in `fileUtils.jsx` and preserve the intentional SVG layer order in `Paper.jsx`.
-7. Add or update the closest test, then run that test file. Run lint/build when the scope warrants it.
+1. Read the relevant developer doc and owning class/component/action.
+2. Preserve the `DrawingLayer`/`TrellisLayer` exclusivity invariant.
+3. Keep geometry deflated and convert only at DOM/input boundaries.
+4. Dispatch actions and replace immutable class instances; do not mutate state.
+5. Update undo/persistence/export registration and subclass revival when document fields change.
+6. Audit drawing, preview, selection, cursor, hit testing, viewport coverage, and export together for view-transform changes.
+7. Keep storage in `src/utils/files.jsx` and preserve `Paper`'s SVG order.
+8. Update the nearest current-tree tests; do not restore deleted architecture to satisfy stale fixtures.

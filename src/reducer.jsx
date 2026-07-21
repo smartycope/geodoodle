@@ -4,6 +4,7 @@ import { reversible, reversibleActions, saveSettingActions } from "./options"
 import { preserveState } from "./utils/files"
 import * as actions from "./actions"
 import { getLayerState, normalizeLayerActionResult } from "./utils/layers"
+import DrawingLayer from "./classes/DrawingLayer"
 
 const layerContentActions = new Set([
   "add_specific_selector",
@@ -33,24 +34,7 @@ const layerContentActions = new Set([
   "add_mirror_origin",
   "remove_mirror_origin",
   "clear_mirror_origins",
-  "apply_trellis",
-  "replace_trellis",
-  "release_trellis",
-])
-
-const draftInvalidatingActions = new Set([
-  ...layerContentActions,
-  "nevermind",
-  "clear_active_layer",
-  "delete_layer",
-  "set_layer_visibility",
-])
-
-const preserveDraftActions = new Set([
-  "apply_trellis",
-  "replace_trellis",
-  "update_trellis_draft",
-  "reset_trellis_draft",
+  "add_trellis_layer",
 ])
 
 // Can accept any of 3 parameters to dispatch:
@@ -68,16 +52,10 @@ export default function reducer(state, data) {
   const activeLayer = state.layers?.find((layer) => layer.id === state.activeLayerId)
   if (activeLayer?.visible === false && layerContentActions.has(data.action))
     return { ...state, toast: "Show or add a layer to edit" }
+  if (!(activeLayer instanceof DrawingLayer) && layerContentActions.has(data.action))
+    return { ...state, toast: "Currently, drawing is not enabled on trellis layers" }
 
-  const shouldDiscardDraft =
-    state.trellisDraft && draftInvalidatingActions.has(data.action) && !preserveDraftActions.has(data.action)
-  const baseState = shouldDiscardDraft
-    ? {
-        ...state,
-        trellisDraft: null,
-        openMenus: { ...state.openMenus, repeat: false, main: true },
-      }
-    : state
+  const baseState = state
 
   if (reversibleActions.includes(data.action)) {
     undoStack.push(filterObjectByKeys(baseState, reversible))

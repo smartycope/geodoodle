@@ -9,6 +9,7 @@ import CheckBoxIcon from "@mui/icons-material/CheckBox"
 import SelectAllIcon from "@mui/icons-material/SelectAll"
 import { SelectorIcon } from "../components/CustomIcons"
 import ShortcutHint from "../components/ShortcutHint"
+import DashboardIcon from "@mui/icons-material/Dashboard"
 
 export default function SelectMenu() {
   const { dispatch, state } = useContext(StateContext)
@@ -58,6 +59,14 @@ export default function SelectMenu() {
       )}
       {state.bounds.length > 1 && (
         <>
+          <MenuItem onClick={() => dispatch("add_trellis_layer")}>
+            <ListItemIcon>
+              <DashboardIcon />
+            </ListItemIcon>
+            Create Trellis Layer
+            <ShortcutHint action="add_trellis_layer" />
+          </MenuItem>
+
           <MenuItem onClick={() => dispatch("clear_bounds")}>
             <ListItemIcon>{SelectorIcon("area", true)}</ListItemIcon>
             Clear Selection

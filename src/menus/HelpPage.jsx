@@ -32,8 +32,9 @@ function AboutContent() {
         <li>✅ Added backend for saving patterns</li>
         {/* <s>
           <li>❌ Connect to Google Drive</li>
-        </s> */}
+          </s> */}
         <li>✅ Custom Keyboard Shortcuts</li>
+        <li>✅ Layers</li>
         <li>❌ Alternate Dot Patterns</li>
         <li>❌ Curved Lines</li>
         <li>❌ App</li>
@@ -167,8 +168,8 @@ function ConceptsContent() {
           contribute to the same selection.
         </Typography>
         <Typography sx={{ mt: 1 }}>
-          Once lines are selected, you can copy, cut, delete them, delete everything else, or use the bounded area as a
-          repeating pattern. A completed area also shows optional canvas buttons beside it unless those buttons are
+          Once lines are selected, you can copy, cut, delete them, delete everything else, or move the bounded area into
+          a Trellis layer. A completed area also shows optional canvas buttons beside it unless those buttons are
           disabled in Settings.
         </Typography>
         <Concept title="Clipboard">
@@ -199,26 +200,27 @@ function ConceptsContent() {
         </Concept>
       </Concept>
 
-      <Concept title="Repeating">
+      <Concept title="Trellis Layers">
         <Typography>
-          Repeating turns a completed bounded selection into a trellis: a tiled pattern that fills the visible paper.
-          Open Repeat after placing at least two bounds. Pressing Apply moves the selected lines and fills into the
-          active layer&apos;s trellis, so the repeat remains even after its selection bounds are cleared.
+          A Trellis layer repeats one bounded selection across the paper. Complete a non-zero area on a Drawing layer,
+          then choose Create Trellis Layer from the Selection menu, its canvas button, or the R shortcut. The selected
+          lines and fills move into a new Trellis layer above the source Drawing layer.
         </Typography>
         <Typography sx={{ mt: 1 }}>
           Offset changes how rows or columns overlap, Flip reflects tiles, Rotate turns them, and Skip leaves spaces.
           Each transformation has separate row and column controls: “every” controls how often it is applied, and the
-          other value controls what is applied. Reopen Repeat to edit an applied trellis, use Replace to capture a new
-          selection, or Release to restore transformed tile zero as ordinary selected geometry.
+          other value controls what is applied. These four controls appear directly in the toolbar whenever a Trellis
+          layer is active and update that layer immediately.
         </Typography>
       </Concept>
 
       <Concept title="Layers">
         <Typography>
-          Layers keep separate lines, fills, selections, mirror origins, and one optional trellis. The canvas composites
-          visible layers from bottom to top, while drawing and selection actions affect only the active layer. Open the
-          Layers panel to add, name, show or hide, delete, select, and reorder layers. Hidden layers remain saved but do
-          not appear in the canvas or exported images.
+          Drawing layers keep lines, fills, selections, and mirror origins. Trellis layers contain only a repeated
+          pattern and its Offset, Skip, Flip, and Rotate settings. The canvas composites visible layers from bottom to
+          top, while editing actions affect only the active layer. Open the Layers panel to add Drawing layers, name,
+          show or hide, delete, select, and reorder every layer. Hidden layers remain saved but do not appear in the
+          canvas or exported images.
         </Typography>
       </Concept>
 

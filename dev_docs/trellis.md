@@ -1,33 +1,35 @@
 # Trellis architecture
 
-A Trellis is durable layer-owned geometry, not a rendering flag. `src/helper/Trellis.js` stores a finite source tile and the controls needed to repeat it; `src/Trellis.jsx` is a thin React renderer.
+A Trellis is a concrete layer type. `src/classes/TrellisLayer.js` contains both the durable repeated-pattern model and the common `Layer` identity/visibility behavior inherited from `src/classes/Layer.js`. It is not an object attached to a drawing layer.
 
 ## Durable model
 
-`Trellis` stores:
+`TrellisLayer` stores:
 
 - `sourceOrigin` and `sourceSize` in deflated canvas coordinates;
-- source `lines` and `filledPolys` relative to the source rectangle's top-left;
-- row/column `overlap`, `skip`, `flip`, and `rotate` controls.
+- source `lines` and `filledPolys`, stored relative to the source rectangle's top-left;
+- row/column `overlap`, `skip`, `flip`, and `rotate` controls;
+- the inherited `id`, `name`, and `visible` fields.
 
-The class captures a completed selection, copies controls immutably, describes any lattice tile, finds finite visible tiles, materializes transformed tile `(0, 0)`, and serializes/revives itself. A valid Trellis needs non-zero width and height and at least one captured object.
+`TrellisLayer.fromSelection(state)` captures a completed, non-zero selection from the active `DrawingLayer` and creates the new concrete layer. A valid Trellis layer needs positive width and height and at least one captured line or polygon.
 
-Each layer owns at most one applied Trellis. `state.trellisDraft` is transient and records its target layer, mode (`create`, `edit`, or `replace`), captured source indexes, and a draft Trellis. Drafts are excluded from undo snapshots and persistence.
+The class copies controls immutably, describes lattice tiles, finds finite visible tiles, materializes transformed tile `(0, 0)`, resets controls, and serializes/revives itself. It must not own drawing-only state such as bounds, selectors, mirror origins, or unrelated permanent geometry.
 
-## Apply, edit, replace, and release
+## Creation and editing
 
-Opening Repeat does one of two things:
+The completed design uses layer operations rather than the former Repeat workflow:
 
-- without an applied Trellis, it captures the active completed selection into a create draft;
-- with an applied Trellis, it copies that Trellis into an edit draft without requiring bounds.
+- creating a Trellis dispatches `add_trellis_layer` from a valid selection and inserts the new `TrellisLayer` above the active drawing layer;
+- activating a Trellis layer switches the toolbar to Trellis-only controls;
+- Offset, Skip, Flip, and Rotate menus update the active `TrellisLayer` directly and immutably;
+- Reset calls the layer's `reset()` implementation;
+- ordinary drawing tools remain unavailable while a Trellis layer is active.
 
-Closing Repeat discards the draft. Apply commits the draft and closes Repeat. A create Apply removes the captured source objects from ordinary layer geometry and clears selection state. An edit Apply changes the controls while retaining the captured pattern.
-
-Replace captures a new completed selection. Applying it first materializes the old Trellis's transformed tile zero into ordinary geometry, then installs the replacement. Release is the only Trellis-removal action: it materializes transformed tile zero, removes the Trellis, and selects the restored objects.
+There is no separate durable Trellis object, `trellisDraft`, umbrella Repeat menu, or Apply/Edit/Replace/Release lifecycle. Those legacy fields are accepted only at the persistence migration boundary.
 
 ## Tile transforms and cadence
 
-`src/trellisUtils.js` contains the geometry engine used by `Trellis`:
+`src/utils/trellis.js` contains the geometry engine used by `TrellisLayer`:
 
 - affine composition and SVG matrix formatting;
 - row/column cadence and negative-index modulo behavior;
@@ -36,18 +38,18 @@ Replace captures a new completed selection. Applying it first materializes the o
 - conservative candidate ranges and line/polygon viewport tests;
 - global candidate/group safety limits.
 
-Tile `(0, 0)` is an ordinary cadence member. Any flip or rotation active at index zero applies to it. Release and layer thumbnails therefore use `sourceTileDescriptor()` rather than treating the captured source as an untransformed special case.
+Tile `(0, 0)` is an ordinary cadence member. Any flip or rotation active at index zero applies to it. Materialization and thumbnails therefore use `sourceTileDescriptor()` rather than treating the captured source as an untransformed special case.
 
-The candidate range inverse-transforms all four viewport corners. It also accounts for geometry protruding beyond the source rectangle and for transformed pattern radius. This preserves coverage under canvas rotation, non-uniform scale, offsets, flips, and long crossing lines.
+Candidate-range calculation inverse-transforms all four viewport corners and accounts for geometry protruding beyond the source rectangle and for transformed pattern radius. This preserves coverage under canvas rotation, non-uniform scale, offsets, flips, and long crossing lines.
 
-`ArtworkLayers` divides `MAX_TRELLIS_GROUPS` and `MAX_TRELLIS_CANDIDATES` across all visible Trellises. Export applies the same division and substitutes the export rectangle for the viewport, preventing multiple layers from multiplying the worst-case budget.
+## Rendering
 
-## Rendering and selection
+The memoized `Trellis` React component lives in `src/drawing.jsx`. It receives a `TrellisLayer`, asks it for finite tile descriptors, dispatches a warning once when safety limits are reached, and renders the source polygons and lines inside each tile transform group. Hooks and warning dispatch remain outside the durable class.
 
-The Trellis renderer receives a model and layer state, requests its finite tile descriptors, dispatches a warning once when safety limits are reached, and emits the source fills and lines inside each tile group. Hooks and warning dispatch stay out of the durable class.
-
-During create/replace preview, `ArtworkLayers` suppresses the captured ordinary source indexes. `trellisSelectionUtils.js` applies the draft's tile-zero matrix to bounds and selection controls without mutating stored selection points. Once applied, the source exists only inside the Trellis and no bounds are required for rendering.
+`ArtworkLayers` counts visible `TrellisLayer` instances and divides `MAX_TRELLIS_GROUPS` and `MAX_TRELLIS_CANDIDATES` among them. Export must use the same policy with the export rectangle substituted for the viewport so multiple Trellis layers cannot multiply the worst-case work.
 
 ## Persistence and migration
 
-Schema 2 revives Trellis, Layer, Line, Poly, Point, and Dist instances. Legacy flat documents migrate their geometry and controls into `Layer 1`. If the old Boolean Trellis flag is active with valid bounds, migration captures the selected source and removes it from ordinary geometry. Comment-free legacy SVGs containing only `#lines` remain importable.
+Schema 3 stores `TrellisLayer` with a `type` discriminator and revives its `Point`, `Dist`, `Line`, and `Poly` members. Visual exports finitely expand visible Trellis layers, while editable metadata retains their source geometry and controls.
+
+Legacy documents may contain a Boolean Trellis flag, Trellis controls in global state, or a Trellis embedded in a generic layer. Deserialization may accept those shapes, but it should normalize them into separate concrete layer subclasses. New serialization must never emit the legacy hybrid shape.

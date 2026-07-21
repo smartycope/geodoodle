@@ -20,7 +20,6 @@ import FilePage from "./menus/FilePage"
 import SettingsPage from "./menus/SettingsPage"
 import KeybindingsPage from "./menus/KeybindingsPage"
 import NavMenu from "./menus/NavMenu"
-import RepeatMenu from "./menus/RepeatMenu"
 import MirrorMenu from "./menus/MirrorMenu"
 import ExtraMenu from "./menus/ExtraMenu"
 import ClipboardMenu from "./menus/ClipboardMenu"
@@ -44,9 +43,8 @@ import {
   rotateCoordinates,
 } from "./utils/transform"
 import useViewportSize from "./useViewportSize"
-import { getRenderedBoundRect, getRenderedBounds } from "./utils/trellisSelection"
-import { activeLayerIsTrellis, getLayerState } from "./utils/layers"
-import { MAX_TRELLIS_CANDIDATES, MAX_TRELLIS_GROUPS, trellisOwnsSource } from "./utils/trellis"
+import { activeLayerIsTrellis, getActiveLayer, getLayerState } from "./utils/layers"
+import { MAX_TRELLIS_CANDIDATES, MAX_TRELLIS_GROUPS } from "./utils/trellis"
 import { getAllIntersections } from "./utils/math"
 import SkipMenu from "./menus/SkipMenu"
 import OffsetMenu from "./menus/OffsetMenu"
@@ -55,7 +53,6 @@ import RotateMenu from "./menus/RotateMenu"
 import TrellisLayer from "./classes/TrellisLayer"
 
 import { memo, useRef } from "react"
-import { TRELLIS_SIZE_WARNING } from "./utils/trellis"
 import DrawingLayer from "./classes/DrawingLayer"
 
 // For debugging
@@ -195,6 +192,8 @@ export const DebugInfo = () => {
   const breakpoint = useActiveBreakpoint()
 
   if (!state.debug) return null
+  // I don't feel like implementing this right now
+  if (activeLayerIsTrellis(state)) return null
 
   const { debugDrawPoints, translation, scalex, scaley } = state
   const origin = Point.fromViewport(state, translation._x, translation._y, false)
@@ -413,7 +412,7 @@ export const SelectionRect = () => {
   const { deletingSelection, partials } = state
   const geodoodleTheme = theme.geodoodle ?? themeDefaults
   const selectionTheme = deletingSelection ? geodoodleTheme.deletingSelection : geodoodleTheme.selection
-  let boundRect = getRenderedBoundRect(state)
+  let boundRect = getBoundRect(state)
 
   if (!boundRect) return null
 
@@ -449,11 +448,9 @@ export const Bounds = () => {
   if (activeLayerIsTrellis(state)) return null
   const radius = scalex / 1
   const deletingSelectionTheme = (theme.geodoodle ?? themeDefaults).deletingSelection
-  const renderedBounds = getRenderedBounds(state)
-
   return (
     <g id="bounds">
-      {renderedBounds.map((bound, index) => (
+      {bounds.map((bound) => (
         <rect
           width={radius}
           height={radius}
@@ -463,7 +460,7 @@ export const Bounds = () => {
           // rx={4}
           stroke={deletingSelection ? deletingSelectionTheme.borderColor : theme.palette.primary.bounds}
           fillOpacity={0}
-          key={`bound-${bounds[index].hash()}`}
+          key={`bound-${bound.hash()}`}
         />
       ))}
     </g>
@@ -543,7 +540,6 @@ export const Lines = ({
   transformed = true,
   interactive = true,
   selectionOverlayOnly = false,
-  // suppressedIndices = [],
 } = {}) => {
   const { state: contextState } = useContext(StateContext)
   const state = layerState ?? contextState
@@ -563,8 +559,6 @@ export const Lines = ({
     genericSelectors: storedGenericSelectors,
     specificSelectors: storedSpecificSelectors,
     deletingSelection: storedDeletingSelection,
-    trellis,
-    openMenus,
   } = state
   const bounds = interactive ? storedBounds : EMPTY_ARRAY
   const genericSelectors = interactive ? storedGenericSelectors : EMPTY_ARRAY
@@ -577,9 +571,6 @@ export const Lines = ({
   // The cursor only affects permanent-line selection while a bound is being
   // dragged. In every other mode, moving it should not rebuild every SVG line.
   const activeBoundCursor = boundDragging && bounds.length === 1 ? cursorPos : null
-  console.log({
-    layerState,
-  })
   const { selectionUnderlays, renderedLines } = useMemo(() => {
     const isLineInViewport = createViewportLineCuller(
       { scalex, scaley, translation, rotate },
@@ -594,9 +585,7 @@ export const Lines = ({
     const glowPadding = hasPossibleHighlights ? Math.max(glowWidth / 2, useFancyGlow ? 0.6 : 0) : 0
     const strokeScale = Math.max(Math.abs(scalex), Math.abs(scaley))
     const visibleLineIndices = []
-    // const suppressed = new Set(suppressedIndices)
     for (let i = 0; i < lines.length; i++) {
-      // if (suppressed.has(i)) continue
       const strokePadding = Math.max(0, Number(lines[i].aes.width) || 0) / 2
       const viewportPadding = (strokePadding + glowPadding) * strokeScale + 1
       if (isLineInViewport(lines[i], viewportPadding)) visibleLineIndices.push(i)
@@ -616,11 +605,7 @@ export const Lines = ({
       useFancyGlow,
     }
     const boundRect = bounds?.length > 0 ? getBoundRect(renderState) : null
-    const trellisState = { trellis, openMenus: { repeat: openMenus.repeat }, bounds }
-    let renderedLineIndices =
-      typeof trellis === "boolean" && trellisOwnsSource(trellisState, boundRect)
-        ? visibleLineIndices.filter((lineIndex) => !lines[lineIndex].isSelected(renderState, boundRect))
-        : visibleLineIndices
+    let renderedLineIndices = visibleLineIndices
     const deletingAreaState = deletingSelection ? { ...renderState, genericSelectors: [], specificSelectors: [] } : null
     const deletingBoundRect = deletingAreaState ? getBoundRect(deletingAreaState) : null
     const selectorState = deletingSelection
@@ -707,9 +692,6 @@ export const Lines = ({
     glowWidth,
     glowOpacity,
     useFancyGlow,
-    trellis,
-    openMenus.repeat,
-    // suppressedIndices,
     selectionOverlayOnly,
     id,
   ])
@@ -825,21 +807,11 @@ export const Dots = () => {
 export const Polygons = ({ layerState, id = "filled-polys", transformed = true } = {}) => {
   const { state: contextState } = useContext(StateContext)
   const state = layerState ?? contextState
-  const { filledPolys, fill, colorProfile, bounds, partials, trellis, openMenus } = state
-  const renderedPolys = useMemo(() => {
-    const trellisState = { trellis, openMenus: { repeat: openMenus.repeat }, bounds }
-    const boundRect = bounds.length > 1 ? getBoundRect(trellisState) : null
-    const legacyPolys =
-      typeof trellis === "boolean" && trellisOwnsSource(trellisState, boundRect)
-        ? filledPolys.filter((poly) => !poly.isSelected({ partials }, boundRect))
-        : filledPolys
-    // const suppressed = new Set(suppressedIndices)
-    return (
-      legacyPolys
-        // .filter((_, index) => !suppressed.has(index))
-        .map((poly, i) => poly.render({ fill, colorProfile }, `${id}-poly-${i}`))
-    )
-  }, [filledPolys, fill, colorProfile, bounds, partials, trellis, openMenus.repeat, id])
+  const { filledPolys, fill, colorProfile } = state
+  const renderedPolys = useMemo(
+    () => filledPolys.map((poly, i) => poly.render({ fill, colorProfile }, `${id}-poly-${i}`)),
+    [filledPolys, fill, colorProfile, id],
+  )
 
   return (
     <g id={id} transform={transformed ? getCanvasTransform(state) : undefined}>
@@ -862,21 +834,12 @@ export const Trellis = memo(function Trellis({
   const dispatch = context.dispatch
   const viewportSize = useViewportSize()
   const lastWarning = useRef(null)
-  const legacyRequested = Boolean((state.trellis || state.openMenus?.repeat) && state.bounds?.length > 1)
-
-  const trellis = useMemo(() => {
-    if (suppliedTrellis instanceof TrellisLayer) return suppliedTrellis
-    if (state.trellis instanceof TrellisLayer) return state.trellis
-    // Legacy tests/files/saves may still supply the old boolean/control shape.
-    if ((state.trellis || state.openMenus?.repeat) && state.bounds?.length > 1)
-      return TrellisLayer.fromSelection(state, state)
-    return null
-  }, [suppliedTrellis, state])
+  const trellis = suppliedTrellis ?? getActiveLayer(state)
 
   const result = useMemo(() => {
-    if (!trellis?.valid) return { tiles: [], warning: legacyRequested ? TRELLIS_SIZE_WARNING : null }
+    if (!(trellis instanceof TrellisLayer) || !trellis.valid) return { tiles: [], warning: null }
     return trellis.visibleTiles(state, viewportSize.width, viewportSize.height, { maxGroups, maxCandidates })
-  }, [trellis, legacyRequested, state, viewportSize.width, viewportSize.height, maxGroups, maxCandidates])
+  }, [trellis, state, viewportSize.width, viewportSize.height, maxGroups, maxCandidates])
 
   useEffect(() => {
     if (!result.warning) {
@@ -917,9 +880,6 @@ export const Trellis = memo(function Trellis({
 export const ArtworkLayers = () => {
   const { state } = useContext(StateContext)
   const visibleLayers = state.layers.filter((layer) => layer.visible)
-  // const visibleTrellises = visibleLayers.filter(
-  //   (layer) => (layer.id === state.activeLayerId && state.trellisDraft?.trellis) || layer.trellis,
-  // ).length
   const visibleTrellises = visibleLayers.filter((layer) => layer instanceof TrellisLayer).length
   const maxGroups = Math.max(1, Math.floor(MAX_TRELLIS_GROUPS / Math.max(1, visibleTrellises)))
   const maxCandidates = Math.max(1, Math.floor(MAX_TRELLIS_CANDIDATES / Math.max(1, visibleTrellises)))
@@ -927,9 +887,6 @@ export const ArtworkLayers = () => {
   return visibleLayers.map((layer) => {
     const active = layer.id === state.activeLayerId
     const layerState = getLayerState(state, layer)
-    // const draft = active ? state.trellisDraft : null
-    // const trellis = draft?.trellis ?? layer.trellis
-    // const suppressDraftSource = draft && ["create", "replace"].includes(draft.mode)
     const suffix = active ? "" : `-${layer.id}`
 
     let rtn
@@ -944,25 +901,14 @@ export const ArtworkLayers = () => {
           maxCandidates={maxCandidates}
         />
       )
-     else if (layer instanceof DrawingLayer)
+    else if (layer instanceof DrawingLayer)
       rtn = (
         <>
-          <Polygons
-            layerState={layerState}
-            id={`filled-polys${suffix}`}
-            transformed={false}
-            // suppressedIndices={suppressDraftSource ? draft.sourcePolyIndexes : []}
-          />
-          <Lines
-            layerState={layerState}
-            id={`lines${suffix}`}
-            transformed={false}
-            interactive={false}
-            // suppressedIndices={suppressDraftSource ? draft.sourceLineIndexes : []}
-          />
+          <Polygons layerState={layerState} id={`filled-polys${suffix}`} transformed={false} />
+          <Lines layerState={layerState} id={`lines${suffix}`} transformed={false} interactive={false} />
         </>
       )
-     else throw new Error("Unknown layer type: " + layer.type)
+    else throw new Error("Unknown layer type: " + layer.type)
 
     return (
       <g key={layer.id} id={`artwork-${layer.id}`} data-layer-id={layer.id} transform={getCanvasTransform(state)}>
@@ -971,13 +917,6 @@ export const ArtworkLayers = () => {
     )
   })
 }
-
-// export const ActiveSelectionLines = () => {
-  // const { state } = useContext(StateContext)
-  // const draft = state.trellisDraft
-  // const suppressedIndices = draft && ["create", "replace"].includes(draft.mode) ? draft.sourceLineIndexes : EMPTY_ARRAY
-  // return <Lines id="active-selection-lines" selectionOverlayOnly /> //  suppressedIndices={suppressedIndices}
-// }
 
 export const CurrentPolys = () => {
   const { state } = useContext(StateContext)
@@ -1008,7 +947,6 @@ export const Menus = () => {
 
       {/* Pages */}
       {openMenus.navigation && <NavMenu />}
-      {openMenus.repeat && <RepeatMenu />}
       {openMenus.file && <FilePage />}
       {openMenus.settings && <SettingsPage />}
       {openMenus.key && <KeybindingsPage />}

@@ -51,7 +51,7 @@ import {
   end_tour,
   toggle_partials,
   toggle_dots,
-  apply_trellis,
+  add_trellis_layer,
   set_manual,
   menu,
   debug,
@@ -194,20 +194,6 @@ describe("Transformation Actions", () => {
       const newState = translate(state, { amt })
 
       expect(newState.translation).toEqual(state.translation.add(amt))
-    })
-
-    test("should not translate if it would move selection out of viewport when repeating", () => {
-      const boundRect = new Rect(new Point(0, 0), new Point(100, 100))
-      const amt = new Dist(1000, 1000) // Large translation that would move out of viewport
-
-      const stateWithBounds = {
-        ...state,
-        boundRect,
-        trellis: true, // Enable repeating
-      }
-
-      const newState = translate(stateWithBounds, { amt })
-      expect(newState).toBeUndefined()
     })
   })
 
@@ -455,7 +441,8 @@ describe("Deletion Actions", () => {
       expect(newState.layers[0].lines).toHaveLength(0)
       expect(newState.layers[0].bounds).toHaveLength(0)
       expect(newState.openMenus.delete).toBe(false)
-      expect(newState.openMenus.repeat).toBe(false)
+      expect(newState.openMenus.offset).toBe(false)
+      expect(newState.openMenus.rotate).toBe(false)
     })
   })
 
@@ -1200,6 +1187,7 @@ describe("copy_image", () => {
     const withoutSelection = {
       ...state,
       lines,
+      layers: [state.layers[0].copy({ lines })],
       bounds: [],
       genericSelectors: [],
       specificSelectors: [],
@@ -1450,8 +1438,8 @@ describe("UI Actions", () => {
     })
   })
 
-  describe("apply_trellis", () => {
-    test("moves the selected source into a persistent Trellis", () => {
+  describe("add_trellis_layer", () => {
+    test("moves the selected source into a concrete Trellis layer", () => {
       const line = new Line(state, new Point(1, 1), new Point(3, 3))
       const layer = state.layers[0].copy({
         lines: [line],
@@ -1459,12 +1447,13 @@ describe("UI Actions", () => {
       })
       const source = { ...state, layers: [layer], lines: layer.lines, bounds: layer.bounds }
 
-      const result = apply_trellis(source)
+      const result = add_trellis_layer(source)
 
-      expect(result.layers[0].trellis).not.toBeNull()
-      expect(result.layers[0].trellis.lines).toHaveLength(1)
+      expect(result.layers).toHaveLength(2)
       expect(result.layers[0].lines).toHaveLength(0)
       expect(result.layers[0].bounds).toEqual([])
+      expect(result.layers[1].lines).toHaveLength(1)
+      expect(result.activeLayerId).toBe(result.layers[1].id)
     })
   })
 
@@ -1512,19 +1501,19 @@ describe("UI Actions", () => {
       expect(afterOpenMirror.openMenus.mirror).toBe(true)
     })
 
-    test("restores non-repeat menus when the toolbar is reopened", () => {
+    test("restores open menus when the toolbar is reopened", () => {
       const withOpenMenus = {
         ...state,
         bounds: [new Point(0, 0), new Point(10, 10)],
-        openMenus: { ...state.openMenus, color: true, navigation: true, repeat: true },
+        openMenus: { ...state.openMenus, color: true, navigation: true },
       }
 
       const afterHidingToolbar = menu(withOpenMenus, { toggle: "main" })
-      expect(afterHidingToolbar.openMenus).toMatchObject({ main: false, color: false, navigation: false, repeat: true })
+      expect(afterHidingToolbar.openMenus).toMatchObject({ main: false, color: false, navigation: false })
       expect(afterHidingToolbar.toolbarHiddenMenus).toEqual(["color", "navigation"])
 
       const afterShowingToolbar = menu({ ...withOpenMenus, ...afterHidingToolbar }, { toggle: "main" })
-      expect(afterShowingToolbar.openMenus).toMatchObject({ main: true, color: true, navigation: true, repeat: true })
+      expect(afterShowingToolbar.openMenus).toMatchObject({ main: true, color: true, navigation: true })
       expect(afterShowingToolbar.toolbarHiddenMenus).toEqual([])
     })
 

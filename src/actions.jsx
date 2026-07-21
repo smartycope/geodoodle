@@ -42,15 +42,9 @@ import { tourState } from "./states"
 import * as turf from "@turf/turf"
 import { normalizeAngle } from "./utils/transform"
 import TrellisLayer from "./classes/TrellisLayer"
-import { getActiveLayer, nextLayerNumber, setActiveLayer, updateActiveLayer, updateLayer } from "./utils/layers"
-import {
-  convertLastSelectorToBound,
-  moveCursor,
-  nearestVisibleLayer,
-  positionCursorAtEdges,
-} from "./utils/actions"
+import { getActiveLayer, nextLayerNumber, setActiveLayer, updateLayer } from "./utils/layers"
+import { convertLastSelectorToBound, moveCursor, nearestVisibleLayer, positionCursorAtEdges } from "./utils/actions"
 import DrawingLayer from "./classes/DrawingLayer"
-import { defaultTrellisControl } from "./utils/trellis"
 
 // region Transformation Actions
 export const cursor_moved = (state, { point }) => {
@@ -73,26 +67,14 @@ export const cursor_moved = (state, { point }) => {
   }
 }
 
-export const translate = (state, { amt } /*Dist*/) => {
-  // If we're repeating, don't let the selection move out of the viewport
-  // I think this is how we check if we're currently repeating
-  // TODO: test this
-  const { boundRect, trellis, openMenus } = state
-  if (boundRect && (trellis || openMenus.repeat)) {
-    const rect = boundRect.asViewport(state)
-    const { x, y } = amt.asViewport(state)
-    if (rect.left + x < 0 || rect.right + x > viewportWidth() || rect.top + y < 0 || rect.bottom + y > viewportHeight())
-      return
-  }
-  return {
-    translation: state.translation.add(amt),
-    // TODO: make this an advanced setting
-    // Keep the cursor on the same dot as we translate
-    // cursorPos: cursorPos,
-    // Keep the cursor in the same place in the window as we translate
-    // cursorPos: cursorPos.add(data.amt.neg()).align(state),
-  }
-}
+export const translate = (state, { amt } /*Dist*/) => ({
+  translation: state.translation.add(amt),
+  // TODO: make this an advanced setting
+  // Keep the cursor on the same dot as we translate
+  // cursorPos: cursorPos,
+  // Keep the cursor in the same place in the window as we translate
+  // cursorPos: cursorPos.add(data.amt.neg()).align(state),
+})
 
 export const scale = (state, { amtx, amty, center = state.cursorPos }) => {
   // args: amtx, amty (delta values), optional: center (Point) (defaults to cursorPos)
@@ -236,6 +218,16 @@ const cancelledLayerInteraction = {
   curPolys: [],
 }
 
+const closeIncompatibleLayerMenus = (openMenus, layer) => {
+  const closing =
+    layer instanceof TrellisLayer
+      ? ["color", "mirror", "select", "clipboard", "delete"]
+      : ["offset", "skip", "flip", "rotate"]
+  return Object.fromEntries(
+    Object.entries(openMenus).map(([key, value]) => [key, closing.includes(key) ? false : value]),
+  )
+}
+
 export const add_layer = (state) => {
   const number = nextLayerNumber(state.layers)
   const layer = DrawingLayer.createFromIndex(number)
@@ -245,27 +237,53 @@ export const add_layer = (state) => {
   )
   const layers = [...state.layers]
   layers.splice(activeIndex + 1, 0, layer)
-  return { layers, activeLayerId: layer.id, ...cancelledLayerInteraction }
+  return {
+    layers,
+    activeLayerId: layer.id,
+    openMenus: closeIncompatibleLayerMenus(state.openMenus, layer),
+    ...cancelledLayerInteraction,
+  }
 }
 
 export const add_trellis_layer = (state) => {
+  const sourceLayer = getActiveLayer(state)
+  if (!(sourceLayer instanceof DrawingLayer)) return { toast: "Select a drawing layer to create a Trellis" }
   const layer = TrellisLayer.fromSelection(state)
   if (!layer?.valid) return { toast: "Select an area with both width and height to repeat" }
+
+  const boundRect = getBoundRect(state)
+  const remainingSource = sourceLayer.copy({
+    lines: sourceLayer.lines.filter((line) => !line.isSelected(state, boundRect)),
+    filledPolys: sourceLayer.filledPolys.filter((poly) => !poly.isSelected(state, boundRect)),
+    bounds: [],
+    specificSelectors: [],
+    genericSelectors: [],
+  })
 
   const activeIndex = Math.max(
     0,
     state.layers.findIndex((item) => item.id === state.activeLayerId),
   )
-  const layers = [...state.layers]
+  const layers = setActiveLayer(state, remainingSource)
   layers.splice(activeIndex + 1, 0, layer)
-  return { layers, activeLayerId: layer.id, ...cancelledLayerInteraction }
+  return {
+    layers,
+    activeLayerId: layer.id,
+    openMenus: closeIncompatibleLayerMenus(state.openMenus, layer),
+    ...cancelledLayerInteraction,
+  }
 }
 
 export const activate_layer = (state, { layerId }) => {
   const layer = state.layers.find((item) => item.id === layerId)
   if (!layer) return {}
   const layers = layer.visible ? state.layers : updateLayer(state.layers, layerId, { visible: true })
-  return { layers, activeLayerId: layerId, ...cancelledLayerInteraction }
+  return {
+    layers,
+    activeLayerId: layerId,
+    openMenus: closeIncompatibleLayerMenus(state.openMenus, layer),
+    ...cancelledLayerInteraction,
+  }
 }
 
 export const rename_layer = (state, { layerId = state.activeLayerId, name }) => ({
@@ -281,6 +299,7 @@ export const set_layer_visibility = (state, { layerId, visible }) => {
   return {
     layers,
     activeLayerId: next?.id ?? layerId,
+    ...(next ? { openMenus: closeIncompatibleLayerMenus(state.openMenus, next) } : {}),
     ...(next ? cancelledLayerInteraction : { ...cancelledLayerInteraction, toast: "Show or add a layer to edit" }),
   }
 }
@@ -301,7 +320,12 @@ export const delete_layer = (state, { layerId = state.activeLayerId }) => {
   const next =
     nearestVisibleLayer(layers, Math.min(targetIndex, layers.length - 1)) ??
     layers[Math.min(targetIndex, layers.length - 1)]
-  return { layers, activeLayerId: next.id, ...cancelledLayerInteraction }
+  return {
+    layers,
+    activeLayerId: next.id,
+    openMenus: closeIncompatibleLayerMenus(state.openMenus, next),
+    ...cancelledLayerInteraction,
+  }
 }
 
 export const reorder_layers = (state, { orderedIds }) => {
@@ -311,96 +335,12 @@ export const reorder_layers = (state, { orderedIds }) => {
   return layers.every(Boolean) ? { layers } : {}
 }
 
-export const clear_active_layer = (state) => ({layers: setActiveLayer(state, getActiveLayer(state).reset())})
+export const clear_active_layer = (state) => ({ layers: setActiveLayer(state, getActiveLayer(state).reset()) })
 
-// export const update_layer = (state, { key, value }) => ({layers: setActiveLayer(state, getActiveLayer(state).withControls({ [key]: value }))})
-export const update_active_layer = (state, { key, value }) => ({layers: updateLayer(state.layers, state.activeLayerId, { [key]: value })})
-
-// export const reset_trellis_draft = (state) => {
-//   if (!state.trellisDraft) return {}
-//   const defaults = new TrellisLayer()
-//   return {
-//     trellisDraft: {
-//       ...state.trellisDraft,
-//       trellis: state.trellisDraft.trellis.withControls(defaults),
-//     },
-//   }
-// }
-
-// export const discard_trellis_draft = () => ({ trellisDraft: null })
-
-// export const replace_trellis = (state) => start_trellis_draft(state, { replace: true })
-
-// export const apply_trellis = (state) => {
-//   const draft = state.trellisDraft ?? start_trellis_draft(state).trellisDraft
-//   if (!draft?.trellis?.valid || draft.layerId !== state.activeLayerId)
-//     return { toast: "Select an area with both width and height to repeat" }
-
-//   const layer = getActiveLayer(state)
-//   if (draft.mode === "edit")
-//     return {
-//       layers: updateLayer(state.layers, layer.id, {
-//         trellis: draft.trellis,
-//         trellisControls: draft.trellis.controls,
-//       }),
-//       trellisDraft: null,
-//       openMenus: { ...state.openMenus, repeat: false, main: true },
-//       hideDots: false,
-//     }
-
-//   const selectedLines = new Set(draft.sourceLineIndexes ?? [])
-//   const selectedPolys = new Set(draft.sourcePolyIndexes ?? [])
-//   let lines = layer.lines.filter((_, index) => !selectedLines.has(index))
-//   let filledPolys = layer.filledPolys.filter((_, index) => !selectedPolys.has(index))
-
-//   if (draft.mode === "replace" && layer.trellis) {
-//     const released = layer.trellis.materializeSource()
-//     lines = [...lines, ...released.lines]
-//     filledPolys = [...filledPolys, ...released.filledPolys]
-//   }
-
-//   return {
-//     layers: updateLayer(state.layers, layer.id, {
-//       lines,
-//       filledPolys,
-//       bounds: [],
-//       specificSelectors: [],
-//       genericSelectors: [],
-//       trellis: draft.trellis,
-//       trellisControls: draft.trellis.controls,
-//     }),
-//     trellisDraft: null,
-//     openMenus: { ...state.openMenus, repeat: false, main: true },
-//     hideDots: false,
-//     deletingSelection: false,
-//     boundDragging: false,
-//   }
-// }
-
-// export const release_trellis = (state) => {
-//   const layer = getActiveLayer(state)
-//   if (!layer?.trellis) return {}
-//   const released = layer.trellis.materializeSource()
-//   const points = [
-//     ...released.lines.flatMap((line) => line.points()),
-//     ...released.filledPolys.flatMap((poly) => poly.points),
-//   ]
-//   const rect = points.length ? Rect.fromPoints(...points) : null
-//   return {
-//     layers: updateLayer(state.layers, layer.id, {
-//       lines: [...layer.lines, ...released.lines],
-//       filledPolys: [...layer.filledPolys, ...released.filledPolys],
-//       trellis: null,
-//       trellisControls: layer.trellis.controls,
-//       bounds: rect ? [rect.topLeft, rect.bottomRight] : [],
-//       specificSelectors: [],
-//       genericSelectors: [],
-//     }),
-//     trellisDraft: null,
-//     openMenus: { ...state.openMenus, repeat: false, main: true },
-//     hideDots: false,
-//   }
-// }
+// TODO: either this needs to be renamed, or it needs to be more generic
+export const update_active_layer = (state, updates) => ({
+  layers: updateLayer(state.layers, state.activeLayerId, updates),
+})
 // endregion
 
 // region Destruction Actions
@@ -412,9 +352,15 @@ export const clear = (state) => ({
   rotate: 0,
   layers: [DrawingLayer.createFromIndex(1)],
   activeLayerId: "layer-1",
-  trellisDraft: null,
   deletingSelection: false,
-  openMenus: { ...state.openMenus, delete: false, repeat: false },
+  openMenus: {
+    ...state.openMenus,
+    delete: false,
+    offset: false,
+    skip: false,
+    flip: false,
+    rotate: false,
+  },
   polygons: [],
   fillMode: false,
   clipboard: null,
@@ -850,10 +796,7 @@ export const delete_local = (state, { name }) => deleteLocally(name)
 
 export const copy_image = (state) => {
   const selection = getSelected(state, false, true)
-  const hasVisibleArtwork =
-    state.layers.some((layer) => layer.visible && (layer.lines.length || layer.filledPolys.length || layer.trellis)) ||
-    state.lines.length ||
-    state.filledPolys.length
+  const hasVisibleArtwork = state.layers.some((layer) => layer.visible && !layer.isEmpty)
   if (!selection.length && !hasVisibleArtwork) return
   const rect = resolveExportRect(state, selection.length > 0)
 
@@ -909,9 +852,10 @@ export const set_manual_and_save_settings = (state, { action, ...data }) => data
 
 // This function defines how all the menus & pages interact with each other
 // Nav is not a mini menu, it can be open indepedently
-const miniMenus = ["extra", "color", "mirror", "select", "clipboard", "delete"]
+const trellisSubMenus = ["offset", "skip", "flip", "rotate"]
+const miniMenus = ["extra", "color", "mirror", "select", "clipboard", "delete", ...trellisSubMenus]
 export const menu = (state, { toggle, open, close }) => {
-  const { openMenus, hideDots } = state
+  const { openMenus } = state
   const reopenMenusWithToolbar = state.reopenMenusWithToolbar !== false
   const shouldCloseToolbar = close === "main" || (toggle === "main" && openMenus.main)
   const shouldOpenToolbar = open === "main" || (toggle === "main" && !openMenus.main)
@@ -933,14 +877,15 @@ export const menu = (state, { toggle, open, close }) => {
     })
   }
 
-  // If we close the toolbar (main), close all the mini menus as well (except repeat)
+  // If we close the toolbar, close its mini menus as well.
   if (shouldCloseToolbar) {
     toolbarHiddenMenus = reopenMenusWithToolbar
-      ? Object.keys(openMenus).filter((key) => !["main", "controls", "repeat"].includes(key) && openMenus[key])
+      ? Object.keys(openMenus).filter(
+          (key) => !["main", "controls", ...trellisSubMenus].includes(key) && openMenus[key],
+        )
       : []
     Object.keys(copy).forEach((key) => {
-      // Toolbar and repeat menus are independent of each other
-      if (key !== "repeat") copy[key] = false
+      if (key !== "controls") copy[key] = false
     })
   }
 
@@ -949,47 +894,10 @@ export const menu = (state, { toggle, open, close }) => {
     toolbarHiddenMenus = []
   }
 
-  let repeatToast = null
-  let trellisDraft = state.trellisDraft
-  let layers = state.layers
-  const openingRepeat = !openMenus.repeat && copy.repeat
-  const closingRepeat = openMenus.repeat && !copy.repeat
-  if (openingRepeat && getActiveLayer(state)?.visible === false) {
-    copy.repeat = false
-    repeatToast = "Show or add a layer to edit"
-  } else if (openingRepeat) {
-    const draftResult = start_trellis_draft(state)
-    if (!draftResult.trellisDraft) {
-      copy.repeat = false
-      repeatToast = "Please select an area to repeat"
-    } else trellisDraft = draftResult.trellisDraft
-  }
-  if (closingRepeat) {
-    if (trellisDraft?.trellis)
-      layers = updateLayer(layers, trellisDraft.layerId, { trellisControls: trellisDraft.trellis.controls })
-    trellisDraft = null
-  }
-
-  // If we open the repeat menu, close the toolbar (and it's mini menus). They can both be open at the same time though
-  if (open === "repeat" || (toggle === "repeat" && copy[toggle])) {
-    copy.main = false
-    copy.navigation = false
-    miniMenus.forEach((key) => (copy[key] = false))
-  }
-
-  // If we close the repeat menu, open the toolbar back up.
-  // This is so we don't have to manually open the toolbar after closing the repeat menu
-  if (close === "repeat" || (toggle === "repeat" && !copy[toggle])) copy.main = true
-
   return {
-    ...(layers !== state.layers ? { layers } : {}),
     openMenus: { ...copy },
     toolbarHiddenMenus,
-    trellisDraft,
     curLinePos: null,
-    // If we close the repeat menu, and we have dots turned off, turn them back on
-    hideDots: !(openMenus.repeat && !copy.repeat) && hideDots,
-    toast: repeatToast,
   }
 }
 

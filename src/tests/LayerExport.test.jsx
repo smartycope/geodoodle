@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import getInitialState from "../states"
-import DrawingLayer from "../classes/Layer"
+import DrawingLayer from "../classes/DrawingLayer"
 import TrellisLayer from "../classes/TrellisLayer"
 import Line from "../classes/Line"
 import Point from "../classes/Point"
@@ -18,12 +18,13 @@ describe("layer-aware persistence and export", () => {
       name: "Bottom",
       lines: [makeLine(state, 0, 0, 2, 0, "#123456")],
     })
-    const trellis = new TrellisLayer({
+    const repeated = new TrellisLayer({
+      id: "layer-2",
+      name: "Repeated",
       sourceOrigin: new Point(2, 2),
       sourceSize: new Dist(4, 4),
       lines: [makeLine(state, 0, 0, 2, 1, "#abcdef")],
     })
-    const repeated = new DrawingLayer({ id: "layer-2", name: "Repeated", trellis })
     const hidden = new DrawingLayer({
       id: "layer-3",
       name: "Hidden",
@@ -46,7 +47,7 @@ describe("layer-aware persistence and export", () => {
     expect(restored.layers).toHaveLength(3)
     expect(restored.layers[2].visible).toBe(false)
     expect(restored.layers[2].lines[0].a.eq(new Point(99, 99))).toBe(true)
-    expect(restored.layers[1].trellis).toBeInstanceOf(TrellisLayer)
+    expect(restored.layers[1]).toBeInstanceOf(TrellisLayer)
   })
 
   test("migrates comment-free legacy SVG line groups", () => {
@@ -76,9 +77,48 @@ describe("layer-aware persistence and export", () => {
 
     const restored = deserializeState(legacy)
 
-    expect(restored.layers[0].trellis).toBeInstanceOf(TrellisLayer)
-    expect(restored.layers[0].trellis.skip.row.val).toBe(1)
-    expect(restored.layers[0].trellis.lines).toHaveLength(1)
+    expect(restored.layers).toHaveLength(2)
+    expect(restored.layers[0]).toBeInstanceOf(DrawingLayer)
     expect(restored.layers[0].lines).toEqual([])
+    expect(restored.layers[1]).toBeInstanceOf(TrellisLayer)
+    expect(restored.layers[1].skip.row.val).toBe(1)
+    expect(restored.layers[1].lines).toHaveLength(1)
+  })
+
+  test("splits a schema-2 hybrid layer into concrete Drawing and Trellis layers", () => {
+    const state = getInitialState()
+    const embedded = new TrellisLayer({
+      sourceOrigin: new Point(2, 2),
+      sourceSize: new Dist(4, 4),
+      lines: [makeLine(state, 0, 0, 2, 1)],
+    })
+    const legacy = JSON.stringify({
+      documentSchemaVersion: 2,
+      translation: new Dist(0, 0),
+      activeLayerId: "layer-1",
+      layers: [
+        {
+          type: "Layer",
+          id: "layer-1",
+          name: "Hybrid",
+          visible: true,
+          lines: [],
+          filledPolys: [],
+          bounds: [],
+          specificSelectors: [],
+          genericSelectors: [],
+          mirrorOrigins: [],
+          trellis: embedded,
+        },
+      ],
+    })
+
+    const restored = deserializeState(legacy)
+
+    expect(restored.layers).toHaveLength(2)
+    expect(restored.layers[0]).toBeInstanceOf(DrawingLayer)
+    expect(restored.layers[1]).toBeInstanceOf(TrellisLayer)
+    expect(restored.layers[1].name).toBe("Hybrid Trellis")
+    expect(restored.activeLayerId).toBe(restored.layers[1].id)
   })
 })

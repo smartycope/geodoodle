@@ -1,3 +1,7 @@
-# Filling In Colors
+# Filling in colors
 
-Polygons are created upon entering fillMode. First we remove any duplicates, null lines, or lines without length. Then we split the lines up into segments, so they don't overlap. Then we use turf to polygonize the lines. We can then use `inside` from `point-in-polygon` to determine which polygon a point is in (if any) whenever the mouse (not cursor!) moves. I added a Poly class to handle a lot of this logic.
+Fill is a `DrawingLayer` operation. A `TrellisLayer` displays captured polygons but cannot enter fill mode or accept new fills.
+
+Entering fill mode normalizes and deduplicates the active drawing layer's lines with helpers in `src/utils/lines.js`, splits intersections into non-overlapping segments, and passes the resulting multiline geometry to Turf's `polygonize`. The resulting `Poly` instances are stored transiently in `tempPolys`.
+
+As the physical mouse moves, `src/utils/misc.jsx:getPreviewPolys` checks `Poly.contains` for the mouse point and its mirrored copies. This intentionally uses `mousePos`, not the snapped `cursorPos`, so the user can choose a polygon interior between graph intersections. Committing a fill adds colored `Poly` instances to the active `DrawingLayer`; fill previews remain transient global interaction state.

@@ -1,5 +1,4 @@
 import { MIRROR_AXIS } from "../globals"
-import { getBoundRect } from "./lines"
 import { getCanvasToViewportMatrix, segmentIntersectsViewport } from "./transform"
 
 export const MAX_TRELLIS_GROUPS = 5000
@@ -45,20 +44,6 @@ export const defaultTrellisControl = (value, every = 1) => ({
     val: value,
   },
 })
-
-// While a valid Trellis is visible, it owns the selected source geometry as
-// tile (0, 0). The normal permanent line/polygon layers omit those objects so
-// the transformed tile is not overdrawn by an untransformed copy.
-export function trellisOwnsSource(state, boundRect = getBoundRect(state)) {
-  const ownsDraftSource = ["create", "replace"].includes(state.trellisDraft?.mode)
-  return Boolean(
-    (state.trellis === true || ownsDraftSource || (!state.trellis && state.openMenus?.repeat)) &&
-      state.bounds.length > 1 &&
-      boundRect &&
-      boundRect.wh._x > 0 &&
-      boundRect.wh._y > 0,
-  )
-}
 
 export function positiveModulo(value, modulus) {
   return ((value % modulus) + modulus) % modulus
@@ -157,19 +142,6 @@ export function createTrellisTileDescriptor({ row, column, seed, width, height, 
 
   const matrix = multiplyAffine(translationMatrix(x, y), localMatrix)
   return { row, column, matrix, transform: matrixToSvg(matrix) }
-}
-
-export function createTrellisSourceTileDescriptor(state, boundRect) {
-  return createTrellisTileDescriptor({
-    row: 0,
-    column: 0,
-    seed: { x: boundRect.topLeft._x, y: boundRect.topLeft._y },
-    width: boundRect.wh._x,
-    height: boundRect.wh._y,
-    overlap: state.trellisOverlap,
-    flip: state.trellisFlip,
-    rotate: state.trellisRotate,
-  })
 }
 
 function objectPoints(object) {

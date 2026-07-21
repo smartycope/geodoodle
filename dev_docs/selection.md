@@ -1,15 +1,17 @@
 # Selection
 
-As of 1.8.0, there's multiple methods of selecting lines:
+Selection belongs only to a `DrawingLayer`. Its durable fields are `bounds`, `genericSelectors`, and `specificSelectors`; `src/utils/lines.js:getSelected` and `src/classes/Line.jsx:isSelected` are the authoritative selection logic. A `TrellisLayer` has no selection state.
 
 ## Bounds
 
-Select an area, specified by the bounding box of the existing bounds. Lines with 1 end in and one end out of the selected area are selected dependant on if `partials` is true or not. This has been a feature for a long time.
+Two bound points define a rectangular area. With `partials` enabled, a line is selected when at least one endpoint is inside; otherwise both endpoints must be inside. While the second bound is being dragged, `cursorPos` supplies the temporary corner.
 
-## Generic Selectors
+## Generic selectors
 
-Points which select lines based on line a start, end, or intersection points. If there's multiple lines on the point, all are selected.
+A generic selector is a point that selects every line having an endpoint or intersection at that location. Multiple coincident lines may therefore be selected together.
 
-# Specific Selectors
+## Specific selectors
 
-Points which select lines only if specific selectors are on both the start _and_ end of the line.
+Specific selectors select a line only when both of that line's endpoints are present in the selector collection.
+
+Area, generic, and specific selection can contribute simultaneously. Selection can be copied relative to its center or top-left, and a completed non-zero selection is the source used by `TrellisLayer.fromSelection` when creating a Trellis layer.

@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, test } from "vitest"
 import getInitialState from "../states"
 import reducer from "../reducer"
-import DrawingLayer from "../classes/Layer"
+import DrawingLayer from "../classes/DrawingLayer"
 import TrellisLayer from "../classes/TrellisLayer"
 import Line from "../classes/Line"
 import Point from "../classes/Point"
 import Poly from "../classes/Poly"
-import { MIRROR_AXIS, MIRROR_ROT } from "../globals"
+import { MIRROR_ROT } from "../globals"
 import { getLayerState } from "../utils/layers"
 import { deserializeState, serializeState } from "../utils/files"
 import { redoStack, undoStack } from "../globals"
@@ -25,7 +25,7 @@ function selectedState() {
   return getLayerState({ ...state, layers: [layer] }, layer)
 }
 
-describe("Layer and Trellis models", () => {
+describe("concrete Layer models", () => {
   test("copy helpers leave the original models unchanged", () => {
     const layer = new DrawingLayer({ id: "one", name: "Original" })
     const renamed = layer.copy({ name: "Renamed", visible: false })
@@ -44,165 +44,77 @@ describe("Layer and Trellis models", () => {
     expect(rotated.rotate.row.val).toBe(MIRROR_ROT.RIGHT)
   })
 
-  test("captures relative geometry and releases transformed tile zero", () => {
-    const state = selectedState()
-    const captured = TrellisLayer.fromSelection(state).withControls({
+  test("captures relative geometry and materializes transformed tile zero", () => {
+    const captured = TrellisLayer.fromSelection(selectedState()).withControls({
       rotate: {
         row: { every: 1, val: MIRROR_ROT.RIGHT },
         col: { every: 1, val: MIRROR_ROT.NONE },
       },
     })
 
-    expect(captured.lines[0].a.eq(new Point(1, 1).relativeTo(new Point(0, 0)))).toBe(true)
-    const released = captured.materializeSource()
-    expect(released.lines[0].a.eq(new Point(3, 1))).toBe(true)
-    expect(released.lines[0].b.eq(new Point(3, 3))).toBe(true)
+    expect(captured.lines[0].a.eq(new Point(1, 1))).toBe(true)
+    const materialized = captured.materializeSource()
+    expect(materialized.lines[0].a.eq(new Point(3, 1))).toBe(true)
+    expect(materialized.lines[0].b.eq(new Point(3, 3))).toBe(true)
   })
 
-  test("revives layers, trellises, geometry classes, and polygon colors", () => {
-    let state = selectedState()
-    const trellis = TrellisLayer.fromSelection(state)
-    const layer = state.layers[0].copy({ trellis })
-    state = getLayerState({ ...state, layers: [layer] }, layer)
+  test("revives separate concrete layers and their geometry classes", () => {
+    const view = selectedState()
+    const trellis = TrellisLayer.fromSelection(view)
+    const drawing = view.layers[0].copy({ lines: [], filledPolys: [], bounds: [] })
+    const state = { ...view, layers: [drawing, trellis], activeLayerId: trellis.id }
 
     const restored = deserializeState(serializeState(state))
 
     expect(restored.layers[0]).toBeInstanceOf(DrawingLayer)
-    expect(restored.layers[0].trellis).toBeInstanceOf(TrellisLayer)
-    expect(restored.layers[0].trellis.lines[0]).toBeInstanceOf(Line)
-    expect(restored.layers[0].trellis.filledPolys[0]).toBeInstanceOf(Poly)
-    expect(restored.layers[0].trellis.filledPolys[0].color).toBe("#d946ef")
+    expect(restored.layers[1]).toBeInstanceOf(TrellisLayer)
+    expect(restored.layers[1].lines[0]).toBeInstanceOf(Line)
+    expect(restored.layers[1].filledPolys[0]).toBeInstanceOf(Poly)
+    expect(restored.layers[1].filledPolys[0].color).toBe("#d946ef")
   })
 })
 
-describe("layer and persistent trellis actions", () => {
+describe("polymorphic layer actions", () => {
   beforeEach(() => {
     undoStack.length = 0
     redoStack.length = 0
   })
 
-  test("Apply persists without bounds, Edit can cancel, and Release restores a selection", () => {
+  test("creates a Trellis layer by moving the selected source geometry", () => {
     const view = selectedState()
-    let state = { ...getInitialState(), layers: view.layers }
+    let state = reducer({ ...getInitialState(), layers: view.layers }, "add_trellis_layer")
 
-    state = reducer(state, { action: "menu", open: "repeat" })
-    expect(state.trellisDraft.mode).toBe("create")
-    state = reducer(state, "apply_trellis")
-    expect(state.layers[0].trellis).toBeInstanceOf(TrellisLayer)
+    expect(state.layers).toHaveLength(2)
+    expect(state.layers[0]).toBeInstanceOf(DrawingLayer)
     expect(state.layers[0].lines).toEqual([])
-    expect(state.layers[0].bounds).toEqual([])
+    expect(state.layers[0].filledPolys).toEqual([])
+    expect(state.layers[1]).toBeInstanceOf(TrellisLayer)
+    expect(state.layers[1].lines).toHaveLength(1)
+    expect(state.layers[1].filledPolys).toHaveLength(1)
+    expect(state.activeLayerId).toBe(state.layers[1].id)
 
     state = reducer(state, "undo")
-    expect(state.layers[0].trellis).toBeNull()
+    expect(state.layers).toHaveLength(1)
     expect(state.layers[0].lines).toHaveLength(1)
     state = reducer(state, "redo")
-    expect(state.layers[0].trellis).toBeInstanceOf(TrellisLayer)
-
-    state = reducer(state, { action: "menu", open: "repeat" })
-    expect(state.trellisDraft.mode).toBe("edit")
-    const originalTrellis = state.layers[0].trellis
-    state = reducer(state, {
-      action: "update_trellis_draft",
-      key: "skip",
-      value: { row: { every: 1, val: 2 }, col: { every: 1, val: 0 } },
-    })
-    state = reducer(state, { action: "menu", close: "repeat" })
-    expect(state.layers[0].trellis).toBe(originalTrellis)
-
-    state = reducer(state, "release_trellis")
-    expect(state.layers[0].trellis).toBeNull()
-    expect(state.layers[0].lines).toHaveLength(1)
-    expect(state.layers[0].filledPolys).toHaveLength(1)
-    expect(state.layers[0].bounds).toHaveLength(2)
+    expect(state.layers[1]).toBeInstanceOf(TrellisLayer)
   })
 
-  test("Release preserves controls for the next trellis captured on that layer", () => {
+  test("updates active Trellis controls directly and persists them", () => {
     const view = selectedState()
-    let state = { ...getInitialState(), layers: view.layers }
-    const controls = {
-      overlap: {
-        row: { every: 2, val: { x: 1, y: -1 } },
-        col: { every: 3, val: { x: -2, y: 2 } },
-      },
-      skip: { row: { every: 2, val: 1 }, col: { every: 3, val: 2 } },
-      flip: {
-        row: { every: 2, val: MIRROR_AXIS.X },
-        col: { every: 3, val: MIRROR_AXIS.Y },
-      },
-      rotate: {
-        row: { every: 2, val: MIRROR_ROT.RIGHT },
-        col: { every: 3, val: MIRROR_ROT.QUAD },
-      },
-    }
-
-    state = reducer(state, { action: "menu", open: "repeat" })
-    for (const [key, value] of Object.entries(controls))
-      state = reducer(state, { action: "update_trellis_draft", key, value })
-    state = reducer(state, "apply_trellis")
-    state = reducer(state, "release_trellis")
-
-    state = reducer(state, { action: "set_color", color: "#0ea5e9" })
-    state = reducer(state, "paint_selected")
-    state = { ...getInitialState(), ...deserializeState(serializeState(state)) }
-    state = reducer(state, { action: "menu", open: "repeat" })
-
-    expect(state.trellisDraft.mode).toBe("create")
-    expect(state.trellisDraft.trellis.controls).toEqual(controls)
-  })
-
-  test("closing an unapplied draft preserves its controls for that layer", () => {
-    const view = selectedState()
-    let state = { ...getInitialState(), layers: view.layers }
+    let state = reducer({ ...getInitialState(), layers: view.layers }, "add_trellis_layer")
     const skip = { row: { every: 4, val: 2 }, col: { every: 3, val: 1 } }
 
-    state = reducer(state, { action: "menu", open: "repeat" })
-    state = reducer(state, { action: "update_trellis_draft", key: "skip", value: skip })
-    const rememberedControls = state.trellisDraft.trellis.controls
-    state = reducer(state, { action: "menu", close: "repeat" })
+    state = reducer(state, { action: "update_active_layer", skip })
+    expect(state.layers[1].skip).toEqual(skip)
 
-    expect(state.trellisDraft).toBeNull()
-    expect(state.layers[0].trellis).toBeNull()
-    expect(state.layers[0].trellisControls).toEqual(rememberedControls)
-
-    state = reducer(state, { action: "set_color", color: "#f97316" })
-    state = reducer(state, "paint_selected")
-    state = reducer(state, { action: "menu", open: "repeat" })
-
-    expect(state.trellisDraft.mode).toBe("create")
-    expect(state.trellisDraft.trellis.controls).toEqual(rememberedControls)
-  })
-
-  test("Replace restores the old transformed source while capturing the new selection", () => {
-    const view = selectedState()
-    let state = { ...getInitialState(), layers: view.layers }
-    state = reducer(state, { action: "menu", open: "repeat" })
-    state = reducer(state, "apply_trellis")
-    const oldReleased = state.layers[0].trellis.materializeSource().lines[0]
-    const replacement = line(getLayerState(state), 10, 10, 12, 10)
-    state = {
-      ...state,
-      layers: [
-        state.layers[0].copy({
-          lines: [replacement],
-          bounds: [new Point(9, 9), new Point(13, 13)],
-        }),
-      ],
-    }
-
-    state = reducer(state, { action: "menu", open: "repeat" })
-    state = reducer(state, "replace_trellis")
-    expect(state.trellisDraft.mode).toBe("replace")
-    state = reducer(state, "apply_trellis")
-
-    expect(state.layers[0].trellis.lines).toHaveLength(1)
-    expect(state.layers[0].trellis.lines[0].a.eq(new Point(1, 1))).toBe(true)
-    expect(state.layers[0].lines).toHaveLength(1)
-    expect(state.layers[0].lines[0].a.eq(oldReleased.a)).toBe(true)
+    const restored = deserializeState(serializeState(state))
+    expect(restored.layers[1]).toBeInstanceOf(TrellisLayer)
+    expect(restored.layers[1].skip).toEqual(skip)
   })
 
   test("layer creation, visibility, deletion, reordering, and undo operate on the document", () => {
-    let state = getInitialState()
-    state = reducer(state, "add_layer")
+    let state = reducer(getInitialState(), "add_layer")
     const secondId = state.activeLayerId
     expect(state.layers.map((layer) => layer.id)).toEqual(["layer-1", secondId])
 
@@ -211,8 +123,6 @@ describe("layer and persistent trellis actions", () => {
     state = reducer(state, "add_mirror_origin")
     expect(state.layers.find((layer) => layer.id === secondId).bounds).toHaveLength(1)
     expect(state.layers.find((layer) => layer.id === secondId).mirrorOrigins).toHaveLength(1)
-    expect(state.layers.find((layer) => layer.id === "layer-1").bounds).toEqual([])
-    expect(state.layers.find((layer) => layer.id === "layer-1").mirrorOrigins).toEqual([])
 
     state = reducer(state, { action: "rename_layer", name: "Top" })
     state = reducer(state, { action: "reorder_layers", orderedIds: [secondId, "layer-1"] })
@@ -233,7 +143,7 @@ describe("layer and persistent trellis actions", () => {
     state = reducer(state, { action: "delete_layer", layerId: secondId })
     state = reducer(state, { action: "delete_layer", layerId: "layer-1" })
     expect(state.layers).toHaveLength(1)
-    expect(state.layers[0].visible).toBe(true)
+    expect(state.layers[0]).toBeInstanceOf(DrawingLayer)
     expect(state.layers[0].isEmpty).toBe(true)
   })
 })

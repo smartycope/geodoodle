@@ -149,7 +149,7 @@ export const CustomState = Template.bind({})
 CustomState.args = {
   state: {
     ...defaultState,
-    openMenus: { main: true, repeat: true },
+    openMenus: { ...defaultState.openMenus, main: true, layers: true },
     mobile: true,
     side: "right",
   },
@@ -158,7 +158,7 @@ CustomState.args = {
 CustomState.parameters = {
   docs: {
     description: {
-      story: "Example with custom state showing main and repeat menus open on mobile",
+      story: "Example with custom state showing the toolbar and layers panel open on mobile",
     },
   },
 }

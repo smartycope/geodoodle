@@ -7,7 +7,6 @@ import IconButton from "@mui/material/IconButton"
 import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded"
-import DashboardIcon from "@mui/icons-material/Dashboard"
 import SaveIcon from "@mui/icons-material/Save"
 import SettingsIcon from "@mui/icons-material/Settings"
 import HelpIcon from "@mui/icons-material/Help"
@@ -25,6 +24,8 @@ import UndoIcon from "@mui/icons-material/Undo"
 import BlurOnIcon from "@mui/icons-material/BlurOn"
 import LayersIcon from "@mui/icons-material/Layers"
 import KeyboardTabIcon from "@mui/icons-material/KeyboardTab"
+import ReplayIcon from "@mui/icons-material/Replay"
+import AirlineStopsIcon from "@mui/icons-material/AirlineStops"
 import { isMobile } from "../utils/misc"
 import { PiSelectionPlusDuotone } from "react-icons/pi"
 import { MirrorRotIcon } from "./CustomIcons"
@@ -47,13 +48,13 @@ const toolButtonStyle = (theme) => ({
   color: theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark,
 })
 
+// TODO: move this to options.jsx
 const iconMap = {
   extra: <AppsIcon />,
   help: <HelpIcon />,
   settings: <SettingsIcon />,
   file: <SaveIcon />,
   navigation: <NearMeIcon />,
-  repeat: <DashboardIcon />,
   layers: <LayersIcon />,
   color: <PaletteIcon />,
   mirror: <FlipIcon />,
@@ -71,7 +72,8 @@ const iconMap = {
   flip: <FlipIcon />,
   rotate: MirrorRotIcon(MIRROR_ROT.STRAIGHT),
   offset: <KeyboardTabIcon />,
-  skip: <RedoIcon />,
+  skip: <AirlineStopsIcon />,
+  reset: <ReplayIcon />,
 }
 
 const tooltipMap = (mobile) => ({

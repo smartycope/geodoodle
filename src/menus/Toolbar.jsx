@@ -9,7 +9,7 @@ import MenuRoundedIcon from "@mui/icons-material/MenuRounded"
 import ToolButton from "../components/ToolButton"
 import ExtraButton from "./ExtraButton"
 import { isMobile } from "../utils/misc"
-import {getActiveLayer} from "../utils/layers"
+import { getActiveLayer } from "../utils/layers"
 import TrellisLayer from "../classes/TrellisLayer"
 import DrawingLayer from "../classes/DrawingLayer"
 
@@ -19,11 +19,8 @@ function Toolbar() {
   const [, doReload] = useState()
   const theme = useTheme()
 
-  let { side, openMenus } = state
-  // The toolbar on these sides overlaps with the repeat menu, so move it to the top
-  if (openMenus.repeat && ["left", "bottom"].includes(side)) side = "top"
+  const { side } = state
   const vertical = ["top", "bottom"].includes(side)
-  const horizontal = !vertical
   const extraSlots = _extraSlots(state)
 
   // Reload this component when the window resizes, so extraSlots updates
@@ -88,86 +85,82 @@ function Toolbar() {
       break
   }
 
-  // Because the repeat menu is on the sides, if the repeat menu is open, make sure we're not on the side so we can close it again
-  if (state.openMenus.repeat && state.mobile && horizontal)
-    style = {
-      flexDirection: "row",
-      width: "97%",
-    }
-
   const activeLayer = getActiveLayer(state)
   const trellis = activeLayer instanceof TrellisLayer
   const drawing = activeLayer instanceof DrawingLayer
 
   // Returns the Toolbar, as well as all the menus
   const toolbar = (
-      <Box
+    <Box
+      sx={{
+        display: "flex",
+        position: "absolute",
+        paddingTop: "env(safe-area-inset-top)",
+        ...style,
+      }}
+    >
+      <MuiPaper
+        id="menu-selector-mobile"
+        elevation={4}
         sx={{
+          // Where the crap did this come from???
+          // "-webkit-tap-highlight-color": "transparent",
+          WebkitTapHighlightColor: "transparent",
+          // TODO: should this be state.mobile?
+          px: isMobile() ? 0.5 : 1,
+          py: isMobile() ? 0.5 : 1,
+          focusVisible: false,
           display: "flex",
+          // TODO: I can't decide if this should be 'row' or 'row-reverse' -- I need feedback
+          flexDirection: vertical ? "row" : "column-reverse",
+          margin: 1,
           position: "absolute",
-          paddingTop: "env(safe-area-inset-top)",
-          ...style,
+          // Don't allow the user to start lines between the buttons
+          pointerEvents: "all",
+          width: "min-content",
+          height: "min-content",
+          cursor: "pointer",
+          borderRadius: theme.shape.borderRadius,
+          "& .tool-button": {
+            mx: vertical ? 1 : 0,
+            my: vertical ? 0 : 1,
+          },
+          background: theme.alpha(theme.palette.background.paper, state.toolbarOpacity),
         }}
       >
-        <MuiPaper
-          id="menu-selector-mobile"
-          elevation={4}
-          sx={{
-            // Where the crap did this come from???
-            // "-webkit-tap-highlight-color": "transparent",
-            WebkitTapHighlightColor: "transparent",
-            // TODO: should this be state.mobile?
-            px: isMobile() ? 0.5 : 1,
-            py: isMobile() ? 0.5 : 1,
-            focusVisible: false,
-            display: "flex",
-            // TODO: I can't decide if this should be 'row' or 'row-reverse' -- I need feedback
-            flexDirection: vertical ? "row" : "column-reverse",
-            margin: 1,
-            position: "absolute",
-            // Don't allow the user to start lines between the buttons
-            pointerEvents: "all",
-            width: "min-content",
-            height: "min-content",
-            cursor: "pointer",
-            borderRadius: theme.shape.borderRadius,
-            "& .tool-button": {
-              mx: vertical ? 1 : 0,
-              my: vertical ? 0 : 1,
-            },
-            background: theme.alpha(theme.palette.background.paper, state.toolbarOpacity),
-          }}
-        >
-          {/* This essentially is the config for the toolbar.
+        {/* This essentially is the config for the toolbar.
           This defines the order, priority, and conditions of the tool buttons */}
-          {/* TODO: turn this into an object in options.jsx */}
-          {extraSlots < 9 && <ToolButton menu="extra" disableTooltip={state.openMenus.extra} />}
-          {/* This is the button which is dynamically set in settings */}
-          {extraSlots >= 1 && <ExtraButton />}
-          {extraSlots >= 9 && <ToolButton menu="help" />}
-          {extraSlots >= 9 && <ToolButton menu="settings" />}
-          {extraSlots >= 6 && <ToolButton menu="file" />}
-          {drawing && extraSlots >= 7 && <ToolButton menu="navigation" />}
-          {extraSlots >= 4 && <ToolButton menu="layers" />}
-          {/* {extraSlots >= 3 && <ToolButton menu="repeat" />} */}
-          <ToolButton menu="mirror" />
-          {drawing && extraSlots >= 8 && <ToolButton menu="clipboard" />}
-          {drawing && extraSlots >= 5 && <ToolButton menu="delete" />}
-          {drawing && extraSlots >= 2 && <ToolButton menu="select" />}
+        {/* TODO: turn this into an object in options.jsx */}
+        {extraSlots < 9 && <ToolButton menu="extra" disableTooltip={state.openMenus.extra} />}
+        {/* This is the button which is dynamically set in settings */}
+        {extraSlots >= 1 && <ExtraButton />}
+        {extraSlots >= 9 && <ToolButton menu="help" />}
+        {extraSlots >= 9 && <ToolButton menu="settings" />}
+        {extraSlots >= 6 && <ToolButton menu="file" />}
+        {drawing && extraSlots >= 7 && <ToolButton menu="navigation" />}
+        {extraSlots >= 4 && <ToolButton menu="layers" />}
+        {/* {extraSlots >= 3 && <ToolButton menu="repeat" />} */}
+        {/* Leaving it out, for now */}
+        {drawing && <ToolButton menu="mirror" />}
+        {/* <ToolButton menu="mirror" /> */}
+        {drawing && extraSlots >= 8 && <ToolButton menu="clipboard" />}
+        {drawing && extraSlots >= 5 && <ToolButton menu="delete" />}
+        {drawing && extraSlots >= 2 && <ToolButton menu="select" />}
 
-          {trellis && extraSlots >= 3 && <ToolButton menu="toggle_dots" />}
-          {trellis && <ToolButton menu="offset" />}
-          {trellis && <ToolButton menu="skip" />}
-          {trellis && <ToolButton menu="flip" />}
-          {trellis && <ToolButton menu="rotate" />}
+        {trellis && extraSlots >= 3 && <ToolButton menu="toggle_dots" onClick={() => dispatch("toggle_dots")} />}
+        {trellis && <ToolButton menu="reset" onClick={() => dispatch("clear_active_layer")} />}
+        {trellis && <ToolButton menu="offset" />}
+        {trellis && <ToolButton menu="skip" />}
+        {trellis && <ToolButton menu="flip" />}
+        {trellis && <ToolButton menu="rotate" />}
 
-          {/* TODO: test and see if I like this in Trellis layers as well */}
-          <ToolButton menu="undo" onClick={handleUndoClick} onContextMenu={handleUndoContextMenu} />
-          {drawing && <ToolButton menu="color" />}
-          <ToolButton menu="main" />
-        </MuiPaper>
-      </Box>
-    )
+        {/* TODO: test and see if I like this in Trellis layers as well */}
+        <ToolButton menu="undo" onClick={handleUndoClick} onContextMenu={handleUndoContextMenu} />
+        {drawing && <ToolButton menu="color" />}
+        <ToolButton menu="main" />
+      </MuiPaper>
+    </Box>
+  )
 
   const fab = (
     <Fab

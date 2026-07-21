@@ -4,6 +4,7 @@ import { distCenter } from "./utils/misc"
 import { getCanvasButtonAt } from "./utils/canvasButton"
 import { normalizeAngle } from "./utils/transform"
 import { eventMatchesKeycode } from "./utils/shortcuts"
+import { activeLayerIsTrellis } from "./utils/layers"
 
 var dragging = false
 var leftDragStart = null
@@ -94,11 +95,12 @@ export function onMouseDown(state, dispatch, e) {
 
   canvasButtonMouseActive = false
   const { fillMode, bounds } = state
+  const trellis = activeLayerIsTrellis(state)
   switch (e.button) {
     case 0: // Left click
       dragging = false
       leftDragStart = getMousePoint(state, e).aligned
-      leftMouseDownAction = fillMode ? "fill" : bounds.length === 1 ? "add_bound" : "add_line"
+      leftMouseDownAction = fillMode ? "fill" : !trellis && bounds.length === 1 ? "add_bound" : "add_line"
       leftClipboardMouseDown = state.clipboard !== null
       if (!leftClipboardMouseDown) dispatch(leftMouseDownAction)
       break
@@ -219,6 +221,7 @@ export function onScroll(state, dispatch, e) {
 // Keyboard events
 export function onKeyDown(state, dispatch, e) {
   const key = e.code || e.key.toLowerCase()
+  const trellis = activeLayerIsTrellis(state)
 
   // Once the desktop bound shortcut is held, modifier changes can alter which
   // binding its repeat event matches (notably b becoming shift+b/clear_bounds).
@@ -230,7 +233,7 @@ export function onKeyDown(state, dispatch, e) {
 
   // If it's just a modifier key, don't do anything (it'll falsely trigger things)
   if (e.key === "Shift") {
-    if (state.bounds.length === 1) dispatch({ deletingSelection: !state.deletingSelection })
+    if (!trellis && state.bounds.length === 1) dispatch({ deletingSelection: !state.deletingSelection })
     return
   }
   if (["Meta", "Control", "Alt"].includes(e.key)) return

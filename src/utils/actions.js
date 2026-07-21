@@ -1,9 +1,6 @@
 import Dist from "../classes/Dist"
 import { viewportHeight, viewportWidth } from "../globals"
 import Point from "../classes/Point"
-import TrellisLayer from "../classes/TrellisLayer"
-import { getActiveLayer } from "./layers"
-import { getBoundRect } from "./lines"
 
 export const moveCursor = (state, x, y) => {
   const cursorPos = state.cursorPos.add(Dist.fromDeflated(state, x, y))

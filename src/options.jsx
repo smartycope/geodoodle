@@ -92,6 +92,7 @@ export const keybindable = [
   bindable("debug", "Log debug information", "`"),
   bindable("toggle_debugging", "Toggle debug mode", "shift+`"),
   bindable("add_layer", "Add layer", "ctrl+n"),
+  bindable("add_trellis_layer", "Create Trellis layer", "r"),
   bindable("save_local_and_toast", "Save locally", "ctrl+s"),
   bindable("save_cloud_and_toast", "Save to cloud", "ctrl+shift+s"),
 
@@ -135,11 +136,14 @@ export const keybindable = [
     ["clipboard", "Clipboard menu"],
     ["delete", "Delete menu"],
     ["navigation", "Navigation menu"],
-    ["repeat", "Repeat menu", "r"],
     ["layers", "Layers panel"],
     ["file", "Files page", "ctrl+f"],
     ["settings", "Settings page"],
     ["help", "Help page"],
+    ["skip", "Skip trellis menu"],
+    ["offset", "Offset trellis menu"],
+    ["flip", "Flip trellis menu"],
+    ["rotate", "Rotate trellis menu"],
   ].map(([menu, label, defaults = []]) =>
     bindable(`toggle_menu_${menu}`, `Toggle ${label}`, defaults, { action: "menu", toggle: menu }),
   ),
@@ -180,14 +184,14 @@ export const reversibleActions = [
   "add_generic_selector",
   "paint_selected",
   "add_layer",
+  "add_trellis_layer",
   "delete_layer",
   "activate_layer",
   "rename_layer",
   "set_layer_visibility",
   "reorder_layers",
   "clear_active_layer",
-  "apply_trellis",
-  "release_trellis",
+  "update_active_layer",
 ]
 
 // These are actions
@@ -218,19 +222,19 @@ export const saveSettingActions = [
   "set_manual_and_save_settings",
   "set_canvas_rotation_allowed",
   "toggle_partials",
-  "apply_trellis",
   "fill",
   "clear_fill",
   "add_specific_selector",
   "add_generic_selector",
   "add_layer",
+  "add_trellis_layer",
   "delete_layer",
   "activate_layer",
   "rename_layer",
   "set_layer_visibility",
   "reorder_layers",
   "clear_active_layer",
-  "release_trellis",
+  "update_active_layer",
 ]
 
 // These are parts of the state

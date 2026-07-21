@@ -1,14 +1,14 @@
 import { render } from "@testing-library/react"
 import { act } from "react"
 import { describe, expect, test, vi } from "vitest"
-import Trellis from "../Trellis"
-import { Bounds, Lines, Polygons, SelectionOptionButtons, SelectionRect } from "../drawing"
+import { Bounds, Lines, Polygons, SelectionOptionButtons, SelectionRect, Trellis } from "../drawing"
 import { StateContext } from "../Contexts"
 import Dist from "../classes/Dist"
 import Line from "../classes/Line"
 import Point from "../classes/Point"
 import Poly from "../classes/Poly"
 import Rect from "../classes/Rect"
+import TrellisLayer from "../classes/TrellisLayer"
 import { MIRROR_AXIS, MIRROR_ROT } from "../globals"
 import { defaultTrellisControl } from "../utils/trellis"
 import { getCanvasToViewportMatrix, segmentIntersectsViewport } from "../utils/transform"
@@ -296,69 +296,42 @@ describe("finite Trellis visibility", () => {
     expect(result.warning).toBe(TRELLIS_SIZE_WARNING)
   })
 
-  test("transforms the source group, suppresses permanent copies, and restores them when repeating stops", () => {
+  test("renders a concrete Trellis layer without drawing-selection overlays", () => {
     const sourceLine = new Line({}, new Point(10, 10), new Point(12, 12), aes)
     const sourcePoly = new Poly([new Point(10, 10), new Point(12, 10), new Point(12, 12)])
-    const beforeLine = JSON.stringify(sourceLine)
-    const beforePoly = JSON.stringify(sourcePoly)
-    const state = trellisState({
-      trellis: true,
-      bounds: [new Point(10, 10), new Point(12, 12)],
+    const base = trellisState()
+    const layer = new TrellisLayer({
+      id: "layer-2",
+      sourceOrigin: new Point(10, 10),
+      sourceSize: new Dist(2, 2),
       lines: [sourceLine],
       filledPolys: [sourcePoly],
-      trellisRotate: {
+      rotate: {
         row: { every: 1, val: MIRROR_ROT.RIGHT },
         col: { every: 1, val: MIRROR_ROT.NONE },
       },
     })
+    const state = { ...base, layers: [layer], activeLayerId: layer.id }
     const dispatch = vi.fn()
-    const renderLayers = (nextState) => (
-      <StateContext.Provider value={{ state: nextState, dispatch }}>
+    const { container } = render(
+      <StateContext.Provider value={{ state, dispatch }}>
         <svg>
-          <Trellis />
-          <Polygons />
-          <Lines />
+          <Trellis trellis={layer} />
           <Bounds />
           <SelectionRect />
           <SelectionOptionButtons />
         </svg>
-      </StateContext.Provider>
+      </StateContext.Provider>,
     )
-    const { container, rerender } = render(renderLayers(state))
 
     const sourceTile = container.querySelector('#trellis > g[data-row="0"][data-column="0"]')
     expect(sourceTile).not.toBeNull()
     expect(sourceTile.getAttribute("transform")).toMatch(/^matrix\(0 1 -1 0 12 10\)$/)
     expect(sourceTile.querySelector("line")).not.toBeNull()
     expect(sourceTile.querySelector("polygon")).not.toBeNull()
-    expect(container.querySelectorAll("#lines > line")).toHaveLength(0)
-    expect(container.querySelectorAll("#filled-polys > polygon")).toHaveLength(0)
-    const selectionRect = container.querySelector("#selection-rect")
-    expect(Number(selectionRect.getAttribute("x"))).toBe(9.5)
-    expect(Number(selectionRect.getAttribute("y"))).toBe(9.5)
-    expect(Number(selectionRect.getAttribute("width"))).toBe(3)
-    expect(Number(selectionRect.getAttribute("height"))).toBe(3)
-    expect([...container.querySelectorAll("#bounds > rect")].map((bound) => Number(bound.getAttribute("x")))).toEqual([
-      230, 190,
-    ])
-    const selectionButtons = container.querySelector("#selection-option-buttons").parentElement
-    expect(Number(selectionButtons.getAttribute("x"))).toBe(190)
-    expect(Number(selectionButtons.getAttribute("y"))).toBe(145)
-    expect(JSON.stringify(sourceLine)).toBe(beforeLine)
-    expect(JSON.stringify(sourcePoly)).toBe(beforePoly)
-    expect(state.bounds[0].eq(new Point(10, 10))).toBe(true)
-    expect(state.bounds[1].eq(new Point(12, 12))).toBe(true)
-
-    rerender(renderLayers({ ...state, trellis: false }))
-
-    expect(container.querySelector("#trellis")).toBeNull()
-    expect(container.querySelectorAll("#lines > line")).toHaveLength(1)
-    expect(container.querySelectorAll("#filled-polys > polygon")).toHaveLength(1)
-    expect(Number(container.querySelector("#selection-rect").getAttribute("x"))).toBe(9.5)
-    expect([...container.querySelectorAll("#bounds > rect")].map((bound) => Number(bound.getAttribute("x")))).toEqual([
-      190, 230,
-    ])
-    expect(Number(container.querySelector("#selection-option-buttons").parentElement.getAttribute("x"))).toBe(190)
+    expect(container.querySelector("#selection-rect")).toBeNull()
+    expect(container.querySelector("#bounds")).toBeNull()
+    expect(container.querySelector("#selection-option-buttons")).toBeNull()
   })
 
   test("recalculates the finite lattice when the viewport resizes", () => {
@@ -373,18 +346,18 @@ describe("finite Trellis visibility", () => {
 
     try {
       const sourceLine = new Line({}, new Point(0, 0), new Point(2, 2), aes)
-      const state = trellisState({
-        trellis: true,
-        scalex: 10,
-        scaley: 10,
-        bounds: [new Point(0, 0), new Point(2, 2)],
+      const base = trellisState({ scalex: 10, scaley: 10 })
+      const layer = new TrellisLayer({
+        id: "layer-2",
+        sourceOrigin: new Point(0, 0),
+        sourceSize: new Dist(2, 2),
         lines: [sourceLine],
-        filledPolys: [],
       })
+      const state = { ...base, layers: [layer], activeLayerId: layer.id }
       const { container } = render(
         <StateContext.Provider value={{ state, dispatch: vi.fn() }}>
           <svg>
-            <Trellis />
+            <Trellis trellis={layer} />
           </svg>
         </StateContext.Provider>,
       )
@@ -402,23 +375,25 @@ describe("finite Trellis visibility", () => {
     }
   })
 
-  test("dispatches the zero-sized selection warning as a toast", () => {
-    const state = trellisState({
-      trellis: true,
-      bounds: [new Point(2, 2), new Point(2, 4)],
-      lines: [new Line({}, new Point(2, 2), new Point(2, 4), aes)],
-      filledPolys: [],
+  test("dispatches a finite-render limit warning as a toast", () => {
+    const base = trellisState()
+    const layer = new TrellisLayer({
+      id: "layer-2",
+      sourceOrigin: new Point(0, 0),
+      sourceSize: new Dist(2, 2),
+      lines: [new Line({}, new Point(0, 0), new Point(2, 2), aes)],
     })
+    const state = { ...base, layers: [layer], activeLayerId: layer.id }
     const dispatch = vi.fn()
 
     render(
       <StateContext.Provider value={{ state, dispatch }}>
         <svg>
-          <Trellis />
+          <Trellis trellis={layer} maxGroups={1} />
         </svg>
       </StateContext.Provider>,
     )
 
-    expect(dispatch).toHaveBeenCalledWith({ toast: TRELLIS_SIZE_WARNING })
+    expect(dispatch).toHaveBeenCalledWith({ toast: TRELLIS_LIMIT_WARNING })
   })
 })

@@ -185,36 +185,28 @@ const tour = (_dispatch) => {
     // {   selector: "#nav-selection-button",
     //     content: "This moves you to the current selection.",
     // },
-    menu({ open: "repeat", close: "navigation" }),
-    clickOn("#repeat-speed-dial", 200), // wait longer, cause SpeedDial has a bit of a transition animation
+    dispatch("add_trellis_layer"),
     {
-      selector: "#repeat-speed-dial",
+      selector: "#rotate-tool-button",
       content: (
         <>
-          This is the repeat menu. You can use it to tesselate the selected pattern across the page in order to make
-          complex patterns.
+          Creating a Trellis layer moves the selected artwork into a layer that repeats across the page. A Trellis layer
+          contains only that repeated pattern, so its toolbar shows Offset, Skip, Flip, and Rotate controls directly.
           <br />
-          It has a lot of options, but the basics are pretty simple.
+          Let&apos;s look at Rotate.
         </>
       ),
     },
+    menu({ open: "rotate", close: "navigation" }),
     {
-      selector: "#RepeatMenu-actions > button:nth-child(4)",
+      selector: "#rotate-tool-button",
       content: (
         <>
-          This is one of the transformations you can apply to the pattern. There are 4 kinds of transformations you can
-          apply:
-          <ul>
-            <li>Offset</li>
-            <li>Flip</li>
-            <li>Rotate</li>
-            <li>Skip</li>
-          </ul>
-          You can apply multiple transformations at once. This one is rotate, let&apos;s look at it.
+          Each Trellis control updates the active Trellis layer immediately. You can combine all four controls and undo
+          their changes like other document edits.
         </>
       ),
     },
-    clickOn("#RepeatMenu-actions > button:nth-child(4)"),
     clickOn("#tour2 > div > div > button._Increment_1qe35_103"),
     clickOn("#tour0-90"),
     {
@@ -234,27 +226,10 @@ const tour = (_dispatch) => {
     // {selector: 'tour0', content: <>
     //     The first box is "every". It controls how often the transformation is applied.
     // </>,},
-    // ...(mobile ? [{   selector: "#repeat-right",
-    //     content: "This side lets you select transformations to apply to the pattern. They each have different options."
-    // },
-    // {   selector: "#repeat-left",
-    //     content: "This side lets you specify how to apply the associated transformations. For instance, \"every 3 rows, rotate the pattern 90°\"."
-    // },
-    // {
-    //     content: ({goTo, step}) => setTimeout(() => goTo(step), LOAD_DELAY),
-    //     action: () => document.querySelector('#settings-summary').click(),
-    // },
-    // {   selector: "#repeat-settings-reset",
-    //     content: "You can use this button to reset to the original settings."
-    // },
-    // {   selector: "#repeat-settings-hide-dots",
-    //     content: "And this button to hide the dots. There's a similar button in settings as well."
-    // }] : []),
-    // menu({close: 'repeat'}),
     // {content: "A few last things. "}
     // {content: "And that's it! There's also File and Settings menus, but I think you can figure them out yourself. If you have any problems, suggestions, or questions, feel free to email me at smartycope@gmail.com."},
     // menu({open: 'help'}),
-    menu({ close: "repeat", open: "main" }),
+    menu({ close: "rotate", open: "main" }),
     {
       selector: "#help-tool-button",
       content: (

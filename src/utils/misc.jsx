@@ -2,8 +2,6 @@ import { MIRROR_AXIS } from "../globals"
 import Point from "../classes/Point"
 import { viewportHeight, viewportWidth } from "../globals"
 
-
-
 // NOTE: this can be used anywhere. The state also has a state.mobile attribute. The difference is that state.mobile gets
 // updated once at the beginning (on refresh), and isMobile() is always accurate. Because users typically aren't changing
 // the device they're on, default to using state.mobile (simply because you don't have to re-calculate it) unless you to
@@ -122,10 +120,6 @@ export function extraSlots(state) {
     case "top":
       sideLen = viewportWidth()
   }
-
-  // Because the repeat menu is on the sides, if the repeat menu is open, make sure we're not on the side so we can close it again
-  if (state.openMenus.repeat && state.mobile && ["left", "right"].includes(state.side))
-    sideLen = window.visualViewport.width
 
   return Math.floor((sideLen - 400) / 60)
 }

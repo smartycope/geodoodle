@@ -1,41 +1,23 @@
-import { useContext, useEffect, useState } from "react"
-import { MIRROR_AXIS, MIRROR_ROT } from "../globals"
-import { MirrorAxisIcon, MirrorRotIcon } from "../components/CustomIcons"
-import Number from "../components/Number"
-
+import { useContext } from "react"
+import Number from "./Number"
 import { StateContext } from "../Contexts"
-import KeyboardTabIcon from "@mui/icons-material/KeyboardTab"
-import RedoIcon from "@mui/icons-material/Redo"
-import FlipIcon from "@mui/icons-material/Flip"
-import { Box, IconButton, SpeedDial, SpeedDialAction, Typography, useTheme } from "@mui/material"
+import { Box, IconButton, Typography, useTheme } from "@mui/material"
 import ReplayIcon from "@mui/icons-material/Replay"
-import ToggleIconButtonGroup from "../components/ToggleIconButtonGroup"
-import BlurOnIcon from "@mui/icons-material/BlurOn"
-import BlurOffIcon from "@mui/icons-material/BlurOff"
-import DashboardIcon from "@mui/icons-material/Dashboard"
-import CheckIcon from "@mui/icons-material/Check"
-import FindReplaceIcon from "@mui/icons-material/FindReplace"
-import CallMadeIcon from "@mui/icons-material/CallMade"
-import {
-  boxSx,
-  sharedProps,
-  sharedButtonGroupProps,
-  centeredVerticalLabelStyle,
-  gridItemSx,
-  updateDraft,
-  numberAlpha,
-  numberProps,
-} from "../utils/menus"
+import { gridItemSx, numberAlpha, numberProps } from "../utils/menus"
+import { getActiveLayer } from "../utils/layers"
+import TrellisLayer from "../classes/TrellisLayer"
 
 export default function TrellisSubMenu({ title, byHorizontal, byVertical, transformation, resetVal, everyMin = 1 }) {
   const { state, dispatch } = useContext(StateContext)
   const theme = useTheme()
 
-  const { col, row } = state.trellisDraft.trellis[transformation]
+  const trellis = getActiveLayer(state)
+  if (!(trellis instanceof TrellisLayer)) return null
+  const { col, row } = trellis[transformation]
 
   return (
     <Box
-      data-testid="repeat-submenu"
+      data-testid="trellis-submenu"
       sx={{
         position: "absolute",
         bottom: ".5rem",
@@ -58,14 +40,19 @@ export default function TrellisSubMenu({ title, byHorizontal, byVertical, transf
       <Box sx={gridItemSx}>{byVertical}</Box>
 
       <Box
-        data-testid="repeat-submenu-control-row"
+        data-testid="trellis-submenu-control-row"
         sx={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", gap: 1, alignItems: "center" }}
       >
         {/* Every Column */}
         <Box sx={{ ...gridItemSx, justifyContent: "center" }}>
           <div id="tour3">
             <Number
-              onValueChange={(val) => updateDraft(dispatch, transformation, { col: { every: val, val: col.val }, row })}
+              onValueChange={(val) =>
+                dispatch({
+                  action: "update_active_layer",
+                  [transformation]: { col: { every: val, val: col.val }, row },
+                })
+              }
               value={col.every}
               vertical
               min={everyMin}
@@ -91,15 +78,15 @@ export default function TrellisSubMenu({ title, byHorizontal, byVertical, transf
         </Box>
       </Box>
 
-      <Box data-testid="repeat-submenu-horizontal-row" sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+      <Box data-testid="trellis-submenu-horizontal-row" sx={{ display: "flex", gap: 1, alignItems: "center" }}>
         {/* Reset Button */}
         <Box sx={gridItemSx}>
           <IconButton
             aria-label={`Reset ${title}`}
             onClick={() =>
-              updateDraft(dispatch, transformation, {
-                row: { every: 1, val: resetVal },
-                col: { every: 1, val: resetVal },
+              dispatch({
+                action: "update_active_layer",
+                [transformation]: { row: { every: 1, val: resetVal }, col: { every: 1, val: resetVal } },
               })
             }
             variant="contained"
@@ -120,7 +107,12 @@ export default function TrellisSubMenu({ title, byHorizontal, byVertical, transf
         <Box sx={gridItemSx}>
           <div id="tour2">
             <Number
-              onValueChange={(val) => updateDraft(dispatch, transformation, { row: { every: val, val: row.val }, col })}
+              onValueChange={(val) =>
+                dispatch({
+                  action: "update_active_layer",
+                  [transformation]: { row: { every: val, val: row.val }, col },
+                })
+              }
               value={row.every}
               min={everyMin}
               max={Math.floor(window.innerWidth / state.scaley)}
