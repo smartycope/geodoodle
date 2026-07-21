@@ -2,6 +2,8 @@ import { MIRROR_AXIS } from "../globals"
 import Point from "../helper/Point"
 import { viewportHeight, viewportWidth } from "../globals"
 
+
+
 // NOTE: this can be used anywhere. The state also has a state.mobile attribute. The difference is that state.mobile gets
 // updated once at the beginning (on refresh), and isMobile() is always accurate. Because users typically aren't changing
 // the device they're on, default to using state.mobile (simply because you don't have to re-calculate it) unless you to
@@ -126,4 +128,8 @@ export function extraSlots(state) {
     sideLen = window.visualViewport.width
 
   return Math.floor((sideLen - 400) / 60)
+}
+
+export const needsImplementedError = (func) => {
+  throw new Error(`Not implemented: ${func}`)
 }

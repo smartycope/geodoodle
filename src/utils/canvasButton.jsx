@@ -1,10 +1,12 @@
 import Point from "../helper/Point"
 import { themeDefaults } from "../styling/theme"
+import {activeLayerIsTrellis} from "./layers"
 import { getClipboardRect } from "./lines"
 import { getRenderedBoundRect } from "./trellisSelection"
 
 const canvasButtons = themeDefaults.canvasButtons
 
+// NOTE: if you adjust these, you also have to adjust
 export const clipboardTransformButtons = [
   { action: "increment_clipboard_rotation", label: "Rotate clipboard" },
   { action: "increment_clipboard_mirror_axis", label: "Mirror clipboard" },
@@ -18,6 +20,7 @@ export const selectionOptionButtons = [
   // { action: "delete_selected", label: "Delete selected lines" },
   // { action: "delete_unselected", label: "Delete unselected lines" },
   { action: "toggle_partials", label: "Toggle partials" },
+  { action: "add_trellis_layer", label: "Toggle partials" },
   { action: "clear_bounds", label: "Clear bounds" },
 ]
 
@@ -37,7 +40,7 @@ export function getSelectionButtonsPos(state) {
 }
 
 export function getClipboardButtonStrip(state) {
-  if (!state.mobile || !state.clipboard?.length) return null // || state.bounds.length < 2
+  if (activeLayerIsTrellis(state) || !state.mobile || !state.clipboard?.length) return null // || state.bounds.length < 2
   return {
     id: "clipboard-transform-buttons-mobile",
     position: getClipboardButtonsPos(state),
@@ -46,7 +49,7 @@ export function getClipboardButtonStrip(state) {
 }
 
 export function getSelectionButtonStrip(state) {
-  if (state.disableSelectionCanvasButtons || state.clipboard || state.bounds.length < 2 || state.openMenus.repeat)
+  if (activeLayerIsTrellis(state) || state.disableSelectionCanvasButtons || state.clipboard || state.bounds.length < 2)
     return null
   return {
     id: "selection-option-buttons",

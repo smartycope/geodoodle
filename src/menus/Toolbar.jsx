@@ -9,6 +9,9 @@ import MenuRoundedIcon from "@mui/icons-material/MenuRounded"
 import ToolButton from "../components/ToolButton"
 import ExtraButton from "./ExtraButton"
 import { isMobile } from "../utils/misc"
+import {getActiveLayer} from "../utils/layers"
+import TrellisLayer from "../helper/TrellisLayer"
+import DrawingLayer from "../helper/DrawingLayer"
 
 // TODO: On a sideways mobile screen, the toolbar goes off the screen
 function Toolbar() {
@@ -91,65 +94,80 @@ function Toolbar() {
       flexDirection: "row",
       width: "97%",
     }
+
+  const activeLayer = getActiveLayer(state)
+  const trellis = activeLayer instanceof TrellisLayer
+  const drawing = activeLayer instanceof DrawingLayer
+
   // Returns the Toolbar, as well as all the menus
   const toolbar = (
-    <Box
-      sx={{
-        display: "flex",
-        position: "absolute",
-        // TODO: I have no way to test this, remove this warning after it's been tested on a real device
-        paddingTop: "env(safe-area-inset-top)",
-        ...style,
-      }}
-    >
-      <MuiPaper
-        id="menu-selector-mobile"
-        elevation={4}
+      <Box
         sx={{
-          // Where the crap did this come from???
-          // "-webkit-tap-highlight-color": "transparent",
-          WebkitTapHighlightColor: "transparent",
-          // TODO: should this be state.mobile?
-          px: isMobile() ? 0.5 : 1,
-          py: isMobile() ? 0.5 : 1,
-          focusVisible: false,
           display: "flex",
-          // TODO: I can't decide if this should be 'row' or 'row-reverse' -- I need feedback
-          flexDirection: vertical ? "row" : "column-reverse",
-          margin: 1,
           position: "absolute",
-          // Don't allow the user to start lines between the buttons
-          pointerEvents: "all",
-          width: "min-content",
-          height: "min-content",
-          cursor: "pointer",
-          borderRadius: theme.shape.borderRadius,
-          "& .tool-button": {
-            mx: vertical ? 1 : 0,
-            my: vertical ? 0 : 1,
-          },
-          background: theme.alpha(theme.palette.background.paper, state.toolbarOpacity),
+          paddingTop: "env(safe-area-inset-top)",
+          ...style,
         }}
       >
-        {extraSlots < 9 && <ToolButton menu="extra" disableTooltip={state.openMenus.extra} />}
-        {/* This is the button which is dynamically set in settings */}
-        {extraSlots >= 1 && <ExtraButton />}
-        {extraSlots >= 9 && <ToolButton menu="help" />}
-        {extraSlots >= 9 && <ToolButton menu="settings" />}
-        {extraSlots >= 6 && <ToolButton menu="file" />}
-        {extraSlots >= 7 && <ToolButton menu="navigation" />}
-        {extraSlots >= 4 && <ToolButton menu="layers" />}
-        {extraSlots >= 3 && <ToolButton menu="repeat" />}
-        <ToolButton menu="mirror" />
-        {extraSlots >= 8 && <ToolButton menu="clipboard" />}
-        {extraSlots >= 5 && <ToolButton menu="delete" />}
-        {extraSlots >= 2 && <ToolButton menu="select" />}
-        <ToolButton menu="undo" onClick={handleUndoClick} onContextMenu={handleUndoContextMenu} />
-        <ToolButton menu="color" />
-        <ToolButton menu="main" />
-      </MuiPaper>
-    </Box>
-  )
+        <MuiPaper
+          id="menu-selector-mobile"
+          elevation={4}
+          sx={{
+            // Where the crap did this come from???
+            // "-webkit-tap-highlight-color": "transparent",
+            WebkitTapHighlightColor: "transparent",
+            // TODO: should this be state.mobile?
+            px: isMobile() ? 0.5 : 1,
+            py: isMobile() ? 0.5 : 1,
+            focusVisible: false,
+            display: "flex",
+            // TODO: I can't decide if this should be 'row' or 'row-reverse' -- I need feedback
+            flexDirection: vertical ? "row" : "column-reverse",
+            margin: 1,
+            position: "absolute",
+            // Don't allow the user to start lines between the buttons
+            pointerEvents: "all",
+            width: "min-content",
+            height: "min-content",
+            cursor: "pointer",
+            borderRadius: theme.shape.borderRadius,
+            "& .tool-button": {
+              mx: vertical ? 1 : 0,
+              my: vertical ? 0 : 1,
+            },
+            background: theme.alpha(theme.palette.background.paper, state.toolbarOpacity),
+          }}
+        >
+          {/* This essentially is the config for the toolbar.
+          This defines the order, priority, and conditions of the tool buttons */}
+          {/* TODO: turn this into an object in options.jsx */}
+          {extraSlots < 9 && <ToolButton menu="extra" disableTooltip={state.openMenus.extra} />}
+          {/* This is the button which is dynamically set in settings */}
+          {extraSlots >= 1 && <ExtraButton />}
+          {extraSlots >= 9 && <ToolButton menu="help" />}
+          {extraSlots >= 9 && <ToolButton menu="settings" />}
+          {extraSlots >= 6 && <ToolButton menu="file" />}
+          {drawing && extraSlots >= 7 && <ToolButton menu="navigation" />}
+          {extraSlots >= 4 && <ToolButton menu="layers" />}
+          {/* {extraSlots >= 3 && <ToolButton menu="repeat" />} */}
+          <ToolButton menu="mirror" />
+          {drawing && extraSlots >= 8 && <ToolButton menu="clipboard" />}
+          {drawing && extraSlots >= 5 && <ToolButton menu="delete" />}
+          {drawing && extraSlots >= 2 && <ToolButton menu="select" />}
+
+          {trellis && extraSlots >= 3 && <ToolButton menu="toggle_dots" />}
+          {trellis && <ToolButton menu="offset" />}
+          {trellis && <ToolButton menu="skip" />}
+          {trellis && <ToolButton menu="flip" />}
+          {trellis && <ToolButton menu="rotate" />}
+
+          {/* TODO: test and see if I like this in Trellis layers as well */}
+          <ToolButton menu="undo" onClick={handleUndoClick} onContextMenu={handleUndoContextMenu} />
+          {drawing && <ToolButton menu="color" />}
+          <ToolButton menu="main" />
+        </MuiPaper>
+      </Box>
+    )
 
   const fab = (
     <Fab

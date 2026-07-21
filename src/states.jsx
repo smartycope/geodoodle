@@ -7,10 +7,12 @@ import { isMobile as getIsMobile } from "./utils/misc"
 import Dist from "./helper/Dist"
 import { generateName } from "./utils/files"
 import { themeDefaults } from "./styling/theme"
-import { createLayer, getActiveLayer, updateActiveLayer } from "./utils/layers"
+import { getActiveLayer, updateActiveLayer } from "./utils/layers"
+import DrawingLayer from "./helper/DrawingLayer"
 
 // NOTE: when adding to state, go through options.jsx and add them to reversible, preservable, and saveable, if applicable
 
+const initialLayer = DrawingLayer.createFromIndex(1)
 export default function getInitialState() {
   const isMobile = getIsMobile()
   const state = {
@@ -44,9 +46,8 @@ export default function getInitialState() {
     curPolys: [],
     // Durable drawing content lives in ordered layers. The active layer is
     // projected into the state view used by geometry/actions at the boundary.
-    layers: [createLayer(1)],
-    activeLayerId: "layer-1",
-    trellisDraft: null,
+    layers: [initialLayer],
+    activeLayerId: initialLayer.id,
 
     filename: generateName(options.defaultToMemorableNames),
     username: "",
@@ -178,7 +179,7 @@ export default function getInitialState() {
       controls: true,
       color: false,
       navigation: false,
-      repeat: false,
+      // repeat: false,
       layers: false,
       file: false,
       settings: false,
@@ -189,6 +190,10 @@ export default function getInitialState() {
       select: false,
       clipboard: false,
       delete: false,
+      flip: false,
+      rotate: false,
+      offset: false,
+      skip: false,
     },
   }
 

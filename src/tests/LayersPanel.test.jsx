@@ -3,8 +3,8 @@ import { afterEach, describe, expect, test, vi } from "vitest"
 import LayersPanel from "../menus/LayersPanel"
 import { StateContext } from "../Contexts"
 import getInitialState from "../states"
-import Layer from "../helper/Layer"
-import Trellis from "../helper/Trellis"
+import DrawingLayer from "../helper/Layer"
+import TrellisLayer from "../helper/TrellisLayer"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
 import Dist from "../helper/Dist"
@@ -14,12 +14,12 @@ const makeLine = (state, offset = 0) => new Line(state, new Point(offset, offset
 function renderPanel(overrides = {}) {
   const initial = getInitialState()
   const bottom = initial.layers[0].copy({ lines: [makeLine(initial)], name: "Bottom" })
-  const trellis = new Trellis({
+  const trellis = new TrellisLayer({
     sourceOrigin: new Point(5, 5),
     sourceSize: new Dist(4, 4),
     lines: [makeLine(initial)],
   })
-  const top = new Layer({ id: "layer-2", name: "Top", trellis })
+  const top = new DrawingLayer({ id: "layer-2", name: "Top", trellis })
   const state = {
     ...initial,
     layers: [bottom, top],

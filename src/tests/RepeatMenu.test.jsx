@@ -7,7 +7,7 @@ import Point from "../helper/Point"
 import Line from "../helper/Line"
 import reducer from "../reducer"
 import { getState } from "./testUtils"
-import Trellis from "../helper/Trellis"
+import TrellisLayer from "../helper/TrellisLayer"
 import { getLayerState, layerOwnedKeys } from "../utils/layers"
 
 afterEach(() => vi.unstubAllGlobals())
@@ -28,7 +28,7 @@ function RepeatingHarness({ action, actionLabel }) {
     trellisDraft: {
       layerId: layer.id,
       mode: "create",
-      trellis: Trellis.fromSelection(layerState),
+      trellis: TrellisLayer.fromSelection(layerState),
       sourceLineIndexes: [0],
       sourcePolyIndexes: [],
     },
@@ -60,7 +60,7 @@ function menuState() {
     trellisDraft: {
       layerId: layer.id,
       mode: "create",
-      trellis: Trellis.fromSelection(view),
+      trellis: TrellisLayer.fromSelection(view),
       sourceLineIndexes: [0],
       sourcePolyIndexes: [],
     },

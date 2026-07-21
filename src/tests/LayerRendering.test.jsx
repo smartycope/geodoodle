@@ -3,8 +3,8 @@ import { describe, expect, test, vi } from "vitest"
 import { ArtworkLayers } from "../drawing"
 import { StateContext } from "../Contexts"
 import getInitialState from "../states"
-import Layer from "../helper/Layer"
-import Trellis from "../helper/Trellis"
+import DrawingLayer from "../helper/Layer"
+import TrellisLayer from "../helper/TrellisLayer"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
 import Dist from "../helper/Dist"
@@ -15,13 +15,13 @@ describe("layer artwork compositing", () => {
   test("stacks visible layers bottom-to-top and shares Trellis safety budgets", () => {
     const state = getInitialState()
     const source = new Line(state, new Point(0, 0), new Point(2, 1))
-    const makeTrellis = (origin) => new Trellis({ sourceOrigin: origin, sourceSize: new Dist(4, 4), lines: [source] })
+    const makeTrellis = (origin) => new TrellisLayer({ sourceOrigin: origin, sourceSize: new Dist(4, 4), lines: [source] })
     const bottom = state.layers[0].copy({ name: "Bottom", trellis: makeTrellis(new Point(0, 0)) })
-    const top = new Layer({ id: "layer-2", name: "Top", trellis: makeTrellis(new Point(8, 8)) })
-    const hidden = new Layer({ id: "layer-3", name: "Hidden", visible: false, lines: [source] })
+    const top = new DrawingLayer({ id: "layer-2", name: "Top", trellis: makeTrellis(new Point(8, 8)) })
+    const hidden = new DrawingLayer({ id: "layer-3", name: "Hidden", visible: false, lines: [source] })
     const document = { ...state, layers: [bottom, top, hidden], activeLayerId: top.id }
     const view = getLayerState(document, top)
-    const visibleTiles = vi.spyOn(Trellis.prototype, "visibleTiles")
+    const visibleTiles = vi.spyOn(TrellisLayer.prototype, "visibleTiles")
 
     const { container } = render(
       <StateContext.Provider value={{ state: view, dispatch: vi.fn() }}>

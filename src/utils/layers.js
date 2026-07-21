@@ -1,5 +1,7 @@
-import Layer from "../helper/Layer"
+import DrawingLayer from "../helper/DrawingLayer"
+import TrellisLayer from "../helper/TrellisLayer"
 
+// TODO: does this need to be updated?
 export const layerOwnedKeys = [
   "lines",
   "filledPolys",
@@ -9,10 +11,6 @@ export const layerOwnedKeys = [
   "mirrorOrigins",
   "trellis",
 ]
-
-export function createLayer(index = 1, updates = {}) {
-  return new Layer({ id: `layer-${index}`, name: `Layer ${index}`, ...updates })
-}
 
 export function nextLayerNumber(layers) {
   const used = new Set(layers.map((layer) => Number(/^layer-(\d+)$/.exec(layer.id)?.[1])).filter(Number.isFinite))
@@ -38,6 +36,10 @@ export function updateActiveLayer(state, patch) {
   return activeLayer ? { layers: updateLayer(state.layers, activeLayer.id, patch) } : {}
 }
 
+export function setActiveLayer(state, layerInstance, id=layerInstance.id){
+  return state.layers.map((layer) => (layer.id === id ? layerInstance : layer))
+}
+
 export function normalizeLayerActionResult(state, result) {
   if (!result) return result
   const layerPatch = {}
@@ -57,4 +59,16 @@ export function normalizeLayerActionResult(state, result) {
 
 export function allVisibleLines(state) {
   return (state.layers ?? []).filter((layer) => layer.visible).flatMap((layer) => layer.lines)
+}
+
+export function layerFromJSON(json) {
+  if (!json) return
+  if (json.type === "TrellisLayer") return TrellisLayer._fromJSON(json)
+  if (json.type === "DrawingLayer") return DrawingLayer._fromJSON(json)
+  throw new Error(`Unknown layer type: ${json.type}`)
+}
+
+export function activeLayerIsTrellis(state) {
+  const layer = getActiveLayer(state)
+  return layer instanceof TrellisLayer
 }

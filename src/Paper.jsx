@@ -20,7 +20,7 @@ import {
   SpecificSelectors,
   GenericSelectors,
   CurrentLines,
-  ActiveSelectionLines,
+  // ActiveSelectionLines,
   ArtworkLayers,
   Clipboard,
   Cursor,
@@ -197,16 +197,16 @@ export default function Paper({ setDispatch }) {
             }}
           >
             {/* This order is intentional -- lower elements are on top */}
+            <DebugInfo />
             <GlowEffect />
             <BackgroundImage />
             {!dotsAboveArtwork && <Dots />}
             <ArtworkLayers />
             {dotsAboveArtwork && <Dots />}
-            <DebugInfo />
             {editingEnabled && (
               <>
                 <CurrentPolys />
-                <ActiveSelectionLines />
+                {/* <ActiveSelectionLines /> */}
                 <Cursor />
                 <CurrentLines />
                 <Bounds />

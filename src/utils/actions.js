@@ -1,7 +1,7 @@
 import Dist from "../helper/Dist"
 import { viewportHeight, viewportWidth } from "../globals"
 import Point from "../helper/Point"
-import Trellis from "../helper/Trellis"
+import TrellisLayer from "../helper/TrellisLayer"
 import { getActiveLayer } from "./layers"
 import { getBoundRect } from "./lines"
 
@@ -63,19 +63,4 @@ export const nearestVisibleLayer = (layers, index) => {
     if (before?.visible) return before
   }
   return null
-}
-
-export const selectionDraft = (state, mode) => {
-  const trellis = Trellis.fromSelection(state, getActiveLayer(state)?.trellisControls ?? {})
-  if (!trellis?.valid) return null
-  const boundRect = getBoundRect(state)
-  return {
-    layerId: state.activeLayerId,
-    mode,
-    trellis,
-    sourceLineIndexes: state.lines.flatMap((line, index) => (line.isSelected(state, boundRect) ? [index] : [])),
-    sourcePolyIndexes: state.filledPolys.flatMap((poly, index) =>
-      boundRect && poly.isSelected(state, boundRect) ? [index] : [],
-    ),
-  }
 }

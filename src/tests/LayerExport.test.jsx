@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
 import getInitialState from "../states"
-import Layer from "../helper/Layer"
-import Trellis from "../helper/Trellis"
+import DrawingLayer from "../helper/Layer"
+import TrellisLayer from "../helper/TrellisLayer"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
 import Dist from "../helper/Dist"
@@ -18,13 +18,13 @@ describe("layer-aware persistence and export", () => {
       name: "Bottom",
       lines: [makeLine(state, 0, 0, 2, 0, "#123456")],
     })
-    const trellis = new Trellis({
+    const trellis = new TrellisLayer({
       sourceOrigin: new Point(2, 2),
       sourceSize: new Dist(4, 4),
       lines: [makeLine(state, 0, 0, 2, 1, "#abcdef")],
     })
-    const repeated = new Layer({ id: "layer-2", name: "Repeated", trellis })
-    const hidden = new Layer({
+    const repeated = new DrawingLayer({ id: "layer-2", name: "Repeated", trellis })
+    const hidden = new DrawingLayer({
       id: "layer-3",
       name: "Hidden",
       visible: false,
@@ -46,7 +46,7 @@ describe("layer-aware persistence and export", () => {
     expect(restored.layers).toHaveLength(3)
     expect(restored.layers[2].visible).toBe(false)
     expect(restored.layers[2].lines[0].a.eq(new Point(99, 99))).toBe(true)
-    expect(restored.layers[1].trellis).toBeInstanceOf(Trellis)
+    expect(restored.layers[1].trellis).toBeInstanceOf(TrellisLayer)
   })
 
   test("migrates comment-free legacy SVG line groups", () => {
@@ -76,7 +76,7 @@ describe("layer-aware persistence and export", () => {
 
     const restored = deserializeState(legacy)
 
-    expect(restored.layers[0].trellis).toBeInstanceOf(Trellis)
+    expect(restored.layers[0].trellis).toBeInstanceOf(TrellisLayer)
     expect(restored.layers[0].trellis.skip.row.val).toBe(1)
     expect(restored.layers[0].trellis.lines).toHaveLength(1)
     expect(restored.layers[0].lines).toEqual([])

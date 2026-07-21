@@ -117,8 +117,6 @@ export const keybindable = [
   bindable("clear_fill", "Clear fill"),
   bindable("clear_mirror_origins", "Clear all mirror origins"),
   bindable("copy_image", "Copy image"),
-  bindable("apply_trellis", "Apply trellis"),
-  bindable("release_trellis", "Release trellis"),
 
   // 1-5 color keyboard shortcuts
   ...Array.from({ length: defaultOptions.commonColorAmt }, (_, index) =>

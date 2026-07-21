@@ -24,8 +24,11 @@ import FlipIcon from "@mui/icons-material/Flip"
 import UndoIcon from "@mui/icons-material/Undo"
 import BlurOnIcon from "@mui/icons-material/BlurOn"
 import LayersIcon from "@mui/icons-material/Layers"
+import KeyboardTabIcon from "@mui/icons-material/KeyboardTab"
 import { isMobile } from "../utils/misc"
 import { PiSelectionPlusDuotone } from "react-icons/pi"
+import { MirrorRotIcon } from "./CustomIcons"
+import { MIRROR_ROT } from "../globals"
 
 const mobile = isMobile()
 const toolButtonStyle = (theme) => ({
@@ -65,6 +68,10 @@ const iconMap = {
   add_bound: <PiSelectionPlusDuotone />,
   generic_select: <PiSelectionPlusDuotone />,
   toggle_dots: <BlurOnIcon />,
+  flip: <FlipIcon />,
+  rotate: MirrorRotIcon(MIRROR_ROT.STRAIGHT),
+  offset: <KeyboardTabIcon />,
+  skip: <RedoIcon />,
 }
 
 const tooltipMap = (mobile) => ({
@@ -77,8 +84,12 @@ const tooltipMap = (mobile) => ({
   clipboard: mobile ? "Clip" : "Clipboard",
   generic_select: mobile ? "Generic" : "Generic Select",
   toggle_dots: "Toggle Dots",
-  // This only exists on mobile
+  // This only exists on mobile -- TODO: I think I removed this?
   add_bound: "Bound",
+  flip: "Flip",
+  rotate: "Rotate",
+  offset: "Offset",
+  skip: "Skip",
 })
 
 const getTooltipSide = (side, inExtraMenu) => {

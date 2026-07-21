@@ -11,10 +11,11 @@ import Rect from "../helper/Rect"
 import { name as nameGenerator } from "naampje"
 import { localStorageCloudUsernameName, localStorageName, localStorageSettingsName } from "../globals"
 import getInitialState from "../states"
-import Layer from "../helper/Layer"
-import Trellis from "../helper/Trellis"
-import { createLayer, getLayerState, layerOwnedKeys } from "../utils/layers"
+import DrawingLayer from "../helper/Layer"
+import TrellisLayer from "../helper/TrellisLayer"
+import { getLayerState, layerFromJSON, layerOwnedKeys } from "../utils/layers"
 import { MAX_TRELLIS_CANDIDATES, MAX_TRELLIS_GROUPS } from "./trellis"
+import Layer from "../helper/Layer"
 
 function viewportCanvasRect(state) {
   return Rect.fromPoints(
@@ -111,7 +112,7 @@ export function serializePattern(state, selectedOnly = false, requestedRect = nu
   let artwork
   if (selectedOnly) {
     const selection = getSelected(state, false, true)
-    const layer = new Layer({
+    const layer = new DrawingLayer({
       id: state.activeLayerId,
       name: "Selection",
       lines: selection.filter((object) => object instanceof Line),
@@ -135,10 +136,10 @@ function customDeserialize(state) {
     state.translation instanceof Dist ? state.translation : Dist.fromJSON(state?.translation || { x: 0, y: 0 })
 
   if (state.layers?.length) {
-    state.layers = state.layers.map((layer) => (layer instanceof Layer ? layer : Layer.fromJSON(layer)))
+    state.layers = state.layers.map((layer) => (layer instanceof Layer ? layer : layerFromJSON(layer)))
     if (!state.layers.some((layer) => layer.id === state.activeLayerId)) state.activeLayerId = state.layers[0].id
   } else {
-    const legacyLayer = createLayer(1, {
+    const legacyLayer = DrawingLayer.createFromIndex(1, {
       lines: (state.lines ?? []).map((line) => (line instanceof Line ? line : Line.fromJSON(line))),
       filledPolys: (state.filledPolys ?? []).map((poly) => (poly instanceof Poly ? poly : Poly.fromJSON(poly))),
       bounds: (state.bounds ?? []).map((point) => (point instanceof Point ? point : Point.fromJSON(point))),
@@ -156,9 +157,10 @@ function customDeserialize(state) {
     state.layers = [legacyLayer]
     state.activeLayerId = legacyLayer.id
 
+    // TODO: I feel like this will have issues and will need to be updated
     if (state.trellis) {
       const legacyState = getLayerState(state, legacyLayer)
-      const trellis = Trellis.fromSelection(legacyState, state)
+      const trellis = TrellisLayer.fromSelection(legacyState, state)
       if (trellis?.valid) {
         const boundRect = getBoundRect(legacyState)
         state.layers = [
@@ -171,6 +173,8 @@ function customDeserialize(state) {
       }
     }
   }
+
+  console.log(state.layers)
 
   for (const key of [...layerOwnedKeys, "trellisOverlap", "trellisSkip", "trellisFlip", "trellisRotate"])
     delete state[key]

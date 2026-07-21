@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, test } from "vitest"
 import getInitialState from "../states"
 import reducer from "../reducer"
-import Layer from "../helper/Layer"
-import Trellis from "../helper/Trellis"
+import DrawingLayer from "../helper/Layer"
+import TrellisLayer from "../helper/TrellisLayer"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
 import Poly from "../helper/Poly"
@@ -27,9 +27,9 @@ function selectedState() {
 
 describe("Layer and Trellis models", () => {
   test("copy helpers leave the original models unchanged", () => {
-    const layer = new Layer({ id: "one", name: "Original" })
+    const layer = new DrawingLayer({ id: "one", name: "Original" })
     const renamed = layer.copy({ name: "Renamed", visible: false })
-    const trellis = Trellis.fromSelection(selectedState())
+    const trellis = TrellisLayer.fromSelection(selectedState())
     const rotated = trellis.withControls({
       rotate: {
         row: { every: 1, val: MIRROR_ROT.RIGHT },
@@ -46,7 +46,7 @@ describe("Layer and Trellis models", () => {
 
   test("captures relative geometry and releases transformed tile zero", () => {
     const state = selectedState()
-    const captured = Trellis.fromSelection(state).withControls({
+    const captured = TrellisLayer.fromSelection(state).withControls({
       rotate: {
         row: { every: 1, val: MIRROR_ROT.RIGHT },
         col: { every: 1, val: MIRROR_ROT.NONE },
@@ -61,14 +61,14 @@ describe("Layer and Trellis models", () => {
 
   test("revives layers, trellises, geometry classes, and polygon colors", () => {
     let state = selectedState()
-    const trellis = Trellis.fromSelection(state)
+    const trellis = TrellisLayer.fromSelection(state)
     const layer = state.layers[0].copy({ trellis })
     state = getLayerState({ ...state, layers: [layer] }, layer)
 
     const restored = deserializeState(serializeState(state))
 
-    expect(restored.layers[0]).toBeInstanceOf(Layer)
-    expect(restored.layers[0].trellis).toBeInstanceOf(Trellis)
+    expect(restored.layers[0]).toBeInstanceOf(DrawingLayer)
+    expect(restored.layers[0].trellis).toBeInstanceOf(TrellisLayer)
     expect(restored.layers[0].trellis.lines[0]).toBeInstanceOf(Line)
     expect(restored.layers[0].trellis.filledPolys[0]).toBeInstanceOf(Poly)
     expect(restored.layers[0].trellis.filledPolys[0].color).toBe("#d946ef")
@@ -88,7 +88,7 @@ describe("layer and persistent trellis actions", () => {
     state = reducer(state, { action: "menu", open: "repeat" })
     expect(state.trellisDraft.mode).toBe("create")
     state = reducer(state, "apply_trellis")
-    expect(state.layers[0].trellis).toBeInstanceOf(Trellis)
+    expect(state.layers[0].trellis).toBeInstanceOf(TrellisLayer)
     expect(state.layers[0].lines).toEqual([])
     expect(state.layers[0].bounds).toEqual([])
 
@@ -96,7 +96,7 @@ describe("layer and persistent trellis actions", () => {
     expect(state.layers[0].trellis).toBeNull()
     expect(state.layers[0].lines).toHaveLength(1)
     state = reducer(state, "redo")
-    expect(state.layers[0].trellis).toBeInstanceOf(Trellis)
+    expect(state.layers[0].trellis).toBeInstanceOf(TrellisLayer)
 
     state = reducer(state, { action: "menu", open: "repeat" })
     expect(state.trellisDraft.mode).toBe("edit")

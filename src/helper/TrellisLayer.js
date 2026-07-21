@@ -7,6 +7,8 @@ import { MIRROR_AXIS, MIRROR_ROT } from "../globals"
 import { getBoundRect, getSelected } from "../utils/lines"
 import { defaultTrellisControl } from "../utils/trellis"
 import { buildVisibleTrellisTiles, createTrellisTileDescriptor, transformAffinePoint } from "../utils/trellis"
+import Layer from "./Layer"
+import { nextLayerNumber } from "../utils/layers"
 
 const cloneControl = (control, fallback) => ({
   row: { every: control?.row?.every ?? 1, val: control?.row?.val ?? fallback },
@@ -18,9 +20,18 @@ const transformPoint = (matrix, point) => {
   return new Point(transformed.x, transformed.y)
 }
 
+// These might be necissary later
+// sourceLineIndexes: state.lines.flatMap((line, index) => (line.isSelected(state, boundRect) ? [index] : [])),
+// sourcePolyIndexes: state.filledPolys.flatMap((poly, index) =>
+//   boundRect && poly.isSelected(state, boundRect) ? [index] : [],
+// ),
+
 /** Durable, serializable repeated-pattern model. */
-export default class Trellis {
+export default class TrellisLayer extends Layer {
   constructor({
+    id,
+    name = "Layer",
+    visible = true,
     sourceOrigin = Point.svgOrigin(),
     sourceSize = Dist.zero(),
     lines = [],
@@ -30,6 +41,7 @@ export default class Trellis {
     flip = defaultTrellisControl(MIRROR_AXIS.NONE),
     rotate = defaultTrellisControl(MIRROR_ROT.NONE),
   } = {}) {
+    super({ id, name, visible })
     this.sourceOrigin = sourceOrigin
     this.sourceSize = sourceSize
     this.lines = lines
@@ -41,11 +53,14 @@ export default class Trellis {
   }
 
   static fromSelection(state, controls = {}) {
+    const index = nextLayerNumber(state.layers)
     const boundRect = getBoundRect(state)
+
     if (!boundRect || boundRect.wh._x <= 0 || boundRect.wh._y <= 0) return null
 
     const selected = getSelected(state, "topLeft", true)
-    return new Trellis({
+
+    return this.createFromIndex(index, {
       sourceOrigin: boundRect.topLeft,
       sourceSize: boundRect.wh,
       lines: selected.filter((object) => object instanceof Line),
@@ -78,8 +93,13 @@ export default class Trellis {
     }
   }
 
-  copy(updates = {}) {
-    return new Trellis({ ...this, ...updates })
+  reset() {
+    return this.withControls({
+      overlap: defaultTrellisControl({ x: 0, y: 0 }),
+      skip: defaultTrellisControl(0),
+      flip: defaultTrellisControl(MIRROR_AXIS.NONE),
+      rotate: defaultTrellisControl(MIRROR_ROT.NONE),
+    })
   }
 
   withControls({ overlap, skip, flip, rotate } = {}) {
@@ -139,13 +159,10 @@ export default class Trellis {
     }
   }
 
-  toJSON() {
-    return { ...this }
-  }
-
-  static fromJSON(json) {
+  // TODO: update this
+  static _fromJSON(json) {
     if (!json) return null
-    return new Trellis({
+    return new TrellisLayer({
       ...json,
       sourceOrigin: Point.fromJSON(json.sourceOrigin),
       sourceSize: Dist.fromJSON(json.sourceSize),
