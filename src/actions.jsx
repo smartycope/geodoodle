@@ -33,15 +33,15 @@ import {
   saveCloud,
 } from "./utils/files"
 import { cursorPosChanged } from "./events"
-import Point from "./helper/Point"
-import Dist from "./helper/Dist"
-import Line from "./helper/Line"
-import Rect from "./helper/Rect"
-import Poly from "./helper/Poly"
+import Point from "./classes/Point"
+import Dist from "./classes/Dist"
+import Line from "./classes/Line"
+import Rect from "./classes/Rect"
+import Poly from "./classes/Poly"
 import { tourState } from "./states"
 import * as turf from "@turf/turf"
 import { normalizeAngle } from "./utils/transform"
-import TrellisLayer from "./helper/TrellisLayer"
+import TrellisLayer from "./classes/TrellisLayer"
 import { getActiveLayer, nextLayerNumber, setActiveLayer, updateActiveLayer, updateLayer } from "./utils/layers"
 import {
   convertLastSelectorToBound,
@@ -49,7 +49,7 @@ import {
   nearestVisibleLayer,
   positionCursorAtEdges,
 } from "./utils/actions"
-import DrawingLayer from "./helper/DrawingLayer"
+import DrawingLayer from "./classes/DrawingLayer"
 import { defaultTrellisControl } from "./utils/trellis"
 
 // region Transformation Actions

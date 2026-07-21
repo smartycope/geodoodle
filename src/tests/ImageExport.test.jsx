@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test, vi } from "vitest"
 import { image } from "../utils/files"
-import Line from "../helper/Line"
-import Point from "../helper/Point"
-import Rect from "../helper/Rect"
+import Line from "../classes/Line"
+import Point from "../classes/Point"
+import Rect from "../classes/Rect"
 import { getState } from "./testUtils"
 
 describe("image export", () => {

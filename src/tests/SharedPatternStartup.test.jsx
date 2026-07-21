@@ -1,8 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import Paper from "../Paper"
-import Line from "../helper/Line"
-import Point from "../helper/Point"
+import Line from "../classes/Line"
+import Point from "../classes/Point"
 import { getSaves, loadCloud, loadPreservedState, preserveState, saveUsername, validateStorage } from "../utils/files"
 import { getState } from "./testUtils"
 

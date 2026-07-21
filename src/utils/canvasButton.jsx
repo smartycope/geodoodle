@@ -1,4 +1,4 @@
-import Point from "../helper/Point"
+import Point from "../classes/Point"
 import { themeDefaults } from "../styling/theme"
 import {activeLayerIsTrellis} from "./layers"
 import { getClipboardRect } from "./lines"

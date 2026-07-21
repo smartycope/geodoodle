@@ -3,14 +3,14 @@ import Number from "../components/Number"
 
 import defaultOptions from "../options"
 import { StateContext } from "../Contexts"
-import Dist from "../helper/Dist"
+import Dist from "../classes/Dist"
 import Grid from "@mui/material/Grid"
 import IconButton from "@mui/material/IconButton"
 import Paper from "@mui/material/Paper"
 import HomeIcon from "@mui/icons-material/Home"
 import HighlightAltIcon from "@mui/icons-material/HighlightAlt"
 import { getHalf } from "../utils/misc"
-import Point from "../helper/Point"
+import Point from "../classes/Point"
 import { viewportHeight, viewportWidth } from "../globals"
 
 export default function NavMenu() {

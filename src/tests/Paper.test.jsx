@@ -24,7 +24,7 @@ import {
   getSelectionRect,
 } from "../tests/testUtils"
 import { validateStorage } from "../utils/files"
-import Point from "../helper/Point"
+import Point from "../classes/Point"
 import { viewportHeight, viewportWidth } from "../globals"
 import { themeDefaults } from "../styling/theme"
 

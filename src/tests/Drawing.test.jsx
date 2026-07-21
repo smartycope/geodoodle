@@ -11,9 +11,9 @@ import {
   SelectionRect,
 } from "../drawing"
 import { StateContext } from "../Contexts"
-import Line from "../helper/Line"
-import Point from "../helper/Point"
-import Dist from "../helper/Dist"
+import Line from "../classes/Line"
+import Point from "../classes/Point"
+import Dist from "../classes/Dist"
 import { MIRROR_AXIS, MIRROR_TYPE } from "../globals"
 import { getState } from "./testUtils"
 import { themeDefaults } from "../styling/theme"

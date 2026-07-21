@@ -42,8 +42,8 @@ import SyncIcon from "@mui/icons-material/Sync"
 import Number from "../components/Number.jsx"
 import { StateContext } from "../Contexts.jsx"
 import { viewportHeight, viewportWidth } from "../globals"
-import Rect from "../helper/Rect.jsx"
-import Point from "../helper/Point.js"
+import Rect from "../classes/Rect.jsx"
+import Point from "../classes/Point.js"
 import Page from "../components/Page.jsx"
 import {
   deleteCloud,

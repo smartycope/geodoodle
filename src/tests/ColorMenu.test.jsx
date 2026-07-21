@@ -3,8 +3,8 @@ import { afterEach, describe, expect, test, vi } from "vitest"
 import ColorMenu from "../menus/ColorMenu"
 import { StateContext } from "../Contexts"
 import { getState } from "./testUtils"
-import Line from "../helper/Line"
-import Point from "../helper/Point"
+import Line from "../classes/Line"
+import Point from "../classes/Point"
 
 vi.mock("react-color-palette", () => ({
   ColorPicker: ({ hideInput }) => <div data-testid="color-picker" data-hidden-inputs={hideInput.join(",")} />,

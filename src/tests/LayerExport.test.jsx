@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest"
 import getInitialState from "../states"
-import DrawingLayer from "../helper/Layer"
-import TrellisLayer from "../helper/TrellisLayer"
-import Line from "../helper/Line"
-import Point from "../helper/Point"
-import Dist from "../helper/Dist"
-import Rect from "../helper/Rect"
+import DrawingLayer from "../classes/Layer"
+import TrellisLayer from "../classes/TrellisLayer"
+import Line from "../classes/Line"
+import Point from "../classes/Point"
+import Dist from "../classes/Dist"
+import Rect from "../classes/Rect"
 import { deserializePattern, deserializeState, serializePattern } from "../utils/files"
 
 const makeLine = (state, ax, ay, bx, by, stroke = "#111111") =>

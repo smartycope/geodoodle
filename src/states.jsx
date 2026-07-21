@@ -1,14 +1,14 @@
 import options, { defaultKeybindings } from "./options"
 import { START_DEBUGGING, MIRROR_AXIS, MIRROR_TYPE, MIRROR_ROT } from "./globals"
-import Point from "./helper/Point"
+import Point from "./classes/Point"
 import { viewportHeight, viewportWidth } from "./globals"
-import Line from "./helper/Line"
+import Line from "./classes/Line"
 import { isMobile as getIsMobile } from "./utils/misc"
-import Dist from "./helper/Dist"
+import Dist from "./classes/Dist"
 import { generateName } from "./utils/files"
 import { themeDefaults } from "./styling/theme"
 import { getActiveLayer, updateActiveLayer } from "./utils/layers"
-import DrawingLayer from "./helper/DrawingLayer"
+import DrawingLayer from "./classes/DrawingLayer"
 
 // NOTE: when adding to state, go through options.jsx and add them to reversible, preservable, and saveable, if applicable
 

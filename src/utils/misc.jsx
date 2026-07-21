@@ -1,5 +1,5 @@
 import { MIRROR_AXIS } from "../globals"
-import Point from "../helper/Point"
+import Point from "../classes/Point"
 import { viewportHeight, viewportWidth } from "../globals"
 
 

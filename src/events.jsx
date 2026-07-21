@@ -1,5 +1,5 @@
-import Point from "./helper/Point"
-import Dist from "./helper/Dist"
+import Point from "./classes/Point"
+import Dist from "./classes/Dist"
 import { distCenter } from "./utils/misc"
 import { getCanvasButtonAt } from "./utils/canvasButton"
 import { normalizeAngle } from "./utils/transform"

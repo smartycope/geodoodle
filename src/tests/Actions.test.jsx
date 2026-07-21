@@ -57,10 +57,10 @@ import {
   debug,
   toggle_debugging,
 } from "../actions"
-import Point from "../helper/Point"
-import Dist from "../helper/Dist"
-import Line from "../helper/Line"
-import Rect from "../helper/Rect"
+import Point from "../classes/Point.js"
+import Dist from "../classes/Dist.js"
+import Line from "../classes/Line.jsx"
+import Rect from "../classes/Rect.jsx"
 import { getDefaultTestingState, getState } from "./testUtils"
 import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE } from "../globals"
 import { viewportHeight, viewportWidth } from "../globals"

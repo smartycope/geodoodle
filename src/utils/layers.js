@@ -1,5 +1,5 @@
-import DrawingLayer from "../helper/DrawingLayer"
-import TrellisLayer from "../helper/TrellisLayer"
+import DrawingLayer from "../classes/DrawingLayer"
+import TrellisLayer from "../classes/TrellisLayer"
 
 // TODO: does this need to be updated?
 export const layerOwnedKeys = [

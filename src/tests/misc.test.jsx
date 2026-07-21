@@ -9,7 +9,7 @@ import { eventMatchesKeycode, normalizeShortcut, shortcutFromKeyboardEvent } fro
 import { getGestureScaleDelta } from "../events"
 import { extraButtons } from "../globals"
 import reducer from "../reducer"
-import Dist from "../helper/Dist"
+import Dist from "../classes/Dist"
 import generateTheme, { themeDefaults } from "../styling/theme"
 
 // In between each tests, reset the localStorage

@@ -10,8 +10,8 @@ import ToolButton from "../components/ToolButton"
 import ExtraButton from "./ExtraButton"
 import { isMobile } from "../utils/misc"
 import {getActiveLayer} from "../utils/layers"
-import TrellisLayer from "../helper/TrellisLayer"
-import DrawingLayer from "../helper/DrawingLayer"
+import TrellisLayer from "../classes/TrellisLayer"
+import DrawingLayer from "../classes/DrawingLayer"
 
 // TODO: On a sideways mobile screen, the toolbar goes off the screen
 function Toolbar() {

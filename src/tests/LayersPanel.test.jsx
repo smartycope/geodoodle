@@ -3,11 +3,11 @@ import { afterEach, describe, expect, test, vi } from "vitest"
 import LayersPanel from "../menus/LayersPanel"
 import { StateContext } from "../Contexts"
 import getInitialState from "../states"
-import DrawingLayer from "../helper/Layer"
-import TrellisLayer from "../helper/TrellisLayer"
-import Line from "../helper/Line"
-import Point from "../helper/Point"
-import Dist from "../helper/Dist"
+import DrawingLayer from "../classes/Layer"
+import TrellisLayer from "../classes/TrellisLayer"
+import Line from "../classes/Line"
+import Point from "../classes/Point"
+import Dist from "../classes/Dist"
 
 const makeLine = (state, offset = 0) => new Line(state, new Point(offset, offset), new Point(offset + 2, offset + 1))
 

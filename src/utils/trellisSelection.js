@@ -1,5 +1,5 @@
-import Point from "../helper/Point"
-import Rect from "../helper/Rect"
+import Point from "../classes/Point"
+import Rect from "../classes/Rect"
 import { getBoundRect } from "./lines"
 import { trellisOwnsSource, createTrellisSourceTileDescriptor, transformAffinePoint } from "./trellis"
 

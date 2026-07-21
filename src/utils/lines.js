@@ -1,4 +1,4 @@
-import Rect from "../helper/Rect"
+import Rect from "../classes/Rect"
 
 export function getBoundRect(state) {
   const { bounds, boundDragging, cursorPos } = state

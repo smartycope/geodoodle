@@ -28,8 +28,8 @@ import {
   getCurPolys,
 } from "../tests/testUtils"
 import { toggle_fill_mode } from "../actions"
-import Line from "../helper/Line"
-import Point from "../helper/Point"
+import Line from "../classes/Line"
+import Point from "../classes/Point"
 import { validateStorage } from "../utils/files"
 
 // In between each tests, reset the localStorage

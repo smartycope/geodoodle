@@ -1,7 +1,7 @@
-import Dist from "../helper/Dist"
+import Dist from "../classes/Dist"
 import { viewportHeight, viewportWidth } from "../globals"
-import Point from "../helper/Point"
-import TrellisLayer from "../helper/TrellisLayer"
+import Point from "../classes/Point"
+import TrellisLayer from "../classes/TrellisLayer"
 import { getActiveLayer } from "./layers"
 import { getBoundRect } from "./lines"
 

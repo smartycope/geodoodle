@@ -11,8 +11,8 @@ import {
   saveCloud,
   saveUsername,
 } from "../utils/files"
-import Dist from "../helper/Dist"
-import Point from "../helper/Point"
+import Dist from "../classes/Dist"
+import Point from "../classes/Point"
 
 describe("preserved state", () => {
   test("preserves translation as a Dist through serialization", () => {

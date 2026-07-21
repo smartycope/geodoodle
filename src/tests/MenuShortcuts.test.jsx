@@ -4,8 +4,8 @@ import { StateContext } from "../Contexts"
 import ClipboardMenu from "../menus/ClipboardMenu"
 import DeleteMenu from "../menus/DeleteMenu"
 import SelectMenu from "../menus/SelectMenu"
-import Line from "../helper/Line"
-import Point from "../helper/Point"
+import Line from "../classes/Line"
+import Point from "../classes/Point"
 import { getState } from "./testUtils"
 
 const renderMenu = (menu, Component, stateOverrides = {}) => {
