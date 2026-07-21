@@ -453,7 +453,7 @@ export default function FilePage() {
                         <Number label="Y" value={y} onValueChange={setY} />
                       </Stack>
                       <Button variant="outlined" startIcon={<HighlightAltIcon />} onClick={fitArtwork}>
-                        Fit artwork
+                        Fit to Pattern
                       </Button>
                     </Stack>
                   </Grid>

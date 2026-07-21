@@ -470,8 +470,8 @@ export default function SettingsPage() {
         </Setting>
 
         <Setting
-          label="Dots above artwork"
-          help="Display the dot grid above the complete layer stack instead of below it"
+          label="Dots above patterns"
+          help="Display the dots above everything else instead of below everything else"
         >
           <Checkbox
             checked={dotsAboveArtwork}
