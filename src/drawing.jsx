@@ -1,16 +1,11 @@
 // Stuff which gets called by Paper to draw parts of the paper
-import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE, viewportHeight, viewportWidth } from "./globals"
+import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE } from "./globals"
+import { getAllCursorPoints } from "./utils/misc"
+import { viewportHeight, viewportWidth } from "./globals"
 import options from "./options"
-import {
-  getHalf,
-  getBoundRect,
-  getAllClipboardLines,
-  getAllIntersections,
-  isMobile,
-  getAllCursorPoints,
-  trellisOwnsSource,
-} from "./utils"
-import { getClipboardButtonStrip, getSelectionButtonStrip } from "./canvasButtonUtils"
+import { getHalf, isMobile } from "./utils/misc"
+import { getBoundRect, getAllClipboardLines } from "./utils/lines"
+import { getClipboardButtonStrip, getSelectionButtonStrip } from "./utils/canvasButton"
 import Line from "./helper/Line"
 import Point from "./helper/Point"
 import { useContext, useEffect, useMemo } from "react"
@@ -20,22 +15,22 @@ import { useTheme } from "@mui/material/styles"
 // TODO: memoization
 // import {memo, useMemo} from 'react'
 
-import HelpPage from "./Menus/HelpPage"
-import ColorMenu from "./Menus/ColorMenu"
-import FilePage from "./Menus/FilePage"
-import SettingsPage from "./Menus/SettingsPage"
-import KeybindingsPage from "./Menus/KeybindingsPage"
-import NavMenu from "./Menus/NavMenu"
-import RepeatMenu from "./Menus/RepeatMenu"
-import MirrorMenu from "./Menus/MirrorMenu"
-import ExtraMenu from "./Menus/ExtraMenu"
-import ClipboardMenu from "./Menus/ClipboardMenu"
-import DeleteMenu from "./Menus/DeleteMenu"
-import SelectMenu from "./Menus/SelectMenu"
-import LayersPanel from "./Menus/LayersPanel"
+import HelpPage from "./menus/HelpPage"
+import ColorMenu from "./menus/ColorMenu"
+import FilePage from "./menus/FilePage"
+import SettingsPage from "./menus/SettingsPage"
+import KeybindingsPage from "./menus/KeybindingsPage"
+import NavMenu from "./menus/NavMenu"
+import RepeatMenu from "./menus/RepeatMenu"
+import MirrorMenu from "./menus/MirrorMenu"
+import ExtraMenu from "./menus/ExtraMenu"
+import ClipboardMenu from "./menus/ClipboardMenu"
+import DeleteMenu from "./menus/DeleteMenu"
+import SelectMenu from "./menus/SelectMenu"
+import LayersPanel from "./menus/LayersPanel"
 
 const EMPTY_ARRAY = Object.freeze([])
-import { MirrorAxisIcon, MirrorRotIcon } from "./Menus/CustomIcons"
+import { MirrorAxisIcon, MirrorRotIcon } from "./components/CustomIcons"
 import CheckIcon from "@mui/icons-material/Check"
 import ClearIcon from "@mui/icons-material/Clear"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
@@ -48,12 +43,13 @@ import {
   getCanvasRotationTransform,
   getCanvasTransform,
   rotateCoordinates,
-} from "./transformUtils"
+} from "./utils/transform"
 import useViewportSize from "./useViewportSize"
-import { getRenderedBoundRect, getRenderedBounds } from "./trellisSelectionUtils"
+import { getRenderedBoundRect, getRenderedBounds } from "./utils/trellisSelection"
 import Trellis from "./Trellis"
-import { getLayerState } from "./layerUtils"
-import { MAX_TRELLIS_CANDIDATES, MAX_TRELLIS_GROUPS } from "./trellisUtils"
+import { getLayerState } from "./utils/layers"
+import { MAX_TRELLIS_CANDIDATES, MAX_TRELLIS_GROUPS, trellisOwnsSource } from "./utils/trellis"
+import { getAllIntersections } from "./utils/math"
 
 // For debugging
 function useActiveBreakpoint() {

@@ -2,15 +2,8 @@ import "./styling/App.css"
 import { useEffect, useReducer, useRef, useMemo, useState } from "react"
 import { PREVENT_LOADING_STATE } from "./globals"
 import reducer from "./reducer"
-import Toolbar from "./Menus/Toolbar"
-import {
-  loadCloud,
-  loadUsername,
-  loadPreservedState,
-  preserveState,
-  saveUsername,
-  saveLocally,
-} from "./fileUtils"
+import Toolbar from "./menus/Toolbar"
+import { loadCloud, loadUsername, loadPreservedState, preserveState, saveUsername, saveLocally } from "./utils/files"
 import { StateContext } from "./Contexts"
 import generateTheme from "./styling/theme"
 import useMediaQuery from "@mui/material/useMediaQuery"
@@ -38,9 +31,9 @@ import {
 } from "./drawing"
 import getInitialState from "./states"
 import * as events from "./events"
-import SharedPatternDialog from "./Menus/SharedPatternDialog"
-import { getSharedPatternParams, syncPatternQueryParams } from "./shareUtils"
-import { getLayerState } from "./layerUtils"
+import SharedPatternDialog from "./menus/SharedPatternDialog"
+import { getSharedPatternParams, syncPatternQueryParams } from "./utils/share"
+import { getLayerState } from "./utils/layers"
 
 // This is for the mouse/touch events that need to be bound non-passively, but also need access to the state
 // This is hacky, but I can't think of a better way

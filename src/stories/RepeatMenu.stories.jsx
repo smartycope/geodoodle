@@ -1,4 +1,4 @@
-import RepeatMenu from "../Menus/RepeatMenu"
+import RepeatMenu from "../menus/RepeatMenu"
 import StateDecorator from "./StateDecorator"
 
 export default {

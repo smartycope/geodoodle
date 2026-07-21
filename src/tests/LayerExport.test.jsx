@@ -6,7 +6,7 @@ import Line from "../helper/Line"
 import Point from "../helper/Point"
 import Dist from "../helper/Dist"
 import Rect from "../helper/Rect"
-import { deserializePattern, deserializeState, serializePattern } from "../fileUtils"
+import { deserializePattern, deserializeState, serializePattern } from "../utils/files"
 
 const makeLine = (state, ax, ay, bx, by, stroke = "#111111") =>
   new Line(state, new Point(ax, ay), new Point(bx, by), { stroke })

@@ -1,4 +1,4 @@
-import { isMobile } from "../utils"
+import { isMobile } from "../utils/misc"
 
 const LOAD_DELAY = 10
 let alreadyHappened = {}

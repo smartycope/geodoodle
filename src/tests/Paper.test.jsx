@@ -5,7 +5,7 @@ import defaultOptions from "../options"
 
 // import "../styling/App.css"
 import "../styling/index.css"
-import "../utils"
+import "../utils/misc"
 import {
   getLines,
   getCurLines,
@@ -23,7 +23,7 @@ import {
   renderPaper,
   getSelectionRect,
 } from "../tests/testUtils"
-import { validateStorage } from "../fileUtils"
+import { validateStorage } from "../utils/files"
 import Point from "../helper/Point"
 import { viewportHeight, viewportWidth } from "../globals"
 import { themeDefaults } from "../styling/theme"

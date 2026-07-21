@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest"
-import { buildPatternShareUrl, getSharedPatternParams, syncPatternQueryParams } from "../shareUtils"
+import { buildPatternShareUrl, getSharedPatternParams, syncPatternQueryParams } from "../utils/share"
 
 describe("pattern share links", () => {
   test("reads complete cloud pattern parameters", () => {

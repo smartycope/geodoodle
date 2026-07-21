@@ -1,11 +1,11 @@
 import Paper from "./Paper"
-import tour, { getPreviousVisibleTourStep, prepareTourStep, resetTourProgress } from "./Menus/tour.jsx"
+import tour, { getPreviousVisibleTourStep, prepareTourStep, resetTourProgress } from "./components/tour.jsx"
 import Tour from "reactour"
 import { useState } from "react"
 import { localStorageTourTakenName } from "./globals"
 import { InTourContext } from "./Contexts.jsx"
 import CssBaseline from "@mui/material/CssBaseline"
-import { validateStorage } from "./fileUtils"
+import { validateStorage } from "./utils/files.jsx"
 
 // Disable the default right click menu
 window.oncontextmenu = () => false

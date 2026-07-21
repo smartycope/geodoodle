@@ -1,6 +1,7 @@
-import { isMobile, viewportWidth, viewportHeight } from "./globals"
+import { isMobile } from "./utils/misc"
+import { viewportHeight, viewportWidth } from "./globals"
 
-// TODO: Options/defaultOptions needs a refactor
+// TODO: rename this to options instead of defaultOptions
 const mobile = isMobile()
 const defaultOptions = {
   scalex: 20,

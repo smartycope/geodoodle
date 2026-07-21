@@ -16,11 +16,11 @@ import Line from "../helper/Line"
 import Point from "../helper/Point"
 import Dist from "../helper/Dist"
 import Poly from "../helper/Poly"
-import { getClipboardButtonsPos, getSelectionButtonsPos } from "../canvasButtonUtils"
+import { getClipboardButtonsPos, getSelectionButtonsPos } from "../utils/canvasButton"
 import { getState } from "./testUtils"
-import { viewportWidth } from "../globals"
+import { viewportHeight, viewportWidth } from "../globals"
 import { themeDefaults } from "../styling/theme"
-import { getLayerState } from "../layerUtils"
+import { getLayerState } from "../utils/layers"
 
 const touch = (pageX, pageY) => ({ pageX, pageY })
 

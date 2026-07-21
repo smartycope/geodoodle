@@ -5,7 +5,7 @@ import defaultOptions from "../options"
 
 // import "../styling/App.css"
 import "../styling/index.css"
-import "../utils"
+import "../utils/misc"
 import {
   getLines,
   getCurLines,
@@ -30,7 +30,7 @@ import {
 import { toggle_fill_mode } from "../actions"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
-import { validateStorage } from "../fileUtils"
+import { validateStorage } from "../utils/files"
 
 // In between each tests, reset the localStorage
 beforeEach(() => {

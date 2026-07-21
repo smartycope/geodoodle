@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest"
-import { getPreviousVisibleTourStep, prepareTourStep } from "../Menus/tour"
+import { getPreviousVisibleTourStep, prepareTourStep } from "../components/tour"
 
 describe("tour navigation", () => {
   afterEach(() => {

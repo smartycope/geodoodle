@@ -3,12 +3,12 @@ import { ThemeProvider as EmotionThemeProvider } from "@emotion/react"
 import { describe, expect, test, vi } from "vitest"
 import { ThemeProvider } from "@mui/material/styles"
 import { StateContext } from "../Contexts"
-import SettingsPage from "../Menus/SettingsPage"
+import SettingsPage from "../menus/SettingsPage"
 import generateTheme from "../styling/theme"
 import { getState } from "./testUtils"
-import { readBackgroundImage } from "../backgroundImageUtils"
+import { readBackgroundImage } from "../utils/backgroundImage"
 
-vi.mock("../backgroundImageUtils", () => ({ readBackgroundImage: vi.fn() }))
+vi.mock("../utils/backgroundImage", () => ({ readBackgroundImage: vi.fn() }))
 vi.mock("react-color-palette", () => ({
   ColorPicker: () => <div data-testid="background-color-picker" />,
   ColorService: { convert: vi.fn(() => ({})) },

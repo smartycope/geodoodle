@@ -1,8 +1,9 @@
 import Point from "./helper/Point"
 import Dist from "./helper/Dist"
-import { distCenter, eventMatchesKeycode } from "./utils"
-import { getCanvasButtonAt } from "./canvasButtonUtils"
-import { normalizeAngle } from "./transformUtils"
+import { distCenter } from "./utils/misc"
+import { getCanvasButtonAt } from "./utils/canvasButton"
+import { normalizeAngle } from "./utils/transform"
+import { eventMatchesKeycode } from "./utils/shortcuts"
 
 var dragging = false
 var leftDragStart = null

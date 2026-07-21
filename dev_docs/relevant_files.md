@@ -30,16 +30,16 @@ These are the most relevant files in the program (these are all in /src/):
   - Contains all the CSS. This is almost entirely inline now
 - [theme.js](../src/styling/theme.js)
   - Contains the theme, accessible via useTheme()
-- [Menus/](../src/Menus/)
+- [Menus/](../src/menus/)
   - Contains the menus and pages, and their utilities
-  - [MiniMenu.jsx](../src/Menus/MiniMenu.jsx)
+  - [MiniMenu.jsx](../src/menus/MiniMenu.jsx)
     - Mini menus are the popups that appear when you click a tool button
-  - [Page.jsx](../src/Menus/Page.jsx)
+  - [Page.jsx](../src/menus/Page.jsx)
     - Pages are full-screen menus, like the settings menu
-  - [ToolButton.jsx](../src/Menus/ToolButton.jsx)
+  - [ToolButton.jsx](../src/menus/ToolButton.jsx)
     - Toolbuttons are the buttons in the toolbar (and ExtraMenu)
-  - [Toolbar.jsx](../src/Menus/Toolbar.jsx)
-  - [tour.jsx](../src/Menus/tour.jsx)
+  - [Toolbar.jsx](../src/menus/Toolbar.jsx)
+  - [tour.jsx](../src/menus/tour.jsx)
 - [helper/](../src/helper/)
   - Classes to encapsulate some of the coordinate math
   - [helper/Pair.jsx](../src/helper/Pair.jsx)

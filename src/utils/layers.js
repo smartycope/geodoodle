@@ -1,4 +1,4 @@
-import Layer from "./helper/Layer"
+import Layer from "../helper/Layer"
 
 export const layerOwnedKeys = [
   "lines",

@@ -1,6 +1,6 @@
 import { useContext } from "react"
 import { StateContext } from "../Contexts"
-import ToolButton from "./ToolButton"
+import ToolButton from "../components/ToolButton"
 import { extraButtons } from "../globals"
 
 export default function ExtraButton({ style }) {

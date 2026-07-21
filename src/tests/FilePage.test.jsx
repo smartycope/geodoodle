@@ -1,14 +1,14 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { beforeEach, describe, expect, test, vi } from "vitest"
 import { StateContext } from "../Contexts"
-import FilePage from "../Menus/FilePage"
+import FilePage from "../menus/FilePage"
 import { getState } from "./testUtils"
-import { sharePatternLink } from "../shareUtils"
-import { deserializeState, loadCloud, serializeState } from "../fileUtils"
+import { sharePatternLink } from "../utils/share.js"
+import { deserializeState, loadCloud, serializeState } from "../utils/files"
 
-vi.mock("../shareUtils", () => ({ sharePatternLink: vi.fn(() => Promise.resolve("shared")) }))
+vi.mock("../utils/share.js", () => ({ sharePatternLink: vi.fn(() => Promise.resolve("shared")) }))
 
-vi.mock("../fileUtils", async (importOriginal) => {
+vi.mock("../utils/files", async (importOriginal) => {
   const actual = await importOriginal()
   return {
     ...actual,
@@ -25,12 +25,13 @@ vi.mock("../fileUtils", async (importOriginal) => {
 
 function renderFilePage() {
   const state = getState()
+  const renderedState = { ...state, username: "cope", openMenus: { ...state.openMenus, file: true } }
   const dispatch = vi.fn()
   const setUsername = vi.fn()
   render(
     <StateContext.Provider
       value={{
-        state: { ...state, openMenus: { ...state.openMenus, file: true } },
+        state: renderedState,
         dispatch,
         username: "cope",
         setUsername,
@@ -39,7 +40,7 @@ function renderFilePage() {
       <FilePage />
     </StateContext.Provider>,
   )
-  return { dispatch, state, setUsername }
+  return { dispatch, state: renderedState, setUsername }
 }
 
 beforeEach(() => {

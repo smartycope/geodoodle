@@ -3,17 +3,10 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import Paper from "../Paper"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
-import {
-  getSaves,
-  loadCloud,
-  loadPreservedState,
-  preserveState,
-  saveUsername,
-  validateStorage,
-} from "../fileUtils"
+import { getSaves, loadCloud, loadPreservedState, preserveState, saveUsername, validateStorage } from "../utils/files"
 import { getState } from "./testUtils"
 
-vi.mock("../fileUtils", async (importOriginal) => {
+vi.mock("../utils/files", async (importOriginal) => {
   const actual = await importOriginal()
   return { ...actual, loadCloud: vi.fn() }
 })
@@ -44,7 +37,7 @@ afterEach(() => window.history.replaceState({}, "", "/geodoodle/"))
 
 describe("shared pattern startup", () => {
   test("keeps the URL current as the pattern name changes", async () => {
-    const local = pattern("Work in progress", 1)
+    const local = { ...pattern("Work in progress", 1), username: "cope" }
     preserveState(local)
     saveUsername("cope")
     window.history.replaceState({}, "", "/geodoodle/")
@@ -58,7 +51,7 @@ describe("shared pattern startup", () => {
   })
 
   test("does not reopen the share dialog when the URL already identifies the local workspace", async () => {
-    const local = pattern("Work in progress", 1)
+    const local = { ...pattern("Work in progress", 1), username: "cope" }
     preserveState(local)
     saveUsername("cope")
     window.history.replaceState({}, "", "/geodoodle/?user=cope&pattern=Work+in+progress")

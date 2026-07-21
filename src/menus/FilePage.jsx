@@ -39,12 +39,12 @@ import ScreenshotMonitorIcon from "@mui/icons-material/ScreenshotMonitor"
 import ShareIcon from "@mui/icons-material/Share"
 import StorageOutlinedIcon from "@mui/icons-material/StorageOutlined"
 import SyncIcon from "@mui/icons-material/Sync"
-import Number from "./Number.jsx"
+import Number from "../components/Number.jsx"
 import { StateContext } from "../Contexts.jsx"
-import { viewportHeight, viewportWidth } from "../globals.js"
+import { viewportHeight, viewportWidth } from "../globals"
 import Rect from "../helper/Rect.jsx"
 import Point from "../helper/Point.js"
-import Page from "./Page.jsx"
+import Page from "../components/Page.jsx"
 import {
   deleteCloud,
   generateName,
@@ -53,9 +53,9 @@ import {
   loadCloud,
   preservedStatesEqual,
   saveCloud,
-} from "../fileUtils.jsx"
-import TabManager from "./TabManager"
-import { sharePatternLink } from "../shareUtils"
+} from "../utils/files.jsx"
+import TabManager from "../components/TabManager.jsx"
+import { sharePatternLink } from "../utils/share.js"
 
 const cloudHelpText =
   "Files are stored on Cope's semi-reliable server. They'll probably be safe? But if you have a pattern you really care about, " +

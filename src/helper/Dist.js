@@ -1,5 +1,5 @@
 import Pair from "./Pair"
-import { rotateCoordinates } from "../transformUtils"
+import { rotateCoordinates } from "../utils/transform"
 
 export default class Dist extends Pair {
   static zero() {

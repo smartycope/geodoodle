@@ -1,4 +1,5 @@
-import { getBoundRect, unique } from "../utils"
+import { unique } from "../utils/misc"
+import { getBoundRect } from "../utils/lines"
 import Point from "./Point"
 import * as turf from "@turf/turf"
 

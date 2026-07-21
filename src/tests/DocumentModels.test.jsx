@@ -7,8 +7,8 @@ import Line from "../helper/Line"
 import Point from "../helper/Point"
 import Poly from "../helper/Poly"
 import { MIRROR_AXIS, MIRROR_ROT } from "../globals"
-import { getLayerState } from "../layerUtils"
-import { deserializeState, serializeState } from "../fileUtils"
+import { getLayerState } from "../utils/layers"
+import { deserializeState, serializeState } from "../utils/files"
 import { redoStack, undoStack } from "../globals"
 
 const line = (state, ax = 1, ay = 1, bx = 3, by = 1) => new Line(state, new Point(ax, ay), new Point(bx, by))

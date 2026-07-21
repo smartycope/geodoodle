@@ -1,7 +1,7 @@
-import Point from "./helper/Point"
-import { getClipboardRect } from "./utils"
-import { themeDefaults } from "./styling/theme"
-import { getRenderedBoundRect } from "./trellisSelectionUtils"
+import Point from "../helper/Point"
+import { themeDefaults } from "../styling/theme"
+import { getClipboardRect } from "./lines"
+import { getRenderedBoundRect } from "./trellisSelection"
 
 const canvasButtons = themeDefaults.canvasButtons
 

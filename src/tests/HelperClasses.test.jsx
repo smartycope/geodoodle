@@ -5,9 +5,12 @@ import Pair from "../helper/Pair"
 import Line from "../helper/Line"
 import Rect from "../helper/Rect"
 import { getState } from "./testUtils"
-import { MIRROR_AXIS, viewportHeight, viewportWidth } from "../globals"
-import { getAllIntersections, getLinesViewportBounds } from "../utils"
-import { createViewportLineCuller, getCanvasToViewportMatrix } from "../transformUtils"
+import { MIRROR_AXIS } from "../globals"
+import { viewportHeight, viewportWidth } from "../globals"
+import { getLinesViewportBounds } from "../utils/lines"
+import { getAllIntersections } from "../utils/math"
+
+import { createViewportLineCuller, getCanvasToViewportMatrix } from "../utils/transform"
 
 describe("Pair", () => {
   test("should create a new Pair with x and y coordinates", () => {

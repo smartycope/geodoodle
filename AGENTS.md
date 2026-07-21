@@ -43,13 +43,13 @@ browser input → src/events.jsx → dispatch → src/reducer.jsx → src/action
 - `src/events.jsx` translates mouse, wheel, keyboard, and touch gestures into actions. Touch handling uses module-level gesture/timer variables because `Paper` must attach non-passive native listeners.
 - Desktop mouse gestures also keep transient module-level state for button-down and drag arbitration. Right-drag creates a bounded deletion area, while middle-drag identifies one exact line by its two endpoints; both become drags only after the aligned/snapped `cursorPos` changes, not after arbitrary pixel movement. Reset this transient state in `onBlur` and test cleanup paths.
 - The desktop `add_bound` shortcut has a press/release lifecycle: keydown places the first bound and keyup places the second only if the snapped cursor moved. `activeBoundShortcutPresses` suppresses key-repeat and prevents a modifier change such as `b` becoming `shift+b` from clearing the in-progress area. Other shortcuts retain normal repeat behavior.
-- `src/transformUtils.js` owns shared canvas rotation math and the canonical SVG transform strings used by drawing layers. Canvas-space rendering should reuse these helpers rather than assembling transforms independently.
-- `src/transformUtils.js:createViewportLineCuller` owns permanent-line visibility math. It precomputes the canvas-to-viewport affine transform once, then clips line segments against the viewport without allocating transformed `Point`s per line. Keep crossing-line, rotation, translation, and stroke/glow padding coverage when changing it.
+- `src/utils/transform.js` owns shared canvas rotation math and the canonical SVG transform strings used by drawing layers. Canvas-space rendering should reuse these helpers rather than assembling transforms independently.
+- `src/utils/transform.js:createViewportLineCuller` owns permanent-line visibility math. It precomputes the canvas-to-viewport affine transform once, then clips line segments against the viewport without allocating transformed `Point`s per line. Keep crossing-line, rotation, translation, and stroke/glow padding coverage when changing it.
 - `src/drawing.jsx` renders all Paper-owned visual pieces: grid dots, lines, in-progress lines, fills, selection/bounds/selectors, cursor, clipboard preview, mirror guides, menus, toast, and debugging overlays.
 - `src/helper/Trellis.js` owns captured source geometry, controls, tile transforms, finite generation, release, and JSON revival. `src/Trellis.jsx` only handles React rendering and warnings. Applied Trellises live on Layers; create/edit/replace previews live in `state.trellisDraft`.
 - `src/drawing.jsx:ArtworkLayers` renders every visible Layer as one bottom-to-top composite of Trellis, fills, and lines. It divides Trellis safety budgets across visible Trellises. Active interaction/selection overlays render above the complete artwork stack.
-- `src/Menus/LayersPanel.jsx` owns layer creation, activation, inline rename, visibility, deletion, previews, and dnd-kit reordering. The panel lists the top layer first even though state order is bottom-to-top.
-- `src/Menus/Toolbar.jsx` lays out the responsive toolbar; `ToolButton.jsx` maps button names to icons and toggles menus. `MiniMenu.jsx` is the anchored popover primitive and `Page.jsx` is the full dialog primitive. `Number.jsx` is the shared Base UI number control, including optional joined reset buttons, and `ShortcutHint.jsx` derives menu hints from the active editable keybindings.
+- `src/menus/LayersPanel.jsx` owns layer creation, activation, inline rename, visibility, deletion, previews, and dnd-kit reordering. The panel lists the top layer first even though state order is bottom-to-top.
+- `src/menus/Toolbar.jsx` lays out the responsive toolbar; `ToolButton.jsx` maps button names to icons and toggles menus. `MiniMenu.jsx` is the anchored popover primitive and `Page.jsx` is the full dialog primitive. `Number.jsx` is the shared Base UI number control, including optional joined reset buttons, and `ShortcutHint.jsx` derives menu hints from the active editable keybindings.
 
 `Paper`'s SVG child order is intentional: definitions/background, dots below (optional), complete artwork layer stack, dots above (optional), then active debug/cursor/preview/selection/clipboard overlays. Preserve that order unless the requested visual stacking change is explicit.
 
@@ -112,17 +112,17 @@ Do not hand-roll transformations or silently mix coordinate systems. Prefer `Poi
 | Add or change a reducer action | `src/actions.jsx`, then check `reversibleActions` and `saveSettingActions` in `src/options.jsx` |
 | Add state | `src/states.jsx`; then decide whether it belongs in `reversible`, `preservable`, or `saveable` in `src/options.jsx` |
 | SVG layer, cursor, selection, fill, clipboard, or debug rendering | `src/drawing.jsx`; layer placement in `src/Paper.jsx` |
-| Repeated-pattern model or algorithm | `src/helper/Trellis.js`, `src/trellisUtils.js`; thin renderer in `src/Trellis.jsx`; controls in `src/Menus/RepeatMenu.jsx` |
-| Layer model, actions, rendering, or panel | `src/helper/Layer.js`, `src/layerUtils.js`, `src/actions.jsx`, `src/drawing.jsx:ArtworkLayers`, `src/Menus/LayersPanel.jsx` |
-| Coordinate math, view transforms, line intersections, or selection semantics | `src/helper/`, `src/transformUtils.js`, and shared helpers in `src/utils.jsx` |
-| Save/load/export/upload/image copy | `src/fileUtils.jsx`, actions in `src/actions.jsx`, UI in `src/Menus/FilePage.jsx` |
+| Repeated-pattern model or algorithm | `src/helper/Trellis.js`, `src/trellisUtils.js`; thin renderer in `src/Trellis.jsx`; controls in `src/menus/RepeatMenu.jsx` |
+| Layer model, actions, rendering, or panel | `src/helper/Layer.js`, `src/layerUtils.js`, `src/actions.jsx`, `src/drawing.jsx:ArtworkLayers`, `src/menus/LayersPanel.jsx` |
+| Coordinate math, view transforms, line intersections, or selection semantics | `src/helper/`, `src/utils/transform.js`, and shared helpers in `src/utils.jsx` |
+| Save/load/export/upload/image copy | `src/fileUtils.jsx`, actions in `src/actions.jsx`, UI in `src/menus/FilePage.jsx` |
 | Local persistence schema | `src/fileUtils.jsx` and `preservable`/`saveable` in `src/options.jsx`; do not access `localStorage` elsewhere |
-| Toolbar sizing/placement or tool icons | `src/Menus/Toolbar.jsx`, `ToolButton.jsx`, `ExtraMenu.jsx`, `ExtraButton.jsx`, `src/utils.jsx:extraSlots` |
+| Toolbar sizing/placement or tool icons | `src/menus/Toolbar.jsx`, `ToolButton.jsx`, `ExtraMenu.jsx`, `ExtraButton.jsx`, `src/utils.jsx:extraSlots` |
 | Menu layout | `MiniMenu.jsx` for popovers, `Page.jsx` for dialogs, and the corresponding feature menu |
-| Number-control behavior or reset affordances | `src/Menus/Number.jsx` and `src/styling/number-field.module.css`; feature-specific reset targets stay in the owning menu |
-| Keyboard shortcut catalog, editor, matching, or visible hints | `src/options.jsx`, `src/utils.jsx`, `src/Menus/KeybindingsPage.jsx`, and `src/Menus/ShortcutHint.jsx` |
+| Number-control behavior or reset affordances | `src/menus/Number.jsx` and `src/styling/number-field.module.css`; feature-specific reset targets stay in the owning menu |
+| Keyboard shortcut catalog, editor, matching, or visible hints | `src/options.jsx`, `src/utils.jsx`, `src/menus/KeybindingsPage.jsx`, and `src/menus/ShortcutHint.jsx` |
 | Theme, colors, or global styles | `src/styling/theme.js`, `src/styling/App.css`, `src/styling/index.css`, `src/styling/number-field.module.css` |
-| Guided tour | `src/Menus/tour.jsx`, `src/App.jsx`, and `tourState` in `src/states.jsx` |
+| Guided tour | `src/menus/tour.jsx`, `src/App.jsx`, and `tourState` in `src/states.jsx` |
 
 Feature menus are intentionally small, focused components:
 

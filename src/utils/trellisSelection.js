@@ -1,7 +1,7 @@
-import Point from "./helper/Point"
-import Rect from "./helper/Rect"
-import { getBoundRect, trellisOwnsSource } from "./utils"
-import { createTrellisSourceTileDescriptor, transformAffinePoint } from "./trellisUtils"
+import Point from "../helper/Point"
+import Rect from "../helper/Rect"
+import { getBoundRect } from "./lines"
+import { trellisOwnsSource, createTrellisSourceTileDescriptor, transformAffinePoint } from "./trellis"
 
 function getSourceTransform(state, boundRect) {
   if (["create", "replace"].includes(state.trellisDraft?.mode))

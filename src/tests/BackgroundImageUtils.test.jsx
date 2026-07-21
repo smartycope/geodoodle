@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { averageImageColor } from "../backgroundImageUtils"
+import { averageImageColor } from "../utils/backgroundImage"
 
 describe("averageImageColor", () => {
   test("averages opaque pixels and ignores transparent pixels", () => {

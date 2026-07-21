@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, describe, expect, test, vi } from "vitest"
-import LayersPanel from "../Menus/LayersPanel"
+import LayersPanel from "../menus/LayersPanel"
 import { StateContext } from "../Contexts"
 import getInitialState from "../states"
 import Layer from "../helper/Layer"

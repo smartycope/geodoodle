@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
 import { StateContext } from "../Contexts"
-import MirrorMenu from "../Menus/MirrorMenu"
+import MirrorMenu from "../menus/MirrorMenu"
 import { MIRROR_AXIS, MIRROR_TYPE } from "../globals"
 import { getState } from "./testUtils"
 

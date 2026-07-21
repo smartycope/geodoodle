@@ -62,15 +62,17 @@ import Dist from "../helper/Dist"
 import Line from "../helper/Line"
 import Rect from "../helper/Rect"
 import { getDefaultTestingState, getState } from "./testUtils"
-import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE, viewportHeight, viewportWidth } from "../globals"
+import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE } from "../globals"
+import { viewportHeight, viewportWidth } from "../globals"
 import defaultOptions from "../options"
-import * as utils from "../utils.jsx"
+import { getHalf } from "../utils/misc.jsx"
+import { getSelected } from "../utils/lines.js"
 import { tourState } from "../states"
-import { download, image, validateStorage } from "../fileUtils"
+import { download, image, validateStorage } from "../utils/files.jsx"
 
 // Mock the global objects and functions
 const mockLocalStorage = {
-  getItem: vi.fn(),
+  getItem: vi.fn(() => null),
   setItem: vi.fn(),
   clear: vi.fn(),
 }
@@ -94,7 +96,8 @@ global.document.querySelector = vi.fn(() => ({
 }))
 
 // Mock the download and image functions
-vi.mock("../fileUtils", () => ({
+vi.mock("../utils/files.jsx", async (importOriginal) => ({
+  ...(await importOriginal()),
   download: vi.fn(),
   image: vi.fn((state, format, rect, includeBackground, selectedOnly, callback) => {
     // Simulate image creation with a callback
@@ -104,7 +107,7 @@ vi.mock("../fileUtils", () => ({
   }),
   serializePattern: vi.fn(() => "mocked-serialized-pattern"),
   resolveExportRect: vi.fn((state, selectedOnly) => {
-    const objects = selectedOnly ? utils.getSelected(state, false, true) : [...state.lines, ...state.filledPolys]
+    const objects = selectedOnly ? getSelected(state, false, true) : [...state.lines, ...state.filledPolys]
     const points = objects.flatMap((object) =>
       typeof object.points === "function" ? object.points() : (object.points ?? []),
     )
@@ -1024,7 +1027,7 @@ describe("Clipboard Actions", () => {
 
       expect(newState.lines).toHaveLength(2)
       expect(newState.lines[0].eq(positionedLine)).toBe(true)
-      expect(newState.lines[1].eq(positionedLine.flip(MIRROR_AXIS.Y, utils.getHalf(state)))).toBe(true)
+      expect(newState.lines[1].eq(positionedLine.flip(MIRROR_AXIS.Y, getHalf(state)))).toBe(true)
     })
 
     test("mirrors clipboard lines around saved mirror origins after positioning them", () => {
@@ -1108,7 +1111,7 @@ describe("selector-based selection", () => {
       specificSelectors: [],
     }
 
-    expect(utils.getSelected(selectorState)).toEqual(selectedLines)
+    expect(getSelected(selectorState)).toEqual(selectedLines)
   })
 
   test("a generic selector selects lines crossing at that intersection", () => {
@@ -1124,7 +1127,7 @@ describe("selector-based selection", () => {
       specificSelectors: [],
     }
 
-    expect(utils.getSelected(selectorState)).toEqual(crossingLines)
+    expect(getSelected(selectorState)).toEqual(crossingLines)
   })
 
   test("specific selectors select only a line whose two endpoints are selected", () => {
@@ -1140,7 +1143,7 @@ describe("selector-based selection", () => {
       specificSelectors: [a, b],
     }
 
-    expect(utils.getSelected(selectorState)).toEqual([selectedLine])
+    expect(getSelected(selectorState)).toEqual([selectedLine])
   })
 
   test("selector-selected lines can be translated relative to their center for copying", () => {
@@ -1153,7 +1156,7 @@ describe("selector-based selection", () => {
       specificSelectors: [],
     }
 
-    const [relativeLine] = utils.getSelected(selectorState, "center")
+    const [relativeLine] = getSelected(selectorState, "center")
 
     expect(relativeLine.a.eq(new Point(-2, -2))).toBe(true)
     expect(relativeLine.b.eq(new Point(2, 2))).toBe(true)

@@ -1,9 +1,9 @@
 import { memo, useContext, useEffect, useMemo, useRef } from "react"
 import { StateContext } from "./Contexts"
 import TrellisModel from "./helper/Trellis"
-import { getCanvasTransform } from "./transformUtils"
+import { getCanvasTransform } from "./utils/transform"
 import useViewportSize from "./useViewportSize"
-import { TRELLIS_SIZE_WARNING } from "./trellisUtils"
+import { TRELLIS_SIZE_WARNING } from "./utils/trellis"
 
 /** Thin React renderer for the serializable Trellis model. */
 export default memo(function Trellis({

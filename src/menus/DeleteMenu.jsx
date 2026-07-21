@@ -2,14 +2,14 @@ import { GiNuclear } from "react-icons/gi"
 import DeleteIcon from "@mui/icons-material/Delete"
 import { useContext } from "react"
 import { StateContext } from "../Contexts"
-import MiniMenu from "./MiniMenu"
+import MiniMenu from "../components/MiniMenu"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import MenuItem from "@mui/material/MenuItem"
 import CancelPresentationIcon from "@mui/icons-material/CancelPresentation"
 import CancelPresentationTwoToneIcon from "@mui/icons-material/CancelPresentationTwoTone"
-import { getSelected } from "../utils"
-import ShortcutHint from "./ShortcutHint"
+import ShortcutHint from "../components/ShortcutHint"
 import LayersClearIcon from "@mui/icons-material/LayersClear"
+import { getSelected } from "../utils/lines"
 
 function DeleteMenu() {
   const { dispatch, state } = useContext(StateContext)

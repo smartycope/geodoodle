@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest"
-import { image } from "../fileUtils"
+import { image } from "../utils/files"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
 import Rect from "../helper/Rect"

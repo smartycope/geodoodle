@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, test, vi } from "vitest"
 import { StateContext } from "../Contexts"
-import MiniMenu from "../Menus/MiniMenu"
+import MiniMenu from "../components/MiniMenu"
 import { getState } from "./testUtils"
 
 describe("MiniMenu", () => {

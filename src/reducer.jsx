@@ -1,9 +1,9 @@
 import { undoStack, redoStack } from "./globals"
-import { filterObjectByKeys } from "./utils"
+import { filterObjectByKeys } from "./utils/misc"
 import { reversible, reversibleActions, saveSettingActions } from "./options"
-import { preserveState } from "./fileUtils"
+import { preserveState } from "./utils/files"
 import * as actions from "./actions"
-import { getLayerState, normalizeLayerActionResult } from "./layerUtils"
+import { getLayerState, normalizeLayerActionResult } from "./utils/layers"
 
 const layerContentActions = new Set([
   "add_specific_selector",

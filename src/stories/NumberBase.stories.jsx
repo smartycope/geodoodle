@@ -1,4 +1,4 @@
-import Number from "../Menus/Number"
+import Number from "../menus/Number"
 
 export default {
   title: "Components/Number",

@@ -1,14 +1,14 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, describe, expect, test, vi } from "vitest"
 import { useReducer } from "react"
-import RepeatMenu from "../Menus/RepeatMenu"
+import RepeatMenu from "../menus/RepeatMenu"
 import { StateContext } from "../Contexts"
 import Point from "../helper/Point"
 import Line from "../helper/Line"
 import reducer from "../reducer"
 import { getState } from "./testUtils"
 import Trellis from "../helper/Trellis"
-import { getLayerState, layerOwnedKeys } from "../layerUtils"
+import { getLayerState, layerOwnedKeys } from "../utils/layers"
 
 afterEach(() => vi.unstubAllGlobals())
 

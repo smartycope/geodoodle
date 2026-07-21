@@ -1,14 +1,14 @@
 import { useContext, useState, useEffect } from "react"
 import { StateContext } from "../Contexts"
-import { extraSlots as _extraSlots } from "../utils"
+import { extraSlots as _extraSlots } from "../utils/misc"
 import { useTheme } from "@mui/material/styles"
 import Box from "@mui/material/Box"
 import MuiPaper from "@mui/material/Paper"
 import Fab from "@mui/material/Fab"
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded"
-import ToolButton from "./ToolButton"
+import ToolButton from "../components/ToolButton"
 import ExtraButton from "./ExtraButton"
-import { isMobile } from "../utils"
+import { isMobile } from "../utils/misc"
 
 // TODO: On a sideways mobile screen, the toolbar goes off the screen
 function Toolbar() {
@@ -98,7 +98,7 @@ function Toolbar() {
         display: "flex",
         position: "absolute",
         // TODO: I have no way to test this, remove this warning after it's been tested on a real device
-        paddingTop: 'env(safe-area-inset-top)',
+        paddingTop: "env(safe-area-inset-top)",
         ...style,
       }}
     >

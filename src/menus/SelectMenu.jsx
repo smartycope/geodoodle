@@ -1,14 +1,14 @@
 // import { PiSelectionPlusDuotone } from "react-icons/pi"
 import { useContext } from "react"
 import { StateContext } from "../Contexts"
-import MiniMenu from "./MiniMenu"
+import MiniMenu from "../components/MiniMenu"
 import MenuItem from "@mui/material/MenuItem"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank"
 import CheckBoxIcon from "@mui/icons-material/CheckBox"
 import SelectAllIcon from "@mui/icons-material/SelectAll"
-import { SelectorIcon } from "./CustomIcons"
-import ShortcutHint from "./ShortcutHint"
+import { SelectorIcon } from "../components/CustomIcons"
+import ShortcutHint from "../components/ShortcutHint"
 
 export default function SelectMenu() {
   const { dispatch, state } = useContext(StateContext)

@@ -7,8 +7,8 @@ import Line from "../helper/Line"
 import Poly from "../helper/Poly"
 import Point from "../helper/Point"
 import Dist from "../helper/Dist"
-import { validateStorage } from "../fileUtils"
-import { getLayerState } from "../layerUtils"
+import { validateStorage } from "../utils/files"
+import { getLayerState } from "../utils/layers"
 
 export function renderPaper(startPoint = [100, 100]) {
   let dispatch

@@ -1,10 +1,10 @@
 import { StateContext } from "../Contexts"
 import { useContext } from "react"
 import ExtraButton from "./ExtraButton"
-import { extraSlots as _extraSlots } from "../utils"
-import MiniMenu from "./MiniMenu"
+import { extraSlots as _extraSlots } from "../utils/misc"
+import MiniMenu from "../components/MiniMenu"
 import Grid from "@mui/material/Grid"
-import ToolButton from "./ToolButton"
+import ToolButton from "../components/ToolButton"
 
 function ExtraMenuMui() {
   const { state } = useContext(StateContext)

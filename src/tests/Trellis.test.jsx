@@ -10,8 +10,8 @@ import Point from "../helper/Point"
 import Poly from "../helper/Poly"
 import Rect from "../helper/Rect"
 import { MIRROR_AXIS, MIRROR_ROT } from "../globals"
-import { defaultTrellisControl } from "../utils"
-import { getCanvasToViewportMatrix, segmentIntersectsViewport } from "../transformUtils"
+import { defaultTrellisControl } from "../utils/trellis"
+import { getCanvasToViewportMatrix, segmentIntersectsViewport } from "../utils/transform"
 import {
   MAX_TRELLIS_CANDIDATES,
   MAX_TRELLIS_GROUPS,
@@ -24,7 +24,7 @@ import {
   isTrellisIndexKept,
   multiplyAffine,
   transformAffinePoint,
-} from "../trellisUtils"
+} from "../utils/trellis"
 import { getState } from "./testUtils"
 
 const aes = {

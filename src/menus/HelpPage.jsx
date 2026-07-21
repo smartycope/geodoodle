@@ -1,6 +1,6 @@
 import { InTourContext, StateContext } from "../Contexts"
 import { useContext } from "react"
-import Page from "./Page"
+import Page from "../components/Page"
 import Button from "@mui/material/Button"
 import Link from "@mui/material/Link"
 import Typography from "@mui/material/Typography"
@@ -8,7 +8,7 @@ import AccordionSummary from "@mui/material/AccordionSummary"
 import AccordionDetails from "@mui/material/AccordionDetails"
 import Accordion from "@mui/material/Accordion"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
-import TabManager from "./TabManager"
+import TabManager from "../components/TabManager"
 
 function AboutContent() {
   return (

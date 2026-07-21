@@ -1,10 +1,10 @@
 import { useContext } from "react"
 import { MIRROR_AXIS, MIRROR_TYPE, MIRROR_ROT } from "../globals"
 import { StateContext } from "../Contexts"
-import MiniMenu from "./MiniMenu"
+import MiniMenu from "../components/MiniMenu"
 import Stack from "@mui/material/Stack"
-import ToggleIconButtonGroup from "./ToggleIconButtonGroup"
-import { MirrorTypeIcon, MirrorAxisIcon, MirrorRotIcon } from "./CustomIcons"
+import ToggleIconButtonGroup from "../components/ToggleIconButtonGroup"
+import { MirrorTypeIcon, MirrorAxisIcon, MirrorRotIcon } from "../components/CustomIcons"
 import AddIcon from "@mui/icons-material/Add"
 import ClearIcon from "@mui/icons-material/Clear"
 

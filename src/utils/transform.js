@@ -1,4 +1,4 @@
-import { viewportHeight, viewportWidth } from "./globals"
+import { viewportHeight, viewportWidth } from "../globals"
 
 export function normalizeAngle(angle) {
   const normalized = ((((angle + 180) % 360) + 360) % 360) - 180

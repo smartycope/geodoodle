@@ -1,5 +1,5 @@
 import { useContext } from "react"
-import Number from "./Number"
+import Number from "../components/Number"
 
 import defaultOptions from "../options"
 import { StateContext } from "../Contexts"
@@ -9,7 +9,7 @@ import IconButton from "@mui/material/IconButton"
 import Paper from "@mui/material/Paper"
 import HomeIcon from "@mui/icons-material/Home"
 import HighlightAltIcon from "@mui/icons-material/HighlightAlt"
-import { getHalf } from "../utils"
+import { getHalf } from "../utils/misc"
 import Point from "../helper/Point"
 import { viewportHeight, viewportWidth } from "../globals"
 

@@ -1,9 +1,10 @@
 import Pair from "./Pair"
 import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE } from "../globals"
-import { getAllIntersections, getHalf, toRadians } from "../utils"
+import { getHalf } from "../utils/misc"
+import { getAllIntersections, toRadians } from "../utils/math"
 import Dist from "./Dist"
 import { point as turfPoint } from "@turf/turf"
-import { rotateViewportCoordinates } from "../transformUtils"
+import { rotateViewportCoordinates } from "../utils/transform"
 
 /*
     A Point class to handle coordinate transformations declaratively for us

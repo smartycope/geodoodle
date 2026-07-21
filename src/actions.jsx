@@ -6,19 +6,18 @@
 
 /* eslint-disable no-unused-vars */
 
-import { viewportWidth, viewportHeight, undoStack, redoStack, MIRROR_ROT, MIRROR_AXIS, MIRROR_TYPE } from "./globals"
+import { undoStack, redoStack, MIRROR_ROT, MIRROR_AXIS, MIRROR_TYPE } from "./globals"
+import { viewportHeight, viewportWidth } from "./globals"
+import { incrementMirrorAxis, getPreviewPolys, getHalf } from "./utils/misc"
 import {
-  getSelected,
   getBoundRect,
-  splitAllLines,
   getAllClipboardLines,
-  incrementMirrorAxis,
   normalizeLines,
-  getPreviewPolys,
+  splitAllLines,
+  getSelected,
   getLinesRect,
-  getHalf,
-  randomizeColor,
-} from "./utils"
+} from "./utils/lines"
+import { randomizeColor } from "./utils/color"
 import options, { reversible } from "./options"
 import {
   deserializePattern,
@@ -32,7 +31,7 @@ import {
   deleteLocally,
   generateName,
   saveCloud,
-} from "./fileUtils"
+} from "./utils/files"
 import { cursorPosChanged } from "./events"
 import Point from "./helper/Point"
 import Dist from "./helper/Dist"
@@ -42,9 +41,9 @@ import Poly from "./helper/Poly"
 import { tourState } from "./states"
 import * as turf from "@turf/turf"
 import Color from "colorjs.io"
-import { normalizeAngle } from "./transformUtils"
+import { normalizeAngle } from "./utils/transform"
 import Trellis from "./helper/Trellis"
-import { createLayer, getActiveLayer, nextLayerNumber, updateActiveLayer, updateLayer } from "./layerUtils"
+import { createLayer, getActiveLayer, nextLayerNumber, updateActiveLayer, updateLayer } from "./utils/layers"
 
 function positionCursorAtEdges(state, point, edgePoint = point) {
   const width = viewportWidth()
@@ -383,7 +382,7 @@ export const clear = (state) => ({
   curLinePos: null,
   mirrorAxis: MIRROR_AXIS.NONE,
   mirrorRot: MIRROR_ROT.NONE,
-  filename: generateName(state.defaultToMemorableNames)
+  filename: generateName(state.defaultToMemorableNames),
 })
 
 export const delete_selected = (state) => {
@@ -592,8 +591,10 @@ export const set_stroke_width = (state, { strokeWidth }) => {
   return { strokeWidth: copy }
 }
 
-export const increase_stroke_width = (state) => set_stroke_width(state, { strokeWidth: state.strokeWidth[state.colorProfile] + 1 })
-export const decrease_stroke_width = (state) => set_stroke_width(state, { strokeWidth: Math.max(1, state.strokeWidth[state.colorProfile] - 1) })
+export const increase_stroke_width = (state) =>
+  set_stroke_width(state, { strokeWidth: state.strokeWidth[state.colorProfile] + 1 })
+export const decrease_stroke_width = (state) =>
+  set_stroke_width(state, { strokeWidth: Math.max(1, state.strokeWidth[state.colorProfile] - 1) })
 
 export const set_dash = (state, { dash }) => {
   let copy = JSON.parse(JSON.stringify(state.dash))
@@ -782,10 +783,13 @@ export const save_local = (state, { name }) => {
   return { reloadRequired: true }
 }
 
-export const save_local_and_toast = (state) => ({ ...save_local(state, {name: state.filename}), toast: "✅ Saved pattern locally" })
+export const save_local_and_toast = (state) => ({
+  ...save_local(state, { name: state.filename }),
+  toast: "✅ Saved pattern locally",
+})
 export const save_cloud_and_toast = (state) => {
   saveCloud(state, state.username, state.filename)
-  return { ...save_local(state, {name: state.filename}), toast: "✅ Saved pattern to the cloud" }
+  return { ...save_local(state, { name: state.filename }), toast: "✅ Saved pattern to the cloud" }
 }
 
 export const load_local = (state, { name }) => {

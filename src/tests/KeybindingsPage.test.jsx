@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, test, vi } from "vitest"
 import { StateContext } from "../Contexts"
-import KeybindingsPage from "../Menus/KeybindingsPage"
+import KeybindingsPage from "../menus/KeybindingsPage"
 import { getState } from "./testUtils"
 
 const renderPage = () => {

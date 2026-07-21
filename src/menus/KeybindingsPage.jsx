@@ -15,8 +15,8 @@ import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 import { StateContext } from "../Contexts"
 import { defaultKeybindings, keybindable } from "../options"
-import { normalizeShortcut, shortcutFromKeyboardEvent } from "../utils"
-import Page from "./Page"
+import { normalizeShortcut, shortcutFromKeyboardEvent } from "../utils/shortcuts"
+import Page from "../components/Page"
 
 const actionsMatch = (left, right) => {
   const keys = new Set([...Object.keys(left), ...Object.keys(right)])

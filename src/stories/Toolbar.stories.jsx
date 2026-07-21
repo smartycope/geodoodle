@@ -1,7 +1,7 @@
 import React from "react"
 // import { MemoryRouter } from 'react-router-dom';
 import { StateContext } from "../Contexts"
-import Toolbar from "../Menus/Toolbar"
+import Toolbar from "../menus/Toolbar"
 import { ThemeProvider, createTheme } from "@mui/material/styles"
 import CssBaseline from "@mui/material/CssBaseline"
 import Box from "@mui/material/Box"

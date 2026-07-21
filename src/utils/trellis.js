@@ -1,5 +1,6 @@
-import { MIRROR_AXIS } from "./globals"
-import { getCanvasToViewportMatrix, segmentIntersectsViewport } from "./transformUtils"
+import { MIRROR_AXIS } from "../globals"
+import { getBoundRect } from "./lines"
+import { getCanvasToViewportMatrix, segmentIntersectsViewport } from "./transform"
 
 export const MAX_TRELLIS_GROUPS = 5000
 export const MAX_TRELLIS_CANDIDATES = 100000
@@ -22,6 +23,41 @@ function offsetValue(control) {
     x: finiteNumber(control?.val?.x),
     y: finiteNumber(control?.val?.y),
   }
+}
+
+/*
+ * interface trellisControlVal<T> {
+ *     every: number,
+ *     val: T,
+ * }
+ * interface trellisControl<T> {
+ *     row: trellisControlVal<T>,
+ *     col: trellisControlVal<T>,
+ * }
+ */
+export const defaultTrellisControl = (value, every = 1) => ({
+  row: {
+    every,
+    val: value,
+  },
+  col: {
+    every,
+    val: value,
+  },
+})
+
+// While a valid Trellis is visible, it owns the selected source geometry as
+// tile (0, 0). The normal permanent line/polygon layers omit those objects so
+// the transformed tile is not overdrawn by an untransformed copy.
+export function trellisOwnsSource(state, boundRect = getBoundRect(state)) {
+  const ownsDraftSource = ["create", "replace"].includes(state.trellisDraft?.mode)
+  return Boolean(
+    (state.trellis === true || ownsDraftSource || (!state.trellis && state.openMenus?.repeat)) &&
+      state.bounds.length > 1 &&
+      boundRect &&
+      boundRect.wh._x > 0 &&
+      boundRect.wh._y > 0,
+  )
 }
 
 export function positiveModulo(value, modulus) {

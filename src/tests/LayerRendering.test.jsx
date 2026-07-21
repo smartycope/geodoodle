@@ -8,8 +8,8 @@ import Trellis from "../helper/Trellis"
 import Line from "../helper/Line"
 import Point from "../helper/Point"
 import Dist from "../helper/Dist"
-import { getLayerState } from "../layerUtils"
-import { MAX_TRELLIS_CANDIDATES, MAX_TRELLIS_GROUPS } from "../trellisUtils"
+import { getLayerState } from "../utils/layers"
+import { MAX_TRELLIS_CANDIDATES, MAX_TRELLIS_GROUPS } from "../utils/trellis"
 
 describe("layer artwork compositing", () => {
   test("stacks visible layers bottom-to-top and shares Trellis safety budgets", () => {

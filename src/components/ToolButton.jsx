@@ -24,7 +24,7 @@ import FlipIcon from "@mui/icons-material/Flip"
 import UndoIcon from "@mui/icons-material/Undo"
 import BlurOnIcon from "@mui/icons-material/BlurOn"
 import LayersIcon from "@mui/icons-material/Layers"
-import { isMobile } from "../utils"
+import { isMobile } from "../utils/misc"
 import { PiSelectionPlusDuotone } from "react-icons/pi"
 
 const mobile = isMobile()
