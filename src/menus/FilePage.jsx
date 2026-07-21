@@ -304,7 +304,7 @@ export default function FilePage() {
         value={filename}
         onChange={(event) => dispatch({ filename: event.target.value })}
       />
-      <Button variant="outlined" startIcon={<SyncIcon />} onClick={randomizeName} sx={{ whiteSpace: "nowrap" }}>
+      <Button variant="outlined" startIcon={<SyncIcon />} onClick={randomizeName} sx={{ whiteSpace: "nowrap", minWidth: "max-content" }}>
         New name
       </Button>
       <Button
