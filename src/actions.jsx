@@ -40,45 +40,10 @@ import Rect from "./helper/Rect"
 import Poly from "./helper/Poly"
 import { tourState } from "./states"
 import * as turf from "@turf/turf"
-import Color from "colorjs.io"
 import { normalizeAngle } from "./utils/transform"
 import Trellis from "./helper/Trellis"
 import { createLayer, getActiveLayer, nextLayerNumber, updateActiveLayer, updateLayer } from "./utils/layers"
-
-function positionCursorAtEdges(state, point, edgePoint = point) {
-  const width = viewportWidth()
-  const height = viewportHeight()
-  if (state.loopCursorAtEdges) {
-    const edge = edgePoint.asViewport(state)
-    let targetx = edge.x
-    let targety = edge.y
-
-    if (edge.x <= 0) targetx = width - 1
-    else if (edge.x >= width - 1) targetx = 0
-
-    if (edge.y <= 0) targety = height - 1
-    else if (edge.y >= height - 1) targety = 0
-
-    return { cursorPos: Point.fromViewport(state, targetx, targety).align(state) }
-  }
-
-  const viewportPoint = point.asViewport(state)
-  let translateXpx = 0
-  let translateYpx = 0
-
-  if (viewportPoint.x < 0) translateXpx = -viewportPoint.x
-  else if (viewportPoint.x > width - 1) translateXpx = -(viewportPoint.x - (width - 1))
-
-  if (viewportPoint.y < 0) translateYpx = -viewportPoint.y
-  else if (viewportPoint.y > height - 1) translateYpx = -(viewportPoint.y - (height - 1))
-
-  return {
-    cursorPos: point,
-    ...(translateXpx || translateYpx
-      ? { translation: state.translation.add(Dist.fromInflated(state, translateXpx, translateYpx)) }
-      : {}),
-  }
-}
+import { convertLastSelectorToBound, moveCursor, nearestVisibleLayer, positionCursorAtEdges, selectionDraft } from "./utils/actions"
 
 export const cursor_moved = (state, { point }) => {
   const { cursorPos, debugDrawPoints, fillMode, tempPolys, clipboard, allowSnapToIntersections } = state
@@ -189,7 +154,6 @@ export const set_canvas_rotation_allowed = (state, { allowed }) => ({
 export const increase_scale = (state) => scale(state, state.scalex, state.scaley)
 export const decrease_scale = (state) => scale(state, -state.scalex, -state.scaley)
 
-// TODO: disallow this if it would put the selection off screen and we're repeating
 export const go_home = (state) => ({
   translation: Dist.zero(),
   scalex: state.defaultScalex,
@@ -208,11 +172,6 @@ export const go_to_selection = (state) => {
         Point.fromViewport(state, viewportWidth() / 2, viewportHeight() / 2).sub(boundRect.center),
       ),
     }
-}
-
-const moveCursor = (state, x, y) => {
-  const cursorPos = state.cursorPos.add(Dist.fromDeflated(state, x, y))
-  return positionCursorAtEdges(state, cursorPos)
 }
 
 export const left = (state) => moveCursor(state, -1, 0)
@@ -243,16 +202,6 @@ export const clear_generic_selectors = (state) => ({
   genericSelectors: [],
 })
 
-// For touch & hold & drag specifically
-const convertLastSelectorToBound = (state, selectorType) => {
-  const selectorKey = `${selectorType}Selectors`
-  const selectors = state[selectorKey]
-  return {
-    bounds: [selectors[selectors.length - 1]],
-    [selectorKey]: selectors.slice(0, selectors.length - 1),
-  }
-}
-
 export const convert_last_generic_selector_to_bound = (state) => convertLastSelectorToBound(state, "generic")
 
 export const convert_last_specific_selector_to_bound = (state) => convertLastSelectorToBound(state, "specific")
@@ -277,16 +226,6 @@ const cancelledLayerInteraction = {
   tempPolys: null,
   curPolys: [],
   trellisDraft: null,
-}
-
-const nearestVisibleLayer = (layers, index) => {
-  for (let distance = 0; distance < layers.length; distance++) {
-    const after = layers[index + distance]
-    if (after?.visible) return after
-    const before = layers[index - distance]
-    if (before?.visible) return before
-  }
-  return null
 }
 
 export const add_layer = (state) => {
@@ -619,9 +558,7 @@ export const paint_selected = (state) => {
 }
 
 export const set_paper_color = (state, { color }) => ({ paperColor: color })
-
 export const set_background_image = (state, { image, color }) => ({ backgroundImage: image, paperColor: color })
-
 export const clear_background_image = () => ({ backgroundImage: null })
 
 // Fill actions
@@ -849,21 +786,6 @@ export const end_tour = () => preTourState
 // Misc Actions
 export const toggle_partials = (state) => ({ partials: !state.partials })
 export const toggle_dots = (state) => ({ hideDots: !state.hideDots })
-
-const selectionDraft = (state, mode) => {
-  const trellis = Trellis.fromSelection(state, getActiveLayer(state)?.trellisControls ?? {})
-  if (!trellis?.valid) return null
-  const boundRect = getBoundRect(state)
-  return {
-    layerId: state.activeLayerId,
-    mode,
-    trellis,
-    sourceLineIndexes: state.lines.flatMap((line, index) => (line.isSelected(state, boundRect) ? [index] : [])),
-    sourcePolyIndexes: state.filledPolys.flatMap((poly, index) =>
-      boundRect && poly.isSelected(state, boundRect) ? [index] : [],
-    ),
-  }
-}
 
 export const start_trellis_draft = (state, { replace = false } = {}) => {
   const layer = getActiveLayer(state)
