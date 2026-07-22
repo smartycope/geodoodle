@@ -7,6 +7,7 @@ import {
   ClipboardTransformButtons,
   GlowEffect,
   Lines,
+  MiddleDragEraser,
   SelectionOptionButtons,
   SelectionRect,
 } from "../drawing"
@@ -18,6 +19,40 @@ import { MIRROR_AXIS, MIRROR_TYPE } from "../globals"
 import { getState } from "./testUtils"
 import { themeDefaults } from "../styling/theme"
 import defaultOptions from "../options"
+
+describe("middle-drag eraser indicator", () => {
+  test("renders a red viewport-space x at the drag origin", () => {
+    const state = { ...getState(), middleDragStart: new Point(5, 4) }
+    const expected = state.middleDragStart.asViewport(state)
+    const { container } = render(
+      <StateContext.Provider value={{ state }}>
+        <svg>
+          <MiddleDragEraser />
+        </svg>
+      </StateContext.Provider>,
+    )
+
+    const indicator = container.querySelector("#middle-drag-eraser")
+    expect(indicator.getAttribute("transform")).toBe(`translate(${expected.x} ${expected.y})`)
+    expect(indicator.getAttribute("pointer-events")).toBe("none")
+    expect(indicator.querySelectorAll("line")).toHaveLength(2)
+    expect([...indicator.querySelectorAll("line")].every((line) => line.getAttribute("stroke") === "#d32f2f")).toBe(
+      true,
+    )
+  })
+
+  test("renders nothing without an active middle drag", () => {
+    const { container } = render(
+      <StateContext.Provider value={{ state: getState() }}>
+        <svg>
+          <MiddleDragEraser />
+        </svg>
+      </StateContext.Provider>,
+    )
+
+    expect(container.querySelector("#middle-drag-eraser")).toBeNull()
+  })
+})
 
 describe("Selected line highlights", () => {
   const stateWithSelectedLines = (lineCount, overrides = {}) => {

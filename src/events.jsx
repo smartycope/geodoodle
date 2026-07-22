@@ -14,7 +14,6 @@ var canvasButtonMouseActive = false
 var activeBoundShortcutPresses = new Map()
 var middleMouseDown = false
 var middleLineDragging = false
-var middleDragStart = null
 var middleClipboardMouseDown = false
 var rightMouseDown = false
 var rightSelectionDragging = false
@@ -56,7 +55,7 @@ export function onMouseMove(state, dispatch, e) {
   }
 
   if (middleMouseDown && (e.buttons & 4) === 4) {
-    if (!middleLineDragging && !middleDragStart.eq(aligned)) middleLineDragging = true
+    if (!middleLineDragging && state.middleDragStart && !state.middleDragStart.eq(aligned)) middleLineDragging = true
     dispatch({
       action: "cursor_moved",
       point,
@@ -82,13 +81,13 @@ export function onMouseDown(state, dispatch, e) {
     leftClipboardMouseDown = false
     middleMouseDown = false
     middleLineDragging = false
-    middleDragStart = null
     middleClipboardMouseDown = false
     rightMouseDown = false
     rightSelectionDragging = false
     rightDragStart = null
     rightClipboardMouseDown = false
     canvasButtonMouseActive = true
+    if (state.middleDragStart) dispatch({ middleDragStart: null })
     if (e.button === 0) dispatch(canvasButton.action)
     return
   }
@@ -109,7 +108,7 @@ export function onMouseDown(state, dispatch, e) {
       dragging = false
       middleMouseDown = true
       middleLineDragging = false
-      middleDragStart = getMousePoint(state, e).aligned
+      dispatch({ middleDragStart: getMousePoint(state, e).aligned })
       middleClipboardMouseDown = state.clipboard !== null
       break
     case 2: // Right click
@@ -136,11 +135,10 @@ export function onMouseUp(state, dispatch, e) {
   if (e.button === 1 && middleMouseDown) {
     const wasDragging = middleLineDragging
     const clipboardWasActive = middleClipboardMouseDown
-    const start = middleDragStart
+    const start = state.middleDragStart
     const { point, aligned: end } = getMousePoint(state, e)
     middleMouseDown = false
     middleLineDragging = false
-    middleDragStart = null
     middleClipboardMouseDown = false
     dragging = false
     e.preventDefault?.()
@@ -148,6 +146,7 @@ export function onMouseUp(state, dispatch, e) {
       action: "cursor_moved",
       point,
     })
+    dispatch({ middleDragStart: null })
     if (!wasDragging || !clipboardWasActive)
       dispatch(wasDragging ? { action: "delete_specific_line", start, end } : "delete_at_cursor")
     return
@@ -536,13 +535,13 @@ export function onBlur(state, dispatch, e) {
   leftClipboardMouseDown = false
   middleMouseDown = false
   middleLineDragging = false
-  middleDragStart = null
   middleClipboardMouseDown = false
   rightMouseDown = false
   rightSelectionDragging = false
   rightDragStart = null
   rightClipboardMouseDown = false
-  if (state.deletingSelection) dispatch({ deletingSelection: false })
+  if (state.deletingSelection || state.middleDragStart)
+    dispatch({ deletingSelection: false, middleDragStart: null })
   setTimeout(function () {
     if (document.activeElement.nodeName !== "INPUT" || document.activeElement.type === "checkbox") e.target.focus()
   }, 100)

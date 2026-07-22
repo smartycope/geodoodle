@@ -70,7 +70,7 @@ Tests and serializers must construct the concrete subclass they exercise; import
 ### Input and drawing
 
 - `src/events.jsx` translates mouse, wheel, keyboard, and touch gestures into actions. Touch handling uses module-level gesture/timer variables because `Paper` attaches non-passive native listeners.
-- Desktop gestures also keep module-level state for button-down and drag arbitration. Right-drag creates a bounded deletion area; middle-drag identifies one exact line. Both become drags only after snapped `cursorPos` changes. Reset transient state in `onBlur` and test cleanup paths.
+- Desktop gestures keep module-level state for button-down and drag arbitration. Right-drag creates a bounded deletion area; middle-drag identifies one exact line. Both become drags only after snapped `cursorPos` changes. The middle-drag origin lives transiently in `state.middleDragStart` so its viewport-space eraser indicator can render. Reset transient state in `onBlur` and test cleanup paths.
 - The desktop `add_bound` shortcut has a press/release lifecycle: keydown places the first bound and keyup places the second only if the snapped cursor moved. `activeBoundShortcutPresses` suppresses repeat and modifier-change cancellation.
 - `src/drawing.jsx` owns all Paper SVG pieces: grid dots, visible artwork layers, the memoized `Trellis` renderer, in-progress geometry, fills, cursor, selection, clipboard, mirror guides, menus, toast, and debug overlays.
 - `src/drawing.jsx:ArtworkLayers` renders visible layers bottom-to-top. It renders polygons/lines for `DrawingLayer` and finite repeated tiles for `TrellisLayer`, sharing Trellis safety budgets across visible Trellis layers.

@@ -6,6 +6,7 @@ import {
   onMouseDown,
   onMouseMove,
   onMouseUp,
+  onBlur,
   onScroll,
   onTouchEnd,
   onTouchMove,
@@ -166,9 +167,30 @@ describe("mouse deletion interactions", () => {
     }
 
     onMouseDown(state, dispatch, event)
-    onMouseUp(state, dispatch, event)
+    const middleDragStart = dispatch.mock.calls[0][0].middleDragStart
+    onMouseUp({ ...state, middleDragStart }, dispatch, event)
 
     expect(dispatch).toHaveBeenLastCalledWith("delete_at_cursor")
+  })
+
+  test("stores and clears the middle-drag origin, including on blur", () => {
+    const dispatch = vi.fn()
+    const state = getState()
+    const event = {
+      button: 1,
+      clientX: 100,
+      clientY: 120,
+      preventDefault: vi.fn(),
+      target: { focus: vi.fn() },
+    }
+
+    onMouseDown(state, dispatch, event)
+    const middleDragStart = dispatch.mock.calls[0][0].middleDragStart
+    expect(middleDragStart).toBeInstanceOf(Point)
+
+    dispatch.mockClear()
+    onBlur({ ...state, middleDragStart }, dispatch, event)
+    expect(dispatch).toHaveBeenCalledWith({ deletingSelection: false, middleDragStart: null })
   })
 })
 
@@ -191,11 +213,13 @@ describe("mouse interactions with an active clipboard", () => {
     const dispatch = vi.fn()
 
     onMouseDown(state, dispatch, mouseEvent(button, 100, 100, buttons))
-    onMouseMove(state, dispatch, mouseEvent(button, 200, 200, buttons))
-    onMouseUp(state, dispatch, mouseEvent(button, 200, 200))
+    const interactionState =
+      button === 1 ? { ...state, middleDragStart: dispatch.mock.calls[0][0].middleDragStart } : state
+    onMouseMove(interactionState, dispatch, mouseEvent(button, 200, 200, buttons))
+    onMouseUp(interactionState, dispatch, mouseEvent(button, 200, 200))
 
     expect(dispatch).toHaveBeenCalled()
-    expect(dispatch.mock.calls.every(([action]) => actionName(action) === "cursor_moved")).toBe(true)
+    expect(dispatch.mock.calls.every(([action]) => !actionName(action) || actionName(action) === "cursor_moved")).toBe(true)
   })
 
   test.each([
@@ -209,9 +233,11 @@ describe("mouse interactions with an active clipboard", () => {
     const event = mouseEvent(button, 100, 100)
 
     onMouseDown(state, dispatch, event)
-    expect(dispatch).not.toHaveBeenCalled()
+    const interactionState =
+      button === 1 ? { ...state, middleDragStart: dispatch.mock.calls[0][0].middleDragStart } : state
+    if (button !== 1) expect(dispatch).not.toHaveBeenCalled()
 
-    onMouseUp(state, dispatch, event)
+    onMouseUp(interactionState, dispatch, event)
 
     expect(dispatch.mock.calls.map(([action]) => actionName(action))).toContain(expectedAction)
   })

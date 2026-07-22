@@ -24,6 +24,7 @@ import {
   ArtworkLayers,
   Clipboard,
   Cursor,
+  MiddleDragEraser,
   Dots,
   CurrentPolys,
   Menus,
@@ -213,6 +214,7 @@ export default function Paper({ setDispatch }) {
                 <CurrentPolys />
                 {/* <ActiveSelectionLines /> */}
                 <Cursor />
+                <MiddleDragEraser />
                 <CurrentLines />
                 <Bounds />
                 <SpecificSelectors />

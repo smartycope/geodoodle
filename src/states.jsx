@@ -64,6 +64,8 @@ export default function getInitialState() {
     curLinePos: null,
     // Whether we're currently dragging the selection rect. If we are, we count the cursorPos as a bound
     boundDragging: false,
+    // The snapped origin of an active middle-button erase gesture, or null.
+    middleDragStart: null,
     // True while an incomplete area selection will delete its bounded lines when completed.
     deletingSelection: false,
     // A list of Line objects, or null

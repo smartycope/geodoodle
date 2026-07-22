@@ -771,6 +771,23 @@ export const Cursor = () => {
   return <g id="cursor-group">{cursors}</g>
 }
 
+export const MiddleDragEraser = () => {
+  const { state } = useContext(StateContext)
+  const theme = useTheme()
+  if (!state.middleDragStart) return null
+
+  const { x, y } = state.middleDragStart.asViewport(state)
+  const radius = 7
+  const color = (theme.geodoodle ?? themeDefaults).deletingSelection.color
+
+  return (
+    <g id="middle-drag-eraser" transform={`translate(${x} ${y})`} pointerEvents="none">
+      <line x1={-radius} y1={-radius} x2={radius} y2={radius} stroke={color} strokeWidth={3} strokeLinecap="round" />
+      <line x1={-radius} y1={radius} x2={radius} y2={-radius} stroke={color} strokeWidth={3} strokeLinecap="round" />
+    </g>
+  )
+}
+
 export const Dots = () => {
   const { state } = useContext(StateContext)
   const { translation, scalex, scaley, hideDots } = state

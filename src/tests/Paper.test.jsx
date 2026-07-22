@@ -216,11 +216,14 @@ describe("Paper interactions", () => {
     createLine(paper, 100, 100, 200, 100)
 
     mouseDown(paper, 100, 100, 1)
+    expect(container.querySelector("#middle-drag-eraser").getAttribute("transform")).toBe("translate(100 100)")
     mouseMove(paper, 200, 200, { buttons: 4 })
+    expect(container.querySelector("#middle-drag-eraser").getAttribute("transform")).toBe("translate(100 100)")
     mouseUp(paper, 200, 200, 1)
 
     expect(getLines(container)).toHaveLength(1)
     expect(getBounds(container)).toHaveLength(0)
+    expect(container.querySelector("#middle-drag-eraser")).toBeNull()
   })
 
   test("Shift toggles a right-button drag into a regular selection", () => {
