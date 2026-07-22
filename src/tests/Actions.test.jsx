@@ -51,6 +51,7 @@ import {
   end_tour,
   toggle_partials,
   toggle_dots,
+  activate_layer,
   add_trellis_layer,
   set_manual,
   menu,
@@ -62,6 +63,7 @@ import Dist from "../classes/Dist.js"
 import Line from "../classes/Line.jsx"
 import Rect from "../classes/Rect.jsx"
 import Poly from "../classes/Poly.jsx"
+import TrellisLayer from "../classes/TrellisLayer"
 import { getDefaultTestingState, getState } from "./testUtils"
 import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE } from "../globals"
 import { viewportHeight, viewportWidth } from "../globals"
@@ -1478,6 +1480,43 @@ describe("UI Actions", () => {
       expect(result.layers[0].bounds).toEqual([])
       expect(result.layers[1].lines).toHaveLength(1)
       expect(result.activeLayerId).toBe(result.layers[1].id)
+    })
+
+    test("hides dots when the automatic Trellis setting creates and activates a Trellis layer", () => {
+      const line = new Line(state, new Point(1, 1), new Point(3, 3))
+      const layer = state.layers[0].copy({
+        lines: [line],
+        bounds: [new Point(0, 0), new Point(4, 4)],
+      })
+
+      const result = add_trellis_layer({
+        ...state,
+        layers: [layer],
+        lines: layer.lines,
+        bounds: layer.bounds,
+        autoHideDotsOnTrellis: true,
+      })
+
+      expect(result.hideDots).toBe(true)
+    })
+  })
+
+  describe("activate_layer", () => {
+    test("updates dot visibility for the selected layer when enabled", () => {
+      const drawing = state.layers[0]
+      const trellis = new TrellisLayer({ id: "trellis-1" })
+      const configuredState = {
+        ...state,
+        layers: [drawing, trellis],
+        activeLayerId: drawing.id,
+        autoHideDotsOnTrellis: true,
+        hideDots: false,
+      }
+
+      expect(activate_layer(configuredState, { layerId: trellis.id }).hideDots).toBe(true)
+      expect(
+        activate_layer({ ...configuredState, activeLayerId: trellis.id, hideDots: true }, { layerId: drawing.id }).hideDots,
+      ).toBe(false)
     })
   })
 

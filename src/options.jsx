@@ -302,6 +302,7 @@ export const preservable = [
   "paperColor",
   "doubleTapTimeMS",
   "dotsAboveArtwork",
+  "autoHideDotsOnTrellis",
   "allowSnapToIntersections",
   "useHSVColorPicker",
   "removeSelectionAfterDelete",

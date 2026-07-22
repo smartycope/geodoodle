@@ -78,6 +78,20 @@ describe("fancy glow setting", () => {
   })
 })
 
+describe("Trellis dot setting", () => {
+  test("toggles the persisted automatic Trellis dot preference", () => {
+    const { dispatch } = renderSettings({ autoHideDotsOnTrellis: true })
+    const setting = screen.getByText("Hide Dots on Trellis Layers").closest("li")
+
+    fireEvent.click(within(setting).getByRole("checkbox"))
+
+    expect(dispatch).toHaveBeenCalledWith({
+      action: "set_manual_and_save_settings",
+      autoHideDotsOnTrellis: false,
+    })
+  })
+})
+
 describe("clipboard scroll setting", () => {
   test("defaults to rotating and can switch scrolling back to translation", () => {
     const { dispatch } = renderSettings({ rotateClipboardOnScroll: true, mobile: false })

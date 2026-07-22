@@ -62,6 +62,7 @@ The intended flow is:
 1. A completed non-zero selection on a `DrawingLayer` dispatches `add_trellis_layer`.
 2. `TrellisLayer.fromSelection` captures relative source geometry and inserts a new Trellis layer above the source layer.
 3. Activating a Trellis layer makes the toolbar show direct Offset, Skip, Flip, and Rotate controls.
+   When `autoHideDotsOnTrellis` is enabled, layer activation also hides dots for Trellis layers and shows them for Drawing layers.
 4. Those controls immutably update the active `TrellisLayer`; Reset calls its `reset()` method.
 5. Activating a Drawing layer restores the ordinary drawing tools.
 

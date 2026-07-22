@@ -79,6 +79,7 @@ export default function getInitialState() {
     clipboardOffset: null,
 
     hideDots: false,
+    autoHideDotsOnTrellis: true,
 
     mirrorAxis: MIRROR_AXIS.NONE,
     mirrorRot: MIRROR_ROT.NONE,

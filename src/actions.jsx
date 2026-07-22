@@ -237,6 +237,9 @@ const closeIncompatibleLayerMenus = (openMenus, layer) => {
   )
 }
 
+const dotVisibilityForLayer = (state, layer) =>
+  state.autoHideDotsOnTrellis ? { hideDots: layer instanceof TrellisLayer } : {}
+
 export const add_layer = (state) => {
   const number = nextLayerNumber(state.layers)
   const layer = DrawingLayer.createFromIndex(number)
@@ -249,6 +252,7 @@ export const add_layer = (state) => {
   return {
     layers,
     activeLayerId: layer.id,
+    ...dotVisibilityForLayer(state, layer),
     openMenus: closeIncompatibleLayerMenus(state.openMenus, layer),
     ...cancelledLayerInteraction,
   }
@@ -278,6 +282,7 @@ export const add_trellis_layer = (state) => {
   return {
     layers,
     activeLayerId: layer.id,
+    ...dotVisibilityForLayer(state, layer),
     openMenus: closeIncompatibleLayerMenus(state.openMenus, layer),
     ...cancelledLayerInteraction,
   }
@@ -290,6 +295,7 @@ export const activate_layer = (state, { layerId }) => {
   return {
     layers,
     activeLayerId: layerId,
+    ...dotVisibilityForLayer(state, layer),
     openMenus: closeIncompatibleLayerMenus(state.openMenus, layer),
     ...cancelledLayerInteraction,
   }
@@ -308,6 +314,7 @@ export const set_layer_visibility = (state, { layerId, visible }) => {
   return {
     layers,
     activeLayerId: next?.id ?? layerId,
+    ...(next ? dotVisibilityForLayer(state, next) : {}),
     ...(next ? { openMenus: closeIncompatibleLayerMenus(state.openMenus, next) } : {}),
     ...(next ? cancelledLayerInteraction : { ...cancelledLayerInteraction, toast: "Show or add a layer to edit" }),
   }
@@ -321,8 +328,15 @@ export const toggle_current_layer_visibility = (state) => {
 export const delete_layer = (state, { layerId = state.activeLayerId }) => {
   const targetIndex = state.layers.findIndex((layer) => layer.id === layerId)
   if (targetIndex === -1) return {}
-  if (state.layers.length === 1)
-    return { layers: [DrawingLayer.createFromIndex(1)], activeLayerId: "layer-1", ...cancelledLayerInteraction }
+  if (state.layers.length === 1) {
+    const layer = DrawingLayer.createFromIndex(1)
+    return {
+      layers: [layer],
+      activeLayerId: layer.id,
+      ...dotVisibilityForLayer(state, layer),
+      ...cancelledLayerInteraction,
+    }
+  }
 
   const layers = state.layers.filter((layer) => layer.id !== layerId)
   if (state.activeLayerId !== layerId) return { layers }
@@ -332,6 +346,7 @@ export const delete_layer = (state, { layerId = state.activeLayerId }) => {
   return {
     layers,
     activeLayerId: next.id,
+    ...dotVisibilityForLayer(state, next),
     openMenus: closeIncompatibleLayerMenus(state.openMenus, next),
     ...cancelledLayerInteraction,
   }

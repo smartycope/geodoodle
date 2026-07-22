@@ -2,7 +2,7 @@ import { useContext, useEffect, useMemo, useState } from "react"
 import { DragDropProvider } from "@dnd-kit/react"
 import { useSortable } from "@dnd-kit/react/sortable"
 import { move } from "@dnd-kit/helpers"
-import { Badge, Box, IconButton, Paper, Stack, TextField, Tooltip, Typography, useTheme } from "@mui/material"
+import { Badge, Box, IconButton, Paper, Stack, TextField, Tooltip, Typography } from "@mui/material"
 import AddIcon from "@mui/icons-material/Add"
 import CloseIcon from "@mui/icons-material/Close"
 import DeleteIcon from "@mui/icons-material/Delete"
@@ -80,7 +80,7 @@ function LayerPreview({ layer }) {
     return (
       <Badge
         variant="dot"
-        color="primary"
+        color="secondary"
         anchorOrigin={{
           vertical: "top",
           horizontal: "right",

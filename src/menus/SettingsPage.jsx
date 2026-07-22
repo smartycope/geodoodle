@@ -70,6 +70,7 @@ export default function SettingsPage() {
     gestureScaleSensitivity,
     smoothGestureScale,
     dotsAboveArtwork,
+    autoHideDotsOnTrellis,
     paperColor,
     backgroundImage,
     defaultToMemorableNames,
@@ -418,6 +419,21 @@ export default function SettingsPage() {
 
         {/* Advanced */}
         <StyledSubheader>Advanced</StyledSubheader>
+        <Setting
+          label="Hide Dots on Trellis Layers"
+          help="Automatically hide dots on Trellis layers and show them on drawing layers"
+        >
+          <Checkbox
+            checked={autoHideDotsOnTrellis}
+            onChange={() =>
+              dispatch({
+                action: "set_manual_and_save_settings",
+                autoHideDotsOnTrellis: !autoHideDotsOnTrellis,
+              })
+            }
+          />
+        </Setting>
+
         <Setting
           label="Use Fancy Glow"
           help="Uses a prettier glow effect, but may reduce performance on large patterns or on mobile devices"
