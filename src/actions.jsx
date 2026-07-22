@@ -161,6 +161,14 @@ export const go_to_selection = (state) => {
         Point.fromViewport(state, viewportWidth() / 2, viewportHeight() / 2).sub(boundRect.center),
       ),
     }
+  else{
+    const rect = getLinesRect(state.lines)
+    return {
+      translation: state.translation.add(
+        Point.fromViewport(state, viewportWidth() / 2, viewportHeight() / 2).sub(rect.center),
+      ),
+    }
+  }
 }
 
 export const left = (state) => moveCursor(state, -1, 0)
