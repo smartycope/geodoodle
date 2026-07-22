@@ -49,7 +49,6 @@ export const gridItemSx = {
   },
 }
 
-
 // For the toolbar
 const matchesLayer = (button, layer) => !button.layer || button.layer === layer
 
@@ -70,7 +69,9 @@ export const getToolbarButtons = (priorityLevel, layer) =>
 export const getExtraMenuButtons = (priorityLevel, layer) =>
   toolbarButtons.items.filter(
     (button) =>
-      button.menu !== "extra" && matchesLayer(button, layer) && !getToolbarButtons(priorityLevel, layer).includes(button),
+      button.menu !== "extra" &&
+      matchesLayer(button, layer) &&
+      !getToolbarButtons(priorityLevel, layer).includes(button),
   )
 
 export const getToolbarPriorityLevels = (layer) => {

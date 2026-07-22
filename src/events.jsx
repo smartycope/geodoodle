@@ -540,8 +540,7 @@ export function onBlur(state, dispatch, e) {
   rightSelectionDragging = false
   rightDragStart = null
   rightClipboardMouseDown = false
-  if (state.deletingSelection || state.middleDragStart)
-    dispatch({ deletingSelection: false, middleDragStart: null })
+  if (state.deletingSelection || state.middleDragStart) dispatch({ deletingSelection: false, middleDragStart: null })
   setTimeout(function () {
     if (document.activeElement.nodeName !== "INPUT" || document.activeElement.type === "checkbox") e.target.focus()
   }, 100)

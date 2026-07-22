@@ -11,12 +11,7 @@ import { isMobile } from "../utils/misc"
 import { getActiveLayer } from "../utils/layers"
 import TrellisLayer from "../classes/TrellisLayer"
 import DrawingLayer from "../classes/DrawingLayer"
-import {
-  getFittingToolbarLevel,
-  getLayerToolbarButtons,
-  getToolbarButtonId,
-  getToolbarButtons,
-} from "../utils/menus"
+import { getFittingToolbarLevel, getLayerToolbarButtons, getToolbarButtonId, getToolbarButtons } from "../utils/menus"
 import { viewportHeight, viewportWidth } from "../globals"
 
 function Toolbar() {
@@ -138,8 +133,7 @@ function Toolbar() {
   const renderButton = (button) => {
     const buttonId = getToolbarButtonId(button)
 
-    if (button.component === "extraButton")
-      return <ExtraButton key={buttonId} data-toolbar-item={buttonId} />
+    if (button.component === "extraButton") return <ExtraButton key={buttonId} data-toolbar-item={buttonId} />
 
     const props = {
       menu: button.menu,

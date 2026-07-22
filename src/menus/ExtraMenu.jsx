@@ -14,7 +14,8 @@ function ExtraMenuMui() {
   const { priorityLevel } = useContext(ToolbarLayoutContext)
 
   const activeLayer = getActiveLayer(state)
-  const activeLayerType = activeLayer instanceof TrellisLayer ? "trellis" : activeLayer instanceof DrawingLayer ? "drawing" : undefined
+  const activeLayerType =
+    activeLayer instanceof TrellisLayer ? "trellis" : activeLayer instanceof DrawingLayer ? "drawing" : undefined
   const overflowButtons = getExtraMenuButtons(priorityLevel, activeLayerType)
 
   if (!overflowButtons.length) return null

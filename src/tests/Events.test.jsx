@@ -219,7 +219,9 @@ describe("mouse interactions with an active clipboard", () => {
     onMouseUp(interactionState, dispatch, mouseEvent(button, 200, 200))
 
     expect(dispatch).toHaveBeenCalled()
-    expect(dispatch.mock.calls.every(([action]) => !actionName(action) || actionName(action) === "cursor_moved")).toBe(true)
+    expect(dispatch.mock.calls.every(([action]) => !actionName(action) || actionName(action) === "cursor_moved")).toBe(
+      true,
+    )
   })
 
   test.each([

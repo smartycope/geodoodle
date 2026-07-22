@@ -162,7 +162,7 @@ export const go_to_selection = (state) => {
         Point.fromViewport(state, viewportWidth() / 2, viewportHeight() / 2).sub(boundRect.center),
       ),
     }
-  else{
+  else {
     const rect = getLinesRect(state.lines)
     return {
       translation: state.translation.add(

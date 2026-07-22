@@ -390,7 +390,8 @@ describe("Navigation Actions", () => {
       expect(selectionCenter.y).toBeCloseTo(viewportHeight() / 2)
     })
 
-    test("should return undefined if there is no selection", () => {
+      // TODO: fix this, the test is out of date
+    test("should go to the lines if there is no selection", () => {
       const stateWithoutSelection = {
         ...state,
         bounds: [],
@@ -1515,7 +1516,8 @@ describe("UI Actions", () => {
 
       expect(activate_layer(configuredState, { layerId: trellis.id }).hideDots).toBe(true)
       expect(
-        activate_layer({ ...configuredState, activeLayerId: trellis.id, hideDots: true }, { layerId: drawing.id }).hideDots,
+        activate_layer({ ...configuredState, activeLayerId: trellis.id, hideDots: true }, { layerId: drawing.id })
+          .hideDots,
       ).toBe(false)
     })
   })
