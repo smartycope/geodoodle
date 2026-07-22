@@ -142,7 +142,7 @@ export const keybindable = [
   // bindable("delete_selected", "Delete selected lines"),
   bindable("increase_stroke_width", "Increase stroke width"),
   bindable("decrease_stroke_width", "Decrease stroke width"),
-  bindable("paint_selected", "Paint selected lines"),
+  bindable("paint_selected", "Paint selected geometry"),
   bindable("fill", "Fill area"),
   bindable("clear_fill", "Clear fill"),
   bindable("clear_mirror_origins", "Clear all mirror origins"),

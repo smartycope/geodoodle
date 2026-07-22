@@ -51,11 +51,10 @@ export function splitAllLines(lines) {
 // If retranslated is falsey, the lines will be returned as they are
 export function getSelected(state, retranslated, polygons = false) {
   const lines = state.lines ?? []
-  const filledPolys = state.filledPolys ?? []
   const boundRect = getBoundRect(state)
   const selectedLines = lines.filter((obj) => obj.isSelected(state, boundRect))
   let selected = selectedLines
-  if (polygons && boundRect) selected = selected.concat(filledPolys.filter((obj) => obj.isSelected(state, boundRect)))
+  if (polygons) selected = selected.concat(getSelectedPolygons(state, boundRect))
 
   if (!selected.length || !retranslated) return selected
 
@@ -67,6 +66,11 @@ export function getSelected(state, retranslated, polygons = false) {
   if (retranslated === "center") return selected.map((obj) => obj.relativeTo(selectionRect.center))
   else if (retranslated === "topLeft") return selected.map((obj) => obj.relativeTo(selectionRect.topLeft))
   else return selected
+}
+
+export function getSelectedPolygons(state, boundRect = getBoundRect(state)) {
+  if (!boundRect) return []
+  return (state.filledPolys ?? []).filter((poly) => poly.isSelected(state, boundRect))
 }
 
 export function getLinesRect(lines) {

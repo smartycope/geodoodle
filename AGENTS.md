@@ -129,6 +129,7 @@ Use `Point`/`Dist` conversions and shared helpers; do not hand-roll transforms o
 - Middle click runs `delete_at_cursor`; middle drag runs `delete_specific_line`. Right click retains `continue_line`; right drag completes bounded deletion. Preserve clicks when pixel movement stays within the same snapped point.
 - Mirroring uses `Point.mirror(state)` as the shared expansion path for active page/cursor transforms and saved origins. Keep `Point`, `Line`, `drawing.jsx:MirrorMetaLines`, and `src/menus/MirrorMenu.jsx` aligned.
 - Fill mode operates only on `DrawingLayer`: normalize/split lines, Turf-polygonize, and preview `Poly` instances under physical `mousePos`.
+- `paint_selected` uses active line aesthetics in ordinary mode and the active fill color on bounded selected polygons in fill mode.
 - Clipboard paste and preview share `src/utils/lines.js:getAllClipboardLines`: position at `cursorPos`, apply clipboard flip/rotation, then expand with `Point.mirror(state)`.
 - `rotateClipboardOnScroll` defaults true. With a clipboard, unmodified wheel rotates in 90-degree steps when enabled; modifiers retain canvas transform meanings.
 - Ordinary content actions must reject a hidden active layer and must not write drawing fields onto `TrellisLayer`.

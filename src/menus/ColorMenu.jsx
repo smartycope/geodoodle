@@ -11,7 +11,7 @@ import MiniMenu from "../components/MiniMenu"
 import Typography from "@mui/material/Typography"
 
 import { StateContext } from "../Contexts"
-import { getSelected } from "../utils/lines"
+import { getSelected, getSelectedPolygons } from "../utils/lines"
 import { getShowableStroke } from "../utils/color"
 import useMediaQuery from "@mui/material/useMediaQuery"
 import { useTheme } from "@mui/material/styles"
@@ -31,7 +31,7 @@ export default function ColorMenu() {
     state
   const colors = fillMode ? fill : stroke
   const compact = mobile || shortViewport
-  const hasSelection = getSelected(state).length > 0
+  const hasSelection = (fillMode ? getSelectedPolygons(state) : getSelected(state)).length > 0
 
   return (
     <MiniMenu menu="color">
@@ -143,8 +143,8 @@ export default function ColorMenu() {
           </Box>
         </Box>
 
-        {!fillMode && (
-          <Stack spacing={0.75} sx={{ pt: 0.25 }}>
+        <Stack spacing={0.75} sx={{ pt: 0.25 }}>
+          {!fillMode && (
             <Box
               sx={{
                 display: "grid",
@@ -174,17 +174,17 @@ export default function ColorMenu() {
                 sx={{ "& .MuiInputBase-root": { height: 32 } }}
               />
             </Box>
-            <Button
-              id="color-menu-paint-selection-button"
-              size="small"
-              disabled={!hasSelection}
-              onClick={() => dispatch("paint_selected")}
-              sx={{ alignSelf: "flex-start", px: 1.25, textTransform: "none" }}
-            >
-              Paint selection
-            </Button>
-          </Stack>
-        )}
+          )}
+          <Button
+            id="color-menu-paint-selection-button"
+            size="small"
+            disabled={!hasSelection}
+            onClick={() => dispatch("paint_selected")}
+            sx={{ alignSelf: "flex-start", px: 1.25, textTransform: "none" }}
+          >
+            Paint selection
+          </Button>
+        </Stack>
 
         <Divider />
 

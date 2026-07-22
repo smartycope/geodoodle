@@ -61,6 +61,7 @@ import Point from "../classes/Point.js"
 import Dist from "../classes/Dist.js"
 import Line from "../classes/Line.jsx"
 import Rect from "../classes/Rect.jsx"
+import Poly from "../classes/Poly.jsx"
 import { getDefaultTestingState, getState } from "./testUtils"
 import { MIRROR_AXIS, MIRROR_ROT, MIRROR_TYPE } from "../globals"
 import { viewportHeight, viewportWidth } from "../globals"
@@ -857,6 +858,29 @@ describe("Color Actions", () => {
       lineJoin: "bevel",
     })
     expect(result.lines[1]).toBe(unselected)
+  })
+
+  test("paints selected polygons instead of lines in fill mode", () => {
+    const state = getState()
+    const selectedPoly = new Poly([new Point(1, 1), new Point(4, 1), new Point(1, 4)], "#111111")
+    const unselectedPoly = new Poly([new Point(20, 20), new Point(24, 20), new Point(20, 24)], "#222222")
+    const line = new Line(state, new Point(1, 1), new Point(4, 4), { stroke: "#333333" })
+    const selectedState = {
+      ...state,
+      fillMode: true,
+      colorProfile: 1,
+      fill: ["#000000", "#abcdef"],
+      bounds: [new Point(0, 0), new Point(10, 10)],
+      lines: [line],
+      filledPolys: [selectedPoly, unselectedPoly],
+    }
+
+    const result = paint_selected(selectedState)
+
+    expect(result.lines).toBeUndefined()
+    expect(result.filledPolys[0]).not.toBe(selectedPoly)
+    expect(result.filledPolys[0].color).toBe("#abcdef")
+    expect(result.filledPolys[1]).toBe(unselectedPoly)
   })
 
   test("sets and clears a background image while keeping the paper color in sync", () => {

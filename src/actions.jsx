@@ -15,6 +15,7 @@ import {
   normalizeLines,
   splitAllLines,
   getSelected,
+  getSelectedPolygons,
   getLinesRect,
 } from "./utils/lines"
 import { randomizeColor } from "./utils/color"
@@ -600,6 +601,16 @@ export const set_dash = (state, { dash }) => {
 }
 
 export const paint_selected = (state) => {
+  if (state.fillMode) {
+    const selected = new Set(getSelectedPolygons(state))
+    if (!selected.size) return {}
+
+    const color = state.fill[state.colorProfile]
+    return {
+      filledPolys: state.filledPolys.map((poly) => (selected.has(poly) ? poly.withColor(color) : poly)),
+    }
+  }
+
   const selected = new Set(getSelected(state))
   if (!selected.size) return {}
 

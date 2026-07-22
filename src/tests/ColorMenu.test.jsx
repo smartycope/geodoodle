@@ -5,6 +5,7 @@ import { StateContext } from "../Contexts"
 import { getState } from "./testUtils"
 import Line from "../classes/Line"
 import Point from "../classes/Point"
+import Poly from "../classes/Poly"
 
 vi.mock("react-color-palette", () => ({
   ColorPicker: ({ hideInput }) => <div data-testid="color-picker" data-hidden-inputs={hideInput.join(",")} />,
@@ -97,6 +98,18 @@ describe("Color Menu", () => {
     expect(enabledPaint.disabled).toBe(false)
     fireEvent.click(enabledPaint)
 
+    expect(dispatch).toHaveBeenCalledWith("paint_selected")
+  })
+
+  test("enables Paint selection for selected polygons in fill mode", () => {
+    const start = new Point(0, 0)
+    const end = new Point(4, 4)
+    const polygon = new Poly([new Point(1, 1), new Point(3, 1), new Point(1, 3)], "#111111")
+    const { dispatch } = renderColorMenu({ fillMode: true, filledPolys: [polygon], bounds: [start, end] })
+    const paint = screen.getByRole("button", { name: "Paint selection" })
+
+    expect(paint.disabled).toBe(false)
+    fireEvent.click(paint)
     expect(dispatch).toHaveBeenCalledWith("paint_selected")
   })
 })
