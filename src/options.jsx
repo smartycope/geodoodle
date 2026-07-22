@@ -47,6 +47,34 @@ const defaultOptions = {
 }
 export default defaultOptions
 
+// Toolbar order, responsive priority, and layer availability. Keep this as
+// the shared source for Toolbar and ExtraMenu.
+export const toolbarButtons = {
+  items: [
+    { menu: "extra", maxSlots: 8, disableTooltip: true },
+    { component: "extraButton", minSlots: 2 },
+    { menu: "help", minSlots: 9 },
+    { menu: "settings", minSlots: 9 },
+    { menu: "file", minSlots: 6 },
+    { menu: "navigation", minSlots: 7, layer: "drawing" },
+    { menu: "layers", minSlots: 4 },
+    { menu: "mirror", layer: "drawing" },
+    { menu: "clipboard", minSlots: 8, layer: "drawing" },
+    { menu: "delete", minSlots: 5, layer: "drawing" },
+    { menu: "select", minSlots: 2, layer: "drawing" },
+    { menu: "toggle_dots", minSlots: 3, layer: "trellis", action: "toggle_dots" },
+    { menu: "reset", minSlots: 2, layer: "trellis", action: "clear_active_layer" },
+    { menu: "offset", layer: "trellis" },
+    { menu: "skip", layer: "trellis" },
+    { menu: "flip", layer: "trellis" },
+    { menu: "rotate", layer: "trellis" },
+    { menu: "undo", action: "undoRedo" },
+    { menu: "color", layer: "drawing" },
+    { menu: "main", minSlots: 1 },
+  ],
+}
+
+
 const bindable = (id, label, defaultBindings = [], action = id) => ({
   id,
   label,

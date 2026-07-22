@@ -13,6 +13,8 @@
  * }
  */
 
+import {toolbarButtons} from "../options"
+
 export const boxSx = (theme) => ({
   bgcolor: theme.palette.background.default,
   borderRadius: theme.shape.borderRadius / 2,
@@ -46,3 +48,22 @@ export const gridItemSx = {
     pointerEvents: "all",
   },
 }
+
+
+// For the toolbar
+const matchesLayer = (button, layer) => !button.layer || button.layer === layer
+
+export const getToolbarButtons = (extraSlots, layer) =>
+  toolbarButtons.items.filter(
+    (button) =>
+      matchesLayer(button, layer) &&
+      (!button.minSlots || extraSlots >= button.minSlots) &&
+      (button.maxSlots === undefined || extraSlots <= button.maxSlots),
+  )
+
+// Every layer-appropriate button that is not currently in the toolbar belongs
+// in the Extra menu. The Extra menu trigger itself is never listed inside it.
+export const getExtraMenuButtons = (extraSlots, layer) =>
+  toolbarButtons.items.filter(
+    (button) => button.menu !== "extra" && matchesLayer(button, layer) && !getToolbarButtons(extraSlots, layer).includes(button),
+  )

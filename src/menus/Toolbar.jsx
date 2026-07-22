@@ -12,6 +12,7 @@ import { isMobile } from "../utils/misc"
 import { getActiveLayer } from "../utils/layers"
 import TrellisLayer from "../classes/TrellisLayer"
 import DrawingLayer from "../classes/DrawingLayer"
+import { getToolbarButtons } from "../utils/menus"
 
 // TODO: On a sideways mobile screen, the toolbar goes off the screen
 function Toolbar() {
@@ -88,6 +89,26 @@ function Toolbar() {
   const activeLayer = getActiveLayer(state)
   const trellis = activeLayer instanceof TrellisLayer
   const drawing = activeLayer instanceof DrawingLayer
+  const activeLayerType = trellis ? "trellis" : drawing ? "drawing" : undefined
+
+  const renderButton = (button) => {
+    if (button.layer && button.layer !== activeLayerType) return null
+    if (button.minSlots && extraSlots < button.minSlots) return null
+    if (button.maxSlots !== undefined && extraSlots > button.maxSlots) return null
+
+    if (button.component === "extraButton") return <ExtraButton key="extra-button" />
+
+    const props = {
+      menu: button.menu,
+    }
+    if (button.disableTooltip) props.disableTooltip = state.openMenus[button.menu]
+    if (button.action === "undoRedo") {
+      props.onClick = handleUndoClick
+      props.onContextMenu = handleUndoContextMenu
+    } else if (button.action) props.onClick = () => dispatch(button.action)
+
+    return <ToolButton {...props} key={button.menu ?? button.component} />
+  }
 
   // Returns the Toolbar, as well as all the menus
   const toolbar = (
@@ -128,36 +149,7 @@ function Toolbar() {
           background: theme.alpha(theme.palette.background.paper, state.toolbarOpacity),
         }}
       >
-        {/* This essentially is the config for the toolbar.
-          This defines the order, priority, and conditions of the tool buttons */}
-        {/* TODO: turn this into an object in options.jsx */}
-        {extraSlots < 9 && <ToolButton menu="extra" disableTooltip={state.openMenus.extra} />}
-        {/* This is the button which is dynamically set in settings */}
-        {extraSlots >= 1 && <ExtraButton />}
-        {extraSlots >= 9 && <ToolButton menu="help" />}
-        {extraSlots >= 9 && <ToolButton menu="settings" />}
-        {extraSlots >= 6 && <ToolButton menu="file" />}
-        {drawing && extraSlots >= 7 && <ToolButton menu="navigation" />}
-        {extraSlots >= 4 && <ToolButton menu="layers" />}
-        {/* {extraSlots >= 3 && <ToolButton menu="repeat" />} */}
-        {/* Leaving it out, for now */}
-        {drawing && <ToolButton menu="mirror" />}
-        {/* <ToolButton menu="mirror" /> */}
-        {drawing && extraSlots >= 8 && <ToolButton menu="clipboard" />}
-        {drawing && extraSlots >= 5 && <ToolButton menu="delete" />}
-        {drawing && extraSlots >= 2 && <ToolButton menu="select" />}
-
-        {trellis && extraSlots >= 3 && <ToolButton menu="toggle_dots" onClick={() => dispatch("toggle_dots")} />}
-        {trellis && <ToolButton menu="reset" onClick={() => dispatch("clear_active_layer")} />}
-        {trellis && <ToolButton menu="offset" />}
-        {trellis && <ToolButton menu="skip" />}
-        {trellis && <ToolButton menu="flip" />}
-        {trellis && <ToolButton menu="rotate" />}
-
-        {/* TODO: test and see if I like this in Trellis layers as well */}
-        <ToolButton menu="undo" onClick={handleUndoClick} onContextMenu={handleUndoContextMenu} />
-        {drawing && <ToolButton menu="color" />}
-        <ToolButton menu="main" />
+        {getToolbarButtons(extraSlots, activeLayerType).map(renderButton)}
       </MuiPaper>
     </Box>
   )
