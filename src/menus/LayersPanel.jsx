@@ -2,7 +2,7 @@ import { useContext, useEffect, useMemo, useState } from "react"
 import { DragDropProvider } from "@dnd-kit/react"
 import { useSortable } from "@dnd-kit/react/sortable"
 import { move } from "@dnd-kit/helpers"
-import { Badge, Box, IconButton, Paper, Stack, TextField, Tooltip, Typography } from "@mui/material"
+import { Badge, Box, IconButton, Paper, Stack, TextField, Tooltip, Typography, useTheme } from "@mui/material"
 import AddIcon from "@mui/icons-material/Add"
 import CloseIcon from "@mui/icons-material/Close"
 import DeleteIcon from "@mui/icons-material/Delete"
@@ -17,6 +17,7 @@ const PREVIEW_WIDTH = 76
 const PREVIEW_HEIGHT = 56
 
 function LayerPreview({ layer }) {
+  const { state } = useContext(StateContext)
   const geometry = useMemo(() => {
     if (layer instanceof TrellisLayer) return layer.materializeSource()
     if (layer instanceof DrawingLayer) return { lines: layer.lines, filledPolys: layer.filledPolys }
@@ -49,7 +50,7 @@ function LayerPreview({ layer }) {
       height={PREVIEW_HEIGHT}
       viewBox={`${left - pad} ${top - pad} ${width + pad * 2} ${height + pad * 2}`}
       preserveAspectRatio="xMidYMid meet"
-      style={{ overflow: "hidden", borderRadius: 6, background: "rgba(127,127,127,.08)" }}
+      style={{ overflow: "hidden", borderRadius: 6, background: state.paperColor }}
     >
       {geometry.filledPolys.map((poly, index) => (
         <polygon
