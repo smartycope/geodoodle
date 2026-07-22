@@ -49,21 +49,22 @@ export default defaultOptions
 
 // Toolbar order, responsive priority, and layer availability. Keep this as
 // the shared source for Toolbar and ExtraMenu.
+// The lower the minSlots value, the higher the priority.
 export const toolbarButtons = {
   items: [
     { menu: "extra", maxSlots: 8, disableTooltip: true },
     { component: "extraButton", minSlots: 2 },
-    { menu: "help", minSlots: 9 },
-    { menu: "settings", minSlots: 9 },
-    { menu: "file", minSlots: 6 },
+    { menu: "help",       minSlots: 10 },
+    { menu: "settings",   minSlots: 9 },
+    { menu: "file",       minSlots: 6 },
     { menu: "navigation", minSlots: 7, layer: "drawing" },
-    { menu: "layers", minSlots: 4 },
+    { menu: "layers",     minSlots: 4 },
     { menu: "mirror", layer: "drawing" },
-    { menu: "clipboard", minSlots: 8, layer: "drawing" },
-    { menu: "delete", minSlots: 5, layer: "drawing" },
-    { menu: "select", minSlots: 2, layer: "drawing" },
-    { menu: "toggle_dots", minSlots: 3, layer: "trellis", action: "toggle_dots" },
-    { menu: "reset", minSlots: 2, layer: "trellis", action: "clear_active_layer" },
+    { menu: "clipboard",  minSlots: 8, layer: "drawing" },
+    { menu: "delete",     minSlots: 5, layer: "drawing" },
+    { menu: "select",     minSlots: 3, layer: "drawing" },
+    { menu: "toggle_dots",minSlots: 4, layer: "trellis", action: "toggle_dots" },
+    { menu: "reset",      minSlots: 3, layer: "trellis", action: "clear_active_layer" },
     { menu: "offset", layer: "trellis" },
     { menu: "skip", layer: "trellis" },
     { menu: "flip", layer: "trellis" },

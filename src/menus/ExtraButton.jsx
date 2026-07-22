@@ -3,7 +3,7 @@ import { StateContext } from "../Contexts"
 import ToolButton from "../components/ToolButton"
 import { extraButtons } from "../globals"
 
-export default function ExtraButton({ style }) {
+export default function ExtraButton({ style, ...props }) {
   const { state, dispatch } = useContext(StateContext)
 
   return (
@@ -12,6 +12,7 @@ export default function ExtraButton({ style }) {
       onClick={() => dispatch(extraButtons[state.extraButton])}
       menu={state.extraButton}
       style={style}
+      {...props}
     />
   )
 }

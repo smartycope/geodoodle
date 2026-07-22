@@ -4,3 +4,4 @@ import { createContext } from "react"
 // Returns [state, dispatch]
 export const StateContext = createContext({})
 export const InTourContext = createContext(false)
+export const ToolbarLayoutContext = createContext({ priorityLevel: 0, setPriorityLevel: () => {} })

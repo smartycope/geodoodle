@@ -1,6 +1,5 @@
-import { MIRROR_AXIS } from "../globals"
+import { MIRROR_AXIS, viewportHeight, viewportWidth } from "../globals"
 import Point from "../classes/Point"
-import { viewportHeight, viewportWidth } from "../globals"
 
 // NOTE: this can be used anywhere. The state also has a state.mobile attribute. The difference is that state.mobile gets
 // updated once at the beginning (on refresh), and isMobile() is always accurate. Because users typically aren't changing
@@ -79,49 +78,6 @@ export function unique(arr) {
   // I don't understand why Sets stopped working suddenly
   // return Array.from(new Set(arr))
   return arr.filter((point, index, self) => self.findIndex((p) => p.eq(point)) === index)
-}
-
-// let extraSlotsCache = { buttonWidth: 50, buttonMargin: 10, toolbarPadding: 10 }
-// addEventListener('resize', () => {
-//     const toolButton = document.getElementById('main-tool-button')
-//     // If we can't get it, the toolbar is closed and it's not relevant anyway
-//     // console.log({toolButton})
-//     if (toolButton){
-//         [extraSlotsCache.buttonWidth, extraSlotsCache.buttonHeight] = getWHofelement(toolButton)
-//         extraSlotsCache.toolbarPadding = parseFloat(getComputedStyle(toolButton.parentElement).padding.replace('px', ''))
-//     }
-// })
-// TODO: this is getting there, but it's still not there yet
-// export function extraSlotsNew(state) {
-//   const vertical = ["left", "right"].includes(state.side)
-//   // let sideLen = vertical ? viewportHeight() : viewportWidth()
-//   let sideLen = vertical ? window.innerHeight : window.innerWidth
-
-//   const minButtons = 8
-//   const buttonSize = vertical ? extraSlotsCache.buttonHeight : extraSlotsCache.buttonWidth
-//   const toolbarPadding = extraSlotsCache.toolbarPadding
-//   // Desired space between edge of toolbar and edge of screen
-//   const margin = 10
-
-//   const hasRoomFor = Math.floor((sideLen - margin * 2 - toolbarPadding * 2) / buttonSize)
-
-//   return hasRoomFor - minButtons
-// }
-
-// This still works better (for now)
-export function extraSlots(state) {
-  let sideLen
-  switch (state.side) {
-    case "right":
-    case "left":
-      sideLen = viewportHeight()
-      break
-    case "bottom":
-    case "top":
-      sideLen = viewportWidth()
-  }
-
-  return Math.floor((sideLen - 400) / 60)
 }
 
 export const needsImplementedError = (func) => {

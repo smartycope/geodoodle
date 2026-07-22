@@ -4,7 +4,7 @@ import { PREVENT_LOADING_STATE } from "./globals"
 import reducer from "./reducer"
 import Toolbar from "./menus/Toolbar"
 import { loadCloud, loadUsername, loadPreservedState, preserveState, saveUsername, saveLocally } from "./utils/files"
-import { StateContext } from "./Contexts"
+import { StateContext, ToolbarLayoutContext } from "./Contexts"
 import generateTheme from "./styling/theme"
 import useMediaQuery from "@mui/material/useMediaQuery"
 import { ThemeProvider } from "@mui/material/styles"
@@ -47,6 +47,7 @@ export default function Paper({ setDispatch }) {
   const activeState = useMemo(() => getLayerState(state), [state])
   const [resolvingSharedLink, setResolvingSharedLink] = useState(Boolean(sharedPatternParams))
   const [sharedPatternConflict, setSharedPatternConflict] = useState(null)
+  const [toolbarPriorityLevel, setToolbarPriorityLevel] = useState(0)
   const { dotsAboveArtwork, paperColor, fillMode, themeMode } = activeState
   const editingEnabled = state.layers.find((layer) => layer.id === state.activeLayerId)?.visible !== false
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)")
@@ -176,13 +177,17 @@ export default function Paper({ setDispatch }) {
         />
         <div>
           <Toast />
-          <Toolbar />
-          <Menus />
+          <ToolbarLayoutContext.Provider
+            value={{ priorityLevel: toolbarPriorityLevel, setPriorityLevel: setToolbarPriorityLevel }}
+          >
+            <Toolbar />
+            <Menus />
+          </ToolbarLayoutContext.Provider>
           {/* onCopy, onPaste, and onCut are implemented with keyboard shortcuts instead of here, so they can be changed */}
           <svg
             id="paper"
-            width="100%"
-            height="101vh"
+            width="100vw"
+            height="100vh"
             tabIndex={0}
             ref={paper}
             onKeyDown={(e) => events.onKeyDown(activeState, dispatch, e)}

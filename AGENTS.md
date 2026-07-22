@@ -31,7 +31,7 @@ browser input → src/events.jsx → dispatch → src/reducer.jsx → src/action
 - `src/index.jsx` mounts `<App />` in `StrictMode`.
 - `src/App.jsx` disables the browser context menu, initializes local storage, and hosts the guided tour outside `Paper` to avoid a tour/state render loop.
 - `src/Paper.jsx` creates state with `getInitialState()`, owns `useReducer`, installs non-passive wheel/touch listeners, loads preserved/shared state, provides `StateContext`, and defines SVG layer order.
-- `src/Contexts.jsx` exports `StateContext` (`{ state, dispatch }`) and the tour context.
+- `src/Contexts.jsx` exports `StateContext` (`{ state, dispatch }`), the transient measured toolbar-priority context, and the tour context.
 - `src/states.jsx` is the canonical global state shape. Durable artwork belongs in `state.layers`; temporary pointer/menu state remains global.
 - `src/classes/Layer.js` is an abstract base that owns only `id`, `name`, and `visible` plus polymorphic contracts.
 - `src/classes/DrawingLayer.js` owns ordinary lines, polygons, bounds, selectors, and mirror origins.
@@ -40,7 +40,7 @@ browser input → src/events.jsx → dispatch → src/reducer.jsx → src/action
 - `src/utils/layers.js` owns active-layer lookup/projection, immutable replacement, subclass detection, and JSON revival. Keep its projection and result normalization type-aware.
 - `src/reducer.jsx` accepts a string action, `{ action, ...args }`, or a plain partial state object. It handles undo snapshots, invokes `actions[action]`, normalizes layer results, merges state, and triggers persistence.
 - `src/actions.jsx` contains reducer-only action functions. An action receives `(state, data)` and normally returns a partial state object.
-- `src/options.jsx` contains defaults, editable keybindings, and undo/persistence registration lists.
+- `src/options.jsx` contains defaults, toolbar button priority/configuration, editable keybindings, and undo/persistence registration lists.
 - `src/globals.js` contains enums, storage keys, viewport helpers, undo/redo stacks, and debug flags.
 
 ### Layer invariants
@@ -76,6 +76,7 @@ Tests and serializers must construct the concrete subclass they exercise; import
 - `src/drawing.jsx:ArtworkLayers` renders visible layers bottom-to-top. It renders polygons/lines for `DrawingLayer` and finite repeated tiles for `TrellisLayer`, sharing Trellis safety budgets across visible Trellis layers.
 - `src/menus/LayersPanel.jsx` owns creation, activation, rename, visibility, deletion, subclass-aware previews, and dnd-kit reordering. The panel lists topmost first.
 - `src/menus/Toolbar.jsx` owns responsive layout and switches available tools by active layer subclass.
+- Toolbar capacity is measured from its rendered buttons before paint; `src/utils/menus.js` chooses the fullest configured priority level that fits and supplies the complementary Extra-menu buttons.
 - Feature-specific controls live in `src/menus/`; reusable UI primitives live in `src/components/`.
 - `src/components/ToolButton.jsx` maps tool names to icons and menu actions. `MiniMenu.jsx`, `Page.jsx`, `Number.jsx`, `ShortcutHint.jsx`, and `TrellisSubMenu.jsx` are shared primitives.
 - Trellis control menus are `src/menus/OffsetMenu.jsx`, `SkipMenu.jsx`, `FlipMenu.jsx`, and `RotateMenu.jsx`.

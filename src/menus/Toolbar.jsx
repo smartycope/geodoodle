@@ -1,6 +1,5 @@
-import { useContext, useState, useEffect } from "react"
-import { StateContext } from "../Contexts"
-import { extraSlots as _extraSlots } from "../utils/misc"
+import { useContext, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { StateContext, ToolbarLayoutContext } from "../Contexts"
 import { useTheme } from "@mui/material/styles"
 import Box from "@mui/material/Box"
 import MuiPaper from "@mui/material/Paper"
@@ -12,22 +11,33 @@ import { isMobile } from "../utils/misc"
 import { getActiveLayer } from "../utils/layers"
 import TrellisLayer from "../classes/TrellisLayer"
 import DrawingLayer from "../classes/DrawingLayer"
-import { getToolbarButtons } from "../utils/menus"
+import {
+  getFittingToolbarLevel,
+  getLayerToolbarButtons,
+  getToolbarButtonId,
+  getToolbarButtons,
+} from "../utils/menus"
+import { viewportHeight, viewportWidth } from "../globals"
 
-// TODO: On a sideways mobile screen, the toolbar goes off the screen
 function Toolbar() {
   const { state, dispatch } = useContext(StateContext)
-  const [, doReload] = useState()
+  const { priorityLevel, setPriorityLevel } = useContext(ToolbarLayoutContext)
+  const toolbarRef = useRef(null)
+  const [measuring, setMeasuring] = useState(true)
+  const [measuredLayout, setMeasuredLayout] = useState(null)
   const theme = useTheme()
 
   const { side } = state
-  const vertical = ["top", "bottom"].includes(side)
-  const extraSlots = _extraSlots(state)
+  const horizontal = ["top", "bottom"].includes(side)
 
-  // Reload this component when the window resizes, so extraSlots updates
   useEffect(() => {
-    window.addEventListener("resize", doReload)
-    return () => window.removeEventListener("resize", doReload)
+    const remeasure = () => setMeasuring(true)
+    window.addEventListener("resize", remeasure)
+    window.visualViewport?.addEventListener("resize", remeasure)
+    return () => {
+      window.removeEventListener("resize", remeasure)
+      window.visualViewport?.removeEventListener("resize", remeasure)
+    }
   }, [])
 
   const handleUndoClick = (e) => {
@@ -90,16 +100,50 @@ function Toolbar() {
   const trellis = activeLayer instanceof TrellisLayer
   const drawing = activeLayer instanceof DrawingLayer
   const activeLayerType = trellis ? "trellis" : drawing ? "drawing" : undefined
+  const layoutKey = `${side}:${activeLayerType}:${state.mobile}`
+  const needsMeasurement = measuring || measuredLayout !== layoutKey
+
+  useLayoutEffect(() => {
+    if (!state.openMenus.main || !needsMeasurement || !toolbarRef.current) return
+
+    const toolbar = toolbarRef.current
+    const toolbarStyle = getComputedStyle(toolbar)
+    const paddingLength = horizontal
+      ? parseFloat(toolbarStyle.paddingLeft) + parseFloat(toolbarStyle.paddingRight)
+      : parseFloat(toolbarStyle.paddingTop) + parseFloat(toolbarStyle.paddingBottom)
+    const buttonLengths = Object.fromEntries(
+      [...toolbar.querySelectorAll("[data-toolbar-item]")].map((element) => {
+        const style = getComputedStyle(element)
+        const size = horizontal ? element.offsetWidth : element.offsetHeight
+        const margins = horizontal
+          ? parseFloat(style.marginLeft) + parseFloat(style.marginRight)
+          : parseFloat(style.marginTop) + parseFloat(style.marginBottom)
+        return [element.dataset.toolbarItem, size + margins]
+      }),
+    )
+    const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+    const sideLength = horizontal ? viewportWidth() : viewportHeight()
+    const nextPriorityLevel = getFittingToolbarLevel({
+      availableLength: sideLength - rootFontSize,
+      buttonLengths,
+      paddingLength,
+      layer: activeLayerType,
+    })
+
+    setPriorityLevel(nextPriorityLevel)
+    setMeasuredLayout(layoutKey)
+    setMeasuring(false)
+  }, [activeLayerType, horizontal, layoutKey, needsMeasurement, setPriorityLevel, state.openMenus.main])
 
   const renderButton = (button) => {
-    if (button.layer && button.layer !== activeLayerType) return null
-    if (button.minSlots && extraSlots < button.minSlots) return null
-    if (button.maxSlots !== undefined && extraSlots > button.maxSlots) return null
+    const buttonId = getToolbarButtonId(button)
 
-    if (button.component === "extraButton") return <ExtraButton key="extra-button" />
+    if (button.component === "extraButton")
+      return <ExtraButton key={buttonId} data-toolbar-item={buttonId} />
 
     const props = {
       menu: button.menu,
+      "data-toolbar-item": buttonId,
     }
     if (button.disableTooltip) props.disableTooltip = state.openMenus[button.menu]
     if (button.action === "undoRedo") {
@@ -107,8 +151,12 @@ function Toolbar() {
       props.onContextMenu = handleUndoContextMenu
     } else if (button.action) props.onClick = () => dispatch(button.action)
 
-    return <ToolButton {...props} key={button.menu ?? button.component} />
+    return <ToolButton {...props} key={buttonId} />
   }
+
+  const visibleButtons = needsMeasurement
+    ? getLayerToolbarButtons(activeLayerType)
+    : getToolbarButtons(priorityLevel, activeLayerType)
 
   // Returns the Toolbar, as well as all the menus
   const toolbar = (
@@ -121,6 +169,7 @@ function Toolbar() {
       }}
     >
       <MuiPaper
+        ref={toolbarRef}
         id="menu-selector-mobile"
         elevation={4}
         sx={{
@@ -133,23 +182,24 @@ function Toolbar() {
           focusVisible: false,
           display: "flex",
           // TODO: I can't decide if this should be 'row' or 'row-reverse' -- I need feedback
-          flexDirection: vertical ? "row" : "column-reverse",
-          margin: 1,
+          flexDirection: horizontal ? "row" : "column-reverse",
+          margin: "0.5em",
           position: "absolute",
           // Don't allow the user to start lines between the buttons
           pointerEvents: "all",
-          width: "min-content",
-          height: "min-content",
+          width: "max-content",
+          height: "max-content",
+          visibility: needsMeasurement ? "hidden" : "visible",
           cursor: "pointer",
           borderRadius: theme.shape.borderRadius,
           "& .tool-button": {
-            mx: vertical ? 1 : 0,
-            my: vertical ? 0 : 1,
+            mx: horizontal ? 1 : 0,
+            my: horizontal ? 0 : 1,
           },
           background: theme.alpha(theme.palette.background.paper, state.toolbarOpacity),
         }}
       >
-        {getToolbarButtons(extraSlots, activeLayerType).map(renderButton)}
+        {visibleButtons.map(renderButton)}
       </MuiPaper>
     </Box>
   )

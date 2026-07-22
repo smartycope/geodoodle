@@ -1,44 +1,53 @@
-import { afterEach, describe, expect, test } from "vitest"
-import { extraSlots } from "../utils/misc"
-import { getExtraMenuButtons, getToolbarButtons, toolbarButtons } from "../options"
+import { describe, expect, test } from "vitest"
+import { toolbarButtons } from "../options"
+import {
+  getExtraMenuButtons,
+  getFittingToolbarLevel,
+  getToolbarButtonId,
+  getToolbarButtons,
+  getToolbarPriorityLevels,
+} from "../utils/menus"
 
-const originalVisualViewport = Object.getOwnPropertyDescriptor(window, "visualViewport")
-const buttonId = (button) => button.menu ?? button.component
+const toolbarLength = (level, layer, buttonLengths, paddingLength) =>
+  getToolbarButtons(level, layer).reduce(
+    (length, button) => length + buttonLengths[getToolbarButtonId(button)],
+    paddingLength,
+  )
 
-afterEach(() => {
-  if (originalVisualViewport) Object.defineProperty(window, "visualViewport", originalVisualViewport)
-  else delete window.visualViewport
-})
-
-describe("toolbar button availability", () => {
+describe("toolbar button sizing and availability", () => {
   test.each([
-    ["narrow horizontal", "top", 400, 768],
-    ["small horizontal", "top", 520, 768],
-    ["medium horizontal", "top", 760, 768],
-    ["wide horizontal", "top", 940, 768],
-    ["narrow vertical", "left", 1024, 400],
-    ["wide vertical", "left", 1024, 940],
-  ])("keeps every %s-layer button in the toolbar or Extra menu", (_, side, width, height) => {
-    Object.defineProperty(window, "visualViewport", {
-      configurable: true,
-      value: { width, height },
-    })
-    const slots = extraSlots({ side })
+    ["narrow horizontal", 340],
+    ["small horizontal", 460],
+    ["medium horizontal", 600],
+    ["wide horizontal", 900],
+    ["narrow vertical", 360],
+    ["wide vertical", 920],
+  ])("uses all available room at a %s viewport size", (_, viewportLength) => {
+    const endClearance = 16
+    const paddingLength = 16
+    const availableLength = viewportLength - endClearance
 
     for (const layer of ["drawing", "trellis"]) {
-      const toolbar = getToolbarButtons(slots, layer)
-      const extraMenu = getExtraMenuButtons(slots, layer)
-      const available = [...toolbar, ...extraMenu]
+      const layerButtons = toolbarButtons.items.filter((button) => !button.layer || button.layer === layer)
+      const buttonLengths = Object.fromEntries(
+        layerButtons.map((button, index) => [getToolbarButtonId(button), 44 + (index % 3) * 4]),
+      )
+      const level = getFittingToolbarLevel({ availableLength, buttonLengths, paddingLength, layer })
+      const toolbar = getToolbarButtons(level, layer)
+      const extraMenu = getExtraMenuButtons(level, layer)
+      const availableButtons = [...toolbar, ...extraMenu]
         .filter((button) => button.menu !== "extra")
-        .map(buttonId)
+        .map(getToolbarButtonId)
         .sort()
-      const expected = toolbarButtons.items
-        .filter((button) => button.menu !== "extra" && (!button.layer || button.layer === layer))
-        .map(buttonId)
+      const expectedButtons = layerButtons
+        .filter((button) => button.menu !== "extra")
+        .map(getToolbarButtonId)
         .sort()
 
-      expect(toolbar.map(buttonId).filter((id) => extraMenu.map(buttonId).includes(id))).toEqual([])
-      expect(available).toEqual(expected)
+      expect(toolbarLength(level, layer, buttonLengths, paddingLength)).toBeLessThanOrEqual(availableLength)
+      for (const higherLevel of getToolbarPriorityLevels(layer).filter((candidate) => candidate > level))
+        expect(toolbarLength(higherLevel, layer, buttonLengths, paddingLength)).toBeGreaterThan(availableLength)
+      expect(availableButtons).toEqual(expectedButtons)
     }
   })
 })
